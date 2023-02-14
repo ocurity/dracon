@@ -1,0 +1,22 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  generateName: dracon-terraform-project-
+  namespace: dracon
+spec:
+  pipelineRef:
+    name: dracon-terraform-project
+  params:
+  - name: repository_url
+    value: https://github.com/aquasecurity/tfsec
+  workspaces:
+  - name: source-code-ws
+    subPath: source-code
+    volumeClaimTemplate:
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 1Gi

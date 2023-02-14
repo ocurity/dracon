@@ -1,0 +1,41 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: producer-python-pip-safety
+  labels:
+    v1.dracon.ocurity.com/component: producer
+spec:
+  params:
+  - name: producer-python-pip-safety-input-dependency-file
+    type: string
+    default: ""
+  volumes:
+  - name: scratch
+    emptyDir: {}
+  workspaces:
+    - name: source-code-ws
+      description: The workspace containing the source-code to scan.
+  steps:
+  - name: run-pip-safety
+    imagePullPolicy: IfNotPresent
+    image: ghcr.io/ocurity/dracon/components/producers/python-pip-safety/tool:latest
+    script: |
+      set -x
+      cd $(workspaces.source-code-ws.path)
+      reqs=$(find . -iname "requirements.txt")
+      echo "Found ${reqs}"
+      safety check -r "${reqs}" --save-json /scratch/out.json || true
+    volumeMounts:
+    - mountPath: /scratch
+      name: scratch
+  - name: produce-issues
+    imagePullPolicy: IfNotPresent
+    image: ghcr.io/ocurity/dracon/components/producers/python-pip-safety/image:latest
+    command: ["app/components/producers/python-pip-safety/python-pip-safety-parser"]
+    args:
+    - "-in=/scratch/out.json"
+    - "-out=$(workspaces.source-code-ws.path)/.dracon/producers/python-pip-safety.pb"
+    volumeMounts:
+    - mountPath: /scratch
+      name: scratch

@@ -2,17 +2,17 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
+nameSuffix: -golang-project
 namespace: dracon
 
-commonLabels:
-  app: dracon
-  app.kubernetes.io/component: "pipeline"
-  dracon.thoughtmachine.io/pipeline: "golang-project"
-
 resources:
-- elasticsearch-consumer.yaml
-- enricher.yaml
-- git-source.yaml
-- gosec-producer.yaml
-- pipeline-run.yaml
-- pipeline.yaml
+  - ../../../components/base
+
+components:
+  - ../../../components/sources/git
+  - ../../../components/producers/aggregator
+  - ../../../components/producers/golang-gosec
+  - ../../../components/producers/golang-nancy
+  - ../../../components/enrichers/aggregator
+  - ../../../components/enrichers/deduplication
+  - ../../../components/consumers/mongodb

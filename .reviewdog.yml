@@ -1,0 +1,25 @@
+---
+runner:
+  golangci-lint:
+    cmd: ./pleasew run //build/lint:golangci-lint
+    errorformat:
+      - '%E%f:%l:%c: %m'
+      - '%E%f:%l: %m'
+      - '%C%.%#'
+    level: error
+
+  gofumpt:
+    cmd: ./pleasew run //build/lint:gofumpt
+    format: diff
+    level: error
+
+  buf_lint:
+    cmd: ./pleasew run "//third_party/binary/bufbuild/buf:buf|buf" -- lint --path api/
+    level: error
+    errorformat:
+      - '%f:%l:%c:%m'
+
+  buf_format:
+    cmd: ./pleasew run "//third_party/binary/bufbuild/buf:buf|buf" -- format --diff --path api/
+    format: diff
+    level: error

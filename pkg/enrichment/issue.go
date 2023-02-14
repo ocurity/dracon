@@ -2,7 +2,7 @@ package enrichment
 
 import (
 	"context"
-	"crypto/md5"
+	"crypto/sha256"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -10,52 +10,75 @@ import (
 	"log"
 	"strings"
 
-	v1 "github.com/thought-machine/dracon/api/proto/v1"
+	v1 "github.com/ocurity/dracon/api/proto/v1"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
-	"github.com/golang/protobuf/ptypes"
-	"github.com/thought-machine/dracon/pkg/enrichment/db"
+	"github.com/ocurity/dracon/pkg/enrichment/db"
 )
 
-// GetHash returns the hash of an issue
+// GetHash returns the hash of an issue.
+// TODO: return an err from this func.
 func GetHash(i *v1.Issue) string {
-	h := md5.New()
+	h := sha256.New()
 	sourceNoRef := strings.Split(i.GetSource(), "?ref=")
 
-	io.WriteString(h, i.GetTarget())
-	io.WriteString(h, i.GetType())
-	io.WriteString(h, i.GetTitle())
-	io.WriteString(h, sourceNoRef[0])
-	io.WriteString(h, i.GetSeverity().String())
-	io.WriteString(h, fmt.Sprintf("%f", i.GetCvss()))
-	io.WriteString(h, i.GetConfidence().String())
-	io.WriteString(h, i.GetDescription())
+	if _, err := io.WriteString(h, i.GetTarget()); err != nil {
+		log.Fatalf("could not write target hash: %s", err)
+	}
+	if _, err := io.WriteString(h, i.GetType()); err != nil {
+		log.Fatalf("could not write type hash: %s", err)
+	}
+	if _, err := io.WriteString(h, i.GetTitle()); err != nil {
+		log.Fatalf("could not write title hash: %s", err)
+	}
+	if _, err := io.WriteString(h, sourceNoRef[0]); err != nil {
+		log.Fatalf("could not write sourceNoRef hash :%s", err)
+	}
+	if _, err := io.WriteString(h, i.GetSeverity().String()); err != nil {
+		log.Fatalf("could not write severity hash: %s", err)
+	}
+	if _, err := io.WriteString(h, fmt.Sprintf("%f", i.GetCvss())); err != nil {
+		log.Fatalf("could not write cvss hash: %s", err)
+	}
+	if _, err := io.WriteString(h, i.GetConfidence().String()); err != nil {
+		log.Fatalf("could not write confidence hash: %s", err)
+	}
+	if _, err := io.WriteString(h, i.GetDescription()); err != nil {
+		log.Fatalf("could not write description hash: %s", err)
+	}
+	if _, err := io.WriteString(h, i.GetCve()); err != nil {
+		log.Fatalf("could not write cve hash: %s", err)
+	}
 
 	return fmt.Sprintf("%x", h.Sum(nil))
 }
 
-// NewEnrichedIssue returns a new enriched issue from a raw issue
+// NewEnrichedIssue returns a new enriched issue from a raw issue.
 func NewEnrichedIssue(i *v1.Issue) *v1.EnrichedIssue {
 	return &v1.EnrichedIssue{
 		RawIssue:      i,
-		FirstSeen:     ptypes.TimestampNow(),
+		FirstSeen:     timestamppb.Now(),
 		Count:         1,
 		FalsePositive: false,
-		UpdatedAt:     ptypes.TimestampNow(),
+		UpdatedAt:     timestamppb.Now(),
 		Hash:          GetHash(i),
 	}
 }
 
-// UpdateEnrichedIssue updates a given enriched issue
-func UpdateEnrichedIssue(i *v1.EnrichedIssue) {
+// UpdateEnrichedIssue updates a given enriched issue.
+func UpdateEnrichedIssue(i *v1.EnrichedIssue) *v1.EnrichedIssue {
 	i.Count++
-	i.UpdatedAt = ptypes.TimestampNow()
+	i.UpdatedAt = timestamppb.Now()
+	return i
 }
 
-// EnrichIssue enriches a given issue, returning an enriched issue once processed
+// EnrichIssue enriches a given issue, returning an enriched issue once processed.
 func EnrichIssue(db *db.DB, i *v1.Issue) (*v1.EnrichedIssue, error) {
 	hash := GetHash(i)
-	enrichedIssue, err := db.GetIssueByHash(hash)
+	enrichedIssue := NewEnrichedIssue(i)
+	dBIssue, err := db.GetIssueByHash(hash)
 	if errors.Is(err, sql.ErrNoRows) {
+		log.Printf("Issue %s is new, enriching \n", i.Uuid)
 		// create issue
 		enrichedIssue = NewEnrichedIssue(i)
 		err := db.CreateIssue(context.Background(), enrichedIssue)
@@ -67,8 +90,13 @@ func EnrichIssue(db *db.DB, i *v1.Issue) (*v1.EnrichedIssue, error) {
 	} else if err != nil {
 		return nil, err
 	}
+	// updat current issue db specific annotations with what we have in the database
+	enrichedIssue.FirstSeen = dBIssue.FirstSeen
+	enrichedIssue.Count = dBIssue.Count
+	enrichedIssue.FalsePositive = dBIssue.FalsePositive
+	enrichedIssue.UpdatedAt = dBIssue.UpdatedAt
 	// update issue
-	UpdateEnrichedIssue(enrichedIssue)
+	enrichedIssue = UpdateEnrichedIssue(enrichedIssue)
 	if err := db.UpdateIssue(context.Background(), enrichedIssue); err != nil {
 		return nil, err
 	}

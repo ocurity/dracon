@@ -1,0 +1,19 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: base
+  labels:
+    v1.dracon.ocurity.com/component: base
+spec:
+  results:
+    - name: dracon-scan-start-time
+      description: The scan start time
+    - name: dracon-scan-id
+      description: The scan unique id
+  steps:
+  - name: generate-scan-id-start-time
+    image: docker.io/busybox:1.35.0
+    script: |
+      cat /proc/sys/kernel/random/uuid | tee $(results.dracon-scan-id.path)
+      date +"%Y-%m-%dT%H:%M:%SZ" | tee $(results.dracon-scan-start-time.path)

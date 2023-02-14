@@ -1,0 +1,50 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: my-pipeline-component-patch-test
+spec:
+  tasks:
+  - name: my-component-task
+    params:
+    - name: my-input
+      value:
+      - $(tasks.my-task-a.results.my-output)
+    taskRef:
+      name: my-component-task-component-patch-test
+  - name: my-task-c
+    params:
+    - name: my-input
+      value:
+      - $(tasks.my-component-task.results.my-output)
+      - $(tasks.my-task-a.results.my-output)
+    taskRef:
+      name: my-task
+  - name: my-task-a
+    params:
+    - name: my-input
+      value:
+      - start
+    taskRef:
+      name: my-task
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: my-component-task-component-patch-test
+spec:
+  params:
+  - name: my-input
+    type: array
+  results:
+  - description: The path for the output this task produces.
+    name: my-output
+  steps:
+  - args:
+    - $(params.my-input[*])
+    image: docker.io/bash:5.2.15
+    name: run
+    script: |
+      #!/usr/bin/env bash
+      echo -e "$@\n$(context.taskRun.name)\n---" \
+      | tee $(results.my-output.path)

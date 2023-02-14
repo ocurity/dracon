@@ -1,0 +1,49 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: producer-ossf-scorecard
+  labels:
+    v1.dracon.ocurity.com/component: producer
+spec:
+  params:
+  # - name: producer-ossf-scorecard-flags
+  #   type: array
+  #   default: []
+  - name: producer-ossf-scorecard-input-repo
+    type: string
+  - name: producer-ossf-scorecard-github-auth-token
+    type: string
+
+  volumes:
+    - name: scratch
+      emptyDir: {}
+  workspaces:
+    - name: source-code-ws
+      description: The workspace containing the source-code to scan.
+  steps:
+  - name: run-ossf-scorecard
+    image: ghcr.io/ocurity/dracon/components/producers/ossf-scorecard/scorecard-dracon:latest
+    env:
+      - name: GITHUB_AUTH_TOKEN
+        value: "$(params.producer-ossf-scorecard-github-auth-token)"
+    script: |
+      /scorecard \
+      --format=json \
+      --show-details \
+      --repo=$(params.producer-ossf-scorecard-input-repo) >/scratch/out.json
+       # TODO(spyros): add flags here once scorecard can write results to file
+    volumeMounts:
+    - mountPath: /scratch
+      name: scratch
+
+  - name: produce-issues
+    imagePullPolicy: IfNotPresent
+    image: ghcr.io/ocurity/dracon/components/producers/ossf-scorecard/image:latest
+    command: ["app/components/producers/ossf-scorecard/ossf-scorecard-parser"]
+    args:
+    - "-in=/scratch/out.json"
+    - "-out=$(workspaces.source-code-ws.path)/.dracon/producers/ossf-scorecard.pb"
+    volumeMounts:
+    - mountPath: /scratch
+      name: scratch

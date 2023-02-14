@@ -1,0 +1,15 @@
+FROM node:15-alpine3.12 as node
+
+RUN mkdir -p /npm-audit
+
+COPY components/producers/typescript-npm-audit/tool/index.js /typescript-npm-audit/
+COPY components/producers/typescript-npm-audit/tool/package.json /typescript-npm-audit/
+COPY components/producers/typescript-npm-audit/tool/package-lock.json /typescript-npm-audit/
+
+RUN apk add -U --no-cache ca-certificates \
+    && cd /npm-audit \
+    && npm install --production \
+    && rm -rf /tmp/v8-compile-cache-*
+
+WORKDIR /
+ENTRYPOINT ["/usr/local/bin/node", "/typescript-npm-audit/index.js"]

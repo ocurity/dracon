@@ -1,0 +1,5 @@
+ingress:
+  annotations: {}
+  className: ""
+  host: ""
+  tlsEnabled: true

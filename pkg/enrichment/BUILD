@@ -5,9 +5,9 @@ go_library(
     ],
     visibility = ["PUBLIC"],
     deps = [
-        "//api/proto:v1",
+        "//api/proto/v1",
         "//pkg/enrichment/db",
-        "//third_party/go:protobuf",
+        "//third_party/go/google.golang.org/protobuf",
     ],
 )
 
@@ -18,9 +18,9 @@ go_test(
         "issue_test.go",
     ],
     deps = [
-        "//api/proto:v1",
+        "//api/proto/v1",
         "//pkg/enrichment/db",
-        "//third_party/go:protobuf",
-        "//third_party/go:stretchr_testify",
+        "//third_party/go/github.com/stretchr/testify",
+        "//third_party/go/google.golang.org/protobuf",
     ],
 )

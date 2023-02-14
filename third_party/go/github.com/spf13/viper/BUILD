@@ -1,0 +1,25 @@
+go_module(
+    name = "viper",
+    hashes = ["788eccdfe9d5bead6d43b23273d2f9acb2b0a200b66475e3403f38dcdaaee519"],
+    licences = ["mit"],
+    module = "github.com/spf13/viper",
+    version = "v1.7.1",
+    visibility = [
+        "//components/enrichers/deduplication:all",
+        "//components/producers/jira_producer:all",
+    ],
+    deps = [
+        "//third_party/go/github.com/fsnotify/fsnotify",
+        "//third_party/go/github.com/hashicorp/hcl",
+        "//third_party/go/github.com/magiconair/properties",
+        "//third_party/go/github.com/mitchellh/mapstructure",
+        "//third_party/go/github.com/pelletier/go-toml",
+        "//third_party/go/github.com/spf13/afero",
+        "//third_party/go/github.com/spf13/cast",
+        "//third_party/go/github.com/spf13/jwalterweatherman",
+        "//third_party/go/github.com/spf13/pflag",
+        "//third_party/go/github.com/subosito/gotenv",
+        "//third_party/go/gopkg.in/ini.v1",
+        "//third_party/go/gopkg.in/yaml.v2",
+    ],
+)

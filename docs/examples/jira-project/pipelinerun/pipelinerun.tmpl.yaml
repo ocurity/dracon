@@ -1,0 +1,31 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  generateName: dracon-jira-project-
+  namespace: dracon
+spec:
+  pipelineRef:
+    name: dracon-jira-project
+  params:
+  - name: consumer-jira-url
+    value: "$CONSUMER_JIRA_URL"
+  - name: consumer-jira-api-token
+    value: "$CONSUMER_JIRA_API_TOKEN"
+  - name: consumer-jira-user
+    value: "$CONSUMER_JIRA_USER"
+  - name: consumer-jira-config
+    value: |
+      {"defaultValues":{"project":"TEST","issueType":"Task","customFields":null},"addToDescription":["scan_start_time","tool_name","target","type","confidence_text","annotations"],"mappings":null}
+  - name: repository_url
+    value:  https://github.com/trufflesecurity/test_keys
+  workspaces:
+  - name: source-code-ws
+    subPath: source-code
+    volumeClaimTemplate:
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 1Gi

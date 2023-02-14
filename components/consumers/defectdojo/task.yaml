@@ -1,0 +1,32 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: consumer-defectdojo
+  labels:
+    v1.dracon.ocurity.com/component: consumer
+spec:
+  params:
+    - name: consumer-defectdojo-api-url
+      type: string
+    - name: consumer-defectdojo-user
+      type: string
+    - name: consumer-defectdojo-token
+      type: string
+    - name: consumer-defectdojo-product-id
+      type: string
+  workspaces:
+    - name: source-code-ws
+      description: The workspace containing the source-code to scan.
+  steps:
+  - name: run-consumer
+    imagePullPolicy: IfNotPresent
+    image: ghcr.io/ocurity/dracon/components/consumers/defectdojo/image:latest
+    command: ["/app/components/consumers/defectdojo/defectdojo"]
+    args: [
+      "-in", "$(workspaces.source-code-ws.path)/.dracon/enrichers/",
+      "-dojoUser", "$(params.consumer-defectdojo-user)",
+      "-dojoToken", "$(params.consumer-defectdojo-token)",
+      "-dojoProductID", "$(params.consumer-defectdojo-product-id)",
+      "-dojoURL", "$(params.consumer-defectdojo-api-url)",
+    ]

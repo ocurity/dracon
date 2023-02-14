@@ -6,16 +6,16 @@ go_library(
     ],
     resources = [":resources"],
     visibility = [
-        "//cmd/enricher",
+        "//components/enrichers/...",
+        "//components/producers/...",
         "//pkg/enrichment/...",
-        "//producers/...",
     ],
     deps = [
-        "//api/proto:v1",
-        "//third_party/go:golang-migrate_migrate",
-        "//third_party/go:jmoiron_sqlx",
-        "//third_party/go:lib_pq",
-        "//third_party/go:protobuf",
+        "//api/proto/v1",
+        "//third_party/go/github.com/golang-migrate/migrate/v4",
+        "//third_party/go/github.com/jmoiron/sqlx",
+        "//third_party/go/github.com/lib/pq",
+        "//third_party/go/google.golang.org/protobuf",
     ],
 )
 
@@ -23,5 +23,5 @@ go_library(
 # not in the same pkg dir.
 filegroup(
     name = "resources",
-    srcs = ["//enrichment_service/configs/sql/migrations"],
+    srcs = ["//pkg/enrichment/db/migrations"],
 )

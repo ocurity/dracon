@@ -1,0 +1,25 @@
+---
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+resources:
+  - task.yaml
+
+patches:
+  - target:
+      kind: Pipeline
+    patch: |-
+      apiVersion: tekton.dev/v1beta1
+      kind: Pipeline
+      metadata:
+        name: unused
+        annotations:
+          "v1.dracon.ocurity.com/has-producer-aggregator": true
+      spec:
+        tasks:
+        - name: producer-aggregator
+          taskRef:
+            name: producer-aggregator
+          workspaces:
+          - name: source-code-ws
+            workspace: source-code-ws

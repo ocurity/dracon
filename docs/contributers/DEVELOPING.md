@@ -1,36 +1,44 @@
 # Developing
 
-We are using [Please](https://please.build) to build Dracon's binaries and docker containers. This abstracts away needing to understand the underling programming language or tooling.
+We provide a complete development environment using the [Please build system](https://please.build). A `./pleasew` wrapper script is available for contributers who do not have Please installed and for use in CI/CD systems.
 
-## Running Dracon from Please
+## Getting Started
 
-To run the Dracon command with the `--help` flag, we can:
+1. Set up the development environment.
 
-```
-plz run //cmd/dracon:dracon -- --help
-```
+    ```bash
+    $ ./pleasew dev
+    ```
 
-This does everything a build system should, downloading dependencies, calling the compiler then finally calling the application with your arguments.
+2. Deploy supporting resources that Dracon uses.
 
-## Building with please in docker
+    ```bash
+    $ ./pleasew dev_deploy
+    ```
 
-If you don't want to install please in your development environment, there's the option of using our docker build container.
+3. Make your changes :).
+4. Run formatters.
 
-For example building all artefacts (all the binaries), you can use:
+    ```bash
+    $ ./pleasew fmt-all
+    ```
 
-```bash
-docker run --rm -it \
-  --volume "${PWD}:/src" \
-  --user $(id -u):$(id -g) \
-  thoughtmachine/dracon-builder-go:53322138724d569c4ff037dc36443bb5e0107aecd85e39b094ed8689b6cbc9dc \
-  plz build
-```
+5. Run linters.
 
-Building the docker images is a little bit more tricky as you would need to mount the docker socket in to the container. At the moment we don't support doing this. Instead, you'll need to install please.
+    ```bash
+    $ ./pleasew lint
+    ```
 
-## Ensuring everything is building and testing
-```bash
-plz build //...
-plz test //...
-scripts/dev-images.sh
-```
+#### Cleaning Up
+
+1. Run the following to delete the K3D cluster:
+
+    ```bash
+    $ ./pleasew run //build/k8s/k3d:teardown
+    ```
+
+2. Run the following to remove all build artefacts:
+
+    ```bash
+    $ ./pleasew cleanup
+    ```

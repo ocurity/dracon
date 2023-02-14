@@ -1,31 +1,32 @@
 package db
 
 import (
+	"context"
+	"embed"
 	"errors"
 	"fmt"
+	"io/fs"
 	"log"
 	"net/url"
 	"path/filepath"
 	"strings"
 
-	"context"
-	"embed"
-	"io/fs"
-
 	migrate "github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	bindata "github.com/golang-migrate/migrate/v4/source/go_bindata"
 	"github.com/lib/pq"
-	v1 "github.com/thought-machine/dracon/api/proto/v1"
+	v1 "github.com/ocurity/dracon/api/proto/v1"
 
 	"github.com/jmoiron/sqlx"
 )
 
 // migrationsFS holds the SQL migration files as static assets.
+//
+//nolint:typecheck
 //go:embed *.sql
 var migrationsFS embed.FS
 
-// EnrichDatabase represents the db methods that are used for the enricher
+// EnrichDatabase represents the db methods that are used for the enricher.
 type EnrichDatabase interface {
 	GetIssueByHash(string) (*v1.EnrichedIssue, error)
 	CreateIssue(context.Context, *v1.EnrichedIssue) error
@@ -33,12 +34,12 @@ type EnrichDatabase interface {
 	DeleteIssueByHash(string) error
 }
 
-// DB  Database implements DB
+// DB  Database implements DB.
 type DB struct {
 	*sqlx.DB
 }
 
-// NewDB returns a new DB for the enricher
+// NewDB returns a new DB for the enricher.
 func NewDB(connStr string) (*DB, error) {
 	searchPath, err := getSchemaSearchPathFromConnStr(connStr)
 	if err != nil {
@@ -54,7 +55,6 @@ func NewDB(connStr string) (*DB, error) {
 	if searchPath != "" {
 		_, err := db.Exec(fmt.Sprintf(`CREATE SCHEMA IF NOT EXISTS %s`,
 			pq.QuoteIdentifier(searchPath)))
-
 		if err != nil {
 			return nil, err
 		}
@@ -68,12 +68,14 @@ func NewDB(connStr string) (*DB, error) {
 	}
 
 	var assetNames []string
-	fs.WalkDir(migrationsFS, ".", func(path string, info fs.DirEntry, err error) error {
+	if err := fs.WalkDir(migrationsFS, ".", func(path string, info fs.DirEntry, err error) error {
 		if !info.IsDir() {
 			assetNames = append(assetNames, info.Name())
 		}
 		return nil
-	})
+	}); err != nil {
+		return nil, fmt.Errorf("could not walk migrations: %w", err)
+	}
 
 	s := bindata.Resource(assetNames,
 		func(name string) ([]byte, error) {
@@ -81,14 +83,21 @@ func NewDB(connStr string) (*DB, error) {
 		})
 
 	d, err := bindata.WithInstance(s)
-	m, err := migrate.NewWithInstance("go-bindata", d, "postgres", driver)
+	if err != nil {
+		return nil, fmt.Errorf("could not create migration bindata instance: %w", err)
+	}
+	m, err := migrate.NewWithInstance("go-bindata", d, "dracon", driver)
 	if err != nil {
 		return nil, err
 	}
-	log.Println(m.Version())
+	dbVersion, isDBDirty, err := m.Version()
+	if err != nil && !errors.Is(err, migrate.ErrNilVersion) {
+		return nil, fmt.Errorf("error getting migration db version: %w", err)
+	}
+	log.Printf("migrationVersion: %d, isDBDirty %v", dbVersion, isDBDirty)
 	err = m.Up()
-	if err != nil && err != migrate.ErrNoChange {
-		return nil, err
+	if err != nil && !errors.Is(err, migrate.ErrNoChange) {
+		return nil, fmt.Errorf("could not migrate DB: %w", err)
 	}
 
 	return &DB{db}, nil
@@ -96,19 +105,19 @@ func NewDB(connStr string) (*DB, error) {
 
 // getSchemaSearchPathFromConnStr extracts the database schema component from a
 // PostgreSQL connection string; if no schema was specified, the empty string is
-// returned
+// returned.
 func getSchemaSearchPathFromConnStr(connStr string) (string, error) {
 	url, err := url.Parse(connStr)
 
 	if err == nil && url.Scheme == "postgres" {
 		return getSchemaSearchPathFromURL(url)
-	} 
+	}
 	return getSchemaSearchPathFromKV(connStr)
 }
 
 // getSchemaSearchPathFromURL extracts the schema search path component from a
 // PostgreSQL connection URL; if no search path is specified, the empty string
-// is returned
+// is returned.
 func getSchemaSearchPathFromURL(connURL *url.URL) (string, error) {
 	path, found := connURL.Query()["search_path"]
 	if !found {
@@ -125,7 +134,7 @@ func getSchemaSearchPathFromURL(connURL *url.URL) (string, error) {
 
 // getSchemaSearchPathFromKV extracts the schema search path component from a
 // PostgreSQL keyword/value connection string; if no search path is specified,
-// the empty string is returned
+// the empty string is returned.
 func getSchemaSearchPathFromKV(kvStr string) (string, error) {
 	var path string
 

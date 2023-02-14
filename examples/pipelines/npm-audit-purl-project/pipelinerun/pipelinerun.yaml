@@ -1,0 +1,22 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  generateName: dracon-npm-audit-purl-project-
+  namespace: dracon
+spec:
+  pipelineRef:
+    name: dracon-npm-audit-purl-project
+  params:
+  - name: source-dependency-purl
+    value: pkg:npm/simple-git@3.1.1
+  workspaces:
+  - name: source-code-ws
+    subPath: source-code
+    volumeClaimTemplate:
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 1Gi

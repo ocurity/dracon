@@ -1,0 +1,44 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: producer-terraform-tfsec
+  labels:
+    v1.dracon.ocurity.com/component: producer
+spec:
+  params:
+  - name: producer-terraform-tfsec-flags
+    type: array
+    default: []
+  volumes:
+    - name: scratch
+      emptyDir: {}
+  workspaces:
+    - name: source-code-ws
+      description: The workspace containing the source-code to scan.
+  steps:
+  - name: run-tfsec
+    image: docker.io/aquasec/tfsec:v1.28
+    command: [tfsec]
+    args:
+    - $(workspaces.source-code-ws.path)
+    - -f
+    - json
+    - --concise-output
+    -  --out
+    - /scratch/out.json
+    - --soft-fail
+    - "$(params.producer-terraform-tfsec-flags[*])"
+    volumeMounts:
+    - mountPath: /scratch
+      name: scratch
+  - name: produce-issues
+    imagePullPolicy: IfNotPresent
+    image: ghcr.io/ocurity/dracon/components/producers/terraform-tfsec/image:latest
+    command: ["app/components/producers/terraform-tfsec/tfsec-parser"]
+    args:
+    - "-in=/scratch/out.json"
+    - "-out=$(workspaces.source-code-ws.path)/.dracon/producers/terraform-tfsec.pb"
+    volumeMounts:
+    - mountPath: /scratch
+      name: scratch

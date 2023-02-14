@@ -1,0 +1,46 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: producer-golang-gosec
+  labels:
+    v1.dracon.ocurity.com/component: producer
+spec:
+  params:
+  - name: producer-golang-gosec-flags
+    type: array
+    default:
+    - "-r"
+    - "-quiet"
+    - "-sort"
+    - "-nosec"
+  volumes:
+    - name: scratch
+      emptyDir: {}
+  workspaces:
+    - name: source-code-ws
+      description: The workspace containing the source-code to scan.
+  steps:
+  - name: run-gosec
+    image: docker.io/securego/gosec:2.15.0
+    command: [gosec]
+    args:
+    - "$(params.producer-golang-gosec-flags[*])"
+    - "-fmt=json"
+    - "-out=/scratch/out.json"
+    - "-no-fail"
+    - "$(workspaces.source-code-ws.path)/..."
+    volumeMounts:
+    - mountPath: /scratch
+      name: scratch
+
+  - name: produce-issues
+    imagePullPolicy: IfNotPresent
+    image: ghcr.io/ocurity/dracon/components/producers/golang-gosec/image:latest
+    command: ["app/components/producers/golang-gosec/golang-gosec-parser"]
+    args:
+    - "-in=/scratch/out.json"
+    - "-out=$(workspaces.source-code-ws.path)/.dracon/producers/golang-gosec.pb"
+    volumeMounts:
+    - mountPath: /scratch
+      name: scratch

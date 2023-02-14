@@ -1,0 +1,33 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  generateName: dracon-sign-results-project-
+  namespace: dracon
+spec:
+  pipelineRef:
+    name: dracon-sign-results-project
+  params:
+  - name: repository_url
+    value: https://github.com/pusher/oauth2_proxy.git
+  - name: producer-golang-gosec-configuration
+    value: |-
+      {
+        "G104": {
+          "ioutil": ["WriteFile"]
+        }
+      }
+  - name: b64-signature-key
+  # THIS IS AN EXAMPLE, PLEASE USE A PROPERLY SECURED SECRET KEY IN PRODUCTION
+  # Corresponding public key for verification is MOt7TFuLyGB9yRN5mcIeAPa6jKoFglkwEwGBTOVLeXI=
+    value: Lvbo+wAsW8Y4ENBA+lAikOwGTYAIXCQ49eRMEwClv94w63tMW4vIYH3JE3mZwh4A9rqMqgWCWTATAYFM5Ut5cg==
+  workspaces:
+  - name: source-code-ws
+    subPath: source-code
+    volumeClaimTemplate:
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 1Gi

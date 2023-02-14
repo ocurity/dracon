@@ -1,21 +1,41 @@
+---
 name: Lint
 on:
-  push:
-    branches:
-    - master
   pull_request:
     branches:
-    - master
+    - main
+
+env:
+  PLZ_CONFIG_PROFILE: ci
+  SEGMENT_DOWNLOAD_TIMEOUT_MINS: "2"
+
+permissions:
+  # Grant the ability to checkout the repository
+  contents: read
+
+  # Allow reviewdog to comment on PRs
+  pull-requests: write
+
 jobs:
   build:
     name: Lint
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+      cancel-in-progress: true
     steps:
-      - name: Install python dependencies
-        run: sudo apt-get update && sudo apt-get install -y python3-setuptools python3-pip
+    - name: Check out code
+      uses: actions/checkout@v3
 
-      - name: Check out code
-        uses: actions/checkout@v3
+    - name: Cache plz
+      id: cache-plz
+      uses: actions/cache@v3
+      with:
+        path: .plz-cache
+        key: ${{ runner.os }}-plz
 
-      - name: Lint
-        run: ./pleasew lint
+    - name: Lint
+      env:
+        REVIEWDOG_GITHUB_API_TOKEN: "${{ github.token }}"
+        GOLANGCI_LINT_CACHE: "${{ github.workspace }}/.golangci-lint-cache"
+      run: "./pleasew -p -v=2 lint"

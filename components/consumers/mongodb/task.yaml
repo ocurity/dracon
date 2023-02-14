@@ -1,0 +1,32 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: consumer-mongodb
+  labels:
+    v1.dracon.ocurity.com/component: consumer
+spec:
+  params:
+    - name: consumer-mongodb-db-uri
+      type: string
+      default: "mongodb://consumer-mongodb:consumer-mongodb@consumer-mongodb.$(context.taskRun.namespace).svc:27017/consumer-mongodb"
+    - name: consumer-mongodb-db-name
+      type: string
+      default: "consumer-mongodb"
+    - name: consumer-mongodb-collection-name
+      type: string
+      default: "consumer-mongodb"
+  workspaces:
+    - name: source-code-ws
+      description: The workspace containing the source-code to scan.
+  steps:
+  - name: run-consumer
+    imagePullPolicy: IfNotPresent
+    image: ghcr.io/ocurity/dracon/components/consumers/mongodb/image:latest
+    command: ["/app/components/consumers/mongodb/mongodb"]
+    args: [
+      "-in", "$(workspaces.source-code-ws.path)/.dracon/enrichers/",
+      "-db-uri", "$(params.consumer-mongodb-db-uri)",
+      "-db-name", "$(params.consumer-mongodb-db-name)",
+      "-collection-name", "$(params.consumer-mongodb-collection-name)",
+    ]

@@ -1,0 +1,59 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: producer-semgrep
+  labels:
+    v1.dracon.ocurity.com/component: producer
+spec:
+  params:
+  - name: producer-semgrep-rules-yaml
+    type: string
+    default: |
+      rules: []
+  volumes:
+    - name: scratch
+      emptyDir: {}
+  workspaces:
+    - name: source-code-ws
+      description: The workspace containing the source-code to scan.
+  steps:
+  - name: write-semgrep-config
+    image: docker.io/busybox:latest
+    env:
+      - name: SEMGREP_CONFIG
+        value: $(params.producer-semgrep-rules-yaml)
+    script: |
+      printf '%s' "${SEMGREP_CONFIG}" > "/scratch/semgrep-rules.yaml"
+      cat /scratch/semgrep-rules.yaml
+    volumeMounts:
+    - mountPath: /scratch
+      name: scratch
+
+  - name: run-semgrep
+    image: docker.io/returntocorp/semgrep:1.11.0
+    command: [/entrypoint.sh]
+    args:
+    - "semgrep"
+    - "scan"
+    - "--config"
+    - "/scratch/semgrep-rules.yaml"
+    - "--json"
+    - "--output"
+    - "/scratch/out.json"
+    - "$(workspaces.source-code-ws.path)"
+
+    volumeMounts:
+    - mountPath: /scratch
+      name: scratch
+
+  - name: produce-issues
+    imagePullPolicy: IfNotPresent
+    image: ghcr.io/ocurity/dracon/components/producers/semgrep/image:latest
+    command: ["app/components/producers/semgrep/semgrep-parser"]
+    args:
+    - "-in=/scratch/out.json"
+    - "-out=$(workspaces.source-code-ws.path)/.dracon/producers/semgrep.pb"
+    volumeMounts:
+    - mountPath: /scratch
+      name: scratch

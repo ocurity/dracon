@@ -1,0 +1,19 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: consumer-stdout-json
+  labels:
+    v1.dracon.ocurity.com/component: consumer
+spec:
+  workspaces:
+    - name: source-code-ws
+      description: The workspace containing the source-code to scan.
+  steps:
+  - name: run-consumer
+    imagePullPolicy: IfNotPresent
+    image: ghcr.io/ocurity/dracon/components/consumers/stdout-json/image:latest
+    command: ["/app/components/consumers/stdout-json/stdout-json"]
+    args:
+      - "-in"
+      - "$(workspaces.source-code-ws.path)/.dracon/enrichers/"

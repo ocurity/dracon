@@ -1,45 +1,64 @@
 ; Please config file
-; Leaving this file as is is enough to use plz to build your project.
-; Please will stay on whatever version you currently have until you run
-; 'plz update', when it will download the latest available version.
-;
-; Or you can uncomment the following to pin everyone to a particular version;
-; when you change it all users will automatically get updated.
 [please]
-version = 16.27.0
+version = 16.27.2
 
-[buildconfig]
-default-docker-repo = index.docker.io/thoughtmachine
-protoc-deps = //third_party/proto:protoc_deps
-kustomize-tool = //third_party/tools:kustomize
+; Support the non *-rules repo name format of Please plugins.
+PluginRepo = "https://github.com/{owner}/{plugin}/archive/{revision}.zip"
 
-[go]
-importpath = github.com/thought-machine/dracon
-gotool = //third_party/lang:go_tool|go
+[Parse]
+PreloadSubincludes = "///go//build_defs:go"
 
-[python]
-defaultinterpreter = python3
-moduledir = third_party.python
-usepypi = true
-disablevendorflags = true
+[Plugin "go"]
+Target = //third_party/plugins:go
+ImportPath = github.com/ocurity/dracon
+gotool = //third_party/go:toolchain|go
 
-[proto]
-protoctool = //third_party/proto:protoc
-pythondep = //third_party/python:protobuf
-godep = //third_party/go:protobuf
-protocgoplugin = //third_party/go:protoc-gen-go
+[Plugin "proto"]
+Target = //third_party/plugins:proto
+LanguageDef = ///go_proto//build_defs:go
+ProtocTool = //third_party/proto:protoc
 
-[alias "deploy"]
-cmd = run //scripts/development/kind:deploy --
-positionallabels = true
-flag = --context
+[Plugin "go_proto"]
+Target = //third_party/plugins:go_proto
+ProtoDep = //third_party/go/google.golang.org/protobuf:protobuf
+GrpcDep = //third_party/go/google.golang.org/grpc:grpc
+GrpcPlugin = //third_party/go/google.golang.org/grpc:protoc-gen-go-grpc
+ProtoPlugin = //third_party/go/google.golang.org/protobuf:protoc-gen-go
 
-[alias "dracon"]
-cmd = run //scripts/development/kind:dracon --
-flag = --pipeline
+[Plugin "k8s"]
+Target = //third_party/plugins:k8s
+
+[Plugin "buildkit"]
+Target = //third_party/plugins:buildkit
+ImageRepositoryPrefix = "ghcr.io/ocurity/dracon"
+ToolVersion = "v0.0.2"
+# 2022/10/25
+DistrolessDefaultBase = "gcr.io/distroless/base-debian11@sha256:122585ba4c098993df9f8dc7285433e8a19974de32528ee3a4b07308808c84ce"
+
+[featureflags]
+ExcludeProtoRules = true
+ExcludeGoRules = true
+ExcludePythonRules = true
+
+[build]
+LinkGeneratedSources = hard
+UpdateGitignore = false
 
 [alias "lint"]
-cmd = run sequential --include lint //scripts/lint/...
+cmd = run //build/util:lint
 
 [alias "fmt-all"]
-cmd = run sequential --include fmt //scripts/fmt/...
+cmd = run //build/util:fmt_all
+
+[alias "dev"]
+cmd = run //build/k8s/k3d:dracon_setup
+
+[alias "dev_teardown"]
+cmd = run //build/k8s/k3d:dracon_teardown
+
+[alias "dev_deploy"]
+cmd = run //build/util:dev_deploy
+
+[alias "go-get"]
+desc = Runs the go deps tool to install new dependencies into the repo
+cmd = run //third_party/binary/tatskaari/go-deps -- -s -w

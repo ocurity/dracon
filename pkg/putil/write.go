@@ -8,12 +8,13 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/gogo/protobuf/proto"
-	"github.com/golang/protobuf/ptypes"
-	v1 "github.com/thought-machine/dracon/api/proto/v1"
+	v1 "github.com/ocurity/dracon/api/proto/v1"
+
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-// WriteEnrichedResults writes the given enriched results to the given output file
+// WriteEnrichedResults writes the given enriched results to the given output file.
 func WriteEnrichedResults(
 	originalResults *v1.LaunchToolResponse,
 	enrichedIssues []*v1.EnrichedIssue,
@@ -30,7 +31,7 @@ func WriteEnrichedResults(
 	if err != nil {
 		return err
 	}
-	if err := ioutil.WriteFile(outFile, outBytes, 0644); err != nil {
+	if err := ioutil.WriteFile(outFile, outBytes, 0o600); err != nil {
 		return err
 	}
 
@@ -38,7 +39,7 @@ func WriteEnrichedResults(
 	return nil
 }
 
-// WriteResults writes the given issues to the the given output file as the given tool name
+// WriteResults writes the given issues to the the given output file as the given tool name.
 func WriteResults(
 	toolName string,
 	issues []*v1.Issue,
@@ -53,10 +54,8 @@ func WriteResults(
 	if err != nil {
 		return err
 	}
-	timestamp, err := ptypes.TimestampProto(timeVal)
-	if err != nil {
-		return err
-	}
+	timestamp := timestamppb.New(timeVal)
+
 	scanInfo := v1.ScanInfo{
 		ScanUuid:      scanUUID,
 		ScanStartTime: timestamp,
@@ -72,7 +71,7 @@ func WriteResults(
 		return err
 	}
 
-	if err := ioutil.WriteFile(outFile, outBytes, 0644); err != nil {
+	if err := ioutil.WriteFile(outFile, outBytes, 0o600); err != nil {
 		return fmt.Errorf("could not write to file '%s': %w", outFile, err)
 	}
 
@@ -80,7 +79,7 @@ func WriteResults(
 	return nil
 }
 
-// AppendResults appends the given issues to the existing output file
+// AppendResults appends the given issues to the existing output file.
 func AppendResults(issues []*v1.Issue, outFile string) error {
 	outBytes, err := ioutil.ReadFile(outFile)
 	if err != nil {
@@ -89,7 +88,7 @@ func AppendResults(issues []*v1.Issue, outFile string) error {
 
 	out := v1.LaunchToolResponse{}
 	if err := proto.Unmarshal(outBytes, &out); err != nil {
-		return fmt.Errorf("could not unmarshal contents of file '%s': %s", outFile, err)
+		return fmt.Errorf("could not unmarshal contents of file '%s': %w", outFile, err)
 	}
 
 	out.Issues = append(out.Issues, issues...)
@@ -99,7 +98,7 @@ func AppendResults(issues []*v1.Issue, outFile string) error {
 		return err
 	}
 
-	if err := ioutil.WriteFile(outFile, outBytes, 0644); err != nil {
+	if err := ioutil.WriteFile(outFile, outBytes, 0o600); err != nil {
 		return fmt.Errorf("could not write to file '%s': %w", outFile, err)
 	}
 

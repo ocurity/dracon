@@ -1,0 +1,3 @@
+[cache]
+dir = .plz-cache
+dircompress = true

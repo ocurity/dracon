@@ -1,10 +1,10 @@
 # Dracon Demos
 
-Example of running the the [Demo Dracon Pipelines](examples/pipelines/golang-project) where you get to see the results in kibana at the end.
+Example of running the the [Demo Dracon Pipelines](examples/pipelines/golang-project) where you get to see the results in Kibana at the end.
 
 ## Prerequisites
 
-- You have followed the [Getting Started with Minikube Guide](/docs/getting-started/minikube.md)
+- You have followed the [Getting Started with k3d Guide](/docs/getting-started/k3d.md).
 
 ---
 
@@ -13,22 +13,10 @@ Example of running the the [Demo Dracon Pipelines](examples/pipelines/golang-pro
 1. You can run a demo pipeline with:
 
    ```bash
-   $ dracon setup --pipeline examples/pipelines/golang-project
-   $ dracon run --pipeline examples/pipelines/golang-project
+   $ ./pleasew deploy //examples/pipelines/golang-project:pipeline
+   $ ./pleasew deploy //examples/pipelines/golang-project/pipelinerun:pipelinerun
    ```
 
-2. Wait for the pipeline to finish running:
+2. Wait for the pipeline to finish running by monitoring it in https://tekton.dracon.localhost:8443.
 
-   ```bash
-   $ kubectl get pipelineruns --watch
-   ```
-
-   Note: Use ctrl-c to exit the blocking watch
-
-3. Once the pipelinerun has finished running you can view your results in Kibana (backed by Elasticsearch):
-
-   ```bash
-   $ kubectl port-forward svc/kibana 5601
-   ```
-
-   Visit http://localhost:5601, and create the dracon index filter
+3. Once the pipelinerun has finished running you can view your results in Kibana: https://kibana.dracon.localhost:8443.

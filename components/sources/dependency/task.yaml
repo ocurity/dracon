@@ -1,0 +1,31 @@
+---
+# https://hub.tekton.dev/tekton/Task/git-clone/0.6
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: source-dependency
+  labels:
+    v1.dracon.ocurity.com/component: source
+    app.kubernetes.io/version: "0.6"
+  annotations:
+    tekton.dev/pipelines.minVersion: "0.29.0"
+    tekton.dev/platforms: "linux/amd64,linux/s390x,linux/ppc64le,linux/arm64"
+spec:
+  description: >-
+    This source component accepts a purl argument belonging to one of the supported types and generates a dependency file relevant to the type.
+  workspaces:
+    - name: source-code-ws
+      description: The generated file will be stored onto the volume backing this Workspace.
+  params:
+    - name: source-dependency-purl
+      description: Repository URL to clone from.
+      type: string
+  steps:
+    - name: generate-package
+      image: "ghcr.io/ocurity/dracon/components/sources/dependency/image:latest"
+      command: ["app/components/sources/dependency/dependency"]
+      args: 
+      - "-purl"
+      - "$(params.source-dependency-purl)"
+      - "-outDir"
+      - "$(workspaces.source-code-ws.path)"

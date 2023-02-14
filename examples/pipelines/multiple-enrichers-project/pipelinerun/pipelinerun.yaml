@@ -1,0 +1,29 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  generateName: dracon-multiple-enrichers-project-
+  namespace: dracon
+spec:
+  pipelineRef:
+    name: dracon-multiple-enrichers-project
+  params:
+  - name: repository_url
+    value: https://github.com/pusher/oauth2_proxy.git
+  - name: producer-golang-gosec-configuration
+    value: |-
+      {
+        "G104": {
+          "ioutil": ["WriteFile"]
+        }
+      }
+  workspaces:
+  - name: source-code-ws
+    subPath: source-code
+    volumeClaimTemplate:
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 1Gi

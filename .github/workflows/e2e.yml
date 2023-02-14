@@ -1,47 +1,71 @@
+---
 name: E2E
 on:
   push:
     branches:
-    - master
+    - main
   pull_request:
     branches:
-    - master
+    - main
+
+env:
+  PLZ_CONFIG_PROFILE: ci
+  SEGMENT_DOWNLOAD_TIMEOUT_MINS: "2"
+
+permissions:
+  # Grant the ability to checkout the repository
+  contents: read
+
 jobs:
-  build:
-    name: E2E
-    runs-on: ubuntu-22.04
+  e2e_matrix:
+    uses: VJftw/please-github/.github/workflows/plz-query-matrix.yml@main
+    with:
+      includes: "pipeline"
+      excludes: ""
+
+  e2e:
+    if: ${{ needs.e2e_matrix.outputs.targets != '[]' }}
+    name: "E2E"
+    needs: [e2e_matrix]
+    runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        kubernetes: ["1.21"]
+        target: ${{ fromJson(needs.e2e_matrix.outputs.targets) }}
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}-${{ matrix.target }}
+      cancel-in-progress: true
     steps:
-      - name: Install python dependencies
-        run: sudo apt-get update && sudo apt-get install -y python3-setuptools python3-pip
+    - name: Check out code
+      uses: actions/checkout@v3
 
-      - name: Check out code
-        uses: actions/checkout@v3
+    - name: Cache plz
+      id: cache-plz
+      uses: actions/cache@v3
+      with:
+        path: .plz-cache
+        key: ${{ runner.os }}-plz
 
-      - name: Create KinD cluster
-        run: ./pleasew run //scripts/development/kind:setup -- --kubernetes_version="${{ matrix.kubernetes }}"
+    - name: "Set up K3D"
+      run: |-
+        ./pleasew dev
+        ./pleasew dev_deploy
 
-      - name: Deploy Dracon supporting resources
-        run: |
-          ./pleasew deploy //scripts/development/k8s:namespace
-          ./pleasew deploy //scripts/development/k8s/enricher-db --wait
-          ./pleasew deploy //scripts/development/k8s/minio-storage --wait
-          ./pleasew deploy //scripts/development/k8s/elasticsearch-kibana --wait
+    - name: "Deploy Pipeline"
+      run: |-
+        ./pleasew run -p -v 2 ${{ matrix.target }}_deploy
 
-      - name: Setup and Run Example pipelines
-        run: |
-          ./pleasew dracon setup --namespace dracon --pipeline examples/pipelines/golang-project
-          ./pleasew dracon run --namespace dracon --pipeline examples/pipelines/golang-project
+    - name: "Trigger PipelineRun"
+      env:
+        # This uses a public read-only PAT tied to VJftw, please don't abuse! :pray:
+        # See: https://github.com/actions/setup-node/issues/49 for reasons.
+        GITHUB_TOKEN: ${{ secrets.VJFTW_GITHUB_TOKEN }}
+        CONSUMER_JIRA_API_TOKEN: ${{secrets.CONSUMER_JIRA_API_TOKEN}}
+        CONSUMER_JIRA_USER: ${{secrets.CONSUMER_JIRA_USER}}
+        CONSUMER_JIRA_URL: ${{secrets.CONSUMER_JIRA_URL}}
+      run: |-
+        ./pleasew run ${{ matrix.target }}_pipelinerun_deploy
 
-          ./pleasew dracon setup --namespace dracon --pipeline examples/pipelines/mixed-lang-project
-          ./pleasew dracon run --namespace dracon --pipeline examples/pipelines/mixed-lang-project
-
-          ./pleasew dracon setup --namespace dracon --pipeline examples/pipelines/python-project
-          ./pleasew dracon run --namespace dracon --pipeline examples/pipelines/python-project
-
-          ./pleasew run //test/e2e:wait_for_pipelineruns
-
-      - name: Delete KinD cluster
-        run: ./pleasew run //scripts/development/kind:delete
+    - name: "Monitor PipelineRun"
+      run: |-
+        ./pleasew run //build/ci/github/e2e:wait_for_pipelineruns

@@ -1,0 +1,35 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: consumer-dependency-track
+  labels:
+    v1.dracon.ocurity.com/component: consumer
+spec:
+  params:
+    - name: consumer-dependency-track-api-url
+      type: string
+    - name: consumer-dependency-track-project-name
+      type: string
+    - name: consumer-dependency-track-project-version
+      type: string
+    - name: consumer-dependency-track-token
+      type: string
+    - name: consumer-dependency-track-project-uuid
+      type: string
+  workspaces:
+    - name: source-code-ws
+      description: The workspace containing the source-code to scan.
+  steps:
+  - name: run-consumer
+    imagePullPolicy: IfNotPresent
+    image: ghcr.io/ocurity/dracon/components/consumers/dependency-track/image:latest
+    command: ["/app/components/consumers/dependency-track/dependency-track"]
+    args: [
+      "-in", "$(workspaces.source-code-ws.path)/.dracon/enrichers/",
+      "-url", "$(params.consumer-dependency-track-api-url)",
+      "-apiKey", "$(params.consumer-dependency-track-token)",
+      "-projectName", "$(params.consumer-dependency-track-project-name)",
+      "-projectVersion", "$(params.consumer-dependency-track-project-version)",
+      "-projectUUID", "$(params.consumer-dependency-track-project-uuid)"
+    ]

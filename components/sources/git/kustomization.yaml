@@ -1,0 +1,63 @@
+---
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+resources:
+  - task.yaml
+
+patches:
+  - target:
+      kind: Task
+      name: git-clone
+    patch: |-
+      apiVersion: tekton.dev/v1beta1
+      kind: Pipeline
+      metadata:
+        name: git-clone
+      spec:
+        results:
+        - name: anchor
+          description: An anchor to allow other tasks to depend on this task.
+        steps:
+        - name: add-anchor
+          image: "$(params.gitInitImage)"
+          script: echo "git-clone" > "$(results.anchor.path)"
+
+  - target:
+      kind: Pipeline
+    patch: |-
+      apiVersion: tekton.dev/v1beta1
+      kind: Pipeline
+      metadata:
+        name: unused
+        annotations:
+          "v1.dracon.ocurity.com/has-source": true
+      spec:
+        params:
+        - name: repository_url
+          description: Repository URL to clone from.
+          type: string
+        - name: sparseCheckoutDirectories
+          description: Define the directory patterns to match or exclude when performing a sparse checkout.
+          type: string
+          default: ""
+        - name: repository_revision
+          description: Optional Revision to checkout, this can be a commit sha or a branch
+          type: string
+          default: ""
+        workspaces:
+        - name: source-code-ws
+        tasks:
+        - name: source
+          taskRef:
+            name: git-clone
+          params:
+          - name: url
+            value: "$(params.repository_url)"
+          - name: revision
+            value: "$(params.repository_revision)"
+          - name: sparseCheckoutDirectories
+            value: "$(params.sparseCheckoutDirectories)"
+          workspaces:
+          - name: output
+            workspace: source-code-ws

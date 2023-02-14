@@ -1,0 +1,23 @@
+subinclude("///buildkit//build/defs:buildkit")
+
+_upstream_buildkit_image_mirror=buildkit_image_mirror
+
+def buildkit_image_mirror(
+    name: str,
+    digest: str,
+    repo: str,
+    tags: list,
+    aliases: list = [],
+    visibility: list = [],
+):
+    if not package_name().startswith("third_party"):
+        fail("'buildkit_image_mirror' must be used under //third_party/...")
+
+    return _upstream_buildkit_image_mirror(
+        name=name,
+        digest=digest,
+        repo=repo,
+        tags=tags,
+        aliases=aliases,
+        visibility=visibility
+    )

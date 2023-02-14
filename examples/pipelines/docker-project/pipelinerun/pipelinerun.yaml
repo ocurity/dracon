@@ -1,0 +1,28 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  generateName: dracon-docker-project-
+  namespace: dracon
+spec:
+  pipelineRef:
+    name: dracon-docker-project
+  params:
+  - name: repository_url
+    value: https://github.com/pusher/oauth2_proxy.git
+  - name: producer-docker-trivy-target
+    value: "ubuntu:latest"
+  - name: producer-docker-trivy-format
+    value: sarif
+  - name: producer-docker-trivy-command
+    value: image
+  workspaces:
+  - name: source-code-ws
+    subPath: source-code
+    volumeClaimTemplate:
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 1Gi

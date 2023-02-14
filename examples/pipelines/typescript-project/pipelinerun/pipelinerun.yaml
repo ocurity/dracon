@@ -1,0 +1,22 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  generateName: dracon-typescript-project-
+  namespace: dracon
+spec:
+  pipelineRef:
+    name: dracon-typescript-project
+  params:
+  - name: repository_url
+    value: https://github.com/appsecco/dvna
+  workspaces:
+  - name: source-code-ws
+    subPath: source-code
+    volumeClaimTemplate:
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 1Gi

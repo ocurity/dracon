@@ -1,0 +1,20 @@
+---
+version: v1
+lint:
+  use:
+    - DEFAULT
+    - COMMENTS
+    - UNARY_RPC
+    - PACKAGE_NO_IMPORT_CYCLE
+  except:
+    # we use Please to run protoc where we only need the last part of the
+    # package name to match the directory name.
+    - PACKAGE_DIRECTORY_MATCH
+
+deps:
+  # buf requires us to add the third party protos here as deps.
+  # Run:
+  # $ ./pleasew run "//third_party/binary/bufbuild/buf:buf|buf" -- mod update
+  # when you update this to update the lock file.
+  - buf.build/googleapis/googleapis
+  - buf.build/grpc-ecosystem/grpc-gateway

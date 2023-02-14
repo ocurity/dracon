@@ -1,7 +1,5 @@
 package version
 
-// BuildVersion is the version of dracon. It's intended to be overriden using
+// BuildVersion is the version of dracon. It's intended to be overridden using
 // -X the linker flag.
-var BuildVersion = "dev"
-
-// TODO(hjenkins): Implement fetching the k8s and tekton version from the server
+const BuildVersion = "dev"

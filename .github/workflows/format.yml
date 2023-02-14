@@ -1,0 +1,21 @@
+---
+name: Format
+on:
+  pull_request:
+    branches:
+    - main
+
+permissions:
+  # Grant the ability to checkout the repository
+  contents: read
+
+jobs:
+  build:
+    name: Format
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Format
+        run: ./pleasew fmt-all

@@ -2,11 +2,11 @@ package db
 
 import (
 	"context"
-	"database/sql"
+	"fmt"
 	"time"
 
-	"github.com/golang/protobuf/ptypes"
-	v1 "github.com/thought-machine/dracon/api/proto/v1"
+	v1 "github.com/ocurity/dracon/api/proto/v1"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type issue struct {
@@ -16,27 +16,22 @@ type issue struct {
 	FalsePositive bool      `db:"false_positive"`
 	UpdatedAt     time.Time `db:"updated_at"`
 
-	Target      string         `db:"target"`
-	Type        string         `db:"type"`
-	Title       string         `db:"title"`
-	Severity    int32          `db:"severity"`
-	CVSS        float64        `db:"cvss"`
-	Confidence  int32          `db:"confidence"`
-	Description string         `db:"description"`
-	Source      string         `db:"source"`
-	CVE         sql.NullString `db:"cve"`
+	Target      string  `db:"target"`
+	Type        string  `db:"type"`
+	Title       string  `db:"title"`
+	Severity    int32   `db:"severity"`
+	CVSS        float64 `db:"cvss"`
+	Confidence  int32   `db:"confidence"`
+	Description string  `db:"description"`
+	Source      string  `db:"source"`
+	CVE         string  `db:"cve"`
+	UUID        string  `db:"uuid"`
 }
 
 func toDBIssue(i *v1.EnrichedIssue) (*issue, error) {
-	firstSeen, err := ptypes.Timestamp(i.GetFirstSeen())
-	if err != nil {
-		return nil, err
-	}
-	updatedAt, err := ptypes.Timestamp(i.GetUpdatedAt())
-	if err != nil {
-		return nil, err
-	}
-	cve := sql.NullString{String: i.RawIssue.GetCve(), Valid: true}
+	firstSeen := i.GetFirstSeen().AsTime()
+	updatedAt := i.GetUpdatedAt().AsTime()
+
 	return &issue{
 		Hash:          i.GetHash(),
 		FirstSeen:     firstSeen,
@@ -51,26 +46,14 @@ func toDBIssue(i *v1.EnrichedIssue) (*issue, error) {
 		Confidence:    int32(i.RawIssue.GetConfidence()),
 		Description:   i.RawIssue.GetDescription(),
 		Source:        i.RawIssue.GetSource(),
-		CVE:           cve,
+		CVE:           i.RawIssue.GetCve(),
+		UUID:          i.RawIssue.GetUuid(),
 	}, nil
 }
 
 func toEnrichedIssue(i *issue) (*v1.EnrichedIssue, error) {
-	firstSeen, err := ptypes.TimestampProto(i.FirstSeen)
-	if err != nil {
-		return nil, err
-	}
-
-	updatedAt, err := ptypes.TimestampProto(i.UpdatedAt)
-	if err != nil {
-		return nil, err
-	}
-
-	// Handle DBIssues with NULL CVE field
-	cve := ""
-	if (i.CVE.Valid) {
-		cve = i.CVE.String
-	}
+	firstSeen := timestamppb.New(i.FirstSeen)
+	updatedAt := timestamppb.New(i.UpdatedAt)
 
 	return &v1.EnrichedIssue{
 		Hash:          i.Hash,
@@ -87,12 +70,13 @@ func toEnrichedIssue(i *issue) (*v1.EnrichedIssue, error) {
 			Confidence:  v1.Confidence(i.Confidence),
 			Description: i.Description,
 			Source:      i.Source,
-			Cve:         cve,
+			Cve:         i.CVE,
+			Uuid:        i.UUID,
 		},
 	}, nil
 }
 
-// GetIssueByHash returns an issue given its hash
+// GetIssueByHash returns an issue given its hash.
 func (db *DB) GetIssueByHash(hash string) (*v1.EnrichedIssue, error) {
 	i := issue{}
 	if err := db.Get(&i, `SELECT * FROM issues WHERE "hash"=$1`, hash); err != nil {
@@ -101,7 +85,24 @@ func (db *DB) GetIssueByHash(hash string) (*v1.EnrichedIssue, error) {
 	return toEnrichedIssue(&i)
 }
 
-// CreateIssue creates the given enriched issue on the database
+// Dump is an internal debug method.
+func (db *DB) Dump() []*v1.EnrichedIssue {
+	var i []*issue
+	var res []*v1.EnrichedIssue
+	if err := db.Select(&i, `SELECT * FROM issues`); err != nil {
+		panic(err)
+	}
+	for _, j := range i {
+		a, e := toEnrichedIssue(j)
+		if e != nil {
+			panic(e)
+		}
+		res = append(res, a)
+	}
+	return res
+}
+
+// CreateIssue creates the given enriched issue on the database.
 func (db *DB) CreateIssue(ctx context.Context, eI *v1.EnrichedIssue) error {
 	tx, err := db.BeginTxx(ctx, nil)
 	if err != nil {
@@ -126,7 +127,8 @@ issues (
     occurrences,
     false_positive,
     updated_at,
-    cve
+    cve,
+	uuid
 ) VALUES (
     :target,
     :type,
@@ -141,7 +143,8 @@ issues (
     :occurrences,
     :false_positive,
     :updated_at,
-    :cve);`,
+    :cve,
+	:uuid);`,
 		map[string]interface{}{
 			"target":         i.Target,
 			"type":           i.Type,
@@ -157,16 +160,19 @@ issues (
 			"false_positive": i.FalsePositive,
 			"updated_at":     i.UpdatedAt,
 			"cve":            i.CVE,
+			"uuid":           i.UUID,
 		},
 	)
 	if err != nil {
-		tx.Rollback()
+		if rErr := tx.Rollback(); err != nil {
+			return fmt.Errorf("could not rollback: %w: %w", rErr, err)
+		}
 		return err
 	}
 	return tx.Commit()
 }
 
-// UpdateIssue updates a given enriched issue on the database
+// UpdateIssue updates a given enriched issue on the database.
 func (db *DB) UpdateIssue(ctx context.Context, eI *v1.EnrichedIssue) error {
 	tx, err := db.BeginTxx(ctx, nil)
 	if err != nil {
@@ -188,13 +194,15 @@ WHERE "hash"=:hash;`,
 		},
 	)
 	if err != nil {
-		tx.Rollback()
+		if rErr := tx.Rollback(); err != nil {
+			return fmt.Errorf("could not rollback: %w: %w", rErr, err)
+		}
 		return err
 	}
 	return tx.Commit()
 }
 
-// DeleteIssueByHash deletes an issue given its hash
+// DeleteIssueByHash deletes an issue given its hash.
 func (db *DB) DeleteIssueByHash(hash string) error {
 	if _, err := db.NamedExec(`DELETE FROM issues WHERE "hash"=:hash`, map[string]interface{}{"hash": hash}); err != nil {
 		return err

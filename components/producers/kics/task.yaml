@@ -1,0 +1,49 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: producer-kics
+  labels:
+    v1.dracon.ocurity.com/component: producer
+spec:
+  volumes:
+    - name: scratch
+      emptyDir: {}
+  workspaces:
+    - name: source-code-ws
+      description: The workspace containing the source-code to scan.
+  steps:
+  - name: run-kics
+    image: docker.io/checkmarx/kics:v1.6.9
+    # TODO (spyros): this is temporarily necessary because kics won't exit cleanly, wrap it in a go binary in order to get back the safe "command and args" while  exiting 0
+    script: |
+      #!/bin/sh
+      /app/bin/kics \
+      scan \
+      -p $(workspaces.source-code-ws.path) \
+      -o /scratch \
+      --minimal-ui \
+      --no-progress \
+      --output-name out \
+      --payload-lines \
+      --report-formats json \
+      --silent
+      cat /scratch/out.json
+    volumeMounts:
+    - mountPath: /scratch
+      name: scratch
+    resources:
+      requests:
+        cpu: "500m"
+      limits:
+        cpu: "1"
+  - name: produce-issues
+    imagePullPolicy: IfNotPresent
+    image: ghcr.io/ocurity/dracon/components/producers/kics/image:latest
+    command: ["app/components/producers/kics/kics-parser"]
+    args:
+    - "-in=/scratch/out.json"
+    - "-out=$(workspaces.source-code-ws.path)/.dracon/producers/kics.pb"
+    volumeMounts:
+    - mountPath: /scratch
+      name: scratch

@@ -1,0 +1,22 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  generateName: dracon-zaproxy-project-
+  namespace: dracon
+spec:
+  pipelineRef:
+    name: dracon-zaproxy-project
+  params:
+  - name: producer-owasp-zaproxy-target
+    value: "https://cyberdyne.demo.dracon.cloud/"
+  workspaces:
+  - name: source-code-ws
+    subPath: source-code
+    volumeClaimTemplate:
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 1Gi

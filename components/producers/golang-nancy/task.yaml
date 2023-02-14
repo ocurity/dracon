@@ -1,0 +1,61 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: producer-golang-nancy
+  labels:
+    v1.dracon.ocurity.com/component: producer
+spec:
+  volumes:
+  - name: scratch
+    emptyDir: {}
+  workspaces:
+    - name: source-code-ws
+      description: The workspace containing the source-code to scan.
+  steps:
+  - name: go-deps
+    image: docker.io/golang:1.18
+    script: | # necessary because sonatypecommunity/nancy does not include go
+     #!/bin/bash -xe
+     echo $(workspaces.source-code-ws.path)
+     ls -lah $(workspaces.source-code-ws.path)
+     if [[ ! -f "$(workspaces.source-code-ws.path)/Gopkg.lock" ]]; then
+        cd $(workspaces.source-code-ws.path) && go list -json -deps ./... > /scratch/golist.json
+        cat /scratch/golist.json
+      else
+        cat $(workspaces.source-code-ws.path)/Gopkg.lock
+      fi
+      ls -lah /scratch
+    volumeMounts:
+    - mountPath: /scratch
+      name: scratch
+
+  - name: run-nancy
+    imagePullPolicy: IfNotPresent
+    image: docker.io/sonatypecommunity/nancy:v1.0.42-alpine
+    command:
+      - /bin/sh
+      - -c
+      - | 
+        if [[ ! -f "$(workspaces.source-code-ws.path)/Gopkg.lock" ]]; then
+          echo "Running nancy with golist"
+          cat /scratch/golist.json | nancy sleuth -o json > /scratch/out.json || true
+        else
+          echo "Running nancy in dep mode"
+          nancy sleuth -p "$(workspaces.source-code-ws.path)/Gopkg.lock" -o json > /scratch/out.json || true
+        fi
+        cat /scratch/out.json
+    volumeMounts:
+    - mountPath: /scratch
+      name: scratch
+
+  - name: produce-issues
+    imagePullPolicy: IfNotPresent
+    image: ghcr.io/ocurity/dracon/components/producers/golang-nancy/image:latest
+    command: ["app/components/producers/golang-nancy/golang-nancy-parser"]
+    args:
+    - "-in=/scratch/out.json"
+    - "-out=$(workspaces.source-code-ws.path)/.dracon/producers/golang-nancy.pb"
+    volumeMounts:
+    - mountPath: /scratch
+      name: scratch

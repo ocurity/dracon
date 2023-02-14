@@ -5,13 +5,13 @@ import (
 	"strings"
 	"testing"
 
-	v1 "github.com/thought-machine/dracon/api/proto/v1"
+	v1 "github.com/ocurity/dracon/api/proto/v1"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestGetHash(t *testing.T) {
-	expectedIssues := &v1.Issue{
+	expectedIssue := &v1.Issue{
 		Target:     "pkg:golang/github.com/coreos/etcd@0.5.0-alpha.5",
 		Type:       "Vulnerable Dependency",
 		Title:      "[CVE-2018-1099]  Improper Input Validation",
@@ -23,14 +23,13 @@ func TestGetHash(t *testing.T) {
 			"5.5", "CVSS:3.0/AV:L/AC:L/PR:L/UI:N/S:U/C:N/I:H/A:N", "CVE-2018-1099",
 			"", "https://ossindex.sonatype.org/vuln/8a190129-526c-4ee0-b663-92f38139c165"),
 		Cve: "123-321",
-		
 	}
-	assert.Equal(t, GetHash(expectedIssues), "ccc217a4c2fd348bc5c6c4d73ad4311a")
+	assert.Equal(t, GetHash(expectedIssue), "a551cc3e4c52124f3769a26d43b9b57bc5667d4ddd9689c6432f9144fbec305b")
 
-	expectedIssues.Source = strings.NewReplacer("aa", "bc").Replace(expectedIssues.Source)
+	expectedIssue.Source = strings.NewReplacer("aa", "bc").Replace(expectedIssue.Source)
 	// Test for regression on Bug where we would calculate ?ref=<> value for enrichment
-	assert.Equal(t, GetHash(expectedIssues), "ccc217a4c2fd348bc5c6c4d73ad4311a")
+	assert.Equal(t, GetHash(expectedIssue), "a551cc3e4c52124f3769a26d43b9b57bc5667d4ddd9689c6432f9144fbec305b")
 
-	expectedIssues.Source = strings.NewReplacer("git.foo.com/repo.git", "https://example.com/foo/bar").Replace(expectedIssues.Source)
-	assert.NotEqual(t, GetHash(expectedIssues), "3c73dcc2f7c647a4ff460249074a8d50")
+	expectedIssue.Source = strings.NewReplacer("git.foo.com/repo.git", "https://example.com/foo/bar").Replace(expectedIssue.Source)
+	assert.NotEqual(t, GetHash(expectedIssue), "3c73dcc2f7c647a4ff460249074a8d50")
 }

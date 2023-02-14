@@ -1,0 +1,54 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: consumer-jira
+  labels:
+    v1.dracon.ocurity.com/component: consumer
+spec:
+  volumes:
+  - name: scratch
+    emptyDir: {}
+  params:
+    - name: consumer-jira-url
+      type: string
+    - name: consumer-jira-api-token
+      type: string
+    - name: consumer-jira-user
+      type: string
+    - name: consumer-jira-config
+      type: string
+      default: ""
+  workspaces:
+    - name: source-code-ws
+      description: The workspace containing the source-code to scan.
+  steps:
+  - name: store-config # TODO(spyros): this needs to be a configmap
+    imagePullPolicy: IfNotPresent
+    image: docker.io/busybox:1.35.0
+    script: |
+      mkdir -p $(workspaces.source-code-ws.path)/.dracon/consumers/jira
+      cat <<'EOF' > $(workspaces.source-code-ws.path)/.dracon/consumers/jira/config.json
+      $(params.consumer-jira-config)
+      EOF
+      cat $(workspaces.source-code-ws.path)/.dracon/consumers/jira/config.json
+  - name: run-consumer
+    imagePullPolicy: IfNotPresent
+    image: ghcr.io/ocurity/dracon/components/consumers/jira/image:latest
+    command: ["/app/components/consumers/jira/jira"]
+    env:
+    - name: DRACON_JIRA_TOKEN
+      value: $(params.consumer-jira-api-token)
+    - name: DRACON_JIRA_USER
+      value: $(params.consumer-jira-user)
+    - name: DRACON_JIRA_URL
+      value: $(params.consumer-jira-url)
+    - name: DRACON_JIRA_CONFIG_PATH
+      value: $(workspaces.source-code-ws.path)/.dracon/consumers/jira/config.json
+
+    args: [
+      "-in",
+      "$(workspaces.source-code-ws.path)/.dracon/enrichers/",
+      "-severity-threshold",
+       "0"
+    ]

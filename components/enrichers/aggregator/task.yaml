@@ -1,0 +1,44 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: enricher-aggregator
+  labels:
+    v1.dracon.ocurity.com/component: enricher
+spec:
+  params:
+  - name: anchors
+    description: A list of tasks that this task depends on.
+    type: array
+    default: []
+  - name: b64-signature-key
+    description: An optional key to sign each aggregated result with
+    type: string
+    default: ""
+  results:
+  - name: anchor
+    description: An anchor to allow other tasks to depend on this task.
+  workspaces:
+    - name: source-code-ws
+      description: The workspace containing the source-code to scan.
+  steps:
+  - name: anchor
+    image: docker.io/busybox:1.35.0
+    script: echo "$(context.task.name)" > "$(results.anchor.path)"
+
+  - name: aggregate
+    image: docker.io/busybox:1.35.0
+    command: ["ls","-lah"]
+    args: ["$(workspaces.source-code-ws.path)"]
+
+  - name: aggregate-tagged-issues
+    image:  ghcr.io/ocurity/dracon/components/enrichers/aggregator/image:latest
+    command: ["app/components/enrichers/aggregator/aggregator"]
+    env:
+    - name: READ_PATH
+      value: $(workspaces.source-code-ws.path)/.dracon/enrichers
+    - name: WRITE_PATH
+      value: "$(workspaces.source-code-ws.path)/.dracon/enrichers"
+
+    - name: B64_SIGNATURE_KEY
+      value: "$(params.b64-signature-key)"

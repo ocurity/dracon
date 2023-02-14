@@ -1,0 +1,22 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  generateName: dracon-nancy-purl-project-
+  namespace: dracon
+spec:
+  pipelineRef:
+    name: dracon-nancy-purl-project
+  params:
+  - name: source-dependency-purl
+    value: pkg://golang/golang.org/x/text@v0.3.7
+  workspaces:
+  - name: source-code-ws
+    subPath: source-code
+    volumeClaimTemplate:
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 1Gi

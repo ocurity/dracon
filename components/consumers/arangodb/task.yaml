@@ -1,0 +1,25 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: consumer-arangodb
+  labels:
+    v1.dracon.ocurity.com/component: consumer
+spec:
+  workspaces:
+    - name: source-code-ws
+      description: The workspace containing the source-code to scan.
+  steps:
+  - name: run-consumer
+    imagePullPolicy: IfNotPresent
+    image: ghcr.io/ocurity/dracon/components/consumers/arangodb/image:latest
+    command: ["/app/components/consumers/arangodb/arangodb"]
+    args: [
+      "-in", "$(workspaces.source-code-ws.path)/.dracon/enrichers/",
+      "-db-url", "https://dracon.arangodb.svc:8529",
+      "-db-name", "dracon",
+      "-collection-name", "dracon",
+      "-basic-auth-user", "",
+      "-basic-auth-pass", "",
+      "-tls-insecure-skip-verify",
+    ]

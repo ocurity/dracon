@@ -1,0 +1,17 @@
+{
+  "defaultValues": {
+    "project": "TEST",
+    "issueType": "Task",
+    "customFields": null
+  },
+  "addToDescription": [
+    "scan_start_time",
+    "tool_name",
+    "target",
+    "type",
+    "confidence_text",
+    "annotations",
+    "hash"
+  ],
+  "mappings": null
+}

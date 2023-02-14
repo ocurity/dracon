@@ -1,0 +1,22 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  generateName: dracon-testsslsh-project-
+  namespace: dracon
+spec:
+  pipelineRef:
+    name: dracon-testsslsh-project
+  params:
+  - name: producer-testsslsh-target-url
+    value: https://badssl.com/
+  workspaces:
+  - name: source-code-ws
+    subPath: source-code
+    volumeClaimTemplate:
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 1Gi
