@@ -62,7 +62,7 @@ flowchart LR
 
 # Getting Started
 
-The [Getting started with KinD](tut-kind) tutorial explains how to get started with Dracon.
+The [Getting started with KinD][tut-kind] tutorial explains how to get started with Dracon.
 
 More tutorials:
 
