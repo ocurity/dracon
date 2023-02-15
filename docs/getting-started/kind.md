@@ -93,7 +93,7 @@ We use [Kustomize Components](https://github.com/kubernetes-sigs/kustomize/blob/
 2. Run the following to create the Tekton Pipeline, Task, etc. resources on your cluster:
 
     ```bash
-    $ kustomize build | kubectl apply -f -
+    $ plz run //third_party/binary/kubernetes-sigs/kustomize:kustomize -- build | kubectl apply -f -
     # Note: you can just run the below to see the generated Tekton Pipeline resources
     # $ kustomize build
     ```
