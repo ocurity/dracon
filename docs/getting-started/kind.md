@@ -22,12 +22,19 @@ KinD is is a tool for running local Kubernetes clusters using Docker container â
     ```bash
     $ curl -sL https://raw.githubusercontent.com/tektoncd/dashboard/main/scripts/release-installer | \
         bash -s -- install latest --read-write
-    # Use `kubectl proxy` so you can access Kubernetes services on your local machine.
-    $ kubectl proxy
-    # Tekton Dashboard is now available at: http://localhost:8001/api/v1/namespaces/tekton-pipelines/services/tekton-dashboard:http/proxy/#/about
+    # Use `kubectl port-forward ...` so you can access Kubernetes services on your local machine.
+    $ kubectl -n tekton-pipelines port-forward svc/tekton-dashboard 9097:9097
+    # Tekton Dashboard is now available at: http://localhost:9097
     ```
 
-4. **Optional**: Install ECK and create an Elasticsearch + Kibana Dashboards. For more info, see [official documentation](https://www.elastic.co/guide/en/cloud-on-k8s/current/k8s-deploy-eck.html).
+4. Create a Postgres DB to use as the Dracon deduplication DB:
+
+    ```bash
+    # Create a StatefulSet and Service for the Dracon deduplication DB. In production, we recommend using a production-ready or managed Postgres deployment.
+    $ kubectl apply -f https://github.com/ocurity/dracon-community-pipelines/blob/main/resources/deduplication-enricher-db.yaml
+    ```
+
+5. Install ECK and create an Elasticsearch + Kibana Dashboards. For more info, see [official documentation](https://www.elastic.co/guide/en/cloud-on-k8s/current/k8s-deploy-eck.html).
 
     ```bash
     # Create ECK CRDs.
@@ -35,31 +42,17 @@ KinD is is a tool for running local Kubernetes clusters using Docker container â
     # Apply ECK operator resources.
     $ kubectl apply -f https://download.elastic.co/downloads/eck/2.6.1/operator.yaml
     # Create Elasticsearch.
-    $ cat <<EOF | kubectl apply -f -
-    apiVersion: elasticsearch.k8s.elastic.co/v1
-    kind: Elasticsearch
-    metadata:
-    name: quickstart
-    spec:
-    version: 8.6.1
-    nodeSets:
-    - name: default
-        count: 1
-        config:
-        node.store.allow_mmap: false
-    EOF
+    $ kubectl apply -f https://github.com/ocurity/dracon-community-pipelines/blob/main/resources/eck-elasticsearch.yaml
     # Create Kibana.
-    $ cat <<EOF | kubectl apply -f -
-    apiVersion: kibana.k8s.elastic.co/v1
-    kind: Kibana
-    metadata:
-    name: quickstart
-    spec:
-    version: 8.6.1
-    count: 1
-    elasticsearchRef:
-        name: quickstart
-    EOF
+    $ kubectl apply -f https://github.com/ocurity/dracon-community-pipelines/blob/main/resources/eck-kibana.yaml
+    # Use `kubectl port-forward ...` to access the Kibana UI:
+    $ kubectl port-forward svc/quickstart-kb-http 5601:5601
+    # You can obtain the password by examining the `quickstart-es-elastic-user` secret:
+    # The username is `elastic`.
+    $ kubectl get secret quickstart-es-elastic-user \
+        -o=jsonpath='{.data.elastic}' \
+        | base64 -d - \
+        | xargs echo "$1"
     ```
 
 ### Composing a Pipeline
@@ -103,37 +96,37 @@ We use [Kustomize Components](https://github.com/kubernetes-sigs/kustomize/blob/
     ```yaml
     ---
     # pipelinerun.yaml
-    # Run `kubectl create -f -` with this file.
+    # Run `kubectl create ...` with this file.
     apiVersion: tekton.dev/v1beta1
     kind: PipelineRun
     metadata:
-    generateName: dracon-github-com-kubernetes-kubernetes-
-    namespace: default
+      generateName: dracon-github-com-kubernetes-kubernetes-
     spec:
-    serviceAccountName: dracon
-    pipelineRef:
+      pipelineRef:
         name: dracon-github-com-kubernetes-kubernetes
-    params:
-    - name: repository_url
-        value: https://github.com/kubernetes/kubernetes.git
-    - name: consumer-elasticsearch-url
-        value: http://quickstart-es-http:9200
-    workspaces:
-    - name: source-code-ws
-        subPath: source-code
-        volumeClaimTemplate:
-        spec:
-            accessModes:
-            - ReadWriteOnce
-            resources:
-            requests:
-                storage: 1Gi
+      params:
+        - name: repository_url
+          value: https://github.com/kubernetes/kubernetes.git
+        - name: consumer-elasticsearch-url
+          value: http://quickstart-es-http.default.svc:9200
+      workspaces:
+        - name: source-code-ws
+          subPath: source-code
+          volumeClaimTemplate:
+            spec:
+              accessModes:
+                - ReadWriteOnce
+              resources:
+                requests:
+                  storage: 1Gi
     ```
 
 4. Create the PipelineRun resource:
 
     ```bash
-    $ kubectl apply -f pipelinerun.yaml
+    $ kubectl create -f pipelinerun.yaml
     ```
 
 5. Observe the PipelineRun at http://localhost:8001/api/v1/namespaces/tekton-pipelines/services/tekton-dashboard:http/proxy/#/about
+
+6. Once the PipelineRun has finished, you can view the output in Kibana at http://localhost:5601.
