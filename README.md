@@ -1,6 +1,8 @@
-[![Lint](https://github.com/ocurity/dracon-private/actions/workflows/lint.yml/badge.svg?branch=main)](https://github.com/ocurity/dracon-private/actions/workflows/lint.yml)
-[![Dogfooding](https://github.com/ocurity/dracon-private/actions/workflows/run_dracon.yml/badge.svg)](https://github.com/ocurity/dracon-private/actions/workflows/run_dracon.yml)
-[![Test](https://github.com/ocurity/dracon-private/actions/workflows/test.yml/badge.svg)](https://github.com/ocurity/dracon-private/actions/workflows/test.yml)
+[![Lint](https://github.com/ocurity/dracon/actions/workflows/lint.yml/badge.svg?branch=main)](https://github.com/ocurity/dracon/actions/workflows/lint.yml)
+[![Dogfooding](https://github.com/ocurity/dracon/actions/workflows/run_dracon.yml/badge.svg)](https://github.com/ocurity/dracon/actions/workflows/run_dracon.yml)
+[![Test](https://github.com/ocurity/dracon/actions/workflows/test.yml/badge.svg)](https://github.com/ocurity/dracon/actions/workflows/test.yml)
+[![Publish](https://github.com/ocurity/dracon/actions/workflows/publish.yml/badge.svg)](https://github.com/ocurity/dracon/actions/workflows/publish.yml)
+
 <p align="center">
   <img src="assets/dracon-logo-light.svg#gh-dark-mode-only"/>
 </p>
@@ -60,7 +62,7 @@ flowchart LR
 
 # Getting Started
 
-The [Getting started with KinD](tut-kind) tutorial explains how to get started with Dracon.
+The [Getting started with KinD][tut-kind] tutorial explains how to get started with Dracon.
 
 More tutorials:
 
