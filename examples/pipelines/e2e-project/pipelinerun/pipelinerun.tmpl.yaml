@@ -1,0 +1,52 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  generateName: dracon-2e2-project-
+  namespace: dracon
+spec:
+  pipelineRef:
+    name: dracon-e2e-project
+  params:
+  - name: repository_url
+    value: https://github.com/ocurity/e2e-monorepo.git
+  - name: producer-docker-trivy-target
+    value: "ubuntu:latest"
+  - name: producer-docker-trivy-format
+    value: sarif
+  - name: producer-docker-trivy-command
+    value: image
+  - name: producer-ossf-scorecard-input-repo
+    value: github.com/ossf-tests/scorecard-check-branch-protection-e2e
+  - name: producer-ossf-scorecard-github-auth-token
+    value: "$GITHUB_TOKEN"
+  - name: producer-semgrep-rules-yaml
+    value: |
+      rules:
+      - id: panic
+        patterns:
+          - pattern: |
+              panic(...)
+        message: Detected "panic" call
+        severity: ERROR
+        languages:
+          - go
+  - name: b64-signature-key
+  # THIS IS AN EXAMPLE, PLEASE USE A PROPERLY SECURED SECRET KEY IN PRODUCTION
+  # Corresponding public key for verification is MOt7TFuLyGB9yRN5mcIeAPa6jKoFglkwEwGBTOVLeXI=
+    value: Lvbo+wAsW8Y4ENBA+lAikOwGTYAIXCQ49eRMEwClv94w63tMW4vIYH3JE3mZwh4A9rqMqgWCWTATAYFM5Ut5cg==
+  - name: producer-testsslsh-target-url
+    value: https://badssl.com/
+  - name: producer-owasp-zaproxy-target
+    value: "https://cyberdyne.demo.dracon.cloud/"
+
+  workspaces:
+  - name: source-code-ws
+    subPath: source-code
+    volumeClaimTemplate:
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 1Gi
