@@ -2,7 +2,7 @@
 apiVersion: tekton.dev/v1beta1
 kind: PipelineRun
 metadata:
-  generateName: dracon-2e2-project-
+  generateName: dracon-e2e-project-
   namespace: dracon
 spec:
   pipelineRef:
