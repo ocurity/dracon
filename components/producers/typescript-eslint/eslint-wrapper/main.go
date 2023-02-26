@@ -40,7 +40,15 @@ func main() {
 		"--exit-on-fatal-error",
 		"-c", ConfigPath, target).CombinedOutput()
 
-	log.Println("Executing eslint as such:", string(out))
+	log.Println("Executing eslint as such:", EsLintBinPath,
+		"--quiet",
+		"-f",
+		"json",
+		"-o",
+		"/scratch/out.json",
+		"--exit-on-fatal-error",
+		"-c", ConfigPath, target)
+	log.Println("eslint out was", string(out))
 	var exitcode *exec.ExitError
 	if errors.As(err, &exitcode) {
 		if exitcode.ExitCode() != 1 {

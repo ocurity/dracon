@@ -11,8 +11,7 @@ RUN npm uninstall --save bcrypt &&\
     eslint-plugin-security@latest \
     eslint-plugin-xss \
     eslint-plugin-no-unsanitized \
-    eslint-plugin-security-node                   
-
+    eslint-plugin-security-node
 
 ENTRYPOINT [ "/home/node/workspace/eslint-wrapper"]
 
