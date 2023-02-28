@@ -16,5 +16,4 @@ module.exports = {
   },
   plugins: [],
   rules: {},
-  ignorePatterns: ["**eslintrc**"],
 };
