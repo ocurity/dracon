@@ -12,7 +12,7 @@
 
 # Dracon
 
-Security scanning and results unification tool - forked and rewritten from @thought-machine/dracon
+Security scanning,results unification and enrichment tool - forked and rewritten from @thought-machine/dracon
 
 Security pipelines on Kubernetes. The purpose of this project is to provide a
 scalable and flexible tool to execute arbitrary tools on code and infrastructure while
@@ -63,6 +63,7 @@ flowchart LR
 # Getting Started
 
 The [Getting started with KinD][tut-kind] tutorial explains how to get started with Dracon.
+You can also access our community contributed pipelines [here](https://github.com/ocurity/dracon-community-pipelines)
 
 More tutorials:
 
@@ -74,8 +75,7 @@ More tutorials:
 
 ## Announcements
 
-This version of Dracon was announced at OWASP Appsec Dublin in 2023. Check out [the slides](docs/presentations/Global_AppSecDublin_Presentation.pdf)
-from the presentation.
+This version of Dracon was announced at OWASP Appsec Dublin in 2023. Check out [the slides](docs/presentations/Global_AppSecDublin_Presentation.pdf) and [the video](https://www.youtube.com/watch?app=desktop&list=PLpr-xdpM8wG8479ud_l4W93WU5MP2bg78&v=i9j7n0WDBO0&feature=youtu.be) of the presentation.
 
 # Support
 
