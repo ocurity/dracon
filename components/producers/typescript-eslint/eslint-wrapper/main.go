@@ -22,7 +22,6 @@ func main() {
 	//  exit with eslint exitcode if  eslint's exitcode is anything other than 1
 	flag.StringVar(&eslintRC, "c", "", "the contents of eslintrc.js")
 	flag.StringVar(&target, "t", "", "the target to scan")
-
 	flag.Parse()
 
 	if eslintRC != "" {
@@ -31,20 +30,30 @@ func main() {
 			log.Fatalf("could not write file: %s", err)
 		}
 	}
+
 	out, err := exec.Command(EsLintBinPath,
+		"--quiet",
+		"-f",
+		"json",
+		"--no-eslintrc",
+		"-o",
+		"/scratch/out.json",
+		"--exit-on-fatal-error",
+		"-c", ConfigPath, target).CombinedOutput()
+
+	log.Println("Executing eslint as such:", EsLintBinPath,
 		"--quiet",
 		"-f",
 		"json",
 		"-o",
 		"/scratch/out.json",
 		"--exit-on-fatal-error",
-		"-c", ConfigPath, target).CombinedOutput()
-
-	log.Println("Executing eslint as such:", string(out))
+		"-c", ConfigPath, target)
+	log.Println("eslint out was", string(out))
 	var exitcode *exec.ExitError
 	if errors.As(err, &exitcode) {
-		if exitcode.ExitCode() != 1 {
-			log.Println("exit code was not 1 this means that we had a misc err:", err)
+		if exitcode.ExitCode() != 1 && exitcode.ExitCode() != 2 {
+			log.Println("exit code was not 1 or 2 this means that we had a misc err:", err)
 			os.Exit(exitcode.ExitCode())
 		}
 	}

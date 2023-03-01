@@ -105,7 +105,12 @@ patches:
               echo $(workspaces.source-code-ws.path)
               ls -lah $(workspaces.source-code-ws.path)
               if [[ ! -f "$(workspaces.source-code-ws.path)/Gopkg.lock" ]]; then
-                 cd $(workspaces.source-code-ws.path) && go list -json -deps ./... > /scratch/golist.json
+                 paths=$(find $(workspaces.source-code-ws.path) -iname "go.mod")
+                 touch /scratch/golist.json
+                 for path in $paths; do
+                   cd $path && go list -json -deps ./... >> /scratch/golist.json
+                   cd $(workspaces.source-code-ws.path)
+                 done
                  cat /scratch/golist.json
                else
                  cat $(workspaces.source-code-ws.path)/Gopkg.lock

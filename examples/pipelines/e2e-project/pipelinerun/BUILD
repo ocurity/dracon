@@ -11,5 +11,5 @@ mv $SRCS $OUTS
 sed -i "s#\\\\$GITHUB_TOKEN#$GITHUB_TOKEN#g" $OUTS
     """,
     pass_env = ["GITHUB_TOKEN"],
-    visibility = ["//examples/pipelines/scorecard-project/..."],
+    visibility = ["//examples/pipelines/e2e-project/..."],
 )
