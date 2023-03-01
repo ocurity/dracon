@@ -23,9 +23,14 @@ spec:
     script: |
       set -x
       cd $(workspaces.source-code-ws.path)
-      reqs=$(find . -iname "requirements.txt")
-      echo "Found ${reqs}"
-      safety check -r "${reqs}" --save-json /scratch/out.json || true
+      touch "uber-reqs.txt"
+      for file in $(find . -iname "requirements.txt"); do
+        cat $file >> "uber-reqs.txt"
+      done
+
+      sort "uber-reqs.txt" | uniq -u > unique_requirements.txt
+
+      safety check -r unique_requirements.txt --save-json /scratch/out.json || true
     volumeMounts:
     - mountPath: /scratch
       name: scratch

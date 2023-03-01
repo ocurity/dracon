@@ -1,6 +1,7 @@
 ; Please config file
 [please]
 version = 16.27.2
+VersionChecksum = 91c6ff81c53bbd105133306faa977f59da1b72bf28e0ecb7fe0778529c5cd861
 
 ; Support the non *-rules repo name format of Please plugins.
 PluginRepo = "https://github.com/{owner}/{plugin}/archive/{revision}.zip"
