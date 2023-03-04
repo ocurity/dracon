@@ -22,6 +22,13 @@ patches:
             workspaces:
               - name: source-code-ws
                 workspace: source-code-ws
+            params:
+              - name: enricher-depsdev-licenses-in-evidence
+                value: $(params.enricher-depsdev-licenses-in-evidence)
+        params:
+          - name: enricher-depsdev-licenses-in-evidence
+            type: string
+            default: "false"
     target:
       kind: Pipeline
   # Add anchors to Task.

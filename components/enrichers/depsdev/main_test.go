@@ -85,6 +85,48 @@ func TestParseIssuesLicensesWritten(t *testing.T) {
 	}))
 	defer svr.Close()
 	depsdevBaseURL = svr.URL
+	run()
+
+	assert.FileExists(t, dir+"/depsdevSAT.depsdev.enriched.pb", "file was not created")
+
+	// load *enriched.pb
+	pbBytes, err := ioutil.ReadFile(dir + "/depsdevSAT.depsdev.enriched.pb")
+	assert.NoError(t, err, "could not read enriched file")
+	res := v1.EnrichedLaunchToolResponse{}
+	proto.Unmarshal(pbBytes, &res)
+
+	//  ensure every component has a license attached to it
+	for _, finding := range res.Issues {
+		bom, err := cyclonedx.FromDracon(finding.RawIssue)
+		assert.NoError(t, err, "Could not read enriched cyclone dx info")
+		found := false
+		for _, component := range *bom.Components {
+			for _, lic := range *component.Licenses {
+				found = true
+				assert.Equal(t, lic.Expression, license)
+			}
+		}
+		assert.True(t, found)
+
+	}
+}
+
+func TestParseIssuesLicensesWrittenACcurateLicenses(t *testing.T) {
+	dir := prepareIssue()
+
+	// setup server
+	response := Response{
+		Version: Version{
+			Licenses: []string{license},
+		},
+	}
+	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Contains(t, r.URL.String(), "/_/s/go/p/")
+		json.NewEncoder(w).Encode(response)
+	}))
+	defer svr.Close()
+	depsdevBaseURL = svr.URL
+	licensesInEvidence = "true"
 
 	run()
 
@@ -100,12 +142,14 @@ func TestParseIssuesLicensesWritten(t *testing.T) {
 	for _, finding := range res.Issues {
 		bom, err := cyclonedx.FromDracon(finding.RawIssue)
 		assert.NoError(t, err, "Could not read enriched cyclone dx info")
-
+		found := false
 		for _, component := range *bom.Components {
-			for _, lic := range *component.Licenses {
-				assert.Equal(t, lic.License.Name, license)
+			for _, lic := range *component.Evidence.Licenses {
+				found = true
+				assert.Equal(t, lic.Expression, license)
 			}
 		}
+		assert.True(t, found)
 	}
 }
 

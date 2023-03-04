@@ -18,9 +18,10 @@ import (
 )
 
 var (
-	readPath       string
-	writePath      string
-	depsdevBaseURL = "https://deps.dev"
+	readPath          string
+	writePath         string
+	depsdevBaseURL    = "https://deps.dev"
+	licensesInEvidence string
 )
 
 type Version struct {
@@ -114,14 +115,20 @@ func enrichIssue(i *v1.Issue) (*v1.EnrichedIssue, error) {
 					continue
 				}
 				for _, lic := range depsResp.Version.Licenses {
-					log.Println(lic)
-
-					bomLicense := cdx.License{
-						Name: lic,
-					}
-					licenses = append(licenses, cdx.LicenseChoice{License: &bomLicense})
+					licenses = append(licenses, cdx.LicenseChoice{Expression: lic})
 				}
-				(*bom.Components)[index].Licenses = &licenses
+				if licensesInEvidence == "true" {
+					evid := cdx.Evidence{
+						Licenses: &licenses,
+					}
+					if (*bom.Components)[index].Evidence == nil {
+						(*bom.Components)[index].Evidence = &evid
+					} else {
+						(*bom.Components)[index].Evidence.Licenses = &licenses
+					}
+				} else {
+					(*bom.Components)[index].Licenses = &licenses
+				}
 				annotations["Enriched Licenses"] = "True"
 			}
 			// TODO(): enrich with vulnerability and scorecard info whenever a consumer supports showing arbitrary properties in components
@@ -187,6 +194,12 @@ func run() {
 func main() {
 	flag.StringVar(&readPath, "read_path", lookupEnvOrString("READ_PATH", ""), "where to find producer results")
 	flag.StringVar(&writePath, "write_path", lookupEnvOrString("WRITE_PATH", ""), "where to put enriched results")
+	flag.StringVar(&licensesInEvidence, "licensesInEvidence", lookupEnvOrString("LICENSES_IN_EVIDENCE", ""),
+		`If this flag is provided and set to "true", the enricher will populate the 'evidence' CycloneDX field with license information instead of the license field.
+	This means that the result conforms to the CycloneDX intention of providing accurate information when licensing information cannot be guaranteed to be accurate.
+	However, no tools currently support reading license information from evidence.
+	This is because deps.dev does not guarantee accurate licensing information for Go.
+	Enable this switch if you need to provide SBOM information for regulatory reasons.`)
 	flag.Parse()
 	run()
 }
