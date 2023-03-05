@@ -15,6 +15,7 @@ go_binary(
         "//pkg/putil",
         "//policies/example.gosec:demo-data",
         "//third_party/go/github.com/CycloneDX/cyclonedx-go",
+        "//third_party/go/github.com/package-url/packageurl-go",
         "//third_party/go/google.golang.org/protobuf",
     ],
 )
@@ -33,6 +34,7 @@ go_test(
         "//third_party/go/github.com/google/uuid",
         "//third_party/go/github.com/stretchr/testify",
         "//third_party/go/google.golang.org/protobuf",
+        "//third_party/go/github.com/package-url/packageurl-go",
     ],
 )
 
@@ -44,20 +46,8 @@ buildkit_distroless_image(
     ],
 )
 
-# kustomized_config(
-#     name = "k8s",
-#     srcs = [
-#         "kustomization.yaml",
-#         "task.yaml",
-#     ],
-#     images = [
-#         ":image",
-#     ],
-#     visibility = ["//examples/pipelines/..."],
-# )
-
 dracon_component(
-    name = "policy",
+    name = "depsdev",
     images = [
         ":image",
     ],

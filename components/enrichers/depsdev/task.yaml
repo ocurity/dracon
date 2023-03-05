@@ -18,7 +18,7 @@ spec:
   - name: run-enricher
     imagePullPolicy: IfNotPresent
     image: ghcr.io/ocurity/dracon/components/enrichers/depsdev/image:latest
-    command: ["app/components/enrichers/policy/policy"]
+    command: ["app/components/enrichers/depsdev/depsdev"]
     env:
     - name: READ_PATH
       value: $(workspaces.source-code-ws.path)/.dracon/producers
