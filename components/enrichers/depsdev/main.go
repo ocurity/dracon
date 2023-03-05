@@ -159,7 +159,7 @@ func enrichIssue(i *v1.Issue) (*v1.EnrichedIssue, error) {
 					licenseName := cdx.License{
 						Name: lic,
 					}
-					licenses = append(licenses, cdx.LicenseChoice{License: &licenseName, Expression: lic})
+					licenses = append(licenses, cdx.LicenseChoice{License: &licenseName})
 					log.Println("found license", lic, "for component", component.Name)
 				}
 				if licensesInEvidence == "true" {
