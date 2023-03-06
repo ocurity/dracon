@@ -128,7 +128,7 @@ func addLicenses(component cdx.Component, annotations map[string]string) (cdx.Co
 	if err != nil {
 		return component, annotations, err
 	}
-	resp, err := http.Get(url)
+	resp, err := http.Get(url) // nolint: gosec, url get constructed above with a hardcoded domain and relatively trusted data
 	log.Println("url is", url)
 	if err != nil {
 		return component, annotations, err
