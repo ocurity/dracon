@@ -120,6 +120,7 @@ func makeURL(component cdx.Component) (string, error) {
 	baseURL = baseURL + fmt.Sprintf("/p/%s/v/%s", url.QueryEscape(component.Name), version)
 	return baseURL, nil
 }
+
 func enrichIssue(i *v1.Issue) (*v1.EnrichedIssue, error) {
 	enrichedIssue := v1.EnrichedIssue{}
 	annotations := map[string]string{}
