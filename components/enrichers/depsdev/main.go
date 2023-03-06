@@ -102,23 +102,67 @@ func makeURL(component cdx.Component) (string, error) {
 	version := url.QueryEscape(component.Version)
 	switch instance.Type {
 	case packageurl.TypeGolang:
-		baseURL = baseURL + "/go"
+		baseURL += "/go"
 		version = "v" + version
 	case packageurl.TypePyPi:
-		baseURL = baseURL + "/pypi"
+		baseURL += "/pypi"
 	case packageurl.TypeMaven:
-		baseURL = baseURL + "/maven"
+		baseURL += "/maven"
 	// case packageurl.TypeCargo:
-	// 	baseURL = baseURL + "/cargo"
+	// 	baseURL += "/cargo"
 	case packageurl.TypeNPM:
-		baseURL = baseURL + "/npm"
+		baseURL += "/npm"
 	case packageurl.TypeNuget:
-		baseURL = baseURL + "/nuget"
+		baseURL += "/nuget"
 	default:
 		log.Println(instance.Namespace, "not supported by this enricher")
 	}
-	baseURL = baseURL + fmt.Sprintf("/p/%s/v/%s", url.QueryEscape(component.Name), version)
+	baseURL += fmt.Sprintf("/p/%s/v/%s", url.QueryEscape(component.Name), version)
 	return baseURL, nil
+}
+
+func addLicenses(component cdx.Component, annotations map[string]string) (cdx.Component, map[string]string, error) {
+	var depsResp Response
+	licenses := cdx.Licenses{}
+	url, err := makeURL(component)
+	if err != nil {
+		return component, annotations, err
+	}
+	resp, err := http.Get(url)
+	log.Println("url is", url)
+	if err != nil {
+		return component, annotations, err
+	}
+	err = json.NewDecoder(resp.Body).Decode(&depsResp)
+	if err != nil {
+		return component, annotations, err
+	}
+	if len(depsResp.Version.Licenses) == 0 {
+		log.Println("could not find license for component", component.Name)
+		// log.Println(resp.Header, resp.StatusCode, depsResp)
+	}
+	for _, lic := range depsResp.Version.Licenses {
+		licenseName := cdx.License{
+			Name: lic,
+		}
+		licenses = append(licenses, cdx.LicenseChoice{License: &licenseName})
+		log.Println("found license", lic, "for component", component.Name)
+	}
+	if licensesInEvidence == "true" {
+		evid := cdx.Evidence{
+			Licenses: &licenses,
+		}
+		if component.Evidence == nil {
+			component.Evidence = &evid
+		} else {
+			component.Evidence.Licenses = &licenses
+		}
+	} else {
+		component.Licenses = &licenses
+	}
+
+	annotations["Enriched Licenses"] = "True"
+	return component, annotations, nil
 }
 
 func enrichIssue(i *v1.Issue) (*v1.EnrichedIssue, error) {
@@ -128,55 +172,17 @@ func enrichIssue(i *v1.Issue) (*v1.EnrichedIssue, error) {
 	if err != nil {
 		return &enrichedIssue, err
 	}
-	var depsResp Response
 	if bom == nil || *bom.Components == nil {
 		return &enrichedIssue, errors.New("bom does not have components")
 	}
 	for index, component := range *bom.Components {
-		licenses := cdx.Licenses{}
 		if component.Type == cdx.ComponentTypeLibrary {
 			if component.Licenses == nil {
-				url, err := makeURL(component)
+				(*bom.Components)[index], annotations, err = addLicenses(component, annotations)
 				if err != nil {
 					log.Println(err)
 					continue
 				}
-				resp, err := http.Get(url)
-				log.Println("url is", url)
-				if err != nil {
-					log.Println(err)
-					continue
-				}
-				err = json.NewDecoder(resp.Body).Decode(&depsResp)
-				if err != nil {
-					log.Println(err)
-					continue
-				}
-				if len(depsResp.Version.Licenses) == 0 {
-					log.Println("could not find license for component", component.Name)
-					// log.Println(resp.Header, resp.StatusCode, depsResp)
-				}
-				for _, lic := range depsResp.Version.Licenses {
-					licenseName := cdx.License{
-						Name: lic,
-					}
-					licenses = append(licenses, cdx.LicenseChoice{License: &licenseName})
-					log.Println("found license", lic, "for component", component.Name)
-				}
-				if licensesInEvidence == "true" {
-					evid := cdx.Evidence{
-						Licenses: &licenses,
-					}
-					if (*bom.Components)[index].Evidence == nil {
-						(*bom.Components)[index].Evidence = &evid
-					} else {
-						(*bom.Components)[index].Evidence.Licenses = &licenses
-					}
-				} else {
-					(*bom.Components)[index].Licenses = &licenses
-				}
-
-				annotations["Enriched Licenses"] = "True"
 			}
 			// TODO(): enrich with vulnerability and scorecard info whenever a consumer supports showing arbitrary properties in components
 		}

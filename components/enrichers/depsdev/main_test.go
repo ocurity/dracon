@@ -103,7 +103,7 @@ func TestParseIssuesLicensesWritten(t *testing.T) {
 		for _, component := range *bom.Components {
 			for _, lic := range *component.Licenses {
 				found = true
-				assert.Equal(t, lic.Expression, license)
+				assert.Equal(t, lic.License.Name, license)
 			}
 		}
 		assert.True(t, found)
@@ -146,7 +146,7 @@ func TestParseIssuesLicensesWrittenACcurateLicenses(t *testing.T) {
 		for _, component := range *bom.Components {
 			for _, lic := range *component.Evidence.Licenses {
 				found = true
-				assert.Equal(t, lic.Expression, license)
+				assert.Equal(t, lic.License.Name, license)
 			}
 		}
 		assert.True(t, found)

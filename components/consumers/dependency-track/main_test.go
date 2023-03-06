@@ -92,7 +92,9 @@ func TestUploadBomsFromEnriched(t *testing.T) {
 	}
 	eltr := v1.EnrichedLaunchToolResponse{
 		OriginalResults: &ltr,
-		Issues:          []*v1.EnrichedIssue{},
+		Issues: []*v1.EnrichedIssue{
+			{RawIssue: issues[0]},
+		},
 	}
 	tokens, err := uploadBOMSFromEnriched([]*v1.EnrichedLaunchToolResponse{&eltr})
 	assert.Nil(t, err)
