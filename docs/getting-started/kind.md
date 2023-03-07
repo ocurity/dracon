@@ -31,7 +31,7 @@ KinD is is a tool for running local Kubernetes clusters using Docker container â
 
     ```bash
     # Create a StatefulSet and Service for the Dracon deduplication DB. In production, we recommend using a production-ready or managed Postgres deployment.
-    $ kubectl apply -f https://github.com/ocurity/dracon-community-pipelines/blob/main/resources/deduplication-enricher-db.yaml
+    $ kubectl apply -f https://raw.githubusercontent.com/ocurity/dracon-community-pipelines/main/resources/deduplication-enricher-db.yaml
     ```
 
 5. Install ECK and create an Elasticsearch + Kibana Dashboards. For more info, see [official documentation](https://www.elastic.co/guide/en/cloud-on-k8s/current/k8s-deploy-eck.html).
@@ -42,9 +42,9 @@ KinD is is a tool for running local Kubernetes clusters using Docker container â
     # Apply ECK operator resources.
     $ kubectl apply -f https://download.elastic.co/downloads/eck/2.6.1/operator.yaml
     # Create Elasticsearch.
-    $ kubectl apply -f https://github.com/ocurity/dracon-community-pipelines/blob/main/resources/eck-elasticsearch.yaml
+    $ kubectl apply -f https://raw.githubusercontent.com/ocurity/dracon-community-pipelines/main/resources/eck-elasticsearch.yaml
     # Create Kibana.
-    $ kubectl apply -f https://github.com/ocurity/dracon-community-pipelines/blob/main/resources/eck-kibana.yaml
+    $ kubectl apply -f https://raw.githubusercontent.com/ocurity/dracon-community-pipelines/main/resources/eck-kibana.yaml
     # Use `kubectl port-forward ...` to access the Kibana UI:
     $ kubectl port-forward svc/quickstart-kb-http 5601:5601
     # You can obtain the password by examining the `quickstart-es-elastic-user` secret:

@@ -1,0 +1,28 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: enricher-depsdev
+  labels:
+    v1.dracon.ocurity.com/component: enricher
+spec:
+  params:
+  - name: enricher-depsdev-licenses-in-evidence
+    type: string
+    default: "false"
+
+  workspaces:
+    - name: source-code-ws
+      description: The workspace containing the source-code to scan.
+  steps:
+  - name: run-enricher
+    imagePullPolicy: IfNotPresent
+    image: ghcr.io/ocurity/dracon/components/enrichers/depsdev/image:latest
+    command: ["app/components/enrichers/depsdev/depsdev"]
+    env:
+    - name: READ_PATH
+      value: $(workspaces.source-code-ws.path)/.dracon/producers
+    - name: WRITE_PATH
+      value: "$(workspaces.source-code-ws.path)/.dracon/enrichers/depsdev"
+    - name: LICENSES_IN_EVIDENCE
+      value: "$(params.enricher-depsdev-licenses-in-evidence)"

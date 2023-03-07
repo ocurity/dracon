@@ -67,11 +67,11 @@ func uploadBOMSFromEnriched(responses []*v1.EnrichedLaunchToolResponse) ([]strin
 	var tokens []string
 	for _, res := range responses {
 		var bomIssue *v1.Issue
-		for _, issue := range res.GetOriginalResults().GetIssues() {
-			if *issue.CycloneDXSBOM != "" && bomIssue == nil {
-				bomIssue = issue
+		for _, issue := range res.GetIssues() {
+			if issue.GetRawIssue().GetCycloneDXSBOM() != "" && bomIssue == nil {
+				bomIssue = issue.GetRawIssue()
 			} else if bomIssue != nil && *bomIssue.CycloneDXSBOM != "" {
-				log.Fatalf("Tool response for tool %s is malformed, we expected a single issue with an SBOM as part of the tool, got multiple issues with sboms instead",
+				log.Fatalf("Tool response for tool %s is malformed, we expected a single issue with an SBOM as part of the tool, got something else instead",
 					res.GetOriginalResults().GetToolName())
 			}
 		}
@@ -79,9 +79,9 @@ func uploadBOMSFromEnriched(responses []*v1.EnrichedLaunchToolResponse) ([]strin
 		if err != nil {
 			return tokens, err
 		}
-		token, err := uploadBOM(*bomIssue.CycloneDXSBOM, cdxbom.Metadata.Component.Version)
+		token, err := uploadBOM(bomIssue.GetCycloneDXSBOM(), cdxbom.Metadata.Component.Version)
 		if err != nil {
-			log.Fatal("could not upload bod to dependency track, err:", err)
+			log.Fatal("could not upload bom to dependency track, err:", err)
 		}
 		log.Println("upload token is", token)
 		tokens = append(tokens, token)
