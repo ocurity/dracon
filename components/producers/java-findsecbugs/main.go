@@ -95,7 +95,10 @@ func readXML(xmlFile []byte) []*v1.Issue {
 	if len(xmlFile) == 0 {
 		return output
 	}
-	xml.Unmarshal(xmlFile, &bugs)
+	err := xml.Unmarshal(xmlFile, &bugs)
+	if err != nil {
+		log.Fatal("could not unmarshal findsecbugs output", err)
+	}
 	for _, instance := range bugs.BugInstance {
 
 		// parse standalone SourceLine elements
@@ -149,19 +152,20 @@ func normalizeRank(rank string) v1.Severity {
 	if err != nil {
 		fmt.Println(err)
 	}
-	if intRank > 1 && intRank < 4 {
+	switch intRank {
+	case 1 < intRank  && intRank < 4 
 		return v1.Severity_SEVERITY_CRITICAL
-	} else if intRank > 5 && intRank < 9 {
+	case  5 < intRank  && intRank < 9
 		return v1.Severity_SEVERITY_HIGH
-	} else if intRank > 10 && intRank < 14 {
+	case 10 < intRank && intRank < 14 
 		return v1.Severity_SEVERITY_MEDIUM
-	} else if intRank > 15 && intRank < 20 {
+	case 15 < intRank && intRank < 20 
 		return v1.Severity_SEVERITY_LOW
 	}
 	return v1.Severity_SEVERITY_INFO
 }
 
-// Sarif is the switch that tells us that findsecbugs output is in sarif format
+// Sarif is the switch that tells us that findsecbugs output is in sarif format.
 var Sarif bool
 
 func main() {
@@ -187,9 +191,7 @@ func main() {
 			if result.ToolName != "SpotBugs" {
 				log.Printf("Toolname from Sarif results is not 'SpotBugs' it is %s instead\n", result.ToolName)
 			}
-			for _, issue := range result.Issues {
-				issues = append(issues, issue)
-			}
+			issues = append(issues, result.Issues...)
 		}
 	} else {
 		xmlByteVal, _ := loadXML(producers.InResults)
