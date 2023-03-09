@@ -152,14 +152,14 @@ func normalizeRank(rank string) v1.Severity {
 	if err != nil {
 		fmt.Println(err)
 	}
-	switch intRank {
-	case 1 < intRank  && intRank < 4 
+	switch {
+	case 1 < intRank  && intRank < 4:
 		return v1.Severity_SEVERITY_CRITICAL
-	case  5 < intRank  && intRank < 9
+	case  5 < intRank  && intRank < 9:
 		return v1.Severity_SEVERITY_HIGH
-	case 10 < intRank && intRank < 14 
+	case 10 < intRank && intRank < 14:
 		return v1.Severity_SEVERITY_MEDIUM
-	case 15 < intRank && intRank < 20 
+	case 15 < intRank && intRank < 20:
 		return v1.Severity_SEVERITY_LOW
 	}
 	return v1.Severity_SEVERITY_INFO
