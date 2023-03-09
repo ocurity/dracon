@@ -22,6 +22,9 @@ components:
   - ../../../components/producers/python-bandit
   - ../../../components/producers/python-pip-safety
 
+  - ../../../components/producers/dependency-check
+  - ../../../components/producers/java-findsecbugs
+
   - ../../../components/producers/ossf-scorecard
 
   - ../../../components/producers/semgrep
