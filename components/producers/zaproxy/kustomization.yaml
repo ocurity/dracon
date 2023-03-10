@@ -26,13 +26,13 @@ patches:
               - name: producer-owasp-zaproxy-flags
                 value:
                   - $(params.producer-owasp-zaproxy-flags)
-              - name: producer-owasp-zaproxy-target
-                value: $(params.producer-owasp-zaproxy-target)
+              - name: producer-owasp-zaproxy-automation-framework-file-base64
+                value: $(params.producer-owasp-zaproxy-automation-framework-file-base64)
         params:
           - name: producer-owasp-zaproxy-flags
             type: array
             default: []
-          - name: producer-owasp-zaproxy-target
+          - name: producer-owasp-zaproxy-automation-framework-file-base64
             type: string
             default: ""
     target:
@@ -113,6 +113,12 @@ patches:
         steps:
           - name: run-zap
             image: docker.io/owasp/zap2docker-stable:2.12.0
+            script: |
+              #! /bin/bash
+               set -ex
+               echo "$(params.producer-owasp-zaproxy-automation-framework-file-base64)" | base64 -d > automation.yaml
+               cat automation.yaml
+               zap.sh -cmd -autorun automation.yaml
             env:
               - name: DRACON_SCAN_TIME
                 value: $(params.dracon_scan_start_time)
