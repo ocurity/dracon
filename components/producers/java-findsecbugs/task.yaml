@@ -46,7 +46,7 @@ spec:
     command: ["app/components/producers/java-findsecbugs/java-findsecbugs-parser"]
     args:
     - -sarifOut
-    - "-in=/scratch/out.json"
+    - "-in=/scratch/out.xml"
     - "-out=$(workspaces.source-code-ws.path)/.dracon/producers/java-findsecbugs.pb"
     volumeMounts:
     - mountPath: /scratch
