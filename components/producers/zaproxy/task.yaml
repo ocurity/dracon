@@ -22,7 +22,7 @@ spec:
   steps:
   - name: run-zap
     image: docker.io/owasp/zap2docker-stable:2.12.0
-    command: [zap-full-scan.py]
+    command: [zap-baseline.py]
     args:
     - -t
     - "$(params.producer-owasp-zaproxy-target)"

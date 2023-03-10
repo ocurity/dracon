@@ -25,7 +25,7 @@ spec:
       wget "$(params.producer-java-findsecbugs-jar-url)" -O "$(workspaces.source-code-ws.path)/main.jar"
   - name: run-findsecbugs
     imagePullPolicy: IfNotPresent
-    image: captainfoobar/findsecbugs:1.12.0 
+    image: docker.io/captainfoobar/findsecbugs:1.12.0 
     command: [/findsecbugs/findsecbugs.sh]
     args:
       - -quiet
@@ -42,7 +42,7 @@ spec:
       name: scratch
   - name: produce-issues
     imagePullPolicy: IfNotPresent
-    image: ghcr.io/ocurity/dracon/components/producers/java-findsecbugs-parser/image:latest
+    image: ghcr.io/ocurity/dracon/components/producers/java-findsecbugs/image:latest
     command: ["app/components/producers/java-findsecbugs/java-findsecbugs-parser"]
     args:
     - -sarifOut
