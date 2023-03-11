@@ -10,7 +10,7 @@ spec:
   - name: producer-owasp-zaproxy-flags
     type: array
     default: []
-  - name: producer-owasp-zaproxy-target
+  - name: producer-owasp-zaproxy-automation-framework-file-base64
     type: string
     default: ""
   volumes:
@@ -22,15 +22,12 @@ spec:
   steps:
   - name: run-zap
     image: docker.io/owasp/zap2docker-stable:2.12.0
-    command: [zap-baseline.py]
-    args:
-    - -t
-    - "$(params.producer-owasp-zaproxy-target)"
-    - -J
-    - out.json
-    - -j
-    - -I
-    - "$(params.producer-owasp-zaproxy-flags[*])"
+    script: |
+     #! /bin/bash
+      set -ex
+      echo "$(params.producer-owasp-zaproxy-automation-framework-file-base64)" | base64 -d > automation.yaml
+      cat automation.yaml
+      zap.sh -cmd -autorun automation.yaml
     volumeMounts:
     - mountPath: /zap/wrk
       name: scratch
