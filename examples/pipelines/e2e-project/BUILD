@@ -6,13 +6,10 @@ dracon_pipeline(
         "//components/base:k8s",
         "//components/consumers/mongodb:k8s",
         "//components/consumers/elasticsearch:k8s",
-        
         "//components/enrichers/aggregator:k8s",
         "//components/enrichers/deduplication:k8s",
         "//components/enrichers/policy:k8s",
-        
         "//components/producers/aggregator:k8s",
-
         "//components/producers/zaproxy:k8s",
         "//components/producers/typescript-eslint:k8s",
         "//components/producers/typescript-npm-audit:k8s",
@@ -26,11 +23,11 @@ dracon_pipeline(
         "//components/producers/python-pip-safety:k8s",
         "//components/producers/golang-gosec:k8s",
         "//components/producers/golang-nancy:k8s",
-        
+        "//components/producers/java-findsecbugs:k8s",
+        "//components/producers/dependency-check:k8s",
         "//components/sources/git:k8s",
     ],
     kube_context = "//build/k8s/k3d:dracon",
     kustomization_yaml = "kustomization.yaml",
     pipelinerun = "//examples/pipelines/e2e-project/pipelinerun:pipelinerun",
 )
-
