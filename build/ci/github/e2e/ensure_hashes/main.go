@@ -76,8 +76,7 @@ func run(ctx context.Context, want []string) error {
 		return err
 	}
 	if len(issues) == 0 {
-		fmt.Println("could not retrieve any issues from the database")
-		return nil
+		return fmt.Errorf("could not retrieve any issues from the database")
 	}
 	log.Println("found", len(issues), "hashes")
 
