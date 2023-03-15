@@ -38,7 +38,7 @@ func main() {
 		panic("Could not read hashes file")
 	}
 	fileContent := string(bytesRead)
-	content := strings.Replace(fileContent, "'", "", -1)
+	content := strings.ReplaceAll(fileContent, "'", "")
 	lines := strings.Split(content, "\n")
 	if len(lines) == 0 {
 		log.Fatal("hash file is empty")
@@ -76,7 +76,7 @@ func run(ctx context.Context, want []string) error {
 		return err
 	}
 	if len(issues) == 0 {
-		log.Fatal("could not retrieve any issues from the database")
+		return fmt.Errorf("could not retrieve any issues from the database")
 	}
 	log.Println("found", len(issues), "hashes")
 
@@ -88,7 +88,7 @@ func run(ctx context.Context, want []string) error {
 		return err
 	}
 	if !compare(want, hashes) {
-		return fmt.Errorf("%s\n", "Lists are different, comparison failed")
+		return fmt.Errorf("%s\n", "lists are different, comparison failed")
 	}
 	return nil
 }
