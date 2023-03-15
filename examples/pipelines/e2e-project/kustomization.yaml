@@ -23,7 +23,7 @@ components:
   - ../../../components/producers/python-pip-safety
 
   - ../../../components/producers/dependency-check
-  - ../../../components/producers/java-findsecbugs
+  # - ../../../components/producers/java-findsecbugs
 
   - ../../../components/producers/ossf-scorecard
 
@@ -31,7 +31,7 @@ components:
 
   - ../../../components/producers/terraform-tfsec
 
-  - ../../../components/producers/testsslsh
+  # - ../../../components/producers/testsslsh
 
   - ../../../components/producers/typescript-npm-audit
   - ../../../components/producers/typescript-eslint

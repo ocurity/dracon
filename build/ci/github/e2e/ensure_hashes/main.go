@@ -38,10 +38,14 @@ func main() {
 		panic("Could not read hashes file")
 	}
 	fileContent := string(bytesRead)
-	lines := strings.Split(fileContent, "\n")
-
+	content := strings.Replace(fileContent, "'", "", -1)
+	lines := strings.Split(content, "\n")
+	if len(lines) == 0 {
+		log.Fatal("hash file is empty")
+	}
+	log.Println("started successfully")
 	if err := run(ctx, lines); err != nil {
-		log.Fatalf("could not run: %s", err)
+		log.Fatalf("run not successful: %s", err)
 	}
 }
 
@@ -50,8 +54,12 @@ func run(ctx context.Context, want []string) error {
 	if err != nil {
 		return err
 	}
+	log.Println("connected to db")
 
 	defer func() {
+		if client == nil {
+			return
+		}
 		if err := client.Disconnect(ctx); err != nil {
 			log.Fatal(err)
 		}
@@ -59,11 +67,19 @@ func run(ctx context.Context, want []string) error {
 
 	coll := client.Database(dbName).Collection(collectionName)
 
-	cur, err := coll.Find(ctx, bson.D{{"hash", 1}})
+	cur, err := coll.Find(ctx, bson.D{})
+	if err != nil {
+		return err
+	}
 	var issues []*v1.EnrichedIssue
 	if err := cur.All(ctx, &issues); err != nil {
 		return err
 	}
+	if len(issues) == 0 {
+		log.Fatal("could not retrieve any issues from the database")
+	}
+	log.Println("found", len(issues), "hashes")
+
 	var hashes []string
 	for _, iss := range issues {
 		hashes = append(hashes, iss.GetHash())
@@ -82,14 +98,18 @@ func compare(want, have []string) bool {
 	if len(want) == 0 && len(have) == 0 {
 		return true
 	}
-	extraHave := []string{}
-	extraWant := []string{}
+	var extraHave []string
+	var extraWant []string
 	wantLen := len(want)
 	haveLen := len(have)
 
 	visited := make([]bool, haveLen)
 	for i := 0; i < wantLen; i++ {
+		if want[i] == "" {
+			continue
+		}
 		found := false
+
 		for j := 0; j < haveLen; j++ {
 			if visited[j] {
 				continue
@@ -115,10 +135,13 @@ func compare(want, have []string) bool {
 	if len(extraWant) == 0 && len(extraHave) == 0 {
 		return true
 	}
-
-	fmt.Println("Hash lists are different want(len:", len(want), ")!=have(len:", len(have), ")", "want has the following elements different")
+	for _, e := range extraWant {
+		fmt.Printf("'%#v'\n", e)
+	}
+	fmt.Println("Hash lists are different want(len:", len(want), ")!=have(len:", len(have), ")",
+		"local list has the following", len(extraWant), "elements different")
 	fmt.Println(extraWant)
-	fmt.Println("Have has the following extra elements")
+	fmt.Println("Remote list has the following", len(extraHave), "extra elements")
 	fmt.Println(extraHave)
 
 	return false
