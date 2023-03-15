@@ -94,7 +94,6 @@ func run(ctx context.Context, want []string) error {
 }
 
 func compare(want, have []string) bool {
-
 	if len(want) == 0 && len(have) == 0 {
 		return true
 	}
