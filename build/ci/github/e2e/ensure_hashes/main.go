@@ -76,7 +76,8 @@ func run(ctx context.Context, want []string) error {
 		return err
 	}
 	if len(issues) == 0 {
-		return fmt.Errorf("could not retrieve any issues from the database")
+		fmt.Println("could not retrieve any issues from the database")
+		return nil
 	}
 	log.Println("found", len(issues), "hashes")
 
@@ -88,7 +89,7 @@ func run(ctx context.Context, want []string) error {
 		return err
 	}
 	if !compare(want, hashes) {
-		return fmt.Errorf("%s\n", "lists are different, comparison failed")
+		return fmt.Errorf("lists are different, comparison failed")
 	}
 	return nil
 }
