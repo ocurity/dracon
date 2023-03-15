@@ -73,6 +73,8 @@ jobs:
       run: |-
         STR=${{ matrix.target }}
         if [[ "$STR" == *"e2e-project"* ]]; then
+          kubectl -n dracon get pod
+          kubectl -n dracon get taskruns
           kubectl -n dracon port-forward services/consumer-mongodb 27017:27017&
           ./pleasew run //build/ci/github/e2e/ensure_hashes:dbComparison --\
           -db-uri "mongodb://consumer-mongodb:consumer-mongodb@localhost:27017/consumer-mongodb"\
