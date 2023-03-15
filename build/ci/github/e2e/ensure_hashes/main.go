@@ -88,7 +88,7 @@ func run(ctx context.Context, want []string) error {
 		return err
 	}
 	if !compare(want, hashes) {
-		return fmt.Errorf("lists are different, comparison failed")
+		return fmt.Errorf("%s", "lists are different, comparison failed")
 	}
 	return nil
 }
@@ -133,9 +133,6 @@ func compare(want, have []string) bool {
 
 	if len(extraWant) == 0 && len(extraHave) == 0 {
 		return true
-	}
-	for _, e := range extraWant {
-		fmt.Printf("'%#v'\n", e)
 	}
 	fmt.Println("Hash lists are different want(len:", len(want), ")!=have(len:", len(have), ")",
 		"local list has the following", len(extraWant), "elements different")
