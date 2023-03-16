@@ -1,0 +1,64 @@
+---
+name: E2E
+on:
+  push:
+    branches:
+    - main
+  pull_request:
+    branches:
+    - main
+
+env:
+  PLZ_CONFIG_PROFILE: ci
+  SEGMENT_DOWNLOAD_TIMEOUT_MINS: "2"
+
+permissions:
+  # Grant the ability to checkout the repository
+  contents: read
+
+jobs:
+  e2e:
+    name: "E2E-iac"
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v3
+
+    - name: Cache plz
+      id: cache-plz
+      uses: actions/cache@v3
+      with:
+        path: .plz-cache
+        key: ${{ runner.os }}-plz
+
+    - name: "Set up K3D"
+      run: |-
+        ./pleasew dev
+        ./pleasew dev_deploy
+
+    - name: "Deploy Pipeline"
+      run: |-
+        ./pleasew run -p -v 2 //examples/pipelines/iac-project:iac-project_deploy
+
+    - name: "Trigger PipelineRun"
+      env:
+        # This uses a public read-only PAT tied to VJftw, please don't abuse! :pray:
+        # See: https://github.com/actions/setup-node/issues/49 for reasons.
+        GITHUB_TOKEN: ${{ secrets.VJFTW_GITHUB_TOKEN }}
+        CONSUMER_JIRA_API_TOKEN: ${{secrets.CONSUMER_JIRA_API_TOKEN}}
+        CONSUMER_JIRA_USER: ${{secrets.CONSUMER_JIRA_USER}}
+        CONSUMER_JIRA_URL: ${{secrets.CONSUMER_JIRA_URL}}
+      run: |-
+        ./pleasew run //examples/pipelines/iac-project:iac-project_pipelinerun_deploy
+    - name: "Monitor PipelineRun"
+      run: |-
+        ./pleasew run //build/ci/github/e2e:wait_for_pipelineruns
+    - name: "Validate Hashes"
+      run: |-
+          kubectl -n dracon port-forward services/consumer-mongodb 27017:27017&
+          ./pleasew run //build/ci/github/e2e/ensure_hashes:dbComparison --\
+          -db-uri "mongodb://consumer-mongodb:consumer-mongodb@localhost:27017/consumer-mongodb"\
+          -db-name "consumer-mongodb"\
+          -collection-name "consumer-mongodb" \
+          -hashLoc ./build/ci/github/e2e/ensure_hashes/hashes/iac.txt
+          killall kubectl
