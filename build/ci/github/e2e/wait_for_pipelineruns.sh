@@ -60,12 +60,14 @@ function all_pipelineruns_succeeded {
                 util::success "PipelineRun: $name: $status, $pipelinerun_message"
             ;;
             "null")
-                continue
+                util::info "PipelineRun: $name: $status, $pipelinerun_message"
                 has_pipeline_running=true
+                continue
             ;;
             "")
-                continue
+                util::info "PipelineRun: $name: $status, $pipelinerun_message"
                 has_pipeline_running=true
+                continue
             ;;
             *)
                 mapfile -t taskrun_ids < \
