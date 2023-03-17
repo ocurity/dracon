@@ -60,7 +60,7 @@ jobs:
           set -x
           kubectl -n dracon port-forward services/consumer-mongodb 27017:27017&
 
-          ./pleasew run //build/ci/github/e2e/ensure_hashes:dbComparison -- -db-uri "mongodb://consumer-mongodb:consumer-mongodb@localhost:27017/consumer-mongodb" -db-name "consumer-mongodb" -collection-name "consumer-mongodb" -hashLoc ./build/ci/github/e2e/ensure_hashes/hashes/python.txt
+          ./pleasew run //build/ci/github/e2e/ensure_hashes:dbComparison -- -db-uri "mongodb://consumer-mongodb:consumer-mongodb@localhost:27017/consumer-mongodb" -db-name "consumer-mongodb" -collection-name "consumer-mongodb" -hashLoc ./build/ci/github/e2e/ensure_hashes/hashes/dast.txt
 
           exitcode=$?
           killall kubectl
