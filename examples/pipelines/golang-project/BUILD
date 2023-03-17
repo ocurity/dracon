@@ -1,4 +1,5 @@
 subinclude("//build/defs:dracon")
+
 dracon_pipeline(
     name = "golang-project",
     components = [
