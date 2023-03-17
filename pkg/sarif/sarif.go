@@ -156,7 +156,7 @@ func draconIssueToSarif(issue *v1.Issue, rule *sarif.ReportingDescriptor) (*sari
 func ToDracon(inFile string) ([]*DraconIssueCollection, error) {
 	issueCollection := []*DraconIssueCollection{}
 	inSarif, err := sarif.FromString(inFile)
-	if err != nil{
+	if err != nil {
 		return issueCollection, err
 	}
 	for _, run := range inSarif.Runs {
