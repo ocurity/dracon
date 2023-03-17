@@ -1,5 +1,5 @@
 ---
-name: E2E
+name: E2E-java
 on:
   push:
     branches:
@@ -18,7 +18,7 @@ permissions:
 
 jobs:
   e2e:
-    name: "E2E-typescript"
+    name: "E2E-java"
     runs-on: ubuntu-latest
     steps:
     - name: Check out code
@@ -38,7 +38,7 @@ jobs:
 
     - name: "Deploy Pipeline"
       run: |-
-        ./pleasew run -p -v 2 //examples/pipelines/typescript-project:typescript-project_deploy
+        ./pleasew run -p -v 2 //examples/pipelines/java-project:java-project_deploy
 
     - name: "Trigger PipelineRun"
       env:
@@ -49,19 +49,19 @@ jobs:
         CONSUMER_JIRA_USER: ${{secrets.CONSUMER_JIRA_USER}}
         CONSUMER_JIRA_URL: ${{secrets.CONSUMER_JIRA_URL}}
       run: |-
-        ./pleasew run //examples/pipelines/typescript-project:typescript-project_pipelinerun_deploy
+        ./pleasew run //examples/pipelines/java-project:java-project_pipelinerun_deploy
     - name: "Monitor PipelineRun"
       run: |-
         ./pleasew run //build/ci/github/e2e:wait_for_pipelineruns
+        kubectl -n dracon get pipelineruns
+        kubectl -n dracon get po
     - name: "Validate Hashes"
       run: |-
-          set -xe
+          set -x
           kubectl -n dracon port-forward services/consumer-mongodb 27017:27017&
-          ./pleasew run //build/ci/github/e2e/ensure_hashes:dbComparison --\
-          -db-uri "mongodb://consumer-mongodb:consumer-mongodb@localhost:27017/consumer-mongodb"\
-          -db-name "consumer-mongodb"\
-          -collection-name "consumer-mongodb" \
-          -hashLoc ./build/ci/github/e2e/ensure_hashes/hashes/typescript.txt
+
+          ./pleasew run //build/ci/github/e2e/ensure_hashes:dbComparison -- -db-uri "mongodb://consumer-mongodb:consumer-mongodb@localhost:27017/consumer-mongodb" -db-name "consumer-mongodb" -collection-name "consumer-mongodb" -hashLoc ./build/ci/github/e2e/ensure_hashes/hashes/java.txt
+
           exitcode=$?
           killall kubectl
           exit $exicode

@@ -1,5 +1,5 @@
 ---
-name: E2E
+name: E2E-dast
 on:
   push:
     branches:
