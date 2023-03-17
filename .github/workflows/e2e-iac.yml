@@ -55,10 +55,13 @@ jobs:
         ./pleasew run //build/ci/github/e2e:wait_for_pipelineruns
     - name: "Validate Hashes"
       run: |-
-          kubectl -n dracon port-forward services/consumer-mongodb 27017:27017&
-          ./pleasew run //build/ci/github/e2e/ensure_hashes:dbComparison --\
-          -db-uri "mongodb://consumer-mongodb:consumer-mongodb@localhost:27017/consumer-mongodb"\
-          -db-name "consumer-mongodb"\
-          -collection-name "consumer-mongodb" \
-          -hashLoc ./build/ci/github/e2e/ensure_hashes/hashes/iac.txt
-          killall kubectl
+        set -xe
+        kubectl -n dracon port-forward services/consumer-mongodb 27017:27017&
+        ./pleasew run //build/ci/github/e2e/ensure_hashes:dbComparison --\
+        -db-uri "mongodb://consumer-mongodb:consumer-mongodb@localhost:27017/consumer-mongodb"\
+        -db-name "consumer-mongodb"\
+        -collection-name "consumer-mongodb" \
+        -hashLoc ./build/ci/github/e2e/ensure_hashes/hashes/iac.txt
+        exitcode=$?
+        killall kubectl
+        exit $exicode
