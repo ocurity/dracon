@@ -15,6 +15,14 @@ function all_pipelineruns_succeeded {
                 + .status.conditions[].message + \",\"
             " -
         )
+    mapfile -t pipelinerun_number < <(kubectl get pipelineruns.tekton.dev --all-namespaces | wc -l)
+    
+    let "num=$pipelinerun_number - 1"
+
+    if [[ ${#pipelinerun_statuses[@]} -ne ${num} ]]; then
+        util::info "status numbers retrieved ${#pipelinerun_statuses[@]} not equal to number of pipelineruns in the api ${num} this usually means the server is struggling, will wait"
+        return 2
+    fi
 
     has_pipeline_running=false
     has_pipeline_error=false
