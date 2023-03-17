@@ -63,6 +63,10 @@ function all_pipelineruns_succeeded {
                 continue
                 has_pipeline_running=true
             ;;
+            "")
+                continue
+                has_pipeline_running=true
+            ;;
             *)
                 mapfile -t taskrun_ids < \
                     <(kubectl \
