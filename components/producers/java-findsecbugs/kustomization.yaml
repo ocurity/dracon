@@ -120,7 +120,16 @@ patches:
               - name: DRACON_SCAN_ID
                 value: $(params.dracon_scan_id)
           - name: run-findsecbugs
-            image: docker.io/captainfoobar/findsecbugs:1.12.0
+            image: docker.io/captainfoobar/findsecbugs:1.12.0.3
+            env:
+              - name: DRACON_SCAN_TIME
+                value: $(params.dracon_scan_start_time)
+              - name: DRACON_SCAN_ID
+                value: $(params.dracon_scan_id)
+          - name: debug
+            image: busybox:latest
+            script: |
+              ls -lah /scratch
             env:
               - name: DRACON_SCAN_TIME
                 value: $(params.dracon_scan_start_time)
