@@ -16,25 +16,24 @@ patches:
         workspaces:
           - name: source-code-ws
         tasks:
-          - name: producer-owasp-zaproxy
+          - name: producer-java-findsecbugs
             taskRef:
-              name: producer-owasp-zaproxy
+              name: producer-java-findsecbugs
             workspaces:
               - name: source-code-ws
                 workspace: source-code-ws
             params:
-              - name: producer-owasp-zaproxy-flags
+              - name: producer-java-findsecbugs-extra-flags
                 value:
-                  - $(params.producer-owasp-zaproxy-flags)
-              - name: producer-owasp-zaproxy-automation-framework-file-base64
-                value: $(params.producer-owasp-zaproxy-automation-framework-file-base64)
+                  - $(params.producer-java-findsecbugs-extra-flags)
+              - name: producer-java-findsecbugs-jar-url
+                value: $(params.producer-java-findsecbugs-jar-url)
         params:
-          - name: producer-owasp-zaproxy-flags
+          - name: producer-java-findsecbugs-extra-flags
             type: array
             default: []
-          - name: producer-owasp-zaproxy-automation-framework-file-base64
+          - name: producer-java-findsecbugs-jar-url
             type: string
-            default: ""
     target:
       kind: Pipeline
   # Add anchors to Task.
@@ -42,7 +41,7 @@ patches:
       apiVersion: tekton.dev/v1beta1
       kind: Task
       metadata:
-        name: producer-owasp-zaproxy
+        name: producer-java-findsecbugs
         labels:
           v1.dracon.ocurity.com/component: producer
       spec:
@@ -60,7 +59,7 @@ patches:
             script: echo "$(context.task.name)" > "$(results.anchor.path)"
     target:
       kind: Task
-      name: producer-owasp-zaproxy
+      name: producer-java-findsecbugs
   # If we have a `source` task in the pipeline (added by a `source` component),
   # depend on the completion of that source by referencing its anchor.
   - patch: |
@@ -70,7 +69,7 @@ patches:
         name: unused
       spec:
         tasks:
-          - name: producer-owasp-zaproxy
+          - name: producer-java-findsecbugs
             params:
               - name: anchors
                 value:
@@ -92,7 +91,7 @@ patches:
             params:
               - name: anchors
                 value:
-                  - $(tasks.producer-owasp-zaproxy.results.anchor)
+                  - $(tasks.producer-java-findsecbugs.results.anchor)
     target:
       kind: Pipeline
       annotationSelector: v1.dracon.ocurity.com/has-producer-aggregator=true
@@ -101,7 +100,7 @@ patches:
       apiVersion: tekton.dev/v1beta1
       kind: Task
       metadata:
-        name: producer-owasp-zaproxy
+        name: producer-java-findsecbugs
         labels:
           v1.dracon.ocurity.com/component: producer
       spec:
@@ -111,21 +110,24 @@ patches:
           - name: dracon_scan_start_time
             type: string
         steps:
-          - name: run-zap
-            image: docker.io/owasp/zap2docker-stable:2.12.0
+          - name: get-jar
+            image: busybox:latest
             script: |
-              #! /bin/bash
-               set -ex
-               echo "$(params.producer-owasp-zaproxy-automation-framework-file-base64)" | base64 -d > automation.yaml
-               cat automation.yaml
-               zap.sh -cmd -autorun automation.yaml
+              wget "$(params.producer-java-findsecbugs-jar-url)" -O "$(workspaces.source-code-ws.path)/main.jar"
+            env:
+              - name: DRACON_SCAN_TIME
+                value: $(params.dracon_scan_start_time)
+              - name: DRACON_SCAN_ID
+                value: $(params.dracon_scan_id)
+          - name: run-findsecbugs
+            image: docker.io/captainfoobar/findsecbugs:1.12.0
             env:
               - name: DRACON_SCAN_TIME
                 value: $(params.dracon_scan_start_time)
               - name: DRACON_SCAN_ID
                 value: $(params.dracon_scan_id)
           - name: produce-issues
-            image: ghcr.io/ocurity/dracon/components/producers/zaproxy/image:latest
+            image: ghcr.io/ocurity/dracon/components/producers/java-findsecbugs/image:latest
             env:
               - name: DRACON_SCAN_TIME
                 value: $(params.dracon_scan_start_time)
@@ -133,7 +135,7 @@ patches:
                 value: $(params.dracon_scan_id)
     target:
       kind: Task
-      name: producer-owasp-zaproxy
+      name: producer-java-findsecbugs
   - patch: |
       apiVersion: tekton.dev/v1beta1
       kind: Pipeline
@@ -141,7 +143,7 @@ patches:
         name: unused
       spec:
         tasks:
-          - name: producer-owasp-zaproxy
+          - name: producer-java-findsecbugs
             params:
               - name: dracon_scan_id
                 value: $(tasks.base.results.dracon-scan-id)

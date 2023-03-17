@@ -1,0 +1,53 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: producer-java-findsecbugs
+  labels:
+    v1.dracon.ocurity.com/component: producer
+spec:
+  params:
+  - name: producer-java-findsecbugs-extra-flags
+    type: array
+    default: []
+  - name: producer-java-findsecbugs-jar-url
+    type: string
+  volumes:
+  - name: scratch
+    emptyDir: {}
+  workspaces:
+    - name: source-code-ws
+      description: The workspace containing the source-code to scan.
+  steps:
+  - name: get-jar
+    image: busybox:latest
+    script: |
+      wget "$(params.producer-java-findsecbugs-jar-url)" -O "$(workspaces.source-code-ws.path)/main.jar"
+  - name: run-findsecbugs
+    imagePullPolicy: IfNotPresent
+    image: docker.io/captainfoobar/findsecbugs:1.12.0 
+    command: [/findsecbugs/findsecbugs.sh]
+    args:
+      - -quiet
+      - xml
+      - -progress
+      - -output
+      - /scratch/out.xml
+      - -exitcode 
+      - "0"
+      - "$(params.producer-java-findsecbugs-extra-flags[*])"
+      - "$(workspaces.source-code-ws.path)/main.jar"
+    volumeMounts:
+    - mountPath: /scratch
+      name: scratch
+  - name: produce-issues
+    imagePullPolicy: IfNotPresent
+    image: ghcr.io/ocurity/dracon/components/producers/java-findsecbugs/image:latest
+    command: ["app/components/producers/java-findsecbugs/java-findsecbugs-parser"]
+    args:
+    - -sarifOut
+    - "-in=/scratch/out.xml"
+    - "-out=$(workspaces.source-code-ws.path)/.dracon/producers/java-findsecbugs.pb"
+    volumeMounts:
+    - mountPath: /scratch
+      name: scratch
