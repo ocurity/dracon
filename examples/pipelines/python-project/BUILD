@@ -8,7 +8,6 @@ dracon_pipeline(
         "//components/consumers/elasticsearch:k8s",
         "//components/enrichers/aggregator:k8s",
         "//components/enrichers/deduplication:k8s",
-        "//components/enrichers/policy:k8s",
         "//components/producers/aggregator:k8s",
         "//components/producers/python-bandit:k8s",
         "//components/producers/python-pip-safety:k8s",

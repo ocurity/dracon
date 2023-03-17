@@ -15,7 +15,6 @@ components:
   - ../../../components/producers/python-bandit
   - ../../../components/producers/python-pip-safety
   - ../../../components/enrichers/aggregator
-  - ../../../components/enrichers/policy
   - ../../../components/enrichers/deduplication
   - ../../../components/consumers/mongodb
   - ../../../components/consumers/elasticsearch
