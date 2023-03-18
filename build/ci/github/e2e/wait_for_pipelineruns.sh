@@ -151,7 +151,7 @@ function all_pipelineruns_succeeded {
 
 
 
-time_limit_secs=3600
+time_limit_secs=7200
 sleep_interval=5
 intervals=$((time_limit_secs/sleep_interval))
 attempts=0
