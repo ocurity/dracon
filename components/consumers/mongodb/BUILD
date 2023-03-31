@@ -13,8 +13,8 @@ go_binary(
     deps = [
         "//api/proto/v1",
         "//components/consumers",
-        "//third_party/go/go.mongodb.org/mongo-driver",
         "//third_party/go/github.com/avast/retry-go/v4",
+        "//third_party/go/go.mongodb.org/mongo-driver",
     ],
 )
 

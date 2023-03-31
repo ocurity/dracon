@@ -2,7 +2,7 @@ subinclude("//build/defs:buildkit")
 
 buildkit_image_mirror(
     name = "findsecbugs",
-    digest = "sha256:c9ee83e2d58ff37d383b9c59aff07261f825e471af05341678d041ef9f39cb4a",
+    digest = "sha256:7a3962e8a54f6dfc79e91c05821b090671cf6b929a33541fb4006ca6af6ef2d1",
     repo = "docker.io/captainfoobar/findsecbugs",
-    tags = ["1.12.0"],
+    tags = ["1.12.0.3"],
 )

@@ -1,5 +1,5 @@
 ---
-name: E2E
+name: E2E-dast
 on:
   push:
     branches:
@@ -17,24 +17,9 @@ permissions:
   contents: read
 
 jobs:
-  e2e_matrix:
-    uses: VJftw/please-github/.github/workflows/plz-query-matrix.yml@main
-    with:
-      includes: "pipeline"
-      excludes: ""
-
   e2e:
-    if: ${{ needs.e2e_matrix.outputs.targets != '[]' }}
-    name: "E2E"
-    needs: [e2e_matrix]
+    name: "E2E-dast"
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        target: ${{ fromJson(needs.e2e_matrix.outputs.targets) }}
-    concurrency:
-      group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}-${{ matrix.target }}
-      cancel-in-progress: true
     steps:
     - name: Check out code
       uses: actions/checkout@v3
@@ -53,7 +38,7 @@ jobs:
 
     - name: "Deploy Pipeline"
       run: |-
-        ./pleasew run -p -v 2 ${{ matrix.target }}_deploy
+        ./pleasew run -p -v 2 //examples/pipelines/dast-project:dast-project_deploy
 
     - name: "Trigger PipelineRun"
       env:
@@ -64,8 +49,19 @@ jobs:
         CONSUMER_JIRA_USER: ${{secrets.CONSUMER_JIRA_USER}}
         CONSUMER_JIRA_URL: ${{secrets.CONSUMER_JIRA_URL}}
       run: |-
-        ./pleasew run ${{ matrix.target }}_pipelinerun_deploy
-
+        ./pleasew run //examples/pipelines/dast-project:dast-project_pipelinerun_deploy
     - name: "Monitor PipelineRun"
       run: |-
         ./pleasew run //build/ci/github/e2e:wait_for_pipelineruns
+        kubectl -n dracon get pipelineruns
+        kubectl -n dracon get po
+    - name: "Validate Hashes"
+      run: |-
+          set -x
+          kubectl -n dracon port-forward services/consumer-mongodb 27017:27017&
+
+          ./pleasew run //build/ci/github/e2e/ensure_hashes:dbComparison -- -db-uri "mongodb://consumer-mongodb:consumer-mongodb@localhost:27017/consumer-mongodb" -db-name "consumer-mongodb" -collection-name "consumer-mongodb" -hashLoc ./build/ci/github/e2e/ensure_hashes/hashes/dast.txt
+
+          exitcode=$?
+          killall kubectl
+          exit $exicode

@@ -15,6 +15,14 @@ function all_pipelineruns_succeeded {
                 + .status.conditions[].message + \",\"
             " -
         )
+    mapfile -t pipelinerun_number < <(kubectl get pipelineruns.tekton.dev --all-namespaces | wc -l)
+    
+    let "num=$pipelinerun_number - 1"
+
+    if [[ ${#pipelinerun_statuses[@]} -ne ${num} ]]; then
+        util::info "status numbers retrieved ${#pipelinerun_statuses[@]} not equal to number of pipelineruns in the api ${num} this usually means the server is struggling, will wait"
+        return 2
+    fi
 
     has_pipeline_running=false
     has_pipeline_error=false
@@ -60,8 +68,14 @@ function all_pipelineruns_succeeded {
                 util::success "PipelineRun: $name: $status, $pipelinerun_message"
             ;;
             "null")
-                continue
+                util::info "PipelineRun: $name: $status, $pipelinerun_message"
                 has_pipeline_running=true
+                continue
+            ;;
+            "")
+                util::info "PipelineRun: $name: $status, $pipelinerun_message"
+                has_pipeline_running=true
+                continue
             ;;
             *)
                 mapfile -t taskrun_ids < \
@@ -137,7 +151,7 @@ function all_pipelineruns_succeeded {
 
 
 
-time_limit_secs=3600
+time_limit_secs=7200
 sleep_interval=5
 intervals=$((time_limit_secs/sleep_interval))
 attempts=0

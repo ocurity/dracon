@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+spec:
+  containers:
+  - name: validateDBContents
+    image: //test/ensureDBHashes:image
+    args:
+      - "-db-uri"
+      - "mongodb://consumer-mongodb:consumer-mongodb@consumer-mongodb.$(context.taskRun.namespace).svc:27017/consumer-mongodb"
+      - "-db-name"
+      - "consumer-mongodb"
+      - "-collection-name"
+      - "consumer-mongodb"
+      - "-hashLoc"
+      - "/config/hashes.txt"
+    resources:
+      requests:
+        memory: "64Mi"
+        cpu: "250m"
+      limits:
+        memory: "128Mi"
+        cpu: "500m"
+    volumes:
+      - name: config
+        mountpath: /config
+        configMap:
+          name: hashes
