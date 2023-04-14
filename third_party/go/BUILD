@@ -1,7 +1,9 @@
-VERSION = "1.18"
+VERSION = "1.20.3"
 
 go_toolchain(
     name = "toolchain",
-    hashes = ["e85278e98f57cdb150fe8409e6e5df5343ecb13cebf03a5d5ff12bd55a80264f"],
+    hashes = [
+        "979694c2c25c735755bf26f4f45e19e64e4811d661dd07b8c010f7a8e18adfca",  # linux-amd64
+    ],
     version = VERSION,
 )

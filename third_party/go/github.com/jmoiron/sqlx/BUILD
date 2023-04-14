@@ -1,6 +1,6 @@
 go_module(
     name = "sqlx",
-    hashes = ["9e933a4d192e53183e3930f29283e3929f2a60fed359cfdba8b3ec8f413de21a"],
+    hashes = ["9ddc949567c804ecdc00addd8c8c9f69c7f43f4907a8a743c14a5e59ca81b814"],
     install = [
         ".",
         "...",

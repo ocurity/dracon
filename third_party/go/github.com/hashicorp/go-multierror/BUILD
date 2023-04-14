@@ -1,6 +1,6 @@
 go_module(
     name = "go-multierror",
-    hashes = ["e763ffaddb979585a6a3d9ddbd444c1e8b8940e958994d8b5aab42465bf04591"],
+    hashes = ["98baeb95328c101e7ea45a7aa91c085722ac85bbfd8061cac56870961c9d2d0e"],
     module = "github.com/hashicorp/go-multierror",
     version = "v1.0.0",
     visibility = [

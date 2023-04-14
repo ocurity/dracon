@@ -1,6 +1,6 @@
 go_module(
     name = "pq",
-    hashes = ["73554178d73fe1067716841ddbfb7270ac0cba58219f2c86ed8d2ed5d49bc13e"],
+    hashes = ["8fd2b25ed50efa405fc127081cac8d9c272d02a8d941a22a0c28524095569a2d"],
     install = [
         ".",
         "oid",

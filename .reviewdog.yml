@@ -1,15 +1,32 @@
 ---
 runner:
-  golangci-lint:
-    cmd: ./pleasew run //build/lint:golangci-lint
+  go/staticcheck:
+    cmd: |
+      ./pleasew run //third_party/binary/dominikh/go-tools:staticcheck -- $(./pleasew query alltargets --include go | grep -v "//third_party/" | cut -f3- -d/ | cut -f1 -d: | awk '{ print "./" $0 }' | xargs)
     errorformat:
       - '%E%f:%l:%c: %m'
-      - '%E%f:%l: %m'
-      - '%C%.%#'
-    level: error
 
-  gofumpt:
-    cmd: ./pleasew run //build/lint:gofumpt
+  go/revive:
+    cmd: |
+      ./pleasew run //third_party/binary/mgechev/revive:revive -- $(./pleasew query alltargets --include go | grep -v "//third_party/" | cut -f3- -d/ | cut -f1 -d: | awk '{ print "./" $0 }' | xargs)
+    errorformat:
+      - '%E%f:%l:%c: %m'
+
+  go/vet:
+    cmd: |
+      ./pleasew run "//third_party/go:toolchain|go" -- vet $(./pleasew query alltargets --include go | grep -v "//third_party/" | cut -f3- -d/ | cut -f1 -d: | awk '{ print "./" $0 }' | xargs)
+    errorformat:
+      - '%E%f:%l:%c: %m'
+
+  go/gosec:
+    cmd: |
+      ./pleasew run //third_party/binary/securego/gosec:gosec -- -fmt golint $(./pleasew query alltargets --include go | grep -v "//third_party/" | cut -f3- -d/ | cut -f1 -d: | awk '{ print "./" $0 }' | xargs)
+    errorformat:
+      - '%E%f:%l:%c: %m'
+
+  go/fmt:
+    cmd: |
+      ./pleasew run //third_party/go/mvdan.cc/gofumpt:gofumpt -- -d $(./pleasew query alltargets --include go | grep -v "//third_party/" | cut -f3- -d/ | cut -f1 -d: | awk '{ print "./" $0 }' | xargs)
     format: diff
     level: error
 

@@ -1,6 +1,6 @@
 go_module(
     name = "mapstructure",
-    hashes = ["439cdf7b4de1becfc42b82a0339e90b47dffa778040d2873e4402d236a95a5f2"],
+    hashes = ["70ea1f13980d5fa7af8d99c96899e46f716cfa8db49b6718aa12af66d6c06385"],
     module = "github.com/mitchellh/mapstructure",
     version = "v1.1.2",
     visibility = [

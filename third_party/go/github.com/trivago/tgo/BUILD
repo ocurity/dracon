@@ -1,6 +1,6 @@
 go_module(
     name = "tgo",
-    hashes = ["3a2e7df432a4b103d9c77fd0ca4b74fb5b13766d4cafefc2f1efad3c1db1dbe1"],
+    hashes = ["cb4c5e8b23a21d48699fb6180da40b66279a4fb3bf52eaa60dc630427ea6490a"],
     install = [
         "tcontainer",
         "treflect",

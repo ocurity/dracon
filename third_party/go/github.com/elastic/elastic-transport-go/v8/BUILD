@@ -1,6 +1,6 @@
 go_module(
     name = "v8",
-    hashes = ["5bff3ce3a964eab1b8a1c4f1175ccc96776fbfe2843e02fab369d2dbe8d025f7"],
+    hashes = ["87f5da003fa8c636f760287252103fe6bc013bbe36b1de5742bbd5a5dc8c4b82"],
     install = [
         "elastictransport",
         "elastictransport/version",

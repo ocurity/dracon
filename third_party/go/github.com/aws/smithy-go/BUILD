@@ -1,6 +1,6 @@
 go_module(
     name = "smithy-go",
-    hashes = ["f9a7b4e00ea8176609b0968bbe93c22aacce117edbf970aad12efe09cff8411f"],
+    hashes = ["bd52176ea9ff58a4809af02058fc3530645cc953381975377356b173a8024605"],
     install = ["..."],
     licences = ["Apache License 2.0"],
     module = "github.com/aws/smithy-go",
