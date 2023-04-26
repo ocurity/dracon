@@ -251,7 +251,7 @@ func TestHandleEnrichedResults(t *testing.T) {
 			findingRequest := &types.FindingCreateRequest{}
 			json.Unmarshal(body, &findingRequest)
 			assert.Contains(t, findingsRequests, findingRequest)
-
+			assert.Contains(t,string(body),"Policy.Blah.Decision")
 			foundFindings = append(foundFindings, findingRequest) // ensure each finding is only registered once
 
 			json.NewEncoder(w).Encode(createFindingResponse(findingRequest))

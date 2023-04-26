@@ -69,6 +69,7 @@ func handleRawResults(product int, dojoClient *client.Client, responses []*v1.La
 				log.Fatal("Could not parse raw issue", err)
 			}
 			description := string(b)
+
 			finding, err := dojoClient.CreateFinding(
 				iss.GetTitle(),
 				description,
@@ -127,6 +128,9 @@ func handleEnrichedResults(product int, dojoClient *client.Client, responses []*
 				log.Fatal("Could not parse enriched issue", err)
 			}
 			description := string(b)
+			// for key, annotation := range iss.GetAnnotations {
+			// 	description = fmt.Sprintf("%s \n %s:%s", description, key, &annotation)
+			// }
 			duplicate := false
 			if iss.GetFirstSeen().AsTime().Before(scanStartTime) || iss.GetCount() > 1 {
 				duplicate = true
@@ -284,6 +288,7 @@ func getEnrichedIssue(scanStartTime time.Time, res *v1.EnrichedLaunchToolRespons
 		Title:          iss.GetRawIssue().GetTitle(),
 		ToolName:       res.GetOriginalResults().GetToolName(),
 		Type:           iss.GetRawIssue().GetType(),
+		Annotations:    iss.GetAnnotations(),
 	})
 	if err != nil {
 		return []byte{}, err
@@ -292,21 +297,22 @@ func getEnrichedIssue(scanStartTime time.Time, res *v1.EnrichedLaunchToolRespons
 }
 
 type draconDocument struct {
-	ScanStartTime  string        `json:"scan_start_time"`
-	ScanID         string        `json:"scan_id"`
-	ToolName       string        `json:"tool_name"`
-	Source         string        `json:"source"`
-	Target         string        `json:"target"`
-	Type           string        `json:"type"`
-	Title          string        `json:"title"`
-	Severity       v1.Severity   `json:"severity"`
-	SeverityText   string        `json:"severity_text"`
-	CVSS           float64       `json:"cvss"`
-	Confidence     v1.Confidence `json:"confidence"`
-	ConfidenceText string        `json:"confidence_text"`
-	Description    string        `json:"description"`
-	FirstFound     string        `json:"first_found"`
-	Count          uint64        `json:"count"`
-	FalsePositive  bool          `json:"false_positive"`
-	CVE            string        `json:"cve"`
+	ScanStartTime  string            `json:"scan_start_time"`
+	ScanID         string            `json:"scan_id"`
+	ToolName       string            `json:"tool_name"`
+	Source         string            `json:"source"`
+	Target         string            `json:"target"`
+	Type           string            `json:"type"`
+	Title          string            `json:"title"`
+	Severity       v1.Severity       `json:"severity"`
+	SeverityText   string            `json:"severity_text"`
+	CVSS           float64           `json:"cvss"`
+	Confidence     v1.Confidence     `json:"confidence"`
+	ConfidenceText string            `json:"confidence_text"`
+	Description    string            `json:"description"`
+	FirstFound     string            `json:"first_found"`
+	Count          uint64            `json:"count"`
+	FalsePositive  bool              `json:"false_positive"`
+	CVE            string            `json:"cve"`
+	Annotations    map[string]string `json:"annotations"`
 }
