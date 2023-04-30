@@ -11,19 +11,20 @@ import (
 	v1 "github.com/ocurity/dracon/api/proto/v1"
 	"github.com/ocurity/dracon/components/consumers"
 	"github.com/ocurity/dracon/pkg/enumtransformers"
+	"golang.org/x/oauth2"
 	"google.golang.org/api/option"
 )
 
 var (
-	dbURL                 string
-	projectID             string
-	datasetName           string
-	serviceAccountKeyPath string
+	dbURL       string
+	projectID   string
+	datasetName string
+	gcpToken    string
 )
 
 func init() {
 	// GOOGLE_APPLICATION_CREDENTIALS environment variable
-	flag.StringVar(&serviceAccountKeyPath, "service-account-key-path", "", "The path to the service account key file.")
+	flag.StringVar(&gcpToken, "gcp-token", "", "The token used to access bigquery")
 	flag.StringVar(&projectID, "project-id", "", "The bigquery project id to use.")
 	flag.StringVar(&datasetName, "dataset", "", "The bigquery dataset to use.")
 }
@@ -41,8 +42,8 @@ func main() {
 }
 
 func run(ctx context.Context) error {
-	client, err := bigquery.NewClient(context.Background(), projectID,
-		option.WithCredentialsFile("serviceAccountKeyPath"))
+	token := &oauth2.Token{AccessToken: gcpToken}
+	client, err := bigquery.NewClient(context.Background(), projectID, option.WithTokenSource(oauth2.StaticTokenSource(token)))
 	dataset := client.Dataset(datasetName)
 	if _, err := dataset.Metadata(context.Background()); err != nil {
 		log.Println("Dataset", dataset, "does not exist", "creating")

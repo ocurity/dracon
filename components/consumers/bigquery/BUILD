@@ -16,6 +16,7 @@ go_binary(
         "//pkg/enumtransformers",
         "//third_party/go/cloud.google.com/go/bigquery",
         "//third_party/go/google.golang.org/api",
+        "//third_party/go/golang.org/x/oauth2",
     ],
 )
 

@@ -15,28 +15,27 @@ spec:
     - name: consumer-bigquery-dataset
       type: string
       default: "dracon"
-    - name: consumer-bigquery-google-application-credentials
+    - name: consumer-bigquery-token
       type: string
   workspaces:
     - name: source-code-ws
       description: The workspace containing the source-code to scan.
   steps:
-  - name: store-service-account-key
-    script: |
-      echo "$(params.consumer-bigquery-google-service_account_key)" > /scratch/key.json
-    volumeMounts:
-    - mountPath: /scratch
-      name: scratch
-  - name: run-consumer
-    imagePullPolicy: IfNotPresent
-    image: ghcr.io/ocurity/dracon/components/consumers/bigquery/image:latest
-    command: ["/app/components/consumers/bigquery/bigquery"]
-    args: [
-      "-in", "$(workspaces.source-code-ws.path)/.dracon/enrichers/",
-      
-      "-project-id", "$(params.consumer-bigquery-project-id)",
-      "-dataset", "$(params.consumer-bigquery-dataset)",
-    ]
-    volumeMounts:
-    - mountPath: /scratch
-      name: scratch
+    - name: run-consumer
+      imagePullPolicy: IfNotPresent
+      image: ghcr.io/ocurity/dracon/components/consumers/bigquery/image:latest
+      command: ["/app/components/consumers/bigquery/bigquery"]
+      args:
+        [
+          "-in",
+          "$(workspaces.source-code-ws.path)/.dracon/enrichers/",
+          "-project-id",
+          "$(params.consumer-bigquery-project-id)",
+          "-dataset",
+          "$(params.consumer-bigquery-dataset)",
+          "-gcp-token",
+          "$(params.consumer-bigquery-token)",
+        ]
+      volumeMounts:
+        - mountPath: /scratch
+          name: scratch
