@@ -1,7 +1,7 @@
 go_mod_download(
     name = "protobuf_download",
     module = "github.com/golang/protobuf",
-    version = "v1.5.2",
+    version = "v1.5.3",
 )
 
 go_module(
