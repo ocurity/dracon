@@ -13,6 +13,7 @@ go_binary(
     deps = [
         "//api/proto/v1",
         "//components/consumers",
+        "//pkg/enumtransformers",
         "//third_party/go/github.com/elastic/go-elasticsearch/v8",
         "//third_party/go/google.golang.org/protobuf",
     ],
@@ -27,6 +28,7 @@ go_test(
     deps = [
         "//api/proto/v1",
         "//components/consumers",
+        "//pkg/enumtransformers",
         "//third_party/go/github.com/elastic/go-elasticsearch/v8",
         "//third_party/go/github.com/stretchr/testify",
         "//third_party/go/google.golang.org/protobuf",

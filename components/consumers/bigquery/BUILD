@@ -13,7 +13,9 @@ go_binary(
     deps = [
         "//api/proto/v1",
         "//components/consumers",
+        "//pkg/enumtransformers",
         "//third_party/go/cloud.google.com/go/bigquery",
+        "//third_party/go/google.golang.org/api",
     ],
 )
 

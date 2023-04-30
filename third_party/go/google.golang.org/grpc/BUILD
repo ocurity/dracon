@@ -42,17 +42,17 @@ go_module(
         "status",
         "tap",
     ],
-    strip = ["internal/testutils/xds/fakeserver"],
     module = "google.golang.org/grpc",
+    strip = ["internal/testutils/xds/fakeserver"],
     version = "v1.54.0",
     visibility = ["PUBLIC"],
     deps = [
+        "//third_party/go/github.com/envoyproxy/go-control-plane",
         "//third_party/go/github.com/golang/protobuf",
         "//third_party/go/golang.org/x/net",
         "//third_party/go/golang.org/x/oauth2",
         "//third_party/go/google.golang.org/genproto",
         "//third_party/go/google.golang.org/protobuf",
-        "//third_party/go/github.com/envoyproxy/go-control-plane",
     ],
 )
 

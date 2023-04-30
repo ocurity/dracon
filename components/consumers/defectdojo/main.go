@@ -10,6 +10,7 @@ import (
 	v1 "github.com/ocurity/dracon/api/proto/v1"
 	"github.com/ocurity/dracon/components/consumers"
 	"github.com/ocurity/dracon/components/consumers/defectdojo/client"
+	"github.com/ocurity/dracon/pkg/enumtransformers"
 )
 
 // DojoTimeFormat is the time format accepted by defect dojo.
@@ -72,7 +73,7 @@ func handleRawResults(product int, dojoClient *client.Client, responses []*v1.La
 			finding, err := dojoClient.CreateFinding(
 				iss.GetTitle(),
 				description,
-				severityToText(iss.GetSeverity()),
+				enumtransformers.SeverityToText(iss.GetSeverity()),
 				iss.GetTarget(),
 				startTime.Format(DojoTimeFormat),
 				severityToDojoSeverity(iss.Severity),
@@ -135,7 +136,7 @@ func handleEnrichedResults(product int, dojoClient *client.Client, responses []*
 			finding, err := dojoClient.CreateFinding(
 				rawIss.GetTitle(),
 				description,
-				severityToText(rawIss.GetSeverity()),
+				enumtransformers.SeverityToText(rawIss.GetSeverity()),
 				rawIss.GetTarget(),
 				scanStartTime.Format(DojoTimeFormat),
 				severityToDojoSeverity(rawIss.Severity),
@@ -190,7 +191,7 @@ func main() {
 func getRawIssue(scanStartTime time.Time, res *v1.LaunchToolResponse, iss *v1.Issue) ([]byte, error) {
 	jBytes, err := json.Marshal(&draconDocument{
 		Confidence:     iss.GetConfidence(),
-		ConfidenceText: confidenceToText(iss.GetConfidence()),
+		ConfidenceText: enumtransformers.ConfidenceToText(iss.GetConfidence()),
 		Count:          1,
 		CVE:            iss.GetCve(),
 		CVSS:           iss.GetCvss(),
@@ -200,7 +201,7 @@ func getRawIssue(scanStartTime time.Time, res *v1.LaunchToolResponse, iss *v1.Is
 		ScanID:         res.GetScanInfo().GetScanUuid(),
 		ScanStartTime:  scanStartTime.Format(DojoTimeFormat),
 		Severity:       iss.GetSeverity(),
-		SeverityText:   severityToText(iss.GetSeverity()),
+		SeverityText:   enumtransformers.SeverityToText(iss.GetSeverity()),
 		Source:         iss.GetSource(),
 		Target:         iss.GetTarget(),
 		Title:          iss.GetTitle(),
@@ -230,45 +231,11 @@ func severityToDojoSeverity(severity v1.Severity) string {
 	}
 }
 
-func severityToText(severity v1.Severity) string {
-	switch severity {
-	case v1.Severity_SEVERITY_INFO:
-		return "Info"
-	case v1.Severity_SEVERITY_LOW:
-		return "Low"
-	case v1.Severity_SEVERITY_MEDIUM:
-		return "Medium"
-	case v1.Severity_SEVERITY_HIGH:
-		return "High"
-	case v1.Severity_SEVERITY_CRITICAL:
-		return "Critical"
-	default:
-		return "N/A"
-	}
-}
-
-func confidenceToText(confidence v1.Confidence) string {
-	switch confidence {
-	case v1.Confidence_CONFIDENCE_INFO:
-		return "Info"
-	case v1.Confidence_CONFIDENCE_LOW:
-		return "Low"
-	case v1.Confidence_CONFIDENCE_MEDIUM:
-		return "Medium"
-	case v1.Confidence_CONFIDENCE_HIGH:
-		return "High"
-	case v1.Confidence_CONFIDENCE_CRITICAL:
-		return "Critical"
-	default:
-		return "N/A"
-	}
-}
-
 func getEnrichedIssue(scanStartTime time.Time, res *v1.EnrichedLaunchToolResponse, iss *v1.EnrichedIssue) ([]byte, error) {
 	firstSeenTime := iss.GetFirstSeen().AsTime()
 	jBytes, err := json.Marshal(&draconDocument{
 		Confidence:     iss.GetRawIssue().GetConfidence(),
-		ConfidenceText: confidenceToText(iss.GetRawIssue().GetConfidence()),
+		ConfidenceText: enumtransformers.ConfidenceToText(iss.GetRawIssue().GetConfidence()),
 		Count:          iss.GetCount(),
 		CVE:            iss.GetRawIssue().GetCve(),
 		CVSS:           iss.GetRawIssue().GetCvss(),
@@ -278,7 +245,7 @@ func getEnrichedIssue(scanStartTime time.Time, res *v1.EnrichedLaunchToolRespons
 		ScanID:         res.GetOriginalResults().GetScanInfo().GetScanUuid(),
 		ScanStartTime:  scanStartTime.Format(DojoTimeFormat),
 		Severity:       iss.GetRawIssue().GetSeverity(),
-		SeverityText:   severityToText(iss.GetRawIssue().GetSeverity()),
+		SeverityText:   enumtransformers.SeverityToText(iss.GetRawIssue().GetSeverity()),
 		Source:         iss.GetRawIssue().GetSource(),
 		Target:         iss.GetRawIssue().GetTarget(),
 		Title:          iss.GetRawIssue().GetTitle(),

@@ -10,18 +10,22 @@ import (
 	"cloud.google.com/go/bigquery"
 	v1 "github.com/ocurity/dracon/api/proto/v1"
 	"github.com/ocurity/dracon/components/consumers"
+	"github.com/ocurity/dracon/pkg/enumtransformers"
+	"google.golang.org/api/option"
 )
 
 var (
-	dbURL     string
-	projectID string
-	dataset   string
+	dbURL                 string
+	projectID             string
+	datasetName           string
+	serviceAccountKeyPath string
 )
 
 func init() {
 	// GOOGLE_APPLICATION_CREDENTIALS environment variable
+	flag.StringVar(&serviceAccountKeyPath, "service-account-key-path", "", "The path to the service account key file.")
 	flag.StringVar(&projectID, "project-id", "", "The bigquery project id to use.")
-	flag.StringVar(&dataset, "dataset", "", "The bigquery dataset to use.")
+	flag.StringVar(&datasetName, "dataset", "", "The bigquery dataset to use.")
 }
 
 func main() {
@@ -37,12 +41,50 @@ func main() {
 }
 
 func run(ctx context.Context) error {
-	client, err := bigquery.NewClient(ctx, projectID)
-	if err != nil {
-		return err
+	client, err := bigquery.NewClient(context.Background(), projectID,
+		option.WithCredentialsFile("serviceAccountKeyPath"))
+	dataset := client.Dataset(datasetName)
+	if _, err := dataset.Metadata(context.Background()); err != nil {
+		log.Println("Dataset", dataset, "does not exist", "creating")
+		if err = dataset.Create(context.Background(), &bigquery.DatasetMetadata{
+			Name:        datasetName,
+			Description: "a dataset to store findings from the Dracon ASOC framework",
+			Location:    "EU",
+		}); err != nil {
+			return err
+		}
 	}
-	inserter := client.Dataset(dataset).Table("dracon").Inserter()
-
+	table := dataset.Table("dracon")
+	tmeta, err := table.Metadata(context.Background())
+	if err != nil {
+		log.Println("Table dracon does not exist creating")
+		schema, err := bigquery.InferSchema(bqDraconIssue{})
+		if err != nil {
+			return err
+		}
+		if err = table.Create(context.Background(), &bigquery.TableMetadata{
+			Name:        "dracon",
+			Description: "a table to store dracon findings",
+			Schema:      schema,
+		}); err != nil {
+			return err
+		}
+	} else if tmeta.Schema == nil {
+		log.Println("Schema for table dracon does not exist creating")
+		schema, err := bigquery.InferSchema(bqDraconIssue{})
+		if err != nil {
+			return err
+		}
+		_, err = table.Update(context.Background(), bigquery.TableMetadataToUpdate{
+			Name:        "dracon",
+			Description: "a table to store dracon findings",
+			Schema:      schema,
+		}, tmeta.ETag)
+		if err != nil {
+			return err
+		}
+	}
+	inserter := table.Inserter()
 	// Enumerate Dracon Issues to consume and create documents for each of them.
 	if consumers.Raw {
 		log.Println("Parsing Raw results")
@@ -52,7 +94,7 @@ func run(ctx context.Context) error {
 		}
 		for _, res := range responses {
 			for _, iss := range res.GetIssues() {
-				return insert(ctx, inserter, iss)
+				return insert(ctx, inserter, iss, res.GetScanInfo().GetScanUuid(), res.GetToolName(), res.GetScanInfo().GetScanStartTime().AsTime())
 			}
 		}
 	} else {
@@ -63,7 +105,8 @@ func run(ctx context.Context) error {
 		}
 		for _, res := range responses {
 			for _, iss := range res.GetIssues() {
-				return insert(ctx, inserter, iss)
+				return insert(ctx, inserter, iss, res.GetOriginalResults().GetScanInfo().GetScanUuid(), res.GetOriginalResults().GetToolName(),
+					res.GetOriginalResults().GetScanInfo().GetScanStartTime().AsTime())
 			}
 		}
 	}
@@ -73,73 +116,84 @@ func run(ctx context.Context) error {
 
 func insert(ctx context.Context, inserter *bigquery.Inserter, issue interface{}, scanID, toolName string, scanStartTime time.Time) error {
 	schema, err := bigquery.InferSchema(bqDraconIssue{})
+	if err != nil {
+		return err
+	}
 	var data interface{}
 	switch e := issue.(type) {
 	case *v1.Issue:
 		iss, _ := issue.(*v1.Issue)
 		data = &bigquery.StructSaver{
 			Schema:   schema,
-			InsertID: e.Spec.ID,
+			InsertID: e.GetUuid(),
 			Struct: bqDraconIssue{
-				confidence:    iss.GetConfidence(),
-				cve:           iss.GetCve(),
-				cvss:          iss.GetCvss(),
-				description:   iss.GetDescription(),
-				issueType:     iss.GetType(),
-				scanID:        scanID,
-				scanStartTime: scanStartTime,
-				severity:      iss.GetSeverity(),
-				source:        iss.GetSource(),
-				target:        iss.GetTarget(),
-				title:         iss.GetTitle(),
-				toolName:      toolName,
+				Confidence:    enumtransformers.ConfidenceToText(iss.GetConfidence()),
+				Cve:           iss.GetCve(),
+				Cvss:          iss.GetCvss(),
+				Description:   iss.GetDescription(),
+				IssueType:     iss.GetType(),
+				ScanID:        scanID,
+				ScanStartTime: scanStartTime,
+				Severity:      enumtransformers.SeverityToText(iss.GetSeverity()),
+				Source:        iss.GetSource(),
+				Target:        iss.GetTarget(),
+				Title:         iss.GetTitle(),
+				ToolName:      toolName,
 			},
 		}
 	case *v1.EnrichedIssue:
 		iss, _ := issue.(*v1.EnrichedIssue)
+		var annotations []*bqDraconAnnotations
+		for k, v := range iss.GetAnnotations() {
+			annotations = append(annotations, &bqDraconAnnotations{Key: k, Value: v})
+		}
 		data = &bigquery.StructSaver{
 			Schema:   schema,
-			InsertID: e.Spec.ID,
+			InsertID: e.GetRawIssue().GetUuid(),
 			Struct: bqDraconIssue{
-				annotations:    iss.GetAnnotations(),
-				confidence:     iss.GetRawIssue().GetConfidence(),
-				previousCounts: iss.GetCount(),
-				cve:            iss.GetRawIssue().GetCve(),
-				cvss:           iss.GetRawIssue().GetCvss(),
-				description:    iss.GetRawIssue().GetDescription(),
-				falsePositive:  iss.GetFalsePositive(),
-				firstFound:     iss.GetFirstFound(),
-				issueType:      iss.GetRawIssue().GetType(),
-				lastFound:      iss.GetUpdatedAt(),
-				scanID:         scanID,
-				scanStartTime:  scanStartTime,
-				severity:       iss.GetRawIssue().GetSeverity(),
-				source:         iss.GetRawIssue().GetSource(),
-				target:         iss.GetRawIssue().GetTarget(),
-				title:          iss.GetRawIssue().GetTitle(),
-				toolName:       toolName,
+				Annotations:    annotations,
+				Confidence:     enumtransformers.ConfidenceToText(iss.GetRawIssue().GetConfidence()),
+				PreviousCounts: int(iss.GetCount()),
+				Cve:            iss.GetRawIssue().GetCve(),
+				Cvss:           iss.GetRawIssue().GetCvss(),
+				Description:    iss.GetRawIssue().GetDescription(),
+				FalsePositive:  iss.GetFalsePositive(),
+				FirstFound:     iss.GetFirstSeen().AsTime(),
+				IssueType:      iss.GetRawIssue().GetType(),
+				LastFound:      iss.GetUpdatedAt().AsTime(),
+				ScanID:         scanID,
+				Severity:       enumtransformers.SeverityToText(iss.GetRawIssue().GetSeverity()),
+				Source:         iss.GetRawIssue().GetSource(),
+				Target:         iss.GetRawIssue().GetTarget(),
+				Title:          iss.GetRawIssue().GetTitle(),
+				ToolName:       toolName,
 			},
 		}
 	}
 	return inserter.Put(ctx, data)
 }
 
+type bqDraconAnnotations struct {
+	Key   string `bigquery:"key"`
+	Value string `bigquery:"value"`
+}
+
 type bqDraconIssue struct {
-	annotations    map[string]string `bigquery:"annotations"`
-	confidence     string            `bigquery:"confidence"`
-	cve            string            `bigquery:"cve"`
-	cvss           float32           `bigquery:"cvss"`
-	description    string            `bigquery:"description"`
-	falsePositive  bool              `bigquery:"falsePositive"`
-	firstFound     time.Time         `bigquery:"firstFound"`
-	issueType      string            `bigquery:"issueType"`
-	lastFound      time.Time         `bigquery:"lastFound"`
-	previousCounts int               `bigquery:"previousCounts"`
-	scanID         string            `bigquery:"scanID"`
-	scanStartTime  time.Time         `bigquery:"scanStartTime"`
-	severity       string            `bigquery:"severity"`
-	source         string            `bigquery:"source"`
-	target         string            `bigquery:"target"`
-	title          string            `bigquery:"title"`
-	toolName       string            `bigquery:"toolName"`
+	Annotations    []*bqDraconAnnotations `bigquery:"annotations"`
+	Confidence     string                 `bigquery:"confidence"`
+	Cve            string                 `bigquery:"cve"`
+	Cvss           float64                `bigquery:"cvss"`
+	Description    string                 `bigquery:"description"`
+	FalsePositive  bool                   `bigquery:"falsePositive"`
+	FirstFound     time.Time              `bigquery:"firstFound"`
+	IssueType      string                 `bigquery:"issueType"`
+	LastFound      time.Time              `bigquery:"lastFound"`
+	PreviousCounts int                    `bigquery:"previousCounts"`
+	ScanID         string                 `bigquery:"scanID"`
+	ScanStartTime  time.Time              `bigquery:"scanStartTime"`
+	Severity       string                 `bigquery:"severity"`
+	Source         string                 `bigquery:"source"`
+	Target         string                 `bigquery:"target"`
+	Title          string                 `bigquery:"title"`
+	ToolName       string                 `bigquery:"toolName"`
 }

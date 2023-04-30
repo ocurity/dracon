@@ -11,6 +11,7 @@ go_binary(
     deps = [
         "//api/proto/v1",
         "//components/consumers",
+        "//pkg/enumtransformers",
     ],
 )
 
