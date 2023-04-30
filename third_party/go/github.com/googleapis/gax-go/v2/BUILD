@@ -10,7 +10,7 @@ go_module(
     version = "v2.7.1",
     visibility = ["PUBLIC"],
     deps = [
-        "//third_party/go/google.golang.org/api",
+        "//third_party/go/google.golang.org/api:api_googleapi",
         "//third_party/go/google.golang.org/genproto",
         "//third_party/go/google.golang.org/grpc",
         "//third_party/go/google.golang.org/protobuf",
