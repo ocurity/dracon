@@ -124,7 +124,7 @@ func insert(ctx context.Context, inserter *bigquery.Inserter, issue interface{},
 	}
 	var data interface{}
 	switch e := issue.(type) {
-	case *v1.Issue:
+	case *v1.Issue: // nolint:typecheck
 		iss, _ := issue.(*v1.Issue)
 		data = &bigquery.StructSaver{
 			Schema:   schema,
