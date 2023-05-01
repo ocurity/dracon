@@ -16,7 +16,6 @@ import (
 )
 
 var (
-	dbURL       string
 	projectID   string
 	datasetName string
 	gcpToken    string
@@ -44,6 +43,9 @@ func main() {
 func run(ctx context.Context) error {
 	token := &oauth2.Token{AccessToken: gcpToken}
 	client, err := bigquery.NewClient(context.Background(), projectID, option.WithTokenSource(oauth2.StaticTokenSource(token)))
+	if err != nil {
+		return err
+	}
 	dataset := client.Dataset(datasetName)
 	if _, err := dataset.Metadata(context.Background()); err != nil {
 		log.Println("Dataset", dataset, "does not exist", "creating")
