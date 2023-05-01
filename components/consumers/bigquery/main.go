@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"cloud.google.com/go/bigquery"
-	v1 "github.com/ocurity/dracon/api/proto/v1"
 	"github.com/ocurity/dracon/components/consumers"
 	"github.com/ocurity/dracon/pkg/enumtransformers"
 	"golang.org/x/oauth2"
@@ -97,7 +96,20 @@ func run(ctx context.Context) error {
 		}
 		for _, res := range responses {
 			for _, iss := range res.GetIssues() {
-				return insert(ctx, inserter, *iss, res.GetScanInfo().GetScanUuid(), res.GetToolName(), res.GetScanInfo().GetScanStartTime().AsTime())
+				return insert(ctx, inserter, bqDraconIssue{
+					Confidence:    enumtransformers.ConfidenceToText(iss.GetConfidence()),
+					Cve:           iss.GetCve(),
+					Cvss:          iss.GetCvss(),
+					Description:   iss.GetDescription(),
+					IssueType:     iss.GetType(),
+					ScanID:        res.GetScanInfo().GetScanUuid(),
+					ScanStartTime: res.GetScanInfo().GetScanStartTime().AsTime(),
+					Severity:      enumtransformers.SeverityToText(iss.GetSeverity()),
+					Source:        iss.GetSource(),
+					Target:        iss.GetTarget(),
+					Title:         iss.GetTitle(),
+					ToolName:      res.GetToolName(),
+				}, iss.GetUuid())
 			}
 		}
 	} else {
@@ -108,8 +120,28 @@ func run(ctx context.Context) error {
 		}
 		for _, res := range responses {
 			for _, iss := range res.GetIssues() {
-				return insert(ctx, inserter, *iss, res.GetOriginalResults().GetScanInfo().GetScanUuid(), res.GetOriginalResults().GetToolName(),
-					res.GetOriginalResults().GetScanInfo().GetScanStartTime().AsTime())
+				var annotations []*bqDraconAnnotations
+				for k, v := range iss.GetAnnotations() {
+					annotations = append(annotations, &bqDraconAnnotations{Key: k, Value: v})
+				}
+				return insert(ctx, inserter, bqDraconIssue{
+					Annotations:    annotations,
+					Confidence:     enumtransformers.ConfidenceToText(iss.GetRawIssue().GetConfidence()),
+					PreviousCounts: int(iss.GetCount()),
+					Cve:            iss.GetRawIssue().GetCve(),
+					Cvss:           iss.GetRawIssue().GetCvss(),
+					Description:    iss.GetRawIssue().GetDescription(),
+					FalsePositive:  iss.GetFalsePositive(),
+					FirstFound:     iss.GetFirstSeen().AsTime(),
+					IssueType:      iss.GetRawIssue().GetType(),
+					LastFound:      iss.GetUpdatedAt().AsTime(),
+					ScanID:         res.GetOriginalResults().GetScanInfo().GetScanUuid(),
+					Severity:       enumtransformers.SeverityToText(iss.GetRawIssue().GetSeverity()),
+					Source:         iss.GetRawIssue().GetSource(),
+					Target:         iss.GetRawIssue().GetTarget(),
+					Title:          iss.GetRawIssue().GetTitle(),
+					ToolName:       res.GetOriginalResults().GetToolName(),
+				}, iss.GetRawIssue().GetUuid())
 			}
 		}
 	}
@@ -117,63 +149,15 @@ func run(ctx context.Context) error {
 	return nil
 }
 
-func insert(ctx context.Context, inserter *bigquery.Inserter, issue interface{}, scanID, toolName string, scanStartTime time.Time) error {
+func insert(ctx context.Context, inserter *bigquery.Inserter, issue bqDraconIssue, issueUUID string) error {
 	schema, err := bigquery.InferSchema(bqDraconIssue{})
 	if err != nil {
 		return err
 	}
-	var data interface{}
-	switch issue.(type) {
-	case v1.Issue:
-		iss, _ := issue.(*v1.Issue)
-		data = &bigquery.StructSaver{
-			Schema:   schema,
-			InsertID: iss.GetUuid(),
-			Struct: bqDraconIssue{
-				Confidence:    enumtransformers.ConfidenceToText(iss.GetConfidence()),
-				Cve:           iss.GetCve(),
-				Cvss:          iss.GetCvss(),
-				Description:   iss.GetDescription(),
-				IssueType:     iss.GetType(),
-				ScanID:        scanID,
-				ScanStartTime: scanStartTime,
-				Severity:      enumtransformers.SeverityToText(iss.GetSeverity()),
-				Source:        iss.GetSource(),
-				Target:        iss.GetTarget(),
-				Title:         iss.GetTitle(),
-				ToolName:      toolName,
-			},
-		}
-	case v1.EnrichedIssue:
-		iss, _ := issue.(*v1.EnrichedIssue)
-		var annotations []*bqDraconAnnotations
-		for k, v := range iss.GetAnnotations() {
-			annotations = append(annotations, &bqDraconAnnotations{Key: k, Value: v})
-		}
-		data = &bigquery.StructSaver{
-			Schema:   schema,
-			InsertID: iss.GetRawIssue().GetUuid(),
-			Struct: bqDraconIssue{
-				Annotations:    annotations,
-				Confidence:     enumtransformers.ConfidenceToText(iss.GetRawIssue().GetConfidence()),
-				PreviousCounts: int(iss.GetCount()),
-				Cve:            iss.GetRawIssue().GetCve(),
-				Cvss:           iss.GetRawIssue().GetCvss(),
-				Description:    iss.GetRawIssue().GetDescription(),
-				FalsePositive:  iss.GetFalsePositive(),
-				FirstFound:     iss.GetFirstSeen().AsTime(),
-				IssueType:      iss.GetRawIssue().GetType(),
-				LastFound:      iss.GetUpdatedAt().AsTime(),
-				ScanID:         scanID,
-				Severity:       enumtransformers.SeverityToText(iss.GetRawIssue().GetSeverity()),
-				Source:         iss.GetRawIssue().GetSource(),
-				Target:         iss.GetRawIssue().GetTarget(),
-				Title:          iss.GetRawIssue().GetTitle(),
-				ToolName:       toolName,
-			},
-		}
-	default:
-		return fmt.Errorf("issue is neither raw or enriched issue, exiting")
+	data := &bigquery.StructSaver{
+		Schema:   schema,
+		InsertID: issueUUID,
+		Struct:   issue,
 	}
 	return inserter.Put(ctx, data)
 }
