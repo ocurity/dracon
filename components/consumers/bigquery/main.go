@@ -97,7 +97,7 @@ func run(ctx context.Context) error {
 		}
 		for _, res := range responses {
 			for _, iss := range res.GetIssues() {
-				return insert(ctx, inserter, iss, res.GetScanInfo().GetScanUuid(), res.GetToolName(), res.GetScanInfo().GetScanStartTime().AsTime())
+				return insert(ctx, inserter, *iss, res.GetScanInfo().GetScanUuid(), res.GetToolName(), res.GetScanInfo().GetScanStartTime().AsTime())
 			}
 		}
 	} else {
@@ -108,7 +108,7 @@ func run(ctx context.Context) error {
 		}
 		for _, res := range responses {
 			for _, iss := range res.GetIssues() {
-				return insert(ctx, inserter, iss, res.GetOriginalResults().GetScanInfo().GetScanUuid(), res.GetOriginalResults().GetToolName(),
+				return insert(ctx, inserter, *iss, res.GetOriginalResults().GetScanInfo().GetScanUuid(), res.GetOriginalResults().GetToolName(),
 					res.GetOriginalResults().GetScanInfo().GetScanStartTime().AsTime())
 			}
 		}
@@ -123,12 +123,12 @@ func insert(ctx context.Context, inserter *bigquery.Inserter, issue interface{},
 		return err
 	}
 	var data interface{}
-	switch e := issue.(type) {
-	case *v1.Issue: // nolint:typecheck
+	switch issue.(type) {
+	case v1.Issue:
 		iss, _ := issue.(*v1.Issue)
 		data = &bigquery.StructSaver{
 			Schema:   schema,
-			InsertID: e.GetUuid(),
+			InsertID: iss.GetUuid(),
 			Struct: bqDraconIssue{
 				Confidence:    enumtransformers.ConfidenceToText(iss.GetConfidence()),
 				Cve:           iss.GetCve(),
@@ -144,7 +144,7 @@ func insert(ctx context.Context, inserter *bigquery.Inserter, issue interface{},
 				ToolName:      toolName,
 			},
 		}
-	case *v1.EnrichedIssue:
+	case v1.EnrichedIssue:
 		iss, _ := issue.(*v1.EnrichedIssue)
 		var annotations []*bqDraconAnnotations
 		for k, v := range iss.GetAnnotations() {
@@ -152,7 +152,7 @@ func insert(ctx context.Context, inserter *bigquery.Inserter, issue interface{},
 		}
 		data = &bigquery.StructSaver{
 			Schema:   schema,
-			InsertID: e.GetRawIssue().GetUuid(),
+			InsertID: iss.GetRawIssue().GetUuid(),
 			Struct: bqDraconIssue{
 				Annotations:    annotations,
 				Confidence:     enumtransformers.ConfidenceToText(iss.GetRawIssue().GetConfidence()),
@@ -172,6 +172,8 @@ func insert(ctx context.Context, inserter *bigquery.Inserter, issue interface{},
 				ToolName:       toolName,
 			},
 		}
+	default:
+		return fmt.Errorf("issue is neither raw or enriched issue, exiting")
 	}
 	return inserter.Put(ctx, data)
 }
