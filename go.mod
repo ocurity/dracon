@@ -22,6 +22,7 @@ require (
 	github.com/trivago/tgo v1.0.7
 	go.mongodb.org/mongo-driver v1.10.0
 	golang.org/x/crypto v0.0.0-20220622213112-05595931fe9d
+	golang.org/x/oauth2 v0.6.0
 	google.golang.org/api v0.114.0
 	google.golang.org/protobuf v1.29.1
 	gopkg.in/h2non/gock.v1 v1.1.2
@@ -59,7 +60,6 @@ require (
 	go.opencensus.io v0.24.0 // indirect
 	golang.org/x/mod v0.8.0 // indirect
 	golang.org/x/net v0.8.0 // indirect
-	golang.org/x/oauth2 v0.6.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
 	golang.org/x/tools v0.6.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
