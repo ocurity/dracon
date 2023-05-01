@@ -27,15 +27,15 @@ patches:
                 value: $(params.consumer-bigquery-project-id)
               - name: consumer-bigquery-dataset
                 value: $(params.consumer-bigquery-dataset)
-              - name: consumer-bigquery-google-application-credentials
-                value: $(params.consumer-bigquery-google-application-credentials)
+              - name: consumer-bigquery-token
+                value: $(params.consumer-bigquery-token)
         params:
           - name: consumer-bigquery-project-id
             type: string
           - name: consumer-bigquery-dataset
             type: string
             default: dracon
-          - name: consumer-bigquery-google-application-credentials
+          - name: consumer-bigquery-token
             type: string
     target:
       kind: Pipeline
