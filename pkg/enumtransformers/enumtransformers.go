@@ -1,3 +1,4 @@
+// Package enumtransformers transforms from dracon internal enums to text and back
 package enumtransformers
 
 import (

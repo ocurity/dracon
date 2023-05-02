@@ -21,13 +21,13 @@ sh_cmd(
         cmd+=(
             "-reporter=github-pr-review"
         )
-    elif [[ "\\\$@" != *"-filter-mode=nofilter"* ]]; then
+    elif [[ "\\\\$@" != *"-filter-mode=nofilter"* ]]; then
         cmd+=(
-            "-diff=\"git diff origin/main\""
+            "-diff="git diff origin/main""
         )
     fi
     set -x
-    "\\\\${cmd[@]}" \\\$@
+    "\\\\${cmd[@]}" \\\\$@
     """,
     data = ["//third_party/binary/reviewdog/reviewdog"],
     shell = "/usr/bin/env bash",
