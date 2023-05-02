@@ -1,6 +1,6 @@
 go_module(
     name = "v8",
-    hashes = ["7b3982f8aedf1ff8eff63afdd960916b15cf88464ac1c1e06f1a0f5b7b7add97"],
+    hashes = ["9c12b0f33abacded3946a6f2df19a0d786d9b55c18eeeec144b0f83d3a67964d"],
     install = [
         ".",
         "esapi",

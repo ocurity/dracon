@@ -1,6 +1,6 @@
 go_mod_download(
     name = "_v4_download",
-    hashes = ["bb960ab46b4c6b1a6b31bd7b00594c329632b54e7cc6dfe3ba67ef31189f34aa"],
+    hashes = ["dd77862a453e8e753f298f6503da12ef9bb534f3a1fab9df9c6e43f39e9cffb3"],
     module = "github.com/golang-migrate/migrate/v4",
     version = "v4.7.0",
 )

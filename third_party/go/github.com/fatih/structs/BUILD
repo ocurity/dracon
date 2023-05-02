@@ -1,6 +1,6 @@
 go_module(
     name = "structs",
-    hashes = ["5a9a1c9439eda501943950c180d7cb19b72c5ce432beda0dc730f4c4a803effa"],
+    hashes = ["0e13af842fdae9d51b2d280cde045ecb3f3432bb9e7df4d1707f7ef166cb5303"],
     licences = ["mit"],
     module = "github.com/fatih/structs",
     version = "v1.1.0",

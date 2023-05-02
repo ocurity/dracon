@@ -1,6 +1,6 @@
 go_module(
     name = "viper",
-    hashes = ["788eccdfe9d5bead6d43b23273d2f9acb2b0a200b66475e3403f38dcdaaee519"],
+    hashes = ["43f5cea8955c975ba983c32137608c30e73840dde5e1f04e8f16a2289f966d01"],
     licences = ["mit"],
     module = "github.com/spf13/viper",
     version = "v1.7.1",

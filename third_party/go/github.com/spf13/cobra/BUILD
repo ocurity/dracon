@@ -1,6 +1,6 @@
 go_module(
     name = "cobra",
-    hashes = ["66f76e3bca88c69d154ce98f9bf3f91768b3513f5bd4cf2f02384728bfb81668"],
+    hashes = ["47234725071412af1e3f3ef3a904428bb5c772a8f634610cde0df74354919b15"],
     licences = ["apache-2.0"],
     module = "github.com/spf13/cobra",
     version = "v0.0.5",

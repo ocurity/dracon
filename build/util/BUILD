@@ -15,15 +15,19 @@ sh_cmd(
     ./pleasew -p -v=2 generate
     cmd=(
         "$(out_exe //third_party/binary/reviewdog/reviewdog)"
-        "-filter-mode=nofilter"
-        "-tee"
+        -fail-on-error
     )
     if [[ "\\\\$CI" == "true" ]]; then
         cmd+=(
             "-reporter=github-pr-review"
         )
+    elif [[ "\\\$@" != *"-filter-mode=nofilter"* ]]; then
+        cmd+=(
+            "-diff=\"git diff origin/main\""
+        )
     fi
-    "\\\\${cmd[@]}"
+    set -x
+    "\\\\${cmd[@]}" \\\$@
     """,
     data = ["//third_party/binary/reviewdog/reviewdog"],
     shell = "/usr/bin/env bash",

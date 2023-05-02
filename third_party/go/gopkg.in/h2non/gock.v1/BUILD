@@ -1,6 +1,6 @@
 go_module(
     name = "gock.v1",
-    hashes = ["e5c3c1fd3a62093da07f38b5f0d952b50c769118f5aa5010e9ecb9f17e0bf014"],
+    hashes = ["8d037bdc6da1575efc19094b1acffbffeda2ef0b58c3af0f57dff65297ef5b17"],
     licences = ["MIT"],
     module = "gopkg.in/h2non/gock.v1",
     version = "v1.0.16",

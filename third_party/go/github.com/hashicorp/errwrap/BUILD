@@ -1,6 +1,6 @@
 go_module(
     name = "errwrap",
-    hashes = ["4e7e911378220893d62e7807728529a06fd6ab10adc4b447277151dd69dabe26"],
+    hashes = ["60ee2450615b430918e85a89aae9ff8cb0310ff9e6eed00ce4f9e0be20bb4032"],
     module = "github.com/hashicorp/errwrap",
     version = "v1.0.0",
     visibility = [
