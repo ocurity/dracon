@@ -4,6 +4,7 @@ import (
 	v1 "github.com/ocurity/dracon/api/proto/v1"
 )
 
+// SeverityToText transforms dracon severity into a nicer textual format for use with third party systems
 func SeverityToText(severity v1.Severity) string {
 	switch severity {
 	case v1.Severity_SEVERITY_INFO:
@@ -21,6 +22,7 @@ func SeverityToText(severity v1.Severity) string {
 	}
 }
 
+// ConfidenceToText transforms dracon confidence into a nicer textual format for use with third party systems
 func ConfidenceToText(confidence v1.Confidence) string {
 	switch confidence {
 	case v1.Confidence_CONFIDENCE_INFO:

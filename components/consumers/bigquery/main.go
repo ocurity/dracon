@@ -1,3 +1,4 @@
+// Package main of the bigquery consumer puts dracon issues into the target bigquery dataset, it will create teh dataset and the schema if one does not exist
 package main
 
 import (
@@ -96,7 +97,7 @@ func run(ctx context.Context) error {
 		}
 		for _, res := range responses {
 			for _, iss := range res.GetIssues() {
-				return insert(ctx, inserter, bqDraconIssue{
+				if err = insert(ctx, inserter, bqDraconIssue{
 					Confidence:    enumtransformers.ConfidenceToText(iss.GetConfidence()),
 					Cve:           iss.GetCve(),
 					Cvss:          iss.GetCvss(),
@@ -109,8 +110,11 @@ func run(ctx context.Context) error {
 					Target:        iss.GetTarget(),
 					Title:         iss.GetTitle(),
 					ToolName:      res.GetToolName(),
-				}, iss.GetUuid())
+				}, iss.GetUuid()); err != nil {
+					return err
+				}
 			}
+
 		}
 	} else {
 		log.Print("Parsing Enriched results")
@@ -124,7 +128,7 @@ func run(ctx context.Context) error {
 				for k, v := range iss.GetAnnotations() {
 					annotations = append(annotations, &bqDraconAnnotations{Key: k, Value: v})
 				}
-				return insert(ctx, inserter, bqDraconIssue{
+				if err = insert(ctx, inserter, bqDraconIssue{
 					Annotations:    annotations,
 					Confidence:     enumtransformers.ConfidenceToText(iss.GetRawIssue().GetConfidence()),
 					PreviousCounts: int(iss.GetCount()),
@@ -141,7 +145,9 @@ func run(ctx context.Context) error {
 					Target:         iss.GetRawIssue().GetTarget(),
 					Title:          iss.GetRawIssue().GetTitle(),
 					ToolName:       res.GetOriginalResults().GetToolName(),
-				}, iss.GetRawIssue().GetUuid())
+				}, iss.GetRawIssue().GetUuid()); err != nil {
+					return err
+				}
 			}
 		}
 	}
