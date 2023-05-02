@@ -1,6 +1,6 @@
 go_module(
     name = "jwt-go",
-    hashes = ["330efa092b713c652945c28336a8c826fdb29f27348cbbf602f5005d11dee012"],
+    hashes = ["68866540f25284b48364738224f7d1c461e6ba2fcb11c6cdcaa93e962da51049"],
     licences = ["mit"],
     module = "github.com/dgrijalva/jwt-go",
     version = "v3.2.0+incompatible",

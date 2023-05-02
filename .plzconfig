@@ -1,7 +1,7 @@
 ; Please config file
 [please]
-version = 16.27.2
-VersionChecksum = 91c6ff81c53bbd105133306faa977f59da1b72bf28e0ecb7fe0778529c5cd861
+version = 16.28.0
+VersionChecksum = 3afeb61bf64e973432098e57081c8588080ccd67ad2d2c7314d8853e616811e6
 
 ; Support the non *-rules repo name format of Please plugins.
 PluginRepo = "https://github.com/{owner}/{plugin}/archive/{revision}.zip"
@@ -46,7 +46,7 @@ LinkGeneratedSources = hard
 UpdateGitignore = false
 
 [alias "lint"]
-cmd = run //build/util:lint
+cmd = run //build/util:lint --
 
 [alias "fmt-all"]
 cmd = run //build/util:fmt_all

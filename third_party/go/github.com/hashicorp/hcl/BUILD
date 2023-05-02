@@ -1,6 +1,6 @@
 go_module(
     name = "hcl",
-    hashes = ["84ed05e07626b15b91bd9c6b40815385efc5f176c0e608800795c7143dc25d41"],
+    hashes = ["86a678f1718aef0b0b2b7e636c3247218349eddf9471efc94ce7ab5eec8676a8"],
     install = [
         ".",
         "...",

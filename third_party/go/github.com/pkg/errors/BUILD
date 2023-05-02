@@ -1,6 +1,6 @@
 go_module(
     name = "errors",
-    hashes = ["f20d68bc6301675e4662897d0086ab7610062d494d0792f076f7e8eebe4aa8f5"],
+    hashes = ["eb4cbddb4dea93d73c49321d1f69cd91d92677a0376fe63bdfb98004db7f71b6"],
     module = "github.com/pkg/errors",
     version = "v0.8.1",
     visibility = [

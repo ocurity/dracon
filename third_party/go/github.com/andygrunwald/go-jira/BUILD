@@ -1,6 +1,6 @@
 go_module(
     name = "go-jira",
-    hashes = ["64094bcb972b117352e093cf7d268c2b57809886c0a6c97459ba3cb1a7e5dc9e"],
+    hashes = ["af8883e5c9ac1fbfd07727e6781f935d586b7f6d9c502543c711e9458f20955d"],
     licences = ["MIT"],
     module = "github.com/andygrunwald/go-jira",
     version = "v1.12.0",
