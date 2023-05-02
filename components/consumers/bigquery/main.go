@@ -114,7 +114,6 @@ func run(ctx context.Context) error {
 					return err
 				}
 			}
-
 		}
 	} else {
 		log.Print("Parsing Enriched results")
