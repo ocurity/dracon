@@ -1,0 +1,41 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: consumer-bigquery
+  labels:
+    v1.dracon.ocurity.com/component: consumer
+spec:
+  volumes:
+    - name: scratch
+      emptyDir: {}
+  params:
+    - name: consumer-bigquery-project-id
+      type: string
+    - name: consumer-bigquery-dataset
+      type: string
+      default: "dracon"
+    - name: consumer-bigquery-token
+      type: string
+  workspaces:
+    - name: source-code-ws
+      description: The workspace containing the source-code to scan.
+  steps:
+    - name: run-consumer
+      imagePullPolicy: IfNotPresent
+      image: ghcr.io/ocurity/dracon/components/consumers/bigquery/image:latest
+      command: ["/app/components/consumers/bigquery/bigquery"]
+      args:
+        [
+          "-in",
+          "$(workspaces.source-code-ws.path)/.dracon/enrichers/",
+          "-project-id",
+          "$(params.consumer-bigquery-project-id)",
+          "-dataset",
+          "$(params.consumer-bigquery-dataset)",
+          "-gcp-token",
+          "$(params.consumer-bigquery-token)",
+        ]
+      volumeMounts:
+        - mountPath: /scratch
+          name: scratch

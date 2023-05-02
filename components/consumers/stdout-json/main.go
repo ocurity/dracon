@@ -7,6 +7,7 @@ import (
 
 	v1 "github.com/ocurity/dracon/api/proto/v1"
 	"github.com/ocurity/dracon/components/consumers"
+	"github.com/ocurity/dracon/pkg/enumtransformers"
 )
 
 func main() {
@@ -70,40 +71,6 @@ func getRawIssue(scanStartTime time.Time, res *v1.LaunchToolResponse, iss *v1.Is
 	return jBytes, nil
 }
 
-func severtiyToText(severity v1.Severity) string {
-	switch severity {
-	case v1.Severity_SEVERITY_INFO:
-		return "Info"
-	case v1.Severity_SEVERITY_LOW:
-		return "Low"
-	case v1.Severity_SEVERITY_MEDIUM:
-		return "Medium"
-	case v1.Severity_SEVERITY_HIGH:
-		return "High"
-	case v1.Severity_SEVERITY_CRITICAL:
-		return "Critical"
-	default:
-		return "N/A"
-	}
-}
-
-func confidenceToText(confidence v1.Confidence) string {
-	switch confidence {
-	case v1.Confidence_CONFIDENCE_INFO:
-		return "Info"
-	case v1.Confidence_CONFIDENCE_LOW:
-		return "Low"
-	case v1.Confidence_CONFIDENCE_MEDIUM:
-		return "Medium"
-	case v1.Confidence_CONFIDENCE_HIGH:
-		return "High"
-	case v1.Confidence_CONFIDENCE_CRITICAL:
-		return "Critical"
-	default:
-		return "N/A"
-	}
-}
-
 func getEnrichedIssue(scanStartTime time.Time, res *v1.EnrichedLaunchToolResponse, iss *v1.EnrichedIssue) ([]byte, error) {
 	firstSeenTime := iss.GetFirstSeen().AsTime()
 	jBytes, err := json.Marshal(&draconDocument{
@@ -121,8 +88,8 @@ func getEnrichedIssue(scanStartTime time.Time, res *v1.EnrichedLaunchToolRespons
 		FirstFound:     firstSeenTime,
 		Count:          iss.GetCount(),
 		FalsePositive:  iss.GetFalsePositive(),
-		SeverityText:   severtiyToText(iss.GetRawIssue().GetSeverity()),
-		ConfidenceText: confidenceToText(iss.GetRawIssue().GetConfidence()),
+		SeverityText:   enumtransformers.SeverityToText(iss.GetRawIssue().GetSeverity()),
+		ConfidenceText: enumtransformers.ConfidenceToText(iss.GetRawIssue().GetConfidence()),
 		CVE:            iss.GetRawIssue().GetCve(),
 	})
 	if err != nil {

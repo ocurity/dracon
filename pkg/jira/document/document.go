@@ -17,7 +17,7 @@ func NewRaw(scanStartTime time.Time, res *v1.LaunchToolResponse, iss *v1.Issue) 
 		Title:          iss.GetTitle(),
 		Target:         iss.GetTarget(),
 		Type:           iss.GetType(),
-		SeverityText:   severtiyToText(iss.GetSeverity()),
+		SeverityText:   SeverityToText(iss.GetSeverity()),
 		CVSS:           strconv.FormatFloat(iss.GetCvss(), 'f', 3, 64), // formatted as string
 		ConfidenceText: confidenceToText(iss.GetConfidence()),
 		Description:    iss.GetDescription(),
@@ -45,7 +45,7 @@ func NewEnriched(scanStartTime time.Time, res *v1.EnrichedLaunchToolResponse, is
 		Title:          iss.GetRawIssue().GetTitle(),
 		Target:         iss.GetRawIssue().GetTarget(),
 		Type:           iss.GetRawIssue().GetType(),
-		SeverityText:   severtiyToText(iss.GetRawIssue().GetSeverity()),
+		SeverityText:   SeverityToText(iss.GetRawIssue().GetSeverity()),
 		CVSS:           strconv.FormatFloat(iss.GetRawIssue().GetCvss(), 'f', 3, 64), // formatted as string
 		ConfidenceText: confidenceToText(iss.GetRawIssue().GetConfidence()),
 		Description:    iss.GetRawIssue().GetDescription(),
@@ -65,7 +65,7 @@ func NewEnriched(scanStartTime time.Time, res *v1.EnrichedLaunchToolResponse, is
 
 // The Severity field is normally mapped into the jira 'Impact' field, so the assumption
 // is that Severity = Impact; which in practice is generally true with small exceptions.
-func severtiyToText(severity v1.Severity) string {
+func SeverityToText(severity v1.Severity) string {
 	switch severity {
 	case v1.Severity_SEVERITY_INFO:
 		return "Info"
