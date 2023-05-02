@@ -1,3 +1,4 @@
+// Package main of the depsdev enricher adds Licensing information to any cyclone dx sbom dracon issue
 package main
 
 import (
@@ -26,6 +27,7 @@ var (
 	licensesInEvidence string
 )
 
+// Version models a deps.dev api package version
 type Version struct {
 	Version                string        `json:"version,omitempty"`
 	SymbolicVersions       []interface{} `json:"symbolicVersions,omitempty"`
@@ -76,6 +78,8 @@ type Version struct {
 	Advisories      []interface{} `json:"advisories,omitempty"`
 	RelatedPackages struct{}      `json:"relatedPackages,omitempty"`
 }
+
+// Response models a deps.dev api response
 type Response struct {
 	Package struct {
 		System string `json:"system,omitempty"`
@@ -128,7 +132,8 @@ func addLicenses(component cdx.Component, annotations map[string]string) (cdx.Co
 	if err != nil {
 		return component, annotations, err
 	}
-	resp, err := http.Get(url) // nolint: gosec, url get constructed above with a hardcoded domain and relatively trusted data
+	// url get constructed above with a hardcoded domain and trusted data
+	resp, err := http.Get(url) //nolint:gosec
 	log.Println("url is", url)
 	if err != nil {
 		return component, annotations, err

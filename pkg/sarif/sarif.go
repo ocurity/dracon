@@ -1,3 +1,4 @@
+// Package sarif has methods to transform a Sarif Document to/from dracon format
 package sarif
 
 import (

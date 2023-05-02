@@ -1,3 +1,4 @@
+// Package config holds helper methods for jira consumer config
 package config
 
 import (

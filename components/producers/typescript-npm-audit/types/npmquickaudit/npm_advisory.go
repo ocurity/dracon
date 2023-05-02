@@ -1,3 +1,4 @@
+// Package npmquickaudit has methods to transform NPM Advisory information to dracon
 package npmquickaudit
 
 import (

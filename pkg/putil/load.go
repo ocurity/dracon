@@ -1,3 +1,4 @@
+// Package putil has load and write methods for Dracon issues, this is only used internally
 package putil
 
 import (

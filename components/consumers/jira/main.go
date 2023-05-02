@@ -16,8 +16,7 @@ const (
 	// EnvJiraUser the Jira Username for the authentication (user@domain.com).
 	EnvJiraUser = "DRACON_JIRA_USER"
 	// EnvJiraToken the Jira API token for the authentication.
-	//nolint:gosec
-	EnvJiraToken = "DRACON_JIRA_TOKEN"
+	EnvJiraToken = "DRACON_JIRA_TOKEN" //nolint:gosec
 	// EnvJiraURL the domain to scrape.
 	EnvJiraURL = "DRACON_JIRA_URL"
 	// EnvConfigPath the path towards the config.yaml file.

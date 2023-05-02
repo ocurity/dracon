@@ -1,3 +1,4 @@
+// Package main of the eslint producer transforms eslint json output to dracon issues
 package main
 
 import (

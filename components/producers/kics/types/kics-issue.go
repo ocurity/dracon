@@ -1,3 +1,4 @@
+// Package types represents kics json output
 package types
 
 // KICSOut represents the output of a KICS run.

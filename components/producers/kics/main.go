@@ -1,3 +1,4 @@
+// Package main of the kics producer transforms Sarif output from kics into dracon issues
 package main
 
 import (

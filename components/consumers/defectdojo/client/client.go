@@ -1,3 +1,4 @@
+// Package client of defectdojo is a thin-client to defectdojo written in go
 package client
 
 import (
@@ -13,11 +14,11 @@ import (
 
 // Client represents a DefectDojo client.
 type Client struct {
-	host     string
 	apiToken string
+	DojoUser types.DojoUser
+	host     string
 	user     string
 	UserID   int32
-	DojoUser types.DojoUser
 }
 
 // DojoTestType is the Defect dojo Enum ID  for "ci/cd test".
@@ -82,6 +83,8 @@ func (client *Client) CreateFinding(
 		Severity:          severity,
 		NumericalSeverity: numericalSeverity,
 		FoundBy:           []int32{foundBy},
+		Cvssv3Score:       cvssScore,
+		Duplicate:         duplicate,
 	}
 	bod, err := json.Marshal(body)
 	if err != nil {

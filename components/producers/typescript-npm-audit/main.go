@@ -1,3 +1,4 @@
+// Package main of the npm-audit component transforms the output of either npm full-audit or npm quick-audit to dracon
 package main
 
 import (

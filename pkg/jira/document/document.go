@@ -1,3 +1,4 @@
+// Package document of the Jira consumer holds methods to transform Dracon tool responses to Jira Documents
 package document
 
 import (

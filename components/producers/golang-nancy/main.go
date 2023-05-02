@@ -1,3 +1,4 @@
+// Package main of the nancy producer transforms nancy json input to dracon issues
 package main
 
 import (

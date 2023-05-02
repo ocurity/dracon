@@ -1,3 +1,4 @@
+// Package types holds the representation of semgrep issues
 package types
 
 // Position represents where in the file the finding is located.

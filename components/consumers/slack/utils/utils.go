@@ -1,3 +1,4 @@
+// Package utils of the slack consumer holds methods to transform dracon issues into a format appropriate for a slack channel
 package utils
 
 import (

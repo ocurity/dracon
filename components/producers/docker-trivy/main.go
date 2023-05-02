@@ -1,3 +1,4 @@
+// Package main of the trivy component transforms the json,cyclonedx or sarif output of Trivy to dracon
 package main
 
 import (

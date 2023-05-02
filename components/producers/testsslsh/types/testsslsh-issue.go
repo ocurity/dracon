@@ -1,3 +1,4 @@
+// Package types of testsslsh component models the output of testssl.sh
 package types
 
 // TestSSLFinding represents the output of a single issue in the output array of testssl.sh run.

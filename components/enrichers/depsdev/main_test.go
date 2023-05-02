@@ -67,9 +67,6 @@ func prepareIssue() string {
 	return dir
 }
 
-func MockServer(t *testing.T) {
-}
-
 func TestParseIssuesLicensesWritten(t *testing.T) {
 	dir := prepareIssue()
 

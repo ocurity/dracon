@@ -1,3 +1,4 @@
+// Package types represents nancy json output
 package types
 
 // NancyOut represents the output of a nancy run that we care about.

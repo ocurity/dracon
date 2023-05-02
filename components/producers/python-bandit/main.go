@@ -1,3 +1,4 @@
+// Package main of the bandit producer transforms bandit json output to dracon issues
 package main
 
 import (

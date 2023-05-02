@@ -1,3 +1,4 @@
+// Package main of the dependency check producer transforms dependency check json output to dracon issues
 package main
 
 import (

@@ -1,3 +1,4 @@
+// Package types of the zaproxy producer has the representation of a zap json output
 package types
 
 // ZapOut represents the output of a zap scan.

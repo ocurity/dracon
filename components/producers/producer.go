@@ -58,7 +58,7 @@ func ParseFlags() error {
 
 // ReadLines returns the lines of the contents of the file given by InResults.
 func ReadLines() ([][]byte, error) {
-	file, err := os.Open(InResults)
+	file, err := os.Open(InResults) //nolint:gosec
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +77,7 @@ func ReadLines() ([][]byte, error) {
 
 // ReadInFile returns the contents of the file given by InResults.
 func ReadInFile() ([]byte, error) {
-	file, err := os.Open(InResults)
+	file, err := os.Open(InResults) //nolint:gosec
 	if err != nil {
 		return nil, err
 	}
@@ -153,7 +153,7 @@ func getSource() string {
 		return "unknown"
 	}
 
-	dat, err := ioutil.ReadFile(sourceMetaPath)
+	dat, err := ioutil.ReadFile(sourceMetaPath) //nolint:gosec // this is required
 	if err != nil {
 		log.Println(err)
 	}

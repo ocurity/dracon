@@ -1,3 +1,4 @@
+// Package types of the defectdojo consumer represents Defectdojo request objects
 package types
 
 /*
@@ -12,6 +13,7 @@ package types
 // FindingCreateRequest models all the possible fields in a POST /findings request.
 type FindingCreateRequest struct {
 	Active            bool     `json:"active"`
+	Cvssv3Score       float32  `json:"cvssv3_score,omitempty"`
 	Cwe               int32    `json:"cwe,omitempty"`
 	Date              string   `json:"date,omitempty"`
 	Description       string   `json:"description"`
@@ -33,6 +35,7 @@ type FindingCreateRequest struct {
 // FindingCreateResponse models all the possible fields in a POST /findings response.
 type FindingCreateResponse struct {
 	Active            bool     `json:"active"`
+	Cvssv3Score       float32  `json:"cvssv3_score,omitempty"`
 	Cwe               int32    `json:"cwe,omitempty"`
 	Date              string   `json:"date,omitempty"`
 	Description       string   `json:"description"`

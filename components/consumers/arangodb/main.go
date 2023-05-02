@@ -1,3 +1,4 @@
+// Package main of the arangodb consumer puts dracon issues into the taret arangodb
 package main
 
 import (

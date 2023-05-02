@@ -1,3 +1,4 @@
+// Package main of the yarn audit producer transforms the output of yarn audit to dracon
 package main
 
 import (

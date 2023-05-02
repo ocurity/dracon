@@ -1,3 +1,4 @@
+// Package main of the owasp zap producer transforms Zap json output to dracon issues
 package main
 
 import (

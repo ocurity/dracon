@@ -1,3 +1,4 @@
+// Package utils of the jira consumer has methods to process raw and enriched dracon messages
 package utils
 
 import (

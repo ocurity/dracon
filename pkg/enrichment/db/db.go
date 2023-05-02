@@ -1,3 +1,4 @@
+// Package db has persistence and migration methods for Dracon components that require a state
 package db
 
 import (
@@ -22,8 +23,7 @@ import (
 
 // migrationsFS holds the SQL migration files as static assets.
 //
-//nolint:typecheck
-//go:embed *.sql
+//go:embed *.sql //nolint:typecheck staticcheck
 var migrationsFS embed.FS
 
 // EnrichDatabase represents the db methods that are used for the enricher.

@@ -1,3 +1,4 @@
+// Package main of the gosec producer transforms gosec json output to dracon issues
 package main
 
 import (
