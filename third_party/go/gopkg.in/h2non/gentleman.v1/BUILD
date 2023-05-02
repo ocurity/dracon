@@ -1,6 +1,6 @@
 go_module(
     name = "gentleman.v1",
-    hashes = ["cbea4830e829135e69d3db6e0a74684e26f1442007812c53c929712ad75f661e"],
+    hashes = ["896e0bc2a6ecaac52e541031b3abec2cf0fdd877bdf46a4bb3c36d425ac4db53"],
     install = ["..."],
     licences = ["MIT"],
     module = "gopkg.in/h2non/gentleman.v1",

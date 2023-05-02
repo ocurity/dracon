@@ -1,6 +1,6 @@
 go_module(
     name = "afero",
-    hashes = ["b1d49c29819db7fc8853894a61d11a165f5a0af774fccc1217d42efcf5535cf4"],
+    hashes = ["3797020031356c63f776784d4afa2cd9838c523fb24ef29577f9d85732b14ecf"],
     install = [
         ".",
         "mem",

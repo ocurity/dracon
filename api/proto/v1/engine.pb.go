@@ -21,10 +21,9 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-//
-//Scan related information, unique and immutable per scan run
-//This message is copied from LaunchToolRequest to LaunchToolResponse
-//by each producer wrapper
+// Scan related information, unique and immutable per scan run
+// This message is copied from LaunchToolRequest to LaunchToolResponse
+// by each producer wrapper
 type ScanInfo struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -150,9 +149,8 @@ func (x *LaunchToolResponse) GetIssues() []*Issue {
 	return nil
 }
 
-//
-//An EnrichedLaunchToolResponse consists of deduplicated vulnerability
-//information, with added metadata for consumers
+// An EnrichedLaunchToolResponse consists of deduplicated vulnerability
+// information, with added metadata for consumers
 type EnrichedLaunchToolResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
