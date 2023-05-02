@@ -84,7 +84,6 @@ func (client *Client) CreateFinding(
 		NumericalSeverity: numericalSeverity,
 		FoundBy:           []int32{foundBy},
 		Cvssv3Score:       cvssScore,
-		Duplicate:         duplicate,
 	}
 	bod, err := json.Marshal(body)
 	if err != nil {

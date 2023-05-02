@@ -23,7 +23,7 @@ import (
 
 // migrationsFS holds the SQL migration files as static assets.
 //
-//go:embed *.sql //nolint:typecheck staticcheck
+//go:embed *.sql //nolint:typecheck staticcheck vet
 var migrationsFS embed.FS
 
 // EnrichDatabase represents the db methods that are used for the enricher.

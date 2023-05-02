@@ -35,7 +35,7 @@ type FindingCreateRequest struct {
 // FindingCreateResponse models all the possible fields in a POST /findings response.
 type FindingCreateResponse struct {
 	Active            bool     `json:"active"`
-	Cvssv3Score       float32  `json:"cvssv3_score,omitempty"`
+	Cvssv3Score       float64  `json:"cvssv3_score,omitempty"`
 	Cwe               int32    `json:"cwe,omitempty"`
 	Date              string   `json:"date,omitempty"`
 	Description       string   `json:"description"`
