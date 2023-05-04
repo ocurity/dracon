@@ -2,41 +2,41 @@
 runner:
   go/staticcheck:
     cmd: |
-      ./pleasew run //third_party/binary/dominikh/go-tools:staticcheck -- $(./pleasew query alltargets --include go | grep -v "//third_party/" | cut -f3- -d/ | cut -f1 -d: | awk '{ print "./" $0 }' | xargs)
+      ./pleasew run -v=error //third_party/binary/dominikh/go-tools:staticcheck -- $(./pleasew query alltargets --include go | grep -v "//third_party/" | cut -f3- -d/ | cut -f1 -d: | awk '{ print "./" $0 }' | xargs)
     errorformat:
       - '%E%f:%l:%c: %m'
 
   go/revive:
     cmd: |
-      ./pleasew run //third_party/binary/mgechev/revive:revive -- $(./pleasew query alltargets --include go | grep -v "//third_party/" | cut -f3- -d/ | cut -f1 -d: | awk '{ print "./" $0 }' | xargs)
+      ./pleasew run -v=error //third_party/binary/mgechev/revive:revive -- $(./pleasew query alltargets --include go | grep -v "//third_party/" | cut -f3- -d/ | cut -f1 -d: | awk '{ print "./" $0 }' | xargs)
     errorformat:
       - '%E%f:%l:%c: %m'
 
   go/vet:
     cmd: |
-      ./pleasew run "//third_party/go:toolchain|go" -- vet $(./pleasew query alltargets --include go | grep -v "//third_party/" | cut -f3- -d/ | cut -f1 -d: | awk '{ print "./" $0 }' | xargs)
+      go vet $(./pleasew query alltargets --include go | grep -v "//third_party/" | cut -f3- -d/ | cut -f1 -d: | awk '{ print "./" $0 }' | xargs)
     errorformat:
       - '%E%f:%l:%c: %m'
 
   go/gosec:
     cmd: |
-      ./pleasew run //third_party/binary/securego/gosec:gosec -- -fmt golint $(./pleasew query alltargets --include go | grep -v "//third_party/" | cut -f3- -d/ | cut -f1 -d: | awk '{ print "./" $0 }' | xargs)
+      ./pleasew run -v=error //third_party/binary/securego/gosec:gosec -- -fmt golint $(./pleasew query alltargets --include go | grep -v "//third_party/" | cut -f3- -d/ | cut -f1 -d: | awk '{ print "./" $0 }' | xargs)
     errorformat:
       - '%E%f:%l:%c: %m'
 
   go/fmt:
     cmd: |
-      ./pleasew run //third_party/go/mvdan.cc/gofumpt:gofumpt -- -d $(./pleasew query alltargets --include go | grep -v "//third_party/" | cut -f3- -d/ | cut -f1 -d: | awk '{ print "./" $0 }' | xargs)
+      ./pleasew run -v=error //third_party/go/mvdan.cc/gofumpt:gofumpt -- -d $(./pleasew query alltargets --include go | grep -v "//third_party/" | cut -f3- -d/ | cut -f1 -d: | awk '{ print "./" $0 }' | xargs)
     format: diff
     level: error
 
-  buf_lint:
-    cmd: ./pleasew run "//third_party/binary/bufbuild/buf:buf|buf" -- lint --path api/
+  buf/lint:
+    cmd: ./pleasew run -v=error "//third_party/binary/bufbuild/buf:buf|buf" -- lint --path api/
     level: error
     errorformat:
       - '%f:%l:%c:%m'
 
-  buf_format:
-    cmd: ./pleasew run "//third_party/binary/bufbuild/buf:buf|buf" -- format --diff --path api/
+  buf/format:
+    cmd: ./pleasew run -v=error "//third_party/binary/bufbuild/buf:buf|buf" -- format --diff --path api/
     format: diff
     level: error
