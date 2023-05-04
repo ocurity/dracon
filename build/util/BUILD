@@ -12,14 +12,22 @@ sh_script(
 sh_cmd(
     name = "lint",
     cmd = """
-    ./pleasew -p -v=2 generate
+    set -Eeuo pipefail
+    ./pleasew -p -v=2 generate //...
+    ./pleasew -p -v=2 build --include codegen //...
+    export PATH="\\\\$(./pleasew query reporoot)/\\\\$(./pleasew query output //third_party/go:toolchain)/bin:\\\\$PATH"
     cmd=(
-        "$(out_exe //third_party/binary/reviewdog/reviewdog)"
+        "./pleasew"
+        "run"
+        "//third_party/binary/reviewdog/reviewdog"
+        "--"
         -fail-on-error
+        \\\\$@
     )
-    if [[ "\\\\$CI" == "true" ]]; then
+    if [[ "\\\\${CI:-}" == "true" ]]; then
         cmd+=(
             "-reporter=github-pr-review"
+            "-tee"
         )
     elif [[ "\\\\$@" != *"-filter-mode=nofilter"* ]]; then
         cmd+=(
@@ -27,9 +35,12 @@ sh_cmd(
         )
     fi
     set -x
-    "\\\\${cmd[@]}" \\\\$@
+    "\\\\${cmd[@]}"
     """,
-    data = ["//third_party/binary/reviewdog/reviewdog"],
+    data = [
+        "//third_party/binary/reviewdog/reviewdog",
+        "//third_party/go:toolchain|go",
+    ],
     shell = "/usr/bin/env bash",
 )
 
