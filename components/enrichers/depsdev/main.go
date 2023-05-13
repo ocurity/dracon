@@ -133,7 +133,7 @@ func addLicenses(component cdx.Component, annotations map[string]string) (cdx.Co
 		return component, annotations, err
 	}
 	// url get constructed above with a hardcoded domain and trusted data
-	resp, err := http.Get(url) //nosec:G107
+	resp, err := http.Get(url) // nosec:G107
 	log.Println("url is", url)
 	if err != nil {
 		return component, annotations, err
