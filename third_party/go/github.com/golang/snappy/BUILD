@@ -4,6 +4,6 @@ go_module(
     module = "github.com/golang/snappy",
     version = "v0.0.4",
     visibility = [
-        "//third_party/go/go.mongodb.org/mongo-driver:all",
+        "//third_party/go/...",
     ],
 )

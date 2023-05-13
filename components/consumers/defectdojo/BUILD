@@ -14,6 +14,7 @@ go_binary(
         "//components/consumers",
         "//components/consumers/defectdojo/client",
         "//components/consumers/defectdojo/types",
+        "//pkg/enumtransformers",
     ],
 )
 
@@ -28,6 +29,7 @@ go_test(
         "//components/consumers",
         "//components/consumers/defectdojo/client",
         "//components/consumers/defectdojo/types",
+        "//pkg/enumtransformers",
         "//third_party/go/github.com/stretchr/testify",
         "//third_party/go/google.golang.org/protobuf",
     ],

@@ -2,7 +2,9 @@ go_module(
     name = "compress",
     install = [
         ".",
+        "flate",
         "fse",
+        "gzip",
         "huff0",
         "internal/cpuinfo",
         "internal/snapref",
@@ -16,6 +18,6 @@ go_module(
         "MIT",
     ],
     module = "github.com/klauspost/compress",
-    version = "v1.15.9",
+    version = "v1.16.5",
     visibility = ["PUBLIC"],
 )
