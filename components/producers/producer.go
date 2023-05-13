@@ -77,7 +77,7 @@ func ReadLines() ([][]byte, error) {
 
 // ReadInFile returns the contents of the file given by InResults.
 func ReadInFile() ([]byte, error) {
-	file, err := os.Open(InResults) // nosec:G304
+	file, err := os.Open(InResults) //nosec:G304
 	if err != nil {
 		return nil, err
 	}
@@ -153,7 +153,7 @@ func getSource() string {
 		return "unknown"
 	}
 
-	dat, err := ioutil.ReadFile(sourceMetaPath) //nolint:gosec // this is required
+	dat, err := ioutil.ReadFile(sourceMetaPath) //nosec:G304 // this is required
 	if err != nil {
 		log.Println(err)
 	}
