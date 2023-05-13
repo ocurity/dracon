@@ -29,7 +29,7 @@ func TestDojoClient(t *testing.T) {
 
 func TestCreateFinding(t *testing.T) {
 	called := false
-	expected := `{"id":16,"notes":[],"test":1,"thread_id":0,"found_by":[0],"url":null,"tags":[],"push_to_jira":false,"vulnerability_ids":[],"title":"Test","date":"2022-06-01","sla_start_date":null,"cwe":0,"cvssv3":null,"cvssv3_score":null,"severity":"High","description":"td","mitigation":null,"impact":null,"steps_to_reproduce":null,"severity_justification":null,"references":null,"active":true,"verified":false,"false_p":false,"duplicate":false,"out_of_scope":false,"risk_accepted":false,"under_review":false,"last_status_update":"2022-06-01T11:49:32.336953Z","under_defect_review":false,"is_mitigated":false,"mitigated":null,"numerical_severity":"S1","last_reviewed":null,"param":null,"payload":null,"hash_code":"02d7bb216799db2d65b66fa94cc1b05b7c8a89a00be2f07b87b1cf6e58125c3b","line":null,"file_path":null,"component_name":null,"component_version":null,"static_finding":false,"dynamic_finding":true,"created":"2022-06-01T11:49:32.289174Z","scanner_confidence":null}`
+	expected := `{"id":16,"notes":[],"test":1,"thread_id":0,"found_by":[0],"url":null,"tags":[],"push_to_jira":false,"vulnerability_ids":[],"title":"Test","date":"2022-06-01","sla_start_date":null,"cwe":0,"cvssv3":null,"cvssv3_score":3.9,"severity":"High","description":"td","mitigation":null,"impact":null,"steps_to_reproduce":null,"severity_justification":null,"references":null,"active":true,"verified":false,"false_p":false,"duplicate":false,"out_of_scope":false,"risk_accepted":false,"under_review":false,"last_status_update":"2022-06-01T11:49:32.336953Z","under_defect_review":false,"is_mitigated":false,"mitigated":null,"numerical_severity":"S1","last_reviewed":null,"param":null,"payload":null,"hash_code":"02d7bb216799db2d65b66fa94cc1b05b7c8a89a00be2f07b87b1cf6e58125c3b","line":null,"file_path":null,"component_name":null,"component_version":null,"static_finding":false,"dynamic_finding":true,"created":"2022-06-01T11:49:32.289174Z","scanner_confidence":null}`
 	mockTs := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		assert.Equal(t, r.Method, "POST")
@@ -51,6 +51,7 @@ func TestCreateFinding(t *testing.T) {
 			FilePath:          "foo target",
 			Tags:              []string{"tests"},
 			Date:              "2006-01-02",
+			Cvssv3Score: 3.9,
 		}
 		json.Unmarshal(b, &actual)
 		assert.Equal(t, actual, exp)

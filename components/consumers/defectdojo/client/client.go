@@ -64,9 +64,12 @@ func (client *Client) CreateFinding(
 	tags []string,
 	testID, line, cwe, foundBy int32,
 	falseP, duplicate, active bool,
-	cvssScore float32,
+	cvssScore float64,
 ) (types.FindingCreateResponse, error) {
 	url := fmt.Sprintf("%s/findings", client.host)
+
+	fmt.Println(float32(cvssScore))
+
 	body := types.FindingCreateRequest{
 		Tags:              tags,
 		Date:              date,
