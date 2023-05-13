@@ -51,7 +51,7 @@ func TestCreateFinding(t *testing.T) {
 			FilePath:          "foo target",
 			Tags:              []string{"tests"},
 			Date:              "2006-01-02",
-			Cvssv3Score: 3.9,
+			Cvssv3Score:       3.9,
 		}
 		json.Unmarshal(b, &actual)
 		assert.Equal(t, actual, exp)
