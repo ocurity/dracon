@@ -58,7 +58,7 @@ func ParseFlags() error {
 
 // ReadLines returns the lines of the contents of the file given by InResults.
 func ReadLines() ([][]byte, error) {
-	file, err := os.Open(InResults) //nosec:G304
+	file, err := os.Open(InResults) // nosec:G304
 	if err != nil {
 		return nil, err
 	}
