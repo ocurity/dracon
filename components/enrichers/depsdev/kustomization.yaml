@@ -25,10 +25,15 @@ patches:
             params:
               - name: enricher-depsdev-licenses-in-evidence
                 value: $(params.enricher-depsdev-licenses-in-evidence)
+              - name: enricher-depsdev-annotation
+                value: $(params.enricher-depsdev-annotation)
         params:
           - name: enricher-depsdev-licenses-in-evidence
             type: string
             default: "false"
+          - name: enricher-depsdev-annotation
+            type: string
+            default: ""
     target:
       kind: Pipeline
   # Add anchors to Task.
