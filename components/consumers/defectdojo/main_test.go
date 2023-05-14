@@ -14,6 +14,7 @@ import (
 	v1 "github.com/ocurity/dracon/api/proto/v1"
 	"github.com/ocurity/dracon/components/consumers/defectdojo/client"
 	"github.com/ocurity/dracon/components/consumers/defectdojo/types"
+	"github.com/ocurity/dracon/pkg/templating"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -82,11 +83,19 @@ func createObjects(product int, scanType string) ([]*v1.LaunchToolResponse, []*t
 			issues = append(issues, &x)
 			enrichedIssues = append(enrichedIssues, &y)
 
-			var d []byte
+			var d *string
 			if scanType == "Raw" {
-				d, _ = getRawIssue(times, response, &x)
+				desc, err := templating.TemplateStringRaw("", &x)
+				if err != nil {
+					panic(err)
+				}
+				d = desc
 			} else if scanType == "Enriched" {
-				d, _ = getEnrichedIssue(times, enrichedResponse, &y)
+				desc, err := templating.TemplateStringEnriched("", &y)
+				if err != nil {
+					panic(err)
+				}
+				d = desc
 			}
 			findingsRequests = append(findingsRequests, &types.FindingCreateRequest{
 				Tags:              []string{"DraconScan", scanType + "Finding", scanID, toolName},
@@ -96,7 +105,7 @@ func createObjects(product int, scanType string) ([]*v1.LaunchToolResponse, []*t
 				FilePath:          x.Target,
 				NumericalSeverity: "S:I",
 				FoundBy:           []int32{1},
-				Description:       string(d),
+				Description:       *d,
 				Active:            true,
 			})
 		}
@@ -139,7 +148,6 @@ func TestHandleRawResults(t *testing.T) {
 	dojoUser := "satuser"
 	product := 64
 	input, testRequests, findingsRequests, engagementRequests, _ := createObjects(product, "Raw")
-	// input, _, _, _, _ := createObjects(product, "Raw")
 	var foundTests []*types.TestCreateRequest
 	var foundFindings []*types.FindingCreateRequest
 	var foundEngagements []*types.EngagementRequest
@@ -210,6 +218,7 @@ func TestHandleEnrichedResults(t *testing.T) {
 	apiKey := "test"
 	dojoUser := "satuser"
 	product := 65
+
 	_, testRequests, findingsRequests, engagementRequests, input := createObjects(product, "Enriched")
 	var foundTests []*types.TestCreateRequest
 	var foundFindings []*types.FindingCreateRequest
