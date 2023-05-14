@@ -23,6 +23,24 @@ func SeverityToText(severity v1.Severity) string {
 	}
 }
 
+// SeverityToText transforms dracon severity into a nicer textual format for use with third party systems
+func TextToSeverity(severity string) v1.Severity {
+	switch severity {
+	case "Info":
+		return v1.Severity_SEVERITY_INFO
+	case "Low":
+		return v1.Severity_SEVERITY_LOW 
+	case "Medium":
+		return v1.Severity_SEVERITY_MEDIUM
+	case "High":
+		return v1.Severity_SEVERITY_HIGH
+	case "Critical":
+		return v1.Severity_SEVERITY_CRITICAL
+	default:
+		return v1.Severity_SEVERITY_UNSPECIFIED
+	}
+}
+
 // ConfidenceToText transforms dracon confidence into a nicer textual format for use with third party systems
 func ConfidenceToText(confidence v1.Confidence) string {
 	switch confidence {
@@ -38,5 +56,23 @@ func ConfidenceToText(confidence v1.Confidence) string {
 		return "Critical"
 	default:
 		return "N/A"
+	}
+}
+
+// ConfidenceToText transforms dracon confidence into a nicer textual format for use with third party systems
+func TextToConfidence(confidence string) v1.Confidence {
+	switch confidence {
+	case "Info":
+		return v1.Confidence_CONFIDENCE_INFO
+	case "Low":
+		return v1.Confidence_CONFIDENCE_LOW
+	case "Medium":
+		return v1.Confidence_CONFIDENCE_MEDIUM
+	case "High":
+		return v1.Confidence_CONFIDENCE_HIGH
+	case "Critical":
+		return v1.Confidence_CONFIDENCE_CRITICAL
+	default:
+		return v1.Confidence_CONFIDENCE_UNSPECIFIED
 	}
 }
