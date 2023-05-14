@@ -12,6 +12,7 @@ import (
 	v1 "github.com/ocurity/dracon/api/proto/v1"
 	"github.com/ocurity/dracon/components/consumers"
 	"github.com/ocurity/dracon/pkg/enumtransformers"
+	"github.com/ocurity/dracon/pkg/templating"
 
 	//  TODO: Support multiple versions of ES
 	elasticsearch "github.com/elastic/go-elasticsearch/v8"
@@ -23,6 +24,7 @@ var (
 	esIndex       string
 	basicAuthUser string
 	basicAuthPass string
+	issueTemplate string
 )
 
 func init() {
@@ -30,6 +32,7 @@ func init() {
 	flag.StringVar(&esIndex, "es-index", "", "the index in elasticsearch to push results to")
 	flag.StringVar(&basicAuthUser, "basic-auth-user", "", "[OPTIONAL] the basic auth username")
 	flag.StringVar(&basicAuthPass, "basic-auth-pass", "", "[OPTIONAL] the basic auth password")
+	flag.StringVar(&issueTemplate, "findingTemplate", "", "a Go Template string describing how to show Raw or Enriched issues")
 }
 
 func parseFlags() error {
@@ -102,6 +105,10 @@ func main() {
 }
 
 func getRawIssue(scanStartTime time.Time, res *v1.LaunchToolResponse, iss *v1.Issue) ([]byte, error) {
+	description, err := templating.TemplateStringRaw(issueTemplate, iss)
+	if err != nil {
+		log.Fatal("Could not template raw issue ", err)
+	}
 	jBytes, err := json.Marshal(&esDocument{
 		ScanStartTime: scanStartTime,
 		ScanID:        res.GetScanInfo().GetScanUuid(),
@@ -113,7 +120,7 @@ func getRawIssue(scanStartTime time.Time, res *v1.LaunchToolResponse, iss *v1.Is
 		Severity:      iss.GetSeverity(),
 		CVSS:          iss.GetCvss(),
 		Confidence:    iss.GetConfidence(),
-		Description:   iss.GetDescription(),
+		Description:   *description,
 		FirstFound:    scanStartTime,
 		Count:         1,
 		FalsePositive: false,
@@ -126,6 +133,10 @@ func getRawIssue(scanStartTime time.Time, res *v1.LaunchToolResponse, iss *v1.Is
 }
 
 func getEnrichedIssue(scanStartTime time.Time, res *v1.EnrichedLaunchToolResponse, iss *v1.EnrichedIssue) ([]byte, error) {
+	description, err := templating.TemplateStringEnriched(issueTemplate, iss)
+	if err != nil {
+		log.Fatal("Could not template raw issue ", err)
+	}
 	firstSeenTime := iss.GetFirstSeen().AsTime()
 	jBytes, err := json.Marshal(&esDocument{
 		ScanStartTime:  scanStartTime,
@@ -138,7 +149,7 @@ func getEnrichedIssue(scanStartTime time.Time, res *v1.EnrichedLaunchToolRespons
 		Severity:       iss.GetRawIssue().GetSeverity(),
 		CVSS:           iss.GetRawIssue().GetCvss(),
 		Confidence:     iss.GetRawIssue().GetConfidence(),
-		Description:    iss.GetRawIssue().GetDescription(),
+		Description:    *description,
 		FirstFound:     firstSeenTime,
 		Count:          iss.GetCount(),
 		FalsePositive:  iss.GetFalsePositive(),
