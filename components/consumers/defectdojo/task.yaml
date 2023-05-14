@@ -17,6 +17,7 @@ spec:
       type: string
     - name: consumer-defectdojo-description-template
       type: string
+      default: ""
   workspaces:
     - name: source-code-ws
       description: The workspace containing the source-code to scan.
