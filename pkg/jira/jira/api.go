@@ -56,7 +56,7 @@ func (c Client) assembleIssue(draconResult document.Document) *jira.Issue {
 		}
 	}
 	summary, extra := makeSummary(draconResult)
-	description := makeDescription(draconResult, c.Config.DescriptionExtras)
+	description := makeDescription(draconResult, c.Config.DescriptionExtras,c.Config.DescriptionTemplate)
 	if extra != "" {
 		description = fmt.Sprintf(".... %s\n%s", extra, description)
 	}
