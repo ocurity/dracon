@@ -7,8 +7,10 @@ import (
 	v1 "github.com/ocurity/dracon/api/proto/v1"
 )
 
-const defaultEnrichedFindingTemplate = "Dracon found '{{.RawIssue.Title}}' at '{{.RawIssue.Target}}', severity '{{.RawIssue.Severity}}', rule id: '{{.RawIssue.Type}}', CVSS '{{.RawIssue.Cvss}}' Confidence '{{.RawIssue.Confidence}}' Original Description: {{.RawIssue.Description}}, Cve {{.RawIssue.Cve}},\n{{ range $key,$element := .Annotations }}{{$key}}:{{$element}}\n{{end}}"
-const defaultRawFindingTemplate = "Dracon found '{{.Title}}' at '{{.Target}}', severity '{{.Severity}}', rule id: '{{.Type}}', CVSS '{{.Cvss}}' Confidence '{{.Confidence}}' Original Description: {{.Description}}, Cve {{.Cve}}"
+const (
+	defaultEnrichedFindingTemplate = "Dracon found '{{.RawIssue.Title}}' at '{{.RawIssue.Target}}', severity '{{.RawIssue.Severity}}', rule id: '{{.RawIssue.Type}}', CVSS '{{.RawIssue.Cvss}}' Confidence '{{.RawIssue.Confidence}}' Original Description: {{.RawIssue.Description}}, Cve {{.RawIssue.Cve}},\n{{ range $key,$element := .Annotations }}{{$key}}:{{$element}}\n{{end}}"
+	defaultRawFindingTemplate      = "Dracon found '{{.Title}}' at '{{.Target}}', severity '{{.Severity}}', rule id: '{{.Type}}', CVSS '{{.Cvss}}' Confidence '{{.Confidence}}' Original Description: {{.Description}}, Cve {{.Cve}}"
+)
 
 func TemplateStringRaw(inputTemplate string, issue *v1.Issue) (*string, error) {
 	if inputTemplate == "" {
@@ -26,8 +28,8 @@ func TemplateStringRaw(inputTemplate string, issue *v1.Issue) (*string, error) {
 	}
 	res := buf.String()
 	return &res, nil
-
 }
+
 func TemplateStringEnriched(inputTemplate string, issue *v1.EnrichedIssue) (*string, error) {
 	if inputTemplate == "" {
 		inputTemplate = defaultEnrichedFindingTemplate
@@ -44,8 +46,8 @@ func TemplateStringEnriched(inputTemplate string, issue *v1.EnrichedIssue) (*str
 	}
 	res := buf.String()
 	return &res, nil
-
 }
+
 func TemplateStringJiraDocument(inputTemplate string, issue *v1.EnrichedIssue) (*string, error) {
 	if inputTemplate == "" {
 		inputTemplate = defaultEnrichedFindingTemplate
@@ -62,5 +64,4 @@ func TemplateStringJiraDocument(inputTemplate string, issue *v1.EnrichedIssue) (
 	}
 	res := buf.String()
 	return &res, nil
-
 }

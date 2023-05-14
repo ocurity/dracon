@@ -29,7 +29,7 @@ func TextToSeverity(severity string) v1.Severity {
 	case "Info":
 		return v1.Severity_SEVERITY_INFO
 	case "Low":
-		return v1.Severity_SEVERITY_LOW 
+		return v1.Severity_SEVERITY_LOW
 	case "Medium":
 		return v1.Severity_SEVERITY_MEDIUM
 	case "High":

@@ -12,9 +12,8 @@ go_library(
 go_test(
     name = "templating_test",
     srcs = [
-        "template_description_test.go",
         "template_description.go",
-
+        "template_description_test.go",
     ],
     flaky = True,
     deps = [
@@ -23,4 +22,3 @@ go_test(
         "//third_party/go/google.golang.org/protobuf",
     ],
 )
-

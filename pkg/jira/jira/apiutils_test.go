@@ -61,18 +61,18 @@ func TestMakeCustomField(t *testing.T) {
 
 func TestMakeDescription(t *testing.T) {
 	extras := []string{"tool_name", "target", "confidence_text"}
-	res := makeDescription(sampleResult, extras,      "")
-	exp :="Dracon found 'Unit Test Title' at '//foo1/bar1:baz2',"+
-		" severity 'SEVERITY_INFO',"+
-		" rule id: 'test type',"+
-		" CVSS '0' "+
-		"Confidence 'CONFIDENCE_INFO'"+
-		" Original Description: this is a test description,"+
-		" Cve CVE-0000-99999,\n"+
-		"{code:}\n"+
-		"tool_name:                 spotbugs\n"+
-		"target:                    //foo1/bar1:baz2\n"+
-		"confidence_text:           Info\n"+
+	res := makeDescription(sampleResult, extras, "")
+	exp := "Dracon found 'Unit Test Title' at '//foo1/bar1:baz2'," +
+		" severity 'SEVERITY_INFO'," +
+		" rule id: 'test type'," +
+		" CVSS '0' " +
+		"Confidence 'CONFIDENCE_INFO'" +
+		" Original Description: this is a test description," +
+		" Cve CVE-0000-99999,\n" +
+		"{code:}\n" +
+		"tool_name:                 spotbugs\n" +
+		"target:                    //foo1/bar1:baz2\n" +
+		"confidence_text:           Info\n" +
 		"{code}\n"
 	assert.Equal(t, res, exp)
 }

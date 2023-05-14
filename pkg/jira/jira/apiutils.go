@@ -1,23 +1,23 @@
 package jira
 
 import (
-"strings"
 	"bytes"
 	"encoding/json"
 	"fmt"
 	"log"
 	"path/filepath"
 	"strconv"
+	"strings"
 
 	jira "github.com/andygrunwald/go-jira"
 	"github.com/trivago/tgo/tcontainer"
 
+	v1 "github.com/ocurity/dracon/api/proto/v1"
+	"github.com/ocurity/dracon/pkg/enumtransformers"
 	"github.com/ocurity/dracon/pkg/jira/config"
 	"github.com/ocurity/dracon/pkg/jira/document"
-	"github.com/ocurity/dracon/pkg/enumtransformers"
-	"google.golang.org/protobuf/types/known/timestamppb"
 	"github.com/ocurity/dracon/pkg/templating"
-	v1 "github.com/ocurity/dracon/api/proto/v1"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type defaultJiraFields struct {
@@ -111,42 +111,42 @@ func draconResultToSTRMaps(draconResult document.Document) (map[string]string, s
 }
 
 // makeDescription creates the description of an issue's enhanced with extra information from the Dracon Result.
-func makeDescription(draconResult document.Document, extras []string,template string) string {
-	if draconResult.Count == ""{
+func makeDescription(draconResult document.Document, extras []string, template string) string {
+	if draconResult.Count == "" {
 		draconResult.Count = "0"
 	}
-	count,err:=strconv.Atoi(draconResult.Count)
+	count, err := strconv.Atoi(draconResult.Count)
 	if err != nil {
-		log.Fatal("could not template enriched issue ",err)
+		log.Fatal("could not template enriched issue ", err)
 	}
 	fp := false
-	if strings.ToLower(draconResult.FalsePositive) == "true"{
-		fp=true
+	if strings.ToLower(draconResult.FalsePositive) == "true" {
+		fp = true
 	}
-	if draconResult.CVSS == ""{
+	if draconResult.CVSS == "" {
 		draconResult.CVSS = "0.0"
 	}
-	cvss,err:=strconv.ParseFloat(draconResult.CVSS,64)
-	if err != nil{
-		log.Fatal("could not template enriched issue ",err)
+	cvss, err := strconv.ParseFloat(draconResult.CVSS, 64)
+	if err != nil {
+		log.Fatal("could not template enriched issue ", err)
 	}
 	description, err := templating.TemplateStringEnriched(template,
 		&v1.EnrichedIssue{
-			Annotations: draconResult.Annotations,
-			Count: uint64(count),
+			Annotations:   draconResult.Annotations,
+			Count:         uint64(count),
 			FalsePositive: fp,
-			FirstSeen: timestamppb.New(draconResult.FirstFound),
-			Hash: draconResult.Hash,
+			FirstSeen:     timestamppb.New(draconResult.FirstFound),
+			Hash:          draconResult.Hash,
 			RawIssue: &v1.Issue{
-					Confidence: enumtransformers.TextToConfidence(draconResult.ConfidenceText),
-					Cve: draconResult.CVE,
-					Cvss: cvss,
-					Description: draconResult.Description,
-					Severity: enumtransformers.TextToSeverity(draconResult.SeverityText),
-					Source: draconResult.Source,
-					Target: draconResult.Target,
-					Title: draconResult.Title,
-					Type: draconResult.Type,
+				Confidence:  enumtransformers.TextToConfidence(draconResult.ConfidenceText),
+				Cve:         draconResult.CVE,
+				Cvss:        cvss,
+				Description: draconResult.Description,
+				Severity:    enumtransformers.TextToSeverity(draconResult.SeverityText),
+				Source:      draconResult.Source,
+				Target:      draconResult.Target,
+				Title:       draconResult.Title,
+				Type:        draconResult.Type,
 			},
 		},
 	)
