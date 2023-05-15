@@ -36,7 +36,7 @@ func init() {
 	flag.StringVar(&authToken, "dojoToken", "", "defect dojo api token")
 	flag.StringVar(&authURL, "dojoURL", "", "defect dojo api base url")
 	flag.StringVar(&productID, "dojoProductID", "", "defect dojo product ID if you want to create an engagement")
-	flag.StringVar(&issueTemplate, "findingTemplate", "", "a Go Template string describing how to show Raw or Enriched issues")
+	flag.StringVar(&issueTemplate, "descriptionTemplate", "", "a Go Template string describing how to show Raw or Enriched issues")
 	flag.BoolVar(&newEngagementEveryScan, "createEngagement", false, "for every dracon scan id, create a different engagement")
 	flag.Parse()
 }

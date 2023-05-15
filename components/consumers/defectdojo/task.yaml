@@ -32,5 +32,5 @@ spec:
       "-dojoToken", "$(params.consumer-defectdojo-token)",
       "-dojoProductID", "$(params.consumer-defectdojo-product-id)",
       "-dojoURL", "$(params.consumer-defectdojo-api-url)",
-      "-findingTemplate","$(params.consumer-defectdojo-description-template)",
+      "-descriptionTemplate","$(params.consumer-defectdojo-description-template)",
     ]

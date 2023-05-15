@@ -32,7 +32,7 @@ func init() {
 	flag.StringVar(&esIndex, "es-index", "", "the index in elasticsearch to push results to")
 	flag.StringVar(&basicAuthUser, "basic-auth-user", "", "[OPTIONAL] the basic auth username")
 	flag.StringVar(&basicAuthPass, "basic-auth-pass", "", "[OPTIONAL] the basic auth password")
-	flag.StringVar(&issueTemplate, "issueTemplate", "", "a Go Template string describing how to show Raw or Enriched issues")
+	flag.StringVar(&issueTemplate, "descriptionTemplate", "", "a Go Template string describing how to show Raw or Enriched issues")
 }
 
 func parseFlags() error {
