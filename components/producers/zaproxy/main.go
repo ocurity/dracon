@@ -42,7 +42,7 @@ func parseOut(results *types.ZapOut) []*v1.Issue {
 }
 
 // zap doesn't provide cvss so assigned as 0.0.
-func parseIssue(r *types.ZapAlerts, target string) []*v1.Issue {
+func parseIssue(r *types.ZapAlerts) []*v1.Issue {
 	cvss := 0.0
 	var results []*v1.Issue
 	if r.Instances != nil {
