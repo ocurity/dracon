@@ -1,3 +1,5 @@
+// Package templating includes helper methods that apply
+// go templates to Dracon Raw and Enriched Issues and return the resulting str
 package templating
 
 import (
@@ -12,6 +14,7 @@ const (
 	defaultRawFindingTemplate      = "Dracon found '{{.Title}}' at '{{.Target}}', severity '{{.Severity}}', rule id: '{{.Type}}', CVSS '{{.Cvss}}' Confidence '{{.Confidence}}' Original Description: {{.Description}}, Cve {{.Cve}}"
 )
 
+// TemplateStringRaw applies the provided go template to the Raw Issue provided and returns the resulting str
 func TemplateStringRaw(inputTemplate string, issue *v1.Issue) (*string, error) {
 	if inputTemplate == "" {
 		inputTemplate = defaultRawFindingTemplate
@@ -30,25 +33,8 @@ func TemplateStringRaw(inputTemplate string, issue *v1.Issue) (*string, error) {
 	return &res, nil
 }
 
+// TemplateStringEnriched applies the provided go template to the Enriched Issue provided and returns the resulting str
 func TemplateStringEnriched(inputTemplate string, issue *v1.EnrichedIssue) (*string, error) {
-	if inputTemplate == "" {
-		inputTemplate = defaultEnrichedFindingTemplate
-	}
-	tmpl, err := template.New("description").Parse(inputTemplate)
-	if err != nil {
-		return nil, err
-	}
-	buf := new(bytes.Buffer)
-
-	err = tmpl.Execute(buf, issue)
-	if err != nil {
-		return nil, err
-	}
-	res := buf.String()
-	return &res, nil
-}
-
-func TemplateStringJiraDocument(inputTemplate string, issue *v1.EnrichedIssue) (*string, error) {
 	if inputTemplate == "" {
 		inputTemplate = defaultEnrichedFindingTemplate
 	}

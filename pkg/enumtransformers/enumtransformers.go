@@ -23,7 +23,7 @@ func SeverityToText(severity v1.Severity) string {
 	}
 }
 
-// SeverityToText transforms dracon severity into a nicer textual format for use with third party systems
+// TextToSeverity transforms severity str into dracon Severity enum
 func TextToSeverity(severity string) v1.Severity {
 	switch severity {
 	case "Info":
@@ -59,7 +59,7 @@ func ConfidenceToText(confidence v1.Confidence) string {
 	}
 }
 
-// ConfidenceToText transforms dracon confidence into a nicer textual format for use with third party systems
+// TextToConfidence transforms confidence str into dracon Severity enum
 func TextToConfidence(confidence string) v1.Confidence {
 	switch confidence {
 	case "Info":

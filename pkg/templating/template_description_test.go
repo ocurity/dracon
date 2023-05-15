@@ -75,9 +75,9 @@ func Test_TemplateStringRaw(t *testing.T) {
 }
 
 func Test_TemplateStringEnriched(t *testing.T) {
-	tstampFS, _ := time.Parse("2007-01-02T15:04:05.000Z", "2020-04-13 11:51:53+01:00")
+	tstampFS, _ := time.Parse("2007-01-02T15:04:05.000Z", "2020-04-13T11:51:53+01:00")
 	firstSeen := timestamppb.New(tstampFS)
-	tstampUAT, _ := time.Parse("2008-01-02T15:04:05.000Z", "2020-04-13 11:51:53+01:00")
+	tstampUAT, _ := time.Parse("2008-01-02T15:04:05.000Z", "2020-04-13T11:51:53+01:00")
 	updatedAt := timestamppb.New(tstampUAT)
 
 	type args struct {
