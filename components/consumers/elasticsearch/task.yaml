@@ -10,6 +10,9 @@ spec:
     - name: consumer-elasticsearch-url
       type: string
       default: "http://dracon-es-http.dracon.svc:9200"
+    - name: consumer-elasticsearch-description-template
+      type: string
+      default: ""
   workspaces:
     - name: source-code-ws
       description: The workspace containing the source-code to scan.
@@ -24,4 +27,5 @@ spec:
     args: [
       "-in", "$(workspaces.source-code-ws.path)/.dracon/enrichers/",
       "-es-index", "dracon",
+      "-descriptionTemplate","$(params.consumer-elasticsearch-description-template)"
     ]

@@ -2,10 +2,11 @@ package config
 
 // Config contains all the data parsed from the conf.yaml file.
 type Config struct {
-	DefaultValues     DefaultValues              `json:"defaultValues"`
-	Mappings          []Mappings                 `json:"mappings"`
-	DescriptionExtras []string                   `json:"addToDescription"`
-	SyncMappings      []JiraToDraconVulnMappings `json:"syncMappings"`
+	DefaultValues       DefaultValues              `json:"defaultValues"`
+	Mappings            []Mappings                 `json:"mappings"`
+	DescriptionExtras   []string                   `json:"addToDescription"`
+	DescriptionTemplate string                     `json:"descriptionTemplate"`
+	SyncMappings        []JiraToDraconVulnMappings `json:"syncMappings"`
 }
 
 // CustomField represents a Jira Custom Field.

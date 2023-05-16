@@ -31,6 +31,8 @@ patches:
                 value: $(params.consumer-defectdojo-token)
               - name: consumer-defectdojo-product-id
                 value: $(params.consumer-defectdojo-product-id)
+              - name: consumer-defectdojo-description-template
+                value: $(params.consumer-defectdojo-description-template)
         params:
           - name: consumer-defectdojo-api-url
             type: string
@@ -39,6 +41,8 @@ patches:
           - name: consumer-defectdojo-token
             type: string
           - name: consumer-defectdojo-product-id
+            type: string
+          - name: consumer-defectdojo-description-template
             type: string
     target:
       kind: Pipeline

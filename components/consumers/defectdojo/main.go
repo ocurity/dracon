@@ -1,16 +1,15 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
 	"log"
 	"strconv"
-	"time"
 
 	v1 "github.com/ocurity/dracon/api/proto/v1"
 	"github.com/ocurity/dracon/components/consumers"
 	"github.com/ocurity/dracon/components/consumers/defectdojo/client"
 	"github.com/ocurity/dracon/pkg/enumtransformers"
+	"github.com/ocurity/dracon/pkg/templating"
 )
 
 // DojoTimeFormat is the time format accepted by defect dojo.
@@ -25,6 +24,7 @@ var (
 	authURL                string
 	newEngagementEveryScan bool
 	productID              string
+	issueTemplate          string
 )
 
 func init() {
@@ -36,6 +36,7 @@ func init() {
 	flag.StringVar(&authToken, "dojoToken", "", "defect dojo api token")
 	flag.StringVar(&authURL, "dojoURL", "", "defect dojo api base url")
 	flag.StringVar(&productID, "dojoProductID", "", "defect dojo product ID if you want to create an engagement")
+	flag.StringVar(&issueTemplate, "descriptionTemplate", "", "a Go Template string describing how to show Raw or Enriched issues")
 	flag.BoolVar(&newEngagementEveryScan, "createEngagement", false, "for every dracon scan id, create a different engagement")
 	flag.Parse()
 }
@@ -65,15 +66,13 @@ func handleRawResults(product int, dojoClient *client.Client, responses []*v1.La
 			return err
 		}
 		for _, iss := range res.GetIssues() {
-			b, err := getRawIssue(res.GetScanInfo().GetScanStartTime().AsTime(), res, iss)
+			description, err := templating.TemplateStringRaw(issueTemplate, iss)
 			if err != nil {
-				log.Fatal("Could not parse raw issue", err)
+				log.Fatal("Could not template raw issue ", err)
 			}
-			description := string(b)
-
 			finding, err := dojoClient.CreateFinding(
 				iss.GetTitle(),
-				description,
+				*description,
 				enumtransformers.SeverityToText(iss.GetSeverity()),
 				iss.GetTarget(),
 				startTime.Format(DojoTimeFormat),
@@ -124,14 +123,10 @@ func handleEnrichedResults(product int, dojoClient *client.Client, responses []*
 			return err
 		}
 		for _, iss := range res.GetIssues() {
-			b, err := getEnrichedIssue(scanStartTime, res, iss)
+			description, err := templating.TemplateStringEnriched(issueTemplate, iss)
 			if err != nil {
-				log.Fatal("Could not parse enriched issue", err)
+				log.Fatal("Could not template raw issue", err)
 			}
-			description := string(b)
-			// for key, annotation := range iss.GetAnnotations {
-			// 	description = fmt.Sprintf("%s \n %s:%s", description, key, &annotation)
-			// }
 			duplicate := false
 			if iss.GetFirstSeen().AsTime().Before(scanStartTime) || iss.GetCount() > 1 {
 				duplicate = true
@@ -139,7 +134,7 @@ func handleEnrichedResults(product int, dojoClient *client.Client, responses []*
 			rawIss := iss.GetRawIssue()
 			finding, err := dojoClient.CreateFinding(
 				rawIss.GetTitle(),
-				description,
+				*description,
 				enumtransformers.SeverityToText(rawIss.GetSeverity()),
 				rawIss.GetTarget(),
 				scanStartTime.Format(DojoTimeFormat),
@@ -192,32 +187,6 @@ func main() {
 	}
 }
 
-func getRawIssue(scanStartTime time.Time, res *v1.LaunchToolResponse, iss *v1.Issue) ([]byte, error) {
-	jBytes, err := json.Marshal(&draconDocument{
-		Confidence:     iss.GetConfidence(),
-		ConfidenceText: enumtransformers.ConfidenceToText(iss.GetConfidence()),
-		Count:          1,
-		CVE:            iss.GetCve(),
-		CVSS:           iss.GetCvss(),
-		Description:    iss.GetDescription(),
-		FalsePositive:  false,
-		FirstFound:     scanStartTime.Format(DojoTimeFormat),
-		ScanID:         res.GetScanInfo().GetScanUuid(),
-		ScanStartTime:  scanStartTime.Format(DojoTimeFormat),
-		Severity:       iss.GetSeverity(),
-		SeverityText:   enumtransformers.SeverityToText(iss.GetSeverity()),
-		Source:         iss.GetSource(),
-		Target:         iss.GetTarget(),
-		Title:          iss.GetTitle(),
-		ToolName:       res.GetToolName(),
-		Type:           iss.GetType(),
-	})
-	if err != nil {
-		return []byte{}, err
-	}
-	return jBytes, nil
-}
-
 func severityToDojoSeverity(severity v1.Severity) string {
 	switch severity {
 	case v1.Severity_SEVERITY_INFO:
@@ -233,53 +202,4 @@ func severityToDojoSeverity(severity v1.Severity) string {
 	default:
 		return "S:I"
 	}
-}
-
-func getEnrichedIssue(scanStartTime time.Time, res *v1.EnrichedLaunchToolResponse, iss *v1.EnrichedIssue) ([]byte, error) {
-	firstSeenTime := iss.GetFirstSeen().AsTime()
-	jBytes, err := json.Marshal(&draconDocument{
-		Confidence:     iss.GetRawIssue().GetConfidence(),
-		ConfidenceText: enumtransformers.ConfidenceToText(iss.GetRawIssue().GetConfidence()),
-		Count:          iss.GetCount(),
-		CVE:            iss.GetRawIssue().GetCve(),
-		CVSS:           iss.GetRawIssue().GetCvss(),
-		Description:    iss.GetRawIssue().GetDescription(),
-		FalsePositive:  iss.GetFalsePositive(),
-		FirstFound:     firstSeenTime.Format(DojoTimeFormat),
-		ScanID:         res.GetOriginalResults().GetScanInfo().GetScanUuid(),
-		ScanStartTime:  scanStartTime.Format(DojoTimeFormat),
-		Severity:       iss.GetRawIssue().GetSeverity(),
-		SeverityText:   enumtransformers.SeverityToText(iss.GetRawIssue().GetSeverity()),
-		Source:         iss.GetRawIssue().GetSource(),
-		Target:         iss.GetRawIssue().GetTarget(),
-		Title:          iss.GetRawIssue().GetTitle(),
-		ToolName:       res.GetOriginalResults().GetToolName(),
-		Type:           iss.GetRawIssue().GetType(),
-		Annotations:    iss.GetAnnotations(),
-	})
-	if err != nil {
-		return []byte{}, err
-	}
-	return jBytes, nil
-}
-
-type draconDocument struct {
-	ScanStartTime  string            `json:"scan_start_time"`
-	ScanID         string            `json:"scan_id"`
-	ToolName       string            `json:"tool_name"`
-	Source         string            `json:"source"`
-	Target         string            `json:"target"`
-	Type           string            `json:"type"`
-	Title          string            `json:"title"`
-	Severity       v1.Severity       `json:"severity"`
-	SeverityText   string            `json:"severity_text"`
-	CVSS           float64           `json:"cvss"`
-	Confidence     v1.Confidence     `json:"confidence"`
-	ConfidenceText string            `json:"confidence_text"`
-	Description    string            `json:"description"`
-	FirstFound     string            `json:"first_found"`
-	Count          uint64            `json:"count"`
-	FalsePositive  bool              `json:"false_positive"`
-	CVE            string            `json:"cve"`
-	Annotations    map[string]string `json:"annotations"`
 }
