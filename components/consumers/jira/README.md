@@ -23,7 +23,7 @@ There are more instructions in [docs](/docs/examples/jira-project/pipelinerun) f
 
 Authentication details for the Jira API are passed as environment variables. These can be set up in the pipeline.yaml file or in the Dockerfile.
 
-DRACON_JIRA_USER="user@email.com"
+DRACON_JIRA_USER="<user@email.com>"
 DRACON_JIRA_TOKEN="your api token"
 DRACON_JIRA_URL="domain your jira workspace is hosted on"
 
@@ -48,8 +48,24 @@ The consumer supports the following flags:
 
 Below is example configuration and an explanation of each field
 
-``` yaml
-{"defaultValues":{"project":"TEST","issueType":"Task","customFields":null},"addToDescription":["scan_start_time","tool_name","target","type","confidence_text","annotations"],"mappings":null}
+``` json
+{
+  "defaultValues": {
+    "project": "TEST",
+    "issueType": "Task",
+    "customFields": null
+  },
+  "descriptionTemplate":"Dracon found '{{.RawIssue.Title}}' at '{{.RawIssue.Target}}', severity '{{.RawIssue.Severity}}', rule id: '{{.RawIssue.Type}}', CVSS '{{.RawIssue.Cvss}}' Confidence '{{.RawIssue.Confidence}}' Original Description: {{.RawIssue.Description}}, Cve {{.RawIssue.Cve}},\n{{ range $key,$element := .Annotations }}{{$key}}:{{$element}}\n{{end}}",
+  "addToDescription": [
+    "scan_start_time",
+    "tool_name",
+    "target",
+    "type",
+    "confidence_text",
+    "annotations"
+  ],
+  "mappings": null
+}
 ```
 
 ### "project"
