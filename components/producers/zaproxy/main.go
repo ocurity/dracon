@@ -32,9 +32,8 @@ func main() {
 func parseOut(results *types.ZapOut) []*v1.Issue {
 	issues := []*v1.Issue{}
 	for _, res := range results.Site {
-		target := res.Name
 		for _, alert := range res.Alerts {
-			parsed := parseIssue(alert, target)
+			parsed := parseIssue(alert)
 			issues = append(issues, parsed...)
 		}
 	}
