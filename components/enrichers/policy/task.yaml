@@ -26,6 +26,9 @@ spec:
   - name: enricher-policy-base64-policy
     type: string
     default: "cGFja2FnZSBleGFtcGxlLmdvc2VjCgpkZWZhdWx0IGFsbG93IDo9IGZhbHNlCgphbGxvdyA9dHJ1ZSB7CiAgICBwcmludChpbnB1dCkKICAgIGNoZWNrX3NldmVyaXR5Cn0KCmNoZWNrX3NldmVyaXR5IHsKICAgIGlucHV0LnNldmVyaXR5ID09ICJTRVZFUklUWV9ISUdIIgp9CmNoZWNrX3NldmVyaXR5IHsKICAgIGlucHV0LnNldmVyaXR5ID09ICJTRVZFUklUWV9NRURJVU0iCn0KY2hlY2tfc2V2ZXJpdHkgewogICAgaW5wdXQuc2V2ZXJpdHkgPT0gIlNFVkVSSVRZX0xPVyIKfQ=="
+  - name: enricher-policy-annotation
+    type: string
+    default: ""
   workspaces:
     - name: source-code-ws
       description: The workspace containing the source-code to scan.
@@ -43,3 +46,5 @@ spec:
       value: "$(params.enricher-policy-base64-policy)"
     - name: OPA_SERVER
       value: "http://localhost:8181"
+    - name: ANNOTATION
+      value: "$(params.enricher-policy-annotation)"

@@ -19,11 +19,14 @@ import (
 	packageurl "github.com/package-url/packageurl-go"
 )
 
+const defaultAnnotation = "Enriched Licenses"
+
 var (
 	readPath           string
 	writePath          string
 	depsdevBaseURL     = "https://deps.dev"
 	licensesInEvidence string
+	annotation         string
 )
 
 type Version struct {
@@ -161,7 +164,7 @@ func addLicenses(component cdx.Component, annotations map[string]string) (cdx.Co
 		component.Licenses = &licenses
 	}
 
-	annotations["Enriched Licenses"] = "True"
+	annotations[annotation] = "True"
 	return component, annotations, nil
 }
 
@@ -209,6 +212,9 @@ func run() {
 	if err != nil {
 		log.Fatalf("could not load tool response from path %s , error:%v", readPath, err)
 	}
+	if annotation == "" {
+		annotation = defaultAnnotation
+	}
 	for _, r := range res {
 		enrichedIssues := []*v1.EnrichedIssue{}
 		for _, i := range r.GetIssues() {
@@ -247,6 +253,7 @@ func run() {
 func main() {
 	flag.StringVar(&readPath, "read_path", lookupEnvOrString("READ_PATH", ""), "where to find producer results")
 	flag.StringVar(&writePath, "write_path", lookupEnvOrString("WRITE_PATH", ""), "where to put enriched results")
+	flag.StringVar(&annotation, "annotation", lookupEnvOrString("ANNOTATION", defaultAnnotation), "what is the annotation this enricher will add to the issues, by default `Enriched Licenses`")
 	flag.StringVar(&licensesInEvidence, "licensesInEvidence", lookupEnvOrString("LICENSES_IN_EVIDENCE", ""),
 		`If this flag is provided and set to "true", the enricher will populate the 'evidence' CycloneDX field with license information instead of the license field.
 	This means that the result conforms to the CycloneDX intention of providing accurate information when licensing information cannot be guaranteed to be accurate.
