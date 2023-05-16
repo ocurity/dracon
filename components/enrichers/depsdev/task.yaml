@@ -10,6 +10,9 @@ spec:
   - name: enricher-depsdev-licenses-in-evidence
     type: string
     default: "false"
+  - name: enricher-depsdev-annotation
+    type: string
+    default: ""
 
   workspaces:
     - name: source-code-ws
@@ -26,3 +29,5 @@ spec:
       value: "$(workspaces.source-code-ws.path)/.dracon/enrichers/depsdev"
     - name: LICENSES_IN_EVIDENCE
       value: "$(params.enricher-depsdev-licenses-in-evidence)"
+    - name: ANNOTATION
+      value: "$(params.enricher-depsdev-annotation)"

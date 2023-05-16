@@ -21,7 +21,10 @@ var (
 	regoServer string
 	readPath   string
 	writePath  string
+	annotation string
 )
+
+const defaultAnnotation = "Policy Pass: "
 
 type opaIssue struct {
 	Input map[string]interface{}
@@ -56,7 +59,7 @@ func enrichIssue(i *v1.Issue, client opaclient.Client) (*v1.EnrichedIssue, error
 		RawIssue:    i,
 		Annotations: map[string]string{},
 	}
-	issue.Annotations["Policy Pass: "+client.PolicyPath] = strconv.FormatBool(passed)
+	issue.Annotations[annotation+client.PolicyPath] = strconv.FormatBool(passed)
 	log.Printf("Evaluated %s to %t on issue titled %s", client.PolicyPath, passed, i.Title)
 	return issue, nil
 }
@@ -66,7 +69,9 @@ func run() {
 	if err != nil {
 		log.Fatalf("could not load tool response from path %s , error:%v", readPath, err)
 	}
-
+	if annotation == "" {
+		annotation = defaultAnnotation
+	}
 	client := opaclient.Client{
 		RemoteURI: regoServer,
 		Policy:    policy,
@@ -114,6 +119,7 @@ func run() {
 
 func main() {
 	flag.StringVar(&policy, "policy", lookupEnvOrString("POLICY", ""), "base64 encoded policy")
+	flag.StringVar(&annotation, "annotation", lookupEnvOrString("ANNOTATION", defaultAnnotation), "How to label the issues this binary will enrich by default `Policy Pass: <name of the policy>`")
 	flag.StringVar(&regoServer, "opa_server", lookupEnvOrString("OPA_SERVER", "http://127.0.0.1:8181"), "where to find the rego server")
 	flag.StringVar(&readPath, "read_path", lookupEnvOrString("READ_PATH", ""), "where to find producer results")
 	flag.StringVar(&writePath, "write_path", lookupEnvOrString("WRITE_PATH", ""), "where to put enriched results")
