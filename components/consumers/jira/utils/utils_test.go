@@ -13,12 +13,17 @@ import (
 )
 
 func TestProcessEnrichedMessages(t *testing.T) {
-	tstampStart, _ := time.Parse("2006-01-02T15:04:05.000Z", "2020-04-13 11:51:53+01:00")
+	tstampStart, err := time.Parse(time.RFC3339, "2020-04-13T11:51:53Z")
+	assert.Nil(t, err)
 	startTime := timestamppb.New(tstampStart)
 
-	tstampFS, _ := time.Parse("2007-01-02T15:04:05.000Z", "2020-04-13 11:51:53+01:00")
+	tstampFS, err := time.Parse(time.RFC3339, "2020-04-13T11:51:53Z")
+	assert.Nil(t, err)
+
 	firstSeen := timestamppb.New(tstampFS)
-	tstampUAT, _ := time.Parse("2008-01-02T15:04:05.000Z", "2020-04-13 11:51:53+01:00")
+	tstampUAT, err := time.Parse(time.RFC3339, "2020-04-13T11:51:53Z")
+	assert.Nil(t, err)
+
 	updatedAt := timestamppb.New(tstampUAT)
 
 	expectedMessage := document.Document{
@@ -89,7 +94,9 @@ func TestProcessEnrichedMessages(t *testing.T) {
 }
 
 func TestProcessRawMessages(t *testing.T) {
-	tstamp, _ := time.Parse("2006-01-02T15:04:05.000Z", "2020-04-13 11:51:53+01:00")
+	tstamp, err := time.Parse(time.RFC3339, "2020-04-13T11:51:53Z")
+	assert.Nil(t, err)
+
 	startTime := timestamppb.New(tstamp)
 
 	expectedMessage := document.Document{

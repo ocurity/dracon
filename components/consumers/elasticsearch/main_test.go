@@ -18,7 +18,7 @@ var (
 	want             = "OK"
 	info             = `{"Version":{"Number":"8.1.0"}}`
 	scanUUID         = "test-uuid"
-	scanStartTime, _ = time.Parse("2006-01-02T15:04:05.000Z", "2020-04-13 11:51:53+01:00")
+	scanStartTime, _ = time.Parse(time.RFC3339, "2020-04-13 11:51:53+01:00")
 
 	esIn, _ = json.Marshal(&esDocument{
 		ScanStartTime:  scanStartTime,

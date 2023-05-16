@@ -8,10 +8,14 @@ go_library(
         "PUBLIC",
     ],
     deps = [
+        "//api/proto/v1",
+        "//pkg/enumtransformers",
         "//pkg/jira/config",
         "//pkg/jira/document",
+        "//pkg/templating",
         "//third_party/go/github.com/andygrunwald/go-jira",
         "//third_party/go/github.com/trivago/tgo",
+        "//third_party/go/google.golang.org/protobuf",
     ],
 )
 
@@ -23,7 +27,11 @@ go_test(
     ],
     deps = [
         ":jira",
+        "//api/proto/v1",
+        "//pkg/enumtransformers",
+        "//pkg/templating",
         "//third_party/go/github.com/andygrunwald/go-jira",
         "//third_party/go/github.com/stretchr/testify",
+        "//third_party/go/google.golang.org/protobuf",
     ],
 )
