@@ -9,6 +9,7 @@ go_binary(
     srcs = [
         "main.go",
     ],
+    static = True,
     deps = [
         "//api/proto/v1",
         "//components/consumers",
