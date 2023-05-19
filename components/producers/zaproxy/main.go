@@ -32,26 +32,32 @@ func main() {
 func parseOut(results *types.ZapOut) []*v1.Issue {
 	issues := []*v1.Issue{}
 	for _, res := range results.Site {
-		target := res.Name
 		for _, alert := range res.Alerts {
-			issues = append(issues, parseIssue(alert, target))
+			parsed := parseIssue(alert)
+			issues = append(issues, parsed...)
 		}
 	}
 	return issues
 }
 
 // zap doesn't provide cvss so assigned as 0.0.
-func parseIssue(r *types.ZapAlerts, target string) *v1.Issue {
+func parseIssue(r *types.ZapAlerts) []*v1.Issue {
 	cvss := 0.0
-	return &v1.Issue{
-		Target:      target,
-		Type:        r.CweID,
-		Title:       r.Name,
-		Severity:    riskcodeToSeverity(r.RiskCode),
-		Confidence:  zapconfidenceToConfidence(r.Confidence),
-		Cvss:        cvss,
-		Description: fmt.Sprintf("Description: %s\nSolution: %s\nReference: %s\n", r.Description, r.Solution, r.Reference),
+	var results []*v1.Issue
+	if r.Instances != nil {
+		for _, instance := range r.Instances {
+			results = append(results, &v1.Issue{
+				Target:      instance.URI,
+				Type:        r.CweID,
+				Title:       r.Name,
+				Severity:    riskcodeToSeverity(r.RiskCode),
+				Confidence:  zapconfidenceToConfidence(r.Confidence),
+				Cvss:        cvss,
+				Description: fmt.Sprintf("Description: %s\nSolution: %s\nReference: %s\nAttack: %s", r.Description, r.Solution, r.Reference, instance.Attack),
+			})
+		}
 	}
+	return results
 }
 
 // riskcode values are 0-INFO,1-LOW,2-MEDIUM,3-HIGH only available from ZAP. It is determined by the ZAP contributors.

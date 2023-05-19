@@ -18,8 +18,11 @@ type ZapSites struct {
 
 // ZapInstances represents a zap occurrence for a specific alert.
 type ZapInstances struct {
-	URI    string `json:"uri"`
-	Method string `json:"method"`
+	URI      string `json:"uri"`
+	Method   string `json:"method"`
+	Attack   string `json:"attack"`
+	Evidence string `json:"evidence"`
+	Param    string `json:"param"`
 }
 
 // ZapAlerts represents a zap vulnerability.
