@@ -1,3 +1,5 @@
+// Package main implements the binary for
+// parsing trufflehog results into the dracon format
 package main
 
 import (
@@ -27,7 +29,10 @@ func main() {
 	truffleResults := make([]TrufflehogOut, len(results))
 	for i, r := range results {
 		var x TrufflehogOut
-		mapstructure.Decode(r, &x)
+		err := mapstructure.Decode(r, &x)
+		if err != nil {
+			log.Fatal(err)
+		}
 		truffleResults[i] = x
 	}
 	issues := parseIssues(truffleResults)
