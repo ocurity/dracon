@@ -16,17 +16,17 @@ patches:
         workspaces:
           - name: source-code-ws
         tasks:
-          - name: producer-typescript-eslint
+          - name: producer-trufflehog
             taskRef:
-              name: producer-typescript-eslint
+              name: producer-trufflehog
             workspaces:
               - name: source-code-ws
                 workspace: source-code-ws
             params:
-              - name: producer-typescript-eslint-config-js
-                value: $(params.producer-typescript-eslint-config-js)
+              - name: producer-trufflehog-git-repository
+                value: $(params.producer-trufflehog-git-repository)
         params:
-          - name: producer-typescript-eslint-config-js
+          - name: producer-trufflehog-git-repository
             type: string
             default: ""
     target:
@@ -36,7 +36,7 @@ patches:
       apiVersion: tekton.dev/v1beta1
       kind: Task
       metadata:
-        name: producer-typescript-eslint
+        name: producer-trufflehog
         labels:
           v1.dracon.ocurity.com/component: producer
       spec:
@@ -54,7 +54,7 @@ patches:
             script: echo "$(context.task.name)" > "$(results.anchor.path)"
     target:
       kind: Task
-      name: producer-typescript-eslint
+      name: producer-trufflehog
   # If we have a `source` task in the pipeline (added by a `source` component),
   # depend on the completion of that source by referencing its anchor.
   - patch: |
@@ -64,7 +64,7 @@ patches:
         name: unused
       spec:
         tasks:
-          - name: producer-typescript-eslint
+          - name: producer-trufflehog
             params:
               - name: anchors
                 value:
@@ -86,7 +86,7 @@ patches:
             params:
               - name: anchors
                 value:
-                  - $(tasks.producer-typescript-eslint.results.anchor)
+                  - $(tasks.producer-trufflehog.results.anchor)
     target:
       kind: Pipeline
       annotationSelector: v1.dracon.ocurity.com/has-producer-aggregator=true
@@ -95,7 +95,7 @@ patches:
       apiVersion: tekton.dev/v1beta1
       kind: Task
       metadata:
-        name: producer-typescript-eslint
+        name: producer-trufflehog
         labels:
           v1.dracon.ocurity.com/component: producer
       spec:
@@ -105,15 +105,28 @@ patches:
           - name: dracon_scan_start_time
             type: string
         steps:
-          - name: run-eslint
-            image: ghcr.io/ocurity/dracon/components/producers/typescript-eslint/eslint-wrapper/eslint:latest
+          - name: run-trufflehog
+            image: ghcr.io/trufflesecurity/trufflehog:3.36.0
+            script: |
+              #!/bin/sh
+              set -xe
+              mode='$(params.producer-trufflehog-git-repository)'
+              if [[ -n "${mode}" ]]; then
+                trufflehog git --json "${mode}" &> /scratch/out.json
+              else
+                trufflehog \
+                  filesystem \
+                    --json \
+                    --directory="$(workspaces.source-code-ws.path)" &> /scratch/out.json
+              fi
+              cat /scratch/out.json
             env:
               - name: DRACON_SCAN_TIME
                 value: $(params.dracon_scan_start_time)
               - name: DRACON_SCAN_ID
                 value: $(params.dracon_scan_id)
           - name: produce-issues
-            image: ghcr.io/ocurity/dracon/components/producers/typescript-eslint/image:latest
+            image: ghcr.io/ocurity/dracon/components/producers/trufflehog/image:latest
             env:
               - name: DRACON_SCAN_TIME
                 value: $(params.dracon_scan_start_time)
@@ -121,7 +134,7 @@ patches:
                 value: $(params.dracon_scan_id)
     target:
       kind: Task
-      name: producer-typescript-eslint
+      name: producer-trufflehog
   - patch: |
       apiVersion: tekton.dev/v1beta1
       kind: Pipeline
@@ -129,7 +142,7 @@ patches:
         name: unused
       spec:
         tasks:
-          - name: producer-typescript-eslint
+          - name: producer-trufflehog
             params:
               - name: dracon_scan_id
                 value: $(tasks.base.results.dracon-scan-id)

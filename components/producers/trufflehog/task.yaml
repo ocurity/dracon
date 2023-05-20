@@ -1,0 +1,47 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: producer-trufflehog
+  labels:
+    v1.dracon.ocurity.com/component: producer
+spec:
+  params:
+    - name: producer-trufflehog-git-repository
+      default: ""
+      type: string
+  volumes:
+    - name: scratch
+      emptyDir: {}
+  workspaces:
+    - name: source-code-ws
+      description: The workspace containing the source-code to scan.
+  steps:
+  - name: run-trufflehog
+    image: ghcr.io/trufflesecurity/trufflehog:3.36.0
+    script: |
+      #!/bin/sh
+      set -xe
+      mode='$(params.producer-trufflehog-git-repository)'
+      if [[ -n "${mode}" ]]; then
+        trufflehog git --json "${mode}" &> /scratch/out.json
+      else
+        trufflehog \
+          filesystem \
+            --json \
+            --directory="$(workspaces.source-code-ws.path)" &> /scratch/out.json
+      fi
+      cat /scratch/out.json
+    volumeMounts:
+    - mountPath: /scratch
+      name: scratch
+  - name: produce-issues
+    imagePullPolicy: IfNotPresent
+    image: ghcr.io/ocurity/dracon/components/producers/trufflehog/image:latest
+    command: ["/app/components/producers/trufflehog/trufflehog-parser"]
+    args:
+    - "-in=/scratch/out.json"
+    - "-out=$(workspaces.source-code-ws.path)/.dracon/producers/trufflehog.pb"
+    volumeMounts:
+    - mountPath: /scratch
+      name: scratch

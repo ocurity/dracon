@@ -25,10 +25,15 @@ patches:
             params:
               - name: consumer-elasticsearch-url
                 value: $(params.consumer-elasticsearch-url)
+              - name: consumer-elasticsearch-description-template
+                value: $(params.consumer-elasticsearch-description-template)
         params:
           - name: consumer-elasticsearch-url
             type: string
             default: http://dracon-es-http.dracon.svc:9200
+          - name: consumer-elasticsearch-description-template
+            type: string
+            default: ""
     target:
       kind: Pipeline
   # Add anchors to Task.
