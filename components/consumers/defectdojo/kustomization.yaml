@@ -44,6 +44,7 @@ patches:
             type: string
           - name: consumer-defectdojo-description-template
             type: string
+            default: ""
     target:
       kind: Pipeline
   # Add anchors to Task.
