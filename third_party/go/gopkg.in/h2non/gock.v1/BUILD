@@ -1,3 +1,5 @@
+subinclude("///go//build_defs:go")
+
 go_module(
     name = "gock.v1",
     hashes = ["8d037bdc6da1575efc19094b1acffbffeda2ef0b58c3af0f57dff65297ef5b17"],

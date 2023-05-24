@@ -1,3 +1,5 @@
+subinclude("///go//build_defs:go")
+
 go_module(
     name = "afero",
     hashes = ["3797020031356c63f776784d4afa2cd9838c523fb24ef29577f9d85732b14ecf"],

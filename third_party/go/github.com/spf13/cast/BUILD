@@ -1,3 +1,5 @@
+subinclude("///go//build_defs:go")
+
 go_module(
     name = "cast",
     hashes = ["49b937dd91e401db32cc81b1b17f6ef140dfad83bf72bd4c508ead48fdbbf39c"],

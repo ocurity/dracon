@@ -6,9 +6,6 @@ VersionChecksum = 3afeb61bf64e973432098e57081c8588080ccd67ad2d2c7314d8853e616811
 ; Support the non *-rules repo name format of Please plugins.
 PluginRepo = "https://github.com/{owner}/{plugin}/archive/{revision}.zip"
 
-[Parse]
-PreloadSubincludes = "///go//build_defs:go"
-
 [Plugin "go"]
 Target = //third_party/plugins:go
 ImportPath = github.com/ocurity/dracon

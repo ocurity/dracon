@@ -1,3 +1,5 @@
+subinclude("///go//build_defs:go")
+
 subinclude(
     "//build/defs:dracon",
     "//build/defs:buildkit",

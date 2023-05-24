@@ -1,3 +1,5 @@
+subinclude("///go//build_defs:go")
+
 VERSION = "1.20.3"
 
 go_toolchain(

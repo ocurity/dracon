@@ -1,3 +1,5 @@
+subinclude("///go//build_defs:go")
+
 go_module(
     name = "pflag",
     hashes = ["0aba8380184bb7a5465f7737679fefdf3a245902081ff64c3266b20db412eea3"],

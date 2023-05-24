@@ -1,3 +1,5 @@
+subinclude("///go//build_defs:go")
+
 go_mod_download(
     name = "_v4_download",
     hashes = ["dd77862a453e8e753f298f6503da12ef9bb534f3a1fab9df9c6e43f39e9cffb3"],

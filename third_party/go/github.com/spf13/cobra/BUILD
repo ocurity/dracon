@@ -1,3 +1,5 @@
+subinclude("///go//build_defs:go")
+
 go_module(
     name = "cobra",
     hashes = ["47234725071412af1e3f3ef3a904428bb5c772a8f634610cde0df74354919b15"],

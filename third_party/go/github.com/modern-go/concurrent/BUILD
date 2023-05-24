@@ -1,3 +1,5 @@
+subinclude("///go//build_defs:go")
+
 go_module(
     name = "concurrent",
     module = "github.com/modern-go/concurrent",

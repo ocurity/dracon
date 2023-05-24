@@ -1,3 +1,5 @@
+subinclude("///go//build_defs:go")
+
 go_binary(
     name = "kustomize-component-generator",
     srcs = ["main.go"],

@@ -1,3 +1,5 @@
+subinclude("///go//build_defs:go")
+
 go_module(
     name = "v8",
     hashes = ["9c12b0f33abacded3946a6f2df19a0d786d9b55c18eeeec144b0f83d3a67964d"],

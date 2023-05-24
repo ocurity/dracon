@@ -1,3 +1,5 @@
+subinclude("///go//build_defs:go")
+
 go_module(
     name = "go-jira",
     module = "github.com/andygrunwald/go-jira",

@@ -1,3 +1,5 @@
+subinclude("///go//build_defs:go")
+
 go_module(
     name = "gofumpt",
     binary = True,
@@ -5,8 +7,7 @@ go_module(
     module = "mvdan.cc/gofumpt",
     version = "v0.3.1",
     visibility = [
-        "//build/fmt:go",
-        "//build/lint:gofumpt",
+        "//build/...",
     ],
     deps = [
         "//third_party/go/github.com/google/go-cmp",

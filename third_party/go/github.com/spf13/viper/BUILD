@@ -1,3 +1,5 @@
+subinclude("///go//build_defs:go")
+
 go_module(
     name = "viper",
     hashes = ["43f5cea8955c975ba983c32137608c30e73840dde5e1f04e8f16a2289f966d01"],

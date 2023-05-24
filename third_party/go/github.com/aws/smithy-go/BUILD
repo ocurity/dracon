@@ -1,3 +1,5 @@
+subinclude("///go//build_defs:go")
+
 go_module(
     name = "smithy-go",
     hashes = ["bd52176ea9ff58a4809af02058fc3530645cc953381975377356b173a8024605"],

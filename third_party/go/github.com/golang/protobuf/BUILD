@@ -1,3 +1,5 @@
+subinclude("///go//build_defs:go")
+
 go_mod_download(
     name = "protobuf_download",
     module = "github.com/golang/protobuf",

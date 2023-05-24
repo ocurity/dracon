@@ -1,3 +1,5 @@
+subinclude("///go//build_defs:go")
+
 go_module(
     name = "v2",
     module = "github.com/klauspost/cpuid/v2",

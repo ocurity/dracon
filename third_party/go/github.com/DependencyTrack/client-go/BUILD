@@ -1,3 +1,5 @@
+subinclude("///go//build_defs:go")
+
 go_module(
     name = "client-go",
     module = "github.com/DependencyTrack/client-go",

@@ -42,15 +42,6 @@ sh_script(
 )
 
 sh_script(
-    name = "golangci-lint",
-    main = "golangci-lint.sh",
-    visibility = ["PUBLIC"],
-    deps = [
-        "//build/util:golangci-lint",
-    ],
-)
-
-sh_script(
     name = "github_actions",
     labels = ["lint"],
     main = "github_actions.sh",

@@ -1,3 +1,5 @@
+subinclude("///go//build_defs:go")
+
 go_mod_download(
     name = "api_dl",
     module = "google.golang.org/api",

@@ -1,3 +1,5 @@
+subinclude("///go//build_defs:go")
+
 go_module(
     name = "structs",
     hashes = ["0e13af842fdae9d51b2d280cde045ecb3f3432bb9e7df4d1707f7ef166cb5303"],

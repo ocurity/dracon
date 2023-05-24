@@ -1,3 +1,5 @@
+subinclude("///go//build_defs:go")
+
 subinclude(
     "///k8s//build/defs:k8s",
     "//build/defs:buildkit",

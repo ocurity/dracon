@@ -1,3 +1,5 @@
+subinclude("///go//build_defs:go")
+
 go_module(
     name = "securityhub",
     hashes = ["7865ce25d13af06484bb1eaf3f9b7db1e1e04b0b3d9e7b377f6d4268e4d5b9e0"],

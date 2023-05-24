@@ -9,28 +9,19 @@ sh_script(
     ],
 )
 
-sh_cmd(
+sh_script(
     name = "lint",
-    cmd = """
-    ./pleasew -p -v=2 generate
-    cmd=(
-        "$(out_exe //third_party/binary/reviewdog/reviewdog)"
-        -fail-on-error
-    )
-    if [[ "\\\\$CI" == "true" ]]; then
-        cmd+=(
-            "-reporter=github-pr-review"
-        )
-    elif [[ "\\\\$@" != *"-filter-mode=nofilter"* ]]; then
-        cmd+=(
-            "-diff="git diff origin/main""
-        )
-    fi
-    set -x
-    "\\\\${cmd[@]}" \\\\$@
-    """,
-    data = ["//third_party/binary/reviewdog/reviewdog"],
-    shell = "/usr/bin/env bash",
+    find_repo_root = True,
+    main = "lint.sh",
+    deps = [
+        "//third_party/binary/bufbuild/buf",
+        "//third_party/binary/dominikh/go-tools:staticcheck",
+        "//third_party/binary/mgechev/revive",
+        "//third_party/binary/reviewdog/reviewdog",
+        "//third_party/binary/securego/gosec",
+        "//third_party/go:toolchain",
+        "//third_party/go/mvdan.cc/gofumpt",
+    ],
 )
 
 sh_cmd(
@@ -57,18 +48,4 @@ set -x
     --ordered_labels="webhook;operator"
     """,
     shell = "/usr/bin/env bash",
-)
-
-sh_cmd(
-    name = "golangci-lint",
-    cmd = """
-    export PATH="\\\\$(./pleasew query reporoot)/$(out_location //third_party/go:toolchain)/bin:\\\\$PATH"
-    go mod tidy
-    $(out_exe //third_party/binary/golangci/golangci-lint) "\\\\$@"
-    """,
-    data = [
-        "//third_party/binary/golangci/golangci-lint",
-        "//third_party/go:toolchain",
-    ],
-    visibility = ["//build/lint:golangci-lint"],
 )
