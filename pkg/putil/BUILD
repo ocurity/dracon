@@ -6,7 +6,7 @@ go_library(
         "load.go",
         "write.go",
     ],
-    visibility = ["//components/..."],
+    visibility = ["PUBLIC"],
     deps = [
         "//api/proto/v1",
         "//third_party/go/google.golang.org/protobuf",

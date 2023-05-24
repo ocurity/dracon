@@ -7,11 +7,7 @@ go_library(
         "issue.go",
     ],
     resources = [":resources"],
-    visibility = [
-        "//components/enrichers/...",
-        "//components/producers/...",
-        "//pkg/enrichment/...",
-    ],
+    visibility = ["PUBLIC"],
     deps = [
         "//api/proto/v1",
         "//third_party/go/github.com/golang-migrate/migrate/v4",
