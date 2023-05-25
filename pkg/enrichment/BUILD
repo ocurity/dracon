@@ -9,7 +9,7 @@ go_library(
     deps = [
         "//api/proto/v1",
         "//pkg/enrichment/db",
-        "//third_party/go/google.golang.org/protobuf",
+        "//third_party/go:google.golang.org_protobuf",
     ],
 )
 
@@ -20,9 +20,9 @@ go_test(
         "issue_test.go",
     ],
     deps = [
+        "///third_party/go/github.com_stretchr_testify//assert",
         "//api/proto/v1",
         "//pkg/enrichment/db",
-        "//third_party/go/github.com/stretchr/testify",
-        "//third_party/go/google.golang.org/protobuf",
+        "//third_party/go:google.golang.org_protobuf",
     ],
 )

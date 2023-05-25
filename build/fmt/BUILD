@@ -17,8 +17,8 @@ sh_script(
     visibility = ["PUBLIC"],
     deps = [
         "//build/util",
+        "//third_party/go:mvdan.cc_gofumpt",
         "//third_party/go:toolchain",
-        "//third_party/go/mvdan.cc/gofumpt",
     ],
 )
 

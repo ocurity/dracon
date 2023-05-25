@@ -28,14 +28,14 @@ go_test(
         "main_test.go",
     ],
     deps = [
+        "///third_party/go/github.com_stretchr_testify//assert",
         "//api/proto/v1",
         "//components/consumers",
         "//components/consumers/defectdojo/client",
         "//components/consumers/defectdojo/types",
         "//pkg/enumtransformers",
         "//pkg/templating",
-        "//third_party/go/github.com/stretchr/testify",
-        "//third_party/go/google.golang.org/protobuf",
+        "//third_party/go:google.golang.org_protobuf",
     ],
 )
 

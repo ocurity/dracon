@@ -13,12 +13,12 @@ go_binary(
     ],
     static = True,
     deps = [
+        "///third_party/go/cloud.google.com_go_bigquery//:bigquery",
+        "///third_party/go/golang.org_x_oauth2//:oauth2",
+        "///third_party/go/google.golang.org_api//option",
         "//api/proto/v1",
         "//components/consumers",
         "//pkg/enumtransformers",
-        "//third_party/go/cloud.google.com/go/bigquery",
-        "//third_party/go/golang.org/x/oauth2",
-        "//third_party/go/google.golang.org/api",
     ],
 )
 

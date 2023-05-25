@@ -8,8 +8,8 @@ go_library(
     ],
     visibility = ["PUBLIC"],
     deps = [
+        "///third_party/go/github.com_owenrumney_go-sarif_v2//sarif",
         "//api/proto/v1",
-        "//third_party/go/github.com/owenrumney/go-sarif/v2",
     ],
 )
 
@@ -22,9 +22,9 @@ go_test(
     ],
     flaky = True,
     deps = [
+        "///third_party/go/github.com_owenrumney_go-sarif_v2//sarif",
+        "///third_party/go/github.com_stretchr_testify//assert",
         "//api/proto/v1",
-        "//third_party/go/github.com/owenrumney/go-sarif/v2",
-        "//third_party/go/github.com/stretchr/testify",
-        "//third_party/go/google.golang.org/protobuf",
+        "//third_party/go:google.golang.org_protobuf",
     ],
 )

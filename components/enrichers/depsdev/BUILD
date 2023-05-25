@@ -12,13 +12,13 @@ go_binary(
     ],
     static = True,
     deps = [
+        "///third_party/go/github.com_CycloneDX_cyclonedx-go//:cyclonedx-go",
+        "///third_party/go/github.com_package-url_packageurl-go//:packageurl-go",
         "//api/proto/v1",
         "//pkg/cyclonedx",
         "//pkg/putil",
         "//policies/example.gosec:demo-data",
-        "//third_party/go/github.com/CycloneDX/cyclonedx-go",
-        "//third_party/go/github.com/package-url/packageurl-go",
-        "//third_party/go/google.golang.org/protobuf",
+        "//third_party/go:google.golang.org_protobuf",
     ],
 )
 
@@ -29,14 +29,14 @@ go_test(
         "main_test.go",
     ],
     deps = [
+        "///third_party/go/github.com_CycloneDX_cyclonedx-go//:cyclonedx-go",
+        "///third_party/go/github.com_google_uuid//:uuid",
+        "///third_party/go/github.com_package-url_packageurl-go//:packageurl-go",
+        "///third_party/go/github.com_stretchr_testify//assert",
         "//api/proto/v1",
         "//pkg/cyclonedx",
         "//pkg/putil",
-        "//third_party/go/github.com/CycloneDX/cyclonedx-go",
-        "//third_party/go/github.com/google/uuid",
-        "//third_party/go/github.com/package-url/packageurl-go",
-        "//third_party/go/github.com/stretchr/testify",
-        "//third_party/go/google.golang.org/protobuf",
+        "//third_party/go:google.golang.org_protobuf",
     ],
 )
 

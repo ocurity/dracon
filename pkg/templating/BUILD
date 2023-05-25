@@ -19,8 +19,8 @@ go_test(
     ],
     flaky = True,
     deps = [
+        "///third_party/go/github.com_stretchr_testify//assert",
         "//api/proto/v1",
-        "//third_party/go/github.com/stretchr/testify",
-        "//third_party/go/google.golang.org/protobuf",
+        "//third_party/go:google.golang.org_protobuf",
     ],
 )

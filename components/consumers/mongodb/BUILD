@@ -13,10 +13,11 @@ go_binary(
     ],
     static = True,
     deps = [
+        "///third_party/go/github.com_avast_retry-go_v4//:v4",
+        "///third_party/go/go.mongodb.org_mongo-driver//mongo",
+        "///third_party/go/go.mongodb.org_mongo-driver//mongo/options",
         "//api/proto/v1",
         "//components/consumers",
-        "//third_party/go/github.com/avast/retry-go/v4",
-        "//third_party/go/go.mongodb.org/mongo-driver",
     ],
 )
 

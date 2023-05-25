@@ -25,10 +25,10 @@ go_test(
     ],
     deps = [
         ":npmquickaudit",
+        "///third_party/go/github.com_stretchr_testify//assert",
+        "///third_party/go/gopkg.in_h2non_gock.v1//:gock.v1",
         "//api/proto/v1",
         "//components/producers",
-        "//third_party/go/github.com/stretchr/testify",
-        "//third_party/go/gopkg.in/h2non/gock.v1",
     ],
 )
 

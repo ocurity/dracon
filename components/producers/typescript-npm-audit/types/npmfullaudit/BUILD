@@ -20,8 +20,8 @@ go_test(
     ],
     deps = [
         ":npmfullaudit",
+        "///third_party/go/github.com_stretchr_testify//assert",
         "//api/proto/v1",
         "//components/producers",
-        "//third_party/go/github.com/stretchr/testify",
     ],
 )

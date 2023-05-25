@@ -9,11 +9,13 @@ go_library(
     resources = [":resources"],
     visibility = ["PUBLIC"],
     deps = [
+        "///third_party/go/github.com_golang-migrate_migrate_v4//:v4",
+        "///third_party/go/github.com_golang-migrate_migrate_v4//database/postgres",
+        "///third_party/go/github.com_golang-migrate_migrate_v4//source/go_bindata",
+        "///third_party/go/github.com_jmoiron_sqlx//:sqlx",
+        "///third_party/go/github.com_lib_pq//:pq",
         "//api/proto/v1",
-        "//third_party/go/github.com/golang-migrate/migrate/v4",
-        "//third_party/go/github.com/jmoiron/sqlx",
-        "//third_party/go/github.com/lib/pq",
-        "//third_party/go/google.golang.org/protobuf",
+        "//third_party/go:google.golang.org_protobuf",
     ],
 )
 

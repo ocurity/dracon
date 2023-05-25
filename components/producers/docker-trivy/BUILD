@@ -28,12 +28,12 @@ go_test(
         "main_test.go",
     ],
     deps = [
+        "///third_party/go/github.com_stretchr_testify//assert",
         "//api/proto/v1",
         "//components/producers",
         "//components/producers/docker-trivy/types",
         "//pkg/cyclonedx",
         "//pkg/sarif",
-        "//third_party/go/github.com/stretchr/testify",
     ],
 )
 

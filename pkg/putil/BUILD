@@ -9,6 +9,6 @@ go_library(
     visibility = ["PUBLIC"],
     deps = [
         "//api/proto/v1",
-        "//third_party/go/google.golang.org/protobuf",
+        "//third_party/go:google.golang.org_protobuf",
     ],
 )

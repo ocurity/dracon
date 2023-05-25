@@ -12,9 +12,9 @@ go_binary(
     ],
     static = True,
     deps = [
+        "///third_party/go/github.com_mitchellh_mapstructure//:mapstructure",
         "//api/proto/v1",
         "//components/producers",
-        "//third_party/go/github.com/mitchellh/mapstructure",
     ],
 )
 
@@ -26,10 +26,10 @@ go_test(
     ],
     static = True,
     deps = [
+        "///third_party/go/github.com_mitchellh_mapstructure//:mapstructure",
+        "///third_party/go/github.com_stretchr_testify//assert",
         "//api/proto/v1",
         "//components/producers",
-        "//third_party/go/github.com/mitchellh/mapstructure",
-        "//third_party/go/github.com/stretchr/testify",
     ],
 )
 

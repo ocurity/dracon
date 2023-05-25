@@ -6,7 +6,7 @@ path_dirs=(
     "$(dirname "//third_party/binary/dominikh/go-tools:staticcheck")"
     "$(dirname "//third_party/binary/mgechev/revive:revive")"
     "$(dirname "//third_party/binary/securego/gosec:gosec")"
-    "$(dirname "//third_party/go/mvdan.cc/gofumpt:gofumpt")"
+    "$(dirname "//third_party/go:mvdan.cc_gofumpt")"
     "$(echo "//third_party/binary/bufbuild/buf:buf")/bin"
     "$(echo "//third_party/go:toolchain")/bin"
     "$(dirname "//third_party/binary/reviewdog/reviewdog")"

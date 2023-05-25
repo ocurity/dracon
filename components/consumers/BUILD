@@ -9,7 +9,7 @@ go_library(
     deps = [
         "//api/proto/v1",
         "//pkg/putil",
-        "//third_party/go/google.golang.org/protobuf",
+        "//third_party/go:google.golang.org_protobuf",
     ],
 )
 
@@ -20,30 +20,9 @@ go_test(
         "consumer_test.go",
     ],
     deps = [
+        "///third_party/go/github.com_stretchr_testify//assert",
         "//api/proto/v1",
         "//pkg/putil",
-        "//third_party/go/github.com/stretchr/testify",
-        "//third_party/go/google.golang.org/protobuf",
+        "//third_party/go:google.golang.org_protobuf",
     ],
 )
-
-# python_test(
-#     name = "consumers_py_test",
-#     srcs = [
-#         "consumer_test.py",
-#     ],
-#     deps = [
-#         ":consumers_base_python",
-#         "//api/proto/v1",
-#         "//third_party/python:protobuf",
-#     ],
-# )
-
-# python_binary(
-#     name = "consumers_base_python",
-#     main = "consumer.py",
-#     visibility = ["//components/consumers/..."],
-#     deps = [
-#         "//third_party/python:protobuf",
-#     ],
-# )

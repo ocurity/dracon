@@ -12,7 +12,7 @@ go_binary(
         "main.go",
     ],
     deps = [
-        "//third_party/go/github.com/package-url/packageurl-go",
+        "///third_party/go/github.com_package-url_packageurl-go//:packageurl-go",
     ],
 )
 
@@ -23,8 +23,8 @@ go_test(
         "main_test.go",
     ],
     deps = [
-        "//third_party/go/github.com/package-url/packageurl-go",
-        "//third_party/go/github.com/stretchr/testify",
+        "///third_party/go/github.com_package-url_packageurl-go//:packageurl-go",
+        "///third_party/go/github.com_stretchr_testify//assert",
     ],
 )
 

@@ -12,11 +12,11 @@ go_binary(
     ],
     static = True,
     deps = [
+        "///third_party/go/github.com_DependencyTrack_client-go//:client-go",
+        "///third_party/go/github.com_google_uuid//:uuid",
         "//api/proto/v1",
         "//components/consumers",
         "//pkg/cyclonedx",
-        "//third_party/go/github.com/DependencyTrack/client-go",
-        "//third_party/go/github.com/google/uuid",
     ],
 )
 
@@ -27,13 +27,13 @@ go_test(
         "main_test.go",
     ],
     deps = [
+        "///third_party/go/github.com_DependencyTrack_client-go//:client-go",
+        "///third_party/go/github.com_google_uuid//:uuid",
+        "///third_party/go/github.com_stretchr_testify//assert",
         "//api/proto/v1",
         "//components/consumers",
         "//pkg/cyclonedx",
-        "//third_party/go/github.com/DependencyTrack/client-go",
-        "//third_party/go/github.com/google/uuid",
-        "//third_party/go/github.com/stretchr/testify",
-        "//third_party/go/google.golang.org/protobuf",
+        "//third_party/go:google.golang.org_protobuf",
     ],
 )
 

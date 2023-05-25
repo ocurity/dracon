@@ -27,10 +27,10 @@ go_test(
         "main_test.go",
     ],
     deps = [
+        "///third_party/go/github.com_stretchr_testify//assert",
         "//api/proto/v1",
         "//components/producers",
         "//components/producers/golang-nancy/types",
-        "//third_party/go/github.com/stretchr/testify",
     ],
 )
 

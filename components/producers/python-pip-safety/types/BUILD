@@ -15,6 +15,6 @@ go_test(
         "safety-issue_test.go",
     ],
     deps = [
-        "//third_party/go/github.com/stretchr/testify",
+        "///third_party/go/github.com_stretchr_testify//assert",
     ],
 )

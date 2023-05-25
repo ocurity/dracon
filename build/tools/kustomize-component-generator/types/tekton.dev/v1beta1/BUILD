@@ -10,7 +10,7 @@ go_library(
         "//build/tools/kustomize-component-generator/...",
     ],
     deps = [
+        "///third_party/go/gopkg.in_yaml.v3//:yaml.v3",
         "//build/tools/kustomize-component-generator/types/kubernetes",
-        "//third_party/go/gopkg.in/yaml.v3",
     ],
 )

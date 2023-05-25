@@ -19,8 +19,8 @@ sh_script(
         "//third_party/binary/mgechev/revive",
         "//third_party/binary/reviewdog/reviewdog",
         "//third_party/binary/securego/gosec",
+        "//third_party/go:mvdan.cc_gofumpt",
         "//third_party/go:toolchain",
-        "//third_party/go/mvdan.cc/gofumpt",
     ],
 )
 

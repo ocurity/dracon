@@ -13,9 +13,10 @@ go_binary(
     ],
     static = True,
     deps = [
+        "///third_party/go/github.com_arangodb_go-driver//:go-driver",
+        "///third_party/go/github.com_arangodb_go-driver//http",
         "//api/proto/v1",
         "//components/consumers",
-        "//third_party/go/github.com/arangodb/go-driver",
     ],
 )
 

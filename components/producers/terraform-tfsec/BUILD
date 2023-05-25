@@ -27,11 +27,11 @@ go_test(
         "main_test.go",
     ],
     deps = [
+        "///third_party/go/github.com_stretchr_testify//assert",
         "//api/proto/v1",
         "//components/producers",
         "//components/producers/terraform-tfsec/types",
         "//pkg/sarif",
-        "//third_party/go/github.com/stretchr/testify",
     ],
 )
 

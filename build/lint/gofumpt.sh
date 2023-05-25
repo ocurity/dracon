@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-GOFUMPT="//third_party/go/mvdan.cc/gofumpt"
+GOFUMPT="//third_party/go:mvdan.cc_gofumpt"
 
 mapfile -t go_dirs < <(./pleasew query alltargets \
     --include=go \

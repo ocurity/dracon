@@ -10,30 +10,34 @@ go_library(
         "PUBLIC",
     ],
     deps = [
+        "///third_party/go/github.com_andygrunwald_go-jira//:go-jira",
+        "///third_party/go/github.com_trivago_tgo//tcontainer",
         "//api/proto/v1",
         "//pkg/enumtransformers",
         "//pkg/jira/config",
         "//pkg/jira/document",
         "//pkg/templating",
-        "//third_party/go/github.com/andygrunwald/go-jira",
-        "//third_party/go/github.com/trivago/tgo",
-        "//third_party/go/google.golang.org/protobuf",
+        "//third_party/go:google.golang.org_protobuf",
     ],
 )
 
 go_test(
     name = "jira_test",
     srcs = [
+        "api.go",
         "api_test.go",
+        "apiutils.go",
         "apiutils_test.go",
     ],
     deps = [
-        ":jira",
+        "///third_party/go/github.com_andygrunwald_go-jira//:go-jira",
+        "///third_party/go/github.com_stretchr_testify//assert",
+        "///third_party/go/github.com_trivago_tgo//tcontainer",
         "//api/proto/v1",
         "//pkg/enumtransformers",
+        "//pkg/jira/config",
+        "//pkg/jira/document",
         "//pkg/templating",
-        "//third_party/go/github.com/andygrunwald/go-jira",
-        "//third_party/go/github.com/stretchr/testify",
-        "//third_party/go/google.golang.org/protobuf",
+        "//third_party/go:google.golang.org_protobuf",
     ],
 )

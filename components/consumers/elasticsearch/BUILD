@@ -13,12 +13,12 @@ go_binary(
     ],
     static = True,
     deps = [
+        "///third_party/go/github.com_elastic_go-elasticsearch_v8//:v8",
         "//api/proto/v1",
         "//components/consumers",
         "//pkg/enumtransformers",
         "//pkg/templating",
-        "//third_party/go/github.com/elastic/go-elasticsearch/v8",
-        "//third_party/go/google.golang.org/protobuf",
+        "//third_party/go:google.golang.org_protobuf",
     ],
 )
 
@@ -29,13 +29,13 @@ go_test(
         "main_test.go",
     ],
     deps = [
+        "///third_party/go/github.com_elastic_go-elasticsearch_v8//:v8",
+        "///third_party/go/github.com_stretchr_testify//assert",
         "//api/proto/v1",
         "//components/consumers",
         "//pkg/enumtransformers",
         "//pkg/templating",
-        "//third_party/go/github.com/elastic/go-elasticsearch/v8",
-        "//third_party/go/github.com/stretchr/testify",
-        "//third_party/go/google.golang.org/protobuf",
+        "//third_party/go:google.golang.org_protobuf",
     ],
 )
 

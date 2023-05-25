@@ -24,12 +24,11 @@ go_binary(
     ],
     static = True,
     deps = [
+        "///third_party/go/golang.org_x_crypto//nacl/sign",
         "//api/proto/v1",
         "//pkg/enrichment",
         "//pkg/putil",
-        "//third_party/go/github.com/google/uuid",
-        "//third_party/go/golang.org/x/crypto",
-        "//third_party/go/google.golang.org/protobuf",
+        "//third_party/go:google.golang.org_protobuf",
     ],
 )
 
@@ -40,12 +39,12 @@ go_test(
         "main_test.go",
     ],
     deps = [
+        "///third_party/go/github.com_google_uuid//:uuid",
+        "///third_party/go/github.com_stretchr_testify//assert",
+        "///third_party/go/golang.org_x_crypto//nacl/sign",
         "//api/proto/v1",
         "//pkg/putil",
-        "//third_party/go/github.com/google/uuid",
-        "//third_party/go/github.com/stretchr/testify",
-        "//third_party/go/golang.org/x/crypto",
-        "//third_party/go/google.golang.org/protobuf",
+        "//third_party/go:google.golang.org_protobuf",
     ],
 )
 

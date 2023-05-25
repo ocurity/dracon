@@ -22,9 +22,9 @@ go_test(
     ],
     deps = [
         ":utils",
+        "///third_party/go/github.com_stretchr_testify//assert",
         "//api/proto/v1",
         "//components/consumers",
-        "//third_party/go/github.com/stretchr/testify",
-        "//third_party/go/google.golang.org/protobuf",
+        "//third_party/go:google.golang.org_protobuf",
     ],
 )

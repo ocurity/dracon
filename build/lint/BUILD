@@ -37,7 +37,7 @@ sh_script(
     main = "gofumpt.sh",
     visibility = ["PUBLIC"],
     deps = [
-        "//third_party/go/mvdan.cc/gofumpt",
+        "//third_party/go:mvdan.cc_gofumpt",
     ],
 )
 
