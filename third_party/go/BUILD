@@ -10,19 +10,25 @@ go_toolchain(
 sh_cmd(
     name = "gen_modules",
     cmd = """
-    out="\\\\$(./pleasew query reporoot)/third_party/go/modules.build_defs"
-    echo "GO_MODULES = {" > "\\\\$out.new"
+set -Eeuo pipefail
+out="\\\\$(./pleasew query reporoot)/third_party/go/modules.build_defs"
+echo "GO_MODULES = {" > "\\\\$out.new"
 
-    ./pleasew run ///go//tools/please_go:bootstrap -- get -m go.mod \\
+$(out_exe ///go//tools/please_go:bootstrap) get -m go.mod \\
     | sed 's#go_repo(module=##g' \\
     | sed 's#, version=#: #g' \\
     | sed 's#)#,#g' \\
     | sed 's#^#  #g' \\
+    | sort -u \\
     >> "\\\\$out.new"
 
-    echo "}" >> "\\\\$out.new"
-    mv "\\\\$out.new" "\\\\$out"
+echo "}" >> "\\\\$out.new"
+mv "\\\\$out.new" "\\\\$out"
     """,
+    shell = "/usr/bin/env bash",
+    data = [
+        "///go//tools/please_go:bootstrap",
+    ],
 )
 
 export_file(
