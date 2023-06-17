@@ -9,7 +9,5 @@ go_module(
     ],
     module = "github.com/google/go-querystring",
     version = "v1.0.0",
-    visibility = [
-        "//third_party/go/...",
-    ],
+    visibility = ["PUBLIC"],
 )

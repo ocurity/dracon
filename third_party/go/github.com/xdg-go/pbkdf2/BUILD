@@ -5,7 +5,5 @@ go_module(
     licences = ["Apache-2.0"],
     module = "github.com/xdg-go/pbkdf2",
     version = "v1.0.0",
-    visibility = [
-        "//third_party/go/github.com/xdg-go/...",
-    ],
+    visibility = ["PUBLIC"],
 )

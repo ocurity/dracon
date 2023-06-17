@@ -1,5 +1,4 @@
 subinclude("///go//build_defs:go")
-
 go_module(
     name = "v45",
     install = ["github"],

@@ -7,8 +7,6 @@ go_module(
     licences = ["Apache License 2.0"],
     module = "github.com/aws/smithy-go",
     version = "v1.11.2",
-    visibility = [
-        "//third_party/go/github.com/aws/...",
-    ],
+    visibility = ["PUBLIC"],
     deps = ["//third_party/go/github.com/google/go-cmp"],
 )

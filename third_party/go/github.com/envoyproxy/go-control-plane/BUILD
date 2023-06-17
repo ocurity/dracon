@@ -10,9 +10,7 @@ go_module(
     ],
     module = "github.com/envoyproxy/go-control-plane",
     version = "v0.10.1",
-    visibility = [
-        "//third_party/go/google.golang.org/grpc:all",
-    ],
+    visibility = ["PUBLIC"],
     deps = [
         "//third_party/go/github.com/cncf/xds/go",
         "//third_party/go/github.com/envoyproxy/protoc-gen-validate",

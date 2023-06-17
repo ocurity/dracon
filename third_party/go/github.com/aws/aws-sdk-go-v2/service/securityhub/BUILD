@@ -7,9 +7,7 @@ go_module(
     licences = ["Apache License 2.0"],
     module = "github.com/aws/aws-sdk-go-v2/service/securityhub",
     version = "v1.21.2",
-    visibility = [
-        "//components/producers/securityhub/...",
-    ],
+    visibility = ["PUBLIC"],
     deps = [
         "//third_party/go/github.com/aws/smithy-go",
     ],

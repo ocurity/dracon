@@ -1,3 +1,5 @@
+subinclude("///shell//build_defs:shell")
+
 subinclude(
     "//build/defs:buildkit",
     "///k8s//build/defs:k8s",

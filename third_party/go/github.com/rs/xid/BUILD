@@ -1,5 +1,4 @@
 subinclude("///go//build_defs:go")
-
 go_module(
     name = "xid",
     module = "github.com/rs/xid",

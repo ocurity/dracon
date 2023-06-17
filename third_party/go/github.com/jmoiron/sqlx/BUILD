@@ -9,7 +9,5 @@ go_module(
     ],
     module = "github.com/jmoiron/sqlx",
     version = "v1.2.0",
-    visibility = [
-        "//pkg/enrichment/db:all",
-    ],
+    visibility = ["PUBLIC"],
 )

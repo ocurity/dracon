@@ -14,9 +14,7 @@ go_module(
         "googleapi/transport",
     ],
     module = "google.golang.org/api",
-    visibility = [
-        "//third_party/go/github.com/googleapis/gax-go/v2",
-    ],
+    visibility = ["PUBLIC"],
 )
 
 go_module(

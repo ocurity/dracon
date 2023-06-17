@@ -4,9 +4,7 @@ go_module(
     name = "scram",
     module = "github.com/xdg-go/scram",
     version = "v1.1.1",
-    visibility = [
-        "//third_party/go/go.mongodb.org/mongo-driver:all",
-    ],
+    visibility = ["PUBLIC"],
     deps = [
         "//third_party/go/github.com/xdg-go/pbkdf2",
         "//third_party/go/github.com/xdg-go/stringprep",

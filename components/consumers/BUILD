@@ -26,24 +26,3 @@ go_test(
         "//third_party/go/google.golang.org/protobuf",
     ],
 )
-
-# python_test(
-#     name = "consumers_py_test",
-#     srcs = [
-#         "consumer_test.py",
-#     ],
-#     deps = [
-#         ":consumers_base_python",
-#         "//api/proto/v1",
-#         "//third_party/python:protobuf",
-#     ],
-# )
-
-# python_binary(
-#     name = "consumers_base_python",
-#     main = "consumer.py",
-#     visibility = ["//components/consumers/..."],
-#     deps = [
-#         "//third_party/python:protobuf",
-#     ],
-# )

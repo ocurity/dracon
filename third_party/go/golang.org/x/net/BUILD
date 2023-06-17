@@ -9,9 +9,7 @@ go_module(
         "http2/h2i",
     ],
     version = "v0.0.0-20220412020605-290c469a71a5",
-    visibility = [
-        "//third_party/go/...",
-    ],
+    visibility = ["PUBLIC"],
     deps = [
         "//third_party/go/golang.org/x/sys",
         "//third_party/go/golang.org/x/text",

@@ -8,7 +8,5 @@ go_module(
     ],
     module = "golang.org/x/tools",
     version = "v0.1.10",
-    visibility = [
-        "//third_party/go/mvdan.cc/gofumpt:all",
-    ],
+    visibility = ["PUBLIC"],
 )

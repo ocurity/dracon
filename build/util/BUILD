@@ -1,3 +1,5 @@
+subinclude("///shell//build_defs:shell")
+
 subinclude("//build/defs:sh")
 
 sh_script(
@@ -27,9 +29,9 @@ sh_script(
 sh_cmd(
     name = "fmt_all",
     cmd = """
-    ./pleasew run sequential \\\\
-        //build/fmt:please \\\\
-        //build/fmt:go \\\\
+    ./pleasew run sequential \\
+        //build/fmt:please \\
+        //build/fmt:go \\
         //build/fmt:proto
     """,
 )

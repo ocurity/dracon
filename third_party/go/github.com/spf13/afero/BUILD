@@ -9,7 +9,7 @@ go_module(
     ],
     module = "github.com/spf13/afero",
     version = "v1.1.2",
-    visibility = ["//third_party/go/github.com/spf13/viper:all"],
+    visibility = ["PUBLIC"],
     deps = [
         "//third_party/go/golang.org/x/text",
     ],

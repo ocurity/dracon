@@ -10,8 +10,5 @@ go_module(
     ],
     module = "github.com/lib/pq",
     version = "v1.10.3",
-    visibility = [
-        "//pkg/enrichment/db:all",
-        "//third_party/go/github.com/golang-migrate/migrate/v4:all",
-    ],
+    visibility = ["PUBLIC"],
 )

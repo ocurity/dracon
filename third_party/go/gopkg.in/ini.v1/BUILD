@@ -6,5 +6,5 @@ go_module(
     licences = ["Apache-2.0"],
     module = "gopkg.in/ini.v1",
     version = "v1.62.0",
-    visibility = ["//third_party/go/github.com/spf13/viper:all"],
+    visibility = ["PUBLIC"],
 )

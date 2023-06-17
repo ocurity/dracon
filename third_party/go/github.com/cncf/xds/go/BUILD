@@ -10,9 +10,7 @@ go_module(
     ],
     module = "github.com/cncf/xds/go",
     version = "v0.0.0-20220330162227-eded343319d0",
-    visibility = [
-        "//third_party/go/github.com/envoyproxy/go-control-plane:all",
-    ],
+    visibility = ["PUBLIC"],
     deps = [
         "//third_party/go/github.com/envoyproxy/protoc-gen-validate",
         "//third_party/go/github.com/golang/protobuf",

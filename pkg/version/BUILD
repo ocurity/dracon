@@ -6,6 +6,4 @@ go_library(
         "version.go",
     ],
     visibility = ["PUBLIC"],
-    deps = [
-    ],
 )

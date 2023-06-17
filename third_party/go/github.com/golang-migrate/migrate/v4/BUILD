@@ -22,9 +22,7 @@ go_module(
         "source/go_bindata",
     ],
     module = "github.com/golang-migrate/migrate/v4",
-    visibility = [
-        "//pkg/enrichment/db:all",
-    ],
+    visibility = ["PUBLIC"],
     deps = [
         "//third_party/go/github.com/hashicorp/go-multierror",
         "//third_party/go/github.com/lib/pq",

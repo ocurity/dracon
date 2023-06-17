@@ -6,10 +6,7 @@ go_module(
     licences = ["apache-2.0"],
     module = "github.com/spf13/cobra",
     version = "v0.0.5",
-    visibility = [
-        "//components/enrichers/deduplication:all",
-        "//components/producers/jira_producer:all",
-    ],
+    visibility = ["PUBLIC"],
     deps = [
         "//third_party/go/github.com/spf13/pflag",
     ],

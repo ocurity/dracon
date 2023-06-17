@@ -10,7 +10,6 @@ require (
 	github.com/avast/retry-go/v4 v4.3.3
 	github.com/elastic/go-elasticsearch/v8 v8.3.0
 	github.com/golang-migrate/migrate/v4 v4.15.1
-	github.com/golang/protobuf v1.5.2
 	github.com/google/uuid v1.3.0
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/lib/pq v1.10.5
@@ -39,6 +38,7 @@ require (
 	github.com/arangodb/go-velocypack v0.0.0-20200318135517-5af53c29c67e // indirect
 	github.com/goccy/go-json v0.9.11 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
+	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/flatbuffers v2.0.8+incompatible // indirect
 	github.com/google/go-cmp v0.5.9 // indirect

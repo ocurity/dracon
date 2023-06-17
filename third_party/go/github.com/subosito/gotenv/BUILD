@@ -6,5 +6,5 @@ go_module(
     licences = ["MIT"],
     module = "github.com/subosito/gotenv",
     version = "v1.2.0",
-    visibility = ["//third_party/go/github.com/spf13/viper:all"],
+    visibility = ["PUBLIC"],
 )

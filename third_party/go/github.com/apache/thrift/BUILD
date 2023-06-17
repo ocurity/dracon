@@ -1,5 +1,4 @@
 subinclude("///go//build_defs:go")
-
 go_module(
     name = "thrift",
     install = ["lib/go/thrift"],

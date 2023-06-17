@@ -8,5 +8,5 @@ go_module(
     ],
     module = "github.com/google/go-cmp",
     version = "v0.5.7",
-    visibility = ["//third_party/go/..."],
+    visibility = ["PUBLIC"],
 )

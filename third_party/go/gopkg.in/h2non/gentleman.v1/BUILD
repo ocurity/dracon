@@ -8,9 +8,7 @@ go_module(
     module = "gopkg.in/h2non/gentleman.v1",
     strip = ["_examples"],
     version = "v1.0.4",
-    visibility = [
-        "//third_party/go/gopkg.in/h2non/gock.v1:all",
-    ],
+    visibility = ["PUBLIC"],
     deps = [
         "//third_party/go/golang.org/x/net",
     ],

@@ -9,7 +9,5 @@ go_module(
     ],
     module = "github.com/elastic/elastic-transport-go/v8",
     version = "v8.1.0",
-    visibility = [
-        "//third_party/go/github.com/elastic/...",
-    ],
+    visibility = ["PUBLIC"],
 )

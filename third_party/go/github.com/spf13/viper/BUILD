@@ -6,10 +6,7 @@ go_module(
     licences = ["mit"],
     module = "github.com/spf13/viper",
     version = "v1.7.1",
-    visibility = [
-        "//components/enrichers/deduplication:all",
-        "//components/producers/jira_producer:all",
-    ],
+    visibility = ["PUBLIC"],
     deps = [
         "//third_party/go/github.com/fsnotify/fsnotify",
         "//third_party/go/github.com/hashicorp/hcl",

@@ -12,7 +12,5 @@ go_module(
     ],
     module = "golang.org/x/text",
     version = "v0.3.7",
-    visibility = [
-        "//third_party/go/...",
-    ],
+    visibility = ["PUBLIC"],
 )

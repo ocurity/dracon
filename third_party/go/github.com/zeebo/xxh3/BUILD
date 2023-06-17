@@ -1,5 +1,4 @@
 subinclude("///go//build_defs:go")
-
 go_module(
     name = "xxh3",
     module = "github.com/zeebo/xxh3",

@@ -6,9 +6,7 @@ go_module(
     licences = ["MIT"],
     module = "gopkg.in/h2non/gock.v1",
     version = "v1.0.16",
-    visibility = [
-        "//components/producers/...",
-    ],
+    visibility = ["PUBLIC"],
     deps = [
         "//third_party/go/github.com/h2non/parth",
         "//third_party/go/golang.org/x/net",

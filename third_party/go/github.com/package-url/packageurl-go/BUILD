@@ -1,5 +1,4 @@
 subinclude("///go//build_defs:go")
-
 go_module(
     name = "packageurl-go",
     module = "github.com/package-url/packageurl-go",

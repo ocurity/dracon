@@ -11,7 +11,5 @@ go_module(
     ],
     module = "github.com/elastic/go-elasticsearch/v7",
     version = "v7.6.0",
-    visibility = [
-        "//components/consumers/elasticsearch:all",
-    ],
+    visibility = ["PUBLIC"],
 )

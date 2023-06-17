@@ -5,7 +5,5 @@ go_module(
     install = ["metadata"],
     module = "cloud.google.com/go/compute",
     version = "v1.6.0",
-    visibility = [
-        "//third_party/go/...",
-    ],
+    visibility = ["PUBLIC"],
 )

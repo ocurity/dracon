@@ -6,5 +6,5 @@ go_module(
     licences = ["mit"],
     module = "github.com/fatih/structs",
     version = "v1.1.0",
-    visibility = ["//third_party/go/github.com/andygrunwald/go-jira:all"],
+    visibility = ["PUBLIC"],
 )

@@ -1,5 +1,4 @@
 subinclude("///go//build_defs:go")
-
 go_module(
     name = "go",
     module = "github.com/json-iterator/go",

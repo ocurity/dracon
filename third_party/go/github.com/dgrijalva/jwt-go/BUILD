@@ -6,5 +6,5 @@ go_module(
     licences = ["mit"],
     module = "github.com/dgrijalva/jwt-go",
     version = "v3.2.0+incompatible",
-    visibility = ["//third_party/go/github.com/andygrunwald/go-jira:all"],
+    visibility = ["PUBLIC"],
 )

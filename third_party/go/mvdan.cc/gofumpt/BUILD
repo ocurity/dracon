@@ -6,9 +6,7 @@ go_module(
     licences = ["BSD-3-Clause"],
     module = "mvdan.cc/gofumpt",
     version = "v0.3.1",
-    visibility = [
-        "//build/...",
-    ],
+    visibility = ["PUBLIC"],
     deps = [
         "//third_party/go/github.com/google/go-cmp",
         "//third_party/go/golang.org/x/mod",

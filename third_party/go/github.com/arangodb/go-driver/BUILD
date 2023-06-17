@@ -11,7 +11,7 @@ go_module(
     licences = ["Apache-2.0"],
     module = "github.com/arangodb/go-driver",
     version = "v1.4.0",
-    visibility = ["//components/consumers/arangodb/..."],
+    visibility = ["PUBLIC"],
     deps = [
         "//third_party/go/github.com/arangodb/go-velocypack",
         "//third_party/go/github.com/pkg/errors",

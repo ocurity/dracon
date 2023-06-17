@@ -7,5 +7,5 @@ go_module(
     ],
     module = "github.com/pmezard/go-difflib",
     version = "v1.0.0",
-    visibility = ["//third_party/go/github.com/stretchr/testify/..."],
+    visibility = ["PUBLIC"],
 )
