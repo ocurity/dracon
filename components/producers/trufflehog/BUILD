@@ -44,7 +44,6 @@ dracon_component(
     images = [
         ":image",
         "//third_party/docker/trufflesecurity/trufflehog",
-
     ],
     task = "task.yaml",
     visibility = ["//examples/pipelines/..."],
