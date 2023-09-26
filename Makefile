@@ -33,3 +33,6 @@ lint:
 		reviewdog -fail-on-error -diff="git diff origin/main";\
 	fi
 	@golangci-lint
+
+openapi_schema:
+	@echo bla
