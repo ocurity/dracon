@@ -22,26 +22,6 @@ sh_script(
 )
 
 sh_script(
-    name = "proto",
-    labels = ["lint"],
-    main = "proto.sh",
-    visibility = ["PUBLIC"],
-    deps = [
-        "//build/util",
-        "//third_party/binary/bufbuild/buf",
-    ],
-)
-
-sh_script(
-    name = "gofumpt",
-    main = "gofumpt.sh",
-    visibility = ["PUBLIC"],
-    deps = [
-        "//third_party/go/mvdan.cc/gofumpt",
-    ],
-)
-
-sh_script(
     name = "golangci-lint",
     main = "golangci-lint.sh",
     visibility = ["PUBLIC"],
