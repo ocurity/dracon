@@ -9,11 +9,9 @@ elementIn () {
   return 1
 }
 
-source ./scripts/util.sh
-
 if [ "$#" -lt 2 ]
 then
-    util::error "You need to provide 2 positional arguments for this tool: $0 <input.json> <output.json>"
+    echo "You need to provide 2 positional arguments for this tool: $0 <input.json> <output.json>"
     exit 1
 fi
 

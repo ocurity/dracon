@@ -1,0 +1,13 @@
+--2023-09-26 22:29:15--  https://raw.githubusercontent.com/tektoncd/pipeline/v0.44.0/pkg/apis/pipeline/v1beta1/swagger.json
+Resolving raw.githubusercontent.com (raw.githubusercontent.com)... 2606:50c0:8000::154, 2606:50c0:8002::154, 2606:50c0:8003::154, ...
+Connecting to raw.githubusercontent.com (raw.githubusercontent.com)|2606:50c0:8000::154|:443... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 149033 (146K) [text/plain]
+Saving to: ‘swagger.json.1’
+
+     0K .......... .......... .......... .......... .......... 34% 5.06M 0s
+    50K .......... .......... .......... .......... .......... 68% 15.9M 0s
+   100K .......... .......... .......... .......... .....     100% 9.12M=0.02s
+
+2023-09-26 22:29:15 (8.08 MB/s) - ‘swagger.json.1’ saved [149033/149033]
+
