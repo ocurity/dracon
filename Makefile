@@ -46,4 +46,4 @@ api/openapi/tekton/openapi_schema.json: third_party/k8s/tektoncd/pipeline/swagge
 	./scripts/generate_openapi_schema.sh $< $@
 
 mirror_images:
-	$(shell ./scripts/mirror_images.sh)
+	./scripts/mirror_images.sh
