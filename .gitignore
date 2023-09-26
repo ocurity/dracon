@@ -3,8 +3,3 @@
 __pycache__
 *.pyc
 **/node_modules/
-.plz_clean*
-
-# Entries below this point are managed by Please (DO NOT EDIT)
-plz-out
-.plzconfig.local
