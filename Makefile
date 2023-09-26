@@ -3,6 +3,8 @@
 proto_defs=$(shell find . -name "*.proto" -not -path "./vendor/*")
 go_protos=$(proto_defs:.proto=.pb.go)
 
+TEKTON_VERSION=0.44.0
+
 PROTOC=protoc
 
 build: $(go_protos)
@@ -34,5 +36,14 @@ lint:
 	fi
 	@golangci-lint
 
-openapi_schema:
-	@echo bla
+third_party/k8s/tektoncd/pipeline/swagger-v$(TEKTON_VERSION).json:
+	wget "https://raw.githubusercontent.com/tektoncd/pipeline/v$(TEKTON_VERSION)/pkg/apis/pipeline/v1beta1/swagger.json" -O third_party/k8s/tektoncd/pipeline/swagger-v$(TEKTON_VERSION).json
+
+third_party/k8s/tektoncd/pipeline/release-v$(TEKTON_VERSION).yaml:
+	wget "https://storage.googleapis.com/tekton-releases/pipeline/previous/v$(TEKTON_VERSION)/release.yaml" -O third_party/k8s/tektoncd/pipeline/release-v$(TEKTON_VERSION).yaml
+
+api/openapi/tekton/openapi_schema.json: third_party/k8s/tektoncd/pipeline/swagger-v$(TEKTON_VERSION).json
+	./scripts/generate_openapi_schema.sh $< $@
+
+mirror_images:
+	$(shell ./scripts/mirror_images.sh)
