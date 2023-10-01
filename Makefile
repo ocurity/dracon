@@ -4,6 +4,7 @@ proto_defs=$(shell find . -name "*.proto" -not -path "./vendor/*")
 go_protos=$(proto_defs:.proto=.pb.go)
 
 TEKTON_VERSION=0.44.0
+TEKTON_DASHBOARD_VERSION=0.29.2
 
 PROTOC=protoc
 
@@ -55,3 +56,6 @@ third_party/k8s/tektoncd/pipeline/pipeline.yaml: third_party/k8s/tektoncd/pipeli
 
 third_party/k8s/tektoncd/pipeline/Chart.yaml: third_party/k8s/tektoncd/pipeline/pipeline.yaml
 	printf "apiVersion: v2\nappVersion: $(TEKTON_VERSION)\ndescription: A Helm chart for Kubernetes.\nname: pipeline\ntype: application\nversion: 0.1.0\n" > $@
+
+third_party/k8s/tektoncd/dashboard/release-v$(TEKTON_DASHBOARD_VERSION).yaml:
+    wget "https://github.com/tektoncd/dashboard/releases/download/v$(TEKTON_DASHBOARD_VERSION)/tekton-dashboard-release.yaml" -O third_party/k8s/tektoncd/dashboard/release-v$(TEKTON_DASHBOARD_VERSION).yaml
