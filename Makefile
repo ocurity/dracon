@@ -52,3 +52,6 @@ third_party/k8s/tektoncd/pipeline/pipeline.yaml: third_party/k8s/tektoncd/pipeli
 	cp third_party/k8s/tektoncd/pipeline/release-v$(TEKTON_VERSION).yaml third_party/k8s/tektoncd/pipeline/release.yaml
 	kustomize build $(shell dirname $@) > $@
 	rm third_party/k8s/tektoncd/pipeline/release.yaml
+
+third_party/k8s/tektoncd/pipeline/Chart.yaml: third_party/k8s/tektoncd/pipeline/pipeline.yaml
+	printf "apiVersion: v2\nappVersion: $(TEKTON_VERSION)\ndescription: A Helm chart for Kubernetes.\nname: pipeline\ntype: application\nversion: 0.1.0\n" > $@
