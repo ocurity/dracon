@@ -47,3 +47,8 @@ api/openapi/tekton/openapi_schema.json: third_party/k8s/tektoncd/pipeline/swagge
 
 mirror_images:
 	./scripts/mirror_images.sh
+
+third_party/k8s/tektoncd/pipeline/pipeline.yaml: third_party/k8s/tektoncd/pipeline/release-v$(TEKTON_VERSION).yaml
+	cp third_party/k8s/tektoncd/pipeline/release-v$(TEKTON_VERSION).yaml third_party/k8s/tektoncd/pipeline/release.yaml
+	kustomize build $(shell dirname $@) > $@
+	rm third_party/k8s/tektoncd/pipeline/release.yaml
