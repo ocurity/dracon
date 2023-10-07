@@ -1,6 +1,6 @@
 ## Producers
 
-A producer is a program that parses the output of a tool and converts it into Dracon compatible file that can be used by the *enricher* and *consumers*.
+A producer is a program that parses the output of a tool and converts it into Dracon compatible file that can be used by the *enrichers* and *consumers*.
 
 ### Writing Producers
 
