@@ -1,0 +1,19 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: consumer-aws-s3
+  labels:
+    v1.dracon.ocurity.com/component: consumer
+spec:
+  workspaces:
+    - name: source-code-ws
+      description: The workspace containing the source-code to scan.
+  steps:
+  - name: run-consumer
+    imagePullPolicy: IfNotPresent
+    image: ghcr.io/ocurity/dracon/components/consumers/aws-s3/image:latest
+    command: ["/app/components/consumers/aws-s3/aws-s3"]
+    args:
+      - "-in"
+      - "$(workspaces.source-code-ws.path)/.dracon/enrichers/"
