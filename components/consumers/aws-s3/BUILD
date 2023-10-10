@@ -12,6 +12,7 @@ go_binary(
         "//api/proto/v1",
         "//components/consumers",
         "//pkg/enumtransformers",
+        "//third_party/go/github.com/aws/aws-sdk-go",
     ],
 )
 

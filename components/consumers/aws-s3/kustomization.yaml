@@ -16,9 +16,9 @@ patches:
         workspaces:
           - name: source-code-ws
         tasks:
-          - name: consumer-stdout-json
+          - name: consumer-aws-s3
             taskRef:
-              name: consumer-stdout-json
+              name: consumer-aws-s3
             workspaces:
               - name: source-code-ws
                 workspace: source-code-ws
@@ -29,7 +29,7 @@ patches:
       apiVersion: tekton.dev/v1beta1
       kind: Task
       metadata:
-        name: consumer-stdout-json
+        name: consumer-aws-s3
         labels:
           v1.dracon.ocurity.com/component: consumer
       spec:
@@ -47,7 +47,7 @@ patches:
             script: echo "$(context.task.name)" > "$(results.anchor.path)"
     target:
       kind: Task
-      name: consumer-stdout-json
+      name: consumer-aws-s3
   # If we have an enricher-aggregator task in the pipeline (added by the
   # enricher-aggregator component), make the consumer depend on the completion of
   # it.
@@ -58,7 +58,7 @@ patches:
         name: unused
       spec:
         tasks:
-          - name: consumer-stdout-json
+          - name: consumer-aws-s3
             params:
               - name: anchors
                 value:
