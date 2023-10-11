@@ -1,3 +1,4 @@
+// Package main of the dependency track consumer puts dracon issues into the target dependency track
 package main
 
 import (

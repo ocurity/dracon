@@ -1,3 +1,4 @@
+// Package main of the eslint-wrapper just executes eslint with the parameters provided also using the mandatory default params for dracon to work
 package main
 
 import (

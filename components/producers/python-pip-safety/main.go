@@ -1,3 +1,4 @@
+// Package main of the pip-safety producer transforms safety json output to dracon issues
 package main
 
 import (

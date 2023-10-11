@@ -1,3 +1,4 @@
+// Package main of the mongodb consumer puts dracon issues into the target mongodb
 package main
 
 import (

@@ -1,3 +1,4 @@
+// Package db has persistence and migration methods for Dracon components that require a state
 package db
 
 import (
@@ -22,7 +23,7 @@ import (
 
 // migrationsFS holds the SQL migration files as static assets.
 //
-//nolint:typecheck
+// nolint:typecheck staticcheck vet
 //go:embed *.sql
 var migrationsFS embed.FS
 

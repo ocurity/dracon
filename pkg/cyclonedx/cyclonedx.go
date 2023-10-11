@@ -1,3 +1,4 @@
+// Package cyclonedx provides utilities for transforming CycloneDX documents to and from Dracon issues
 package cyclonedx
 
 import (

@@ -1,3 +1,4 @@
+// Package jira holds Jira API utilities, used to get data in/out of the target jira instance
 package jira
 
 import (

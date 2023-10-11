@@ -1,3 +1,4 @@
+// Package main of findsecbugs component transforms findsecbugs xml output to dracon issues
 package main
 
 import (

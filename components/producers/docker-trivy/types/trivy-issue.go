@@ -1,3 +1,4 @@
+// Package types represents trivy json output
 package types
 
 // CombinedOut represents the output of multiple Trivy runs (useful when using the Trivy Dracon tool to scan multiple images); the key is the name of the image file that was scanned.

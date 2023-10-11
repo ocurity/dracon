@@ -1,3 +1,4 @@
+// Package main of the dependency source takes a supported PURL type and transforms it to the relevant ecosystem's package manager file to be scanned by one of Dracon's components
 package main
 
 import (

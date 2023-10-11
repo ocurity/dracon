@@ -1,3 +1,4 @@
+// Package main of the ensure_hashes internal tool connects to the target enrichment db and ensures that specific issue hashes are present
 package main
 
 import (

@@ -1,3 +1,4 @@
+// Package main of the enricher aggregator gathers all instances of each issue enriched by potentially multiple enrichers and aggregtes the information back into a single issue
 package main
 
 import (

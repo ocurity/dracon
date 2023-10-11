@@ -1,3 +1,4 @@
+// Package main of the deduplication enricher tabs issues as duplicates
 package main
 
 import (

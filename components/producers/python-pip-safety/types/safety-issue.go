@@ -1,3 +1,4 @@
+// Package types holds the structure of a pipsafety issue in json
 package types
 
 // Vulnerability describes a pip safety vulnerability entry.

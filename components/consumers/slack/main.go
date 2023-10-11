@@ -1,3 +1,4 @@
+// Package main of the slack consumer puts dracon issues or dracon run summary into slack
 package main
 
 import (

@@ -1,3 +1,4 @@
+// Package main of the elasticsearch component runs a binary that puts dracon data into elasticsearch
 package main
 
 import (

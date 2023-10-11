@@ -1,3 +1,4 @@
+// Package enrichment adds deduplication information to a dracon issue, this is legacy functionality to be moved into the deduplication enricher during our next major release
 package enrichment
 
 import (
