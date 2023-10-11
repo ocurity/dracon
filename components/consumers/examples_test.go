@@ -2,8 +2,6 @@ package consumers
 
 import (
 	"log"
-
-	"github.com/golang/protobuf/ptypes"
 )
 
 func ExampleParseFlags() {
@@ -18,7 +16,7 @@ func ExampleLoadToolResponse() {
 		log.Fatal(err)
 	}
 	for _, res := range responses {
-		scanStartTime, _ := ptypes.Timestamp(res.GetScanInfo().GetScanStartTime())
+		scanStartTime := res.GetScanInfo().GetScanStartTime()
 		_ = scanStartTime
 		for _, iss := range res.GetIssues() {
 			// Do your own logic with issues here
@@ -33,7 +31,7 @@ func ExampleLoadEnrichedToolResponse() {
 		log.Fatal(err)
 	}
 	for _, res := range responses {
-		scanStartTime, _ := ptypes.Timestamp(res.GetOriginalResults().GetScanInfo().GetScanStartTime())
+		scanStartTime := res.GetOriginalResults().GetScanInfo().GetScanStartTime()
 		_ = scanStartTime
 		for _, iss := range res.GetIssues() {
 			// Do your own logic with issues here

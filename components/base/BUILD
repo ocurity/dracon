@@ -1,5 +1,7 @@
 subinclude("///k8s//build/defs:k8s")
 
+subinclude("///shell//build_defs:shell")
+
 kustomized_config(
     name = "k8s",
     srcs = [

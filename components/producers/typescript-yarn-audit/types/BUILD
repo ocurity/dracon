@@ -1,3 +1,5 @@
+subinclude("///go//build_defs:go")
+
 go_library(
     name = "types",
     srcs = [
@@ -17,8 +19,8 @@ go_test(
     ],
     deps = [
         ":types",
+        "///third_party/go/github.com_stretchr_testify//assert",
         "//api/proto/v1",
         "//components/producers",
-        "//third_party/go/github.com/stretchr/testify",
     ],
 )

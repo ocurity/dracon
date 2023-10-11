@@ -1,3 +1,5 @@
+subinclude("///go//build_defs:go")
+
 subinclude(
     "//build/defs:buildkit",
     "///k8s//build/defs:k8s",
@@ -11,12 +13,12 @@ go_binary(
     ],
     static = True,
     deps = [
+        "///third_party/go/github.com_spf13_cobra//:cobra",
+        "///third_party/go/github.com_spf13_viper//:viper",
         "//api/proto/v1",
         "//pkg/enrichment",
         "//pkg/enrichment/db",
         "//pkg/putil",
-        "//third_party/go/github.com/spf13/cobra",
-        "//third_party/go/github.com/spf13/viper",
     ],
 )
 

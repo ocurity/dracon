@@ -1,3 +1,5 @@
+subinclude("///go//build_defs:go")
+
 go_library(
     name = "cyclonedx",
     srcs = [
@@ -5,8 +7,8 @@ go_library(
     ],
     visibility = ["PUBLIC"],
     deps = [
+        "///third_party/go/github.com_CycloneDX_cyclonedx-go//:cyclonedx-go",
         "//api/proto/v1",
-        "//third_party/go/github.com/CycloneDX/cyclonedx-go",
     ],
 )
 
@@ -17,8 +19,8 @@ go_test(
         "cyclonedx_test.go",
     ],
     deps = [
+        "///third_party/go/github.com_CycloneDX_cyclonedx-go//:cyclonedx-go",
+        "///third_party/go/github.com_stretchr_testify//assert",
         "//api/proto/v1",
-        "//third_party/go/github.com/CycloneDX/cyclonedx-go",
-        "//third_party/go/github.com/stretchr/testify",
     ],
 )

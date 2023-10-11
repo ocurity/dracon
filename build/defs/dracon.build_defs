@@ -23,7 +23,7 @@ def dracon_component(
             --out "$OUTS"
         """,
         labels = ["codegen"],
-        tools = ["//build/tools/kustomize-component-generator"],
+        tools = [CONFIG.KUSTOMIZE_COMPONENT_GENERATOR],
     )
 
     kustomized_config(

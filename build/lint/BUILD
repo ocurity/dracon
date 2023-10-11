@@ -37,16 +37,7 @@ sh_script(
     main = "gofumpt.sh",
     visibility = ["PUBLIC"],
     deps = [
-        "//third_party/go/mvdan.cc/gofumpt",
-    ],
-)
-
-sh_script(
-    name = "golangci-lint",
-    main = "golangci-lint.sh",
-    visibility = ["PUBLIC"],
-    deps = [
-        "//build/util:golangci-lint",
+        "//third_party/go:mvdan.cc_gofumpt",
     ],
 )
 

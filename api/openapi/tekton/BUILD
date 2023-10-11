@@ -1,3 +1,5 @@
+subinclude("///shell//build_defs:shell")
+
 genrule(
     name = "openapi_schema",
     srcs = ["//third_party/k8s/tektoncd/pipeline:v1beta1_swagger"],

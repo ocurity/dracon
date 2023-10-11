@@ -1,3 +1,5 @@
+subinclude("///go//build_defs:go")
+
 subinclude(
     "//build/defs:dracon",
     "//build/defs:buildkit",
@@ -21,9 +23,9 @@ go_test(
         "main_test.go",
     ],
     deps = [
+        "///third_party/go/github.com_stretchr_testify//assert",
         "//api/proto/v1",
         "//components/producers",
-        "//third_party/go/github.com/stretchr/testify",
     ],
 )
 

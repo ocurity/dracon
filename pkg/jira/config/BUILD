@@ -1,3 +1,5 @@
+subinclude("///go//build_defs:go")
+
 go_library(
     name = "config",
     srcs = [
@@ -16,6 +18,6 @@ go_test(
     ],
     deps = [
         ":config",
-        "//third_party/go/github.com/stretchr/testify",
+        "///third_party/go/github.com_stretchr_testify//assert",
     ],
 )

@@ -1,3 +1,5 @@
+subinclude("///go//build_defs:go")
+
 subinclude(
     "//build/defs:buildkit",
     "///k8s//build/defs:k8s",
@@ -23,10 +25,10 @@ go_test(
         "main_test.go",
     ],
     deps = [
+        "///third_party/go/github.com_stretchr_testify//assert",
         "//api/proto/v1",
         "//components/producers",
         "//components/producers/zaproxy/types",
-        "//third_party/go/github.com/stretchr/testify",
     ],
 )
 

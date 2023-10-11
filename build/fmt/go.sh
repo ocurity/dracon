@@ -4,7 +4,7 @@ set -Eeuo pipefail
 
 source "//build/util"
 
-GOFUMPT="//third_party/go/mvdan.cc/gofumpt"
+GOFUMPT="//third_party/go:mvdan.cc_gofumpt"
 GO_ROOT="//third_party/go:toolchain"
 
 util::info "formatting go files"
