@@ -22,7 +22,6 @@ var (
 func main() {
 	flag.StringVar(&bucket, "bucket", "", "s3 bucket name")
 	flag.StringVar(&region, "region", "", "s3 bucket region")
-
 	if err := consumers.ParseFlags(); err != nil {
 		log.Fatal(err)
 	}
@@ -50,10 +49,11 @@ func main() {
 		sendToS3(filename, bucket, region, s3Data)
 	}
 }
-func sendToS3(filename, bucket, region string, data []byte) {
 
+func sendToS3(filename, bucket, region string, data []byte) {
 	sess, err := session.NewSession(&aws.Config{
-		Region: aws.String(region)},
+		Region: aws.String(region),
+	},
 	)
 	uploader := s3manager.NewUploader(sess)
 	_, err = uploader.Upload(&s3manager.UploadInput{

@@ -22,6 +22,24 @@ patches:
             workspaces:
               - name: source-code-ws
                 workspace: source-code-ws
+            params:
+              - name: consumer-aws-s3-access-key-id
+                value: $(params.consumer-aws-s3-access-key-id)
+              - name: consumer-aws-s3-secret-access-key
+                value: $(params.consumer-aws-s3-secret-access-key)
+              - name: consumer-aws-s3-bucket-name
+                value: $(params.consumer-aws-s3-bucket-name)
+              - name: consumer-aws-s3-bucket-region
+                value: $(params.consumer-aws-s3-bucket-region)
+        params:
+          - name: consumer-aws-s3-access-key-id
+            type: string
+          - name: consumer-aws-s3-secret-access-key
+            type: string
+          - name: consumer-aws-s3-bucket-name
+            type: string
+          - name: consumer-aws-s3-bucket-region
+            type: string
     target:
       kind: Pipeline
   # Add anchors to Task.
