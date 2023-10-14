@@ -1,3 +1,9 @@
+// Package main of the aws-s3 consumer implements a simple consumer for
+// uploading dracon results to the S3 bucket passed as an argument
+// the consumer expects the environment variables
+// AWS_ACCESS_KEY_ID
+// AWS_SECRET_ACCESS_KEY
+// to be set
 package main
 
 import (
@@ -58,6 +64,9 @@ func sendToS3(filename, bucket, region string, data []byte) {
 		Region: aws.String(region),
 	},
 	)
+	if err != nil {
+		log.Fatalf("Unable to acquire AWS session in region %s, check your credentials", region)
+	}
 	uploader := s3manager.NewUploader(sess)
 	_, err = uploader.Upload(&s3manager.UploadInput{
 		Bucket: aws.String(bucket),
