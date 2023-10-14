@@ -8,6 +8,7 @@ require (
 	github.com/DependencyTrack/client-go v0.8.0
 	github.com/andygrunwald/go-jira v1.15.1
 	github.com/avast/retry-go/v4 v4.3.3
+	github.com/aws/aws-sdk-go v1.17.7
 	github.com/elastic/go-elasticsearch/v8 v8.3.0
 	github.com/golang-migrate/migrate/v4 v4.15.1
 	github.com/golang/protobuf v1.5.2
@@ -44,6 +45,7 @@ require (
 	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.2.3 // indirect
 	github.com/googleapis/gax-go/v2 v2.7.1 // indirect
+	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/klauspost/asmfmt v1.3.2 // indirect
 	github.com/klauspost/compress v1.15.9 // indirect
 	github.com/klauspost/cpuid/v2 v2.0.9 // indirect
