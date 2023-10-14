@@ -13,6 +13,15 @@ spec:
   - name: producer-cdxgen-fetch-license
     type: string
     default: "false"
+  - name: producer-cdxgen-github-token
+    type: string
+    default: ""
+  - name: cdxgen-astgen-ignore-file-pattern
+    type: string
+    default: ""
+  - name: cdxgen-astgen-ignore-dirs
+    type: string
+    default: ""
   volumes:
     - name: scratch
       emptyDir: {}
@@ -24,10 +33,17 @@ spec:
     image: ghcr.io/cyclonedx/cdxgen:v9.8.10
     env:
       - name: FETCH_LICENSE
-        value: $(params.cdxgen-fetch-license)
+        value: $(params.producer-cdxgen-fetch-license)
+      - name: GITHUB_TOKEN
+        value: $(params.producer-cdxgen-github-token)
+      - name: ASTGEN_IGNORE_FILE_PATTERN
+        value: $(params.producer-cdxgen-astgen-ignore-file-pattern)
+      - name: ASTGEN_IGNORE_DIRS
+        value: $(params.producer-cdxgen-astgen-ignore-dirs)
     command: ["node", "/opt/cdxgen/bin/cdxgen.js"]
     args:
-    - "$(params.producer-docker-trivy-flags[*])"
+    - "$(params.producer-cdxgen-flags[*])"
+    - --spec-version 1.4
     - -r
     - -p
     - -o
