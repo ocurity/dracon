@@ -1,0 +1,49 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: producer-cdxgen
+  labels:
+    v1.dracon.ocurity.com/component: producer
+spec:
+  params:
+  - name: producer-cdxgen-flags
+    type: array
+    default: []
+  - name: producer-cdxgen-fetch-license
+    type: string
+    default: "false"
+  volumes:
+    - name: scratch
+      emptyDir: {}
+  workspaces:
+    - name: source-code-ws
+      description: The workspace containing the source-code to scan.
+  steps:
+  - name: run-cdxgen
+    image: ghcr.io/cyclonedx/cdxgen:v9.8.10
+    env:
+      - name: FETCH_LICENSE
+        value: $(params.cdxgen-fetch-license)
+    command: ["node", "/opt/cdxgen/bin/cdxgen.js"]
+    args:
+    - "$(params.producer-docker-trivy-flags[*])"
+    - -r
+    - -p
+    - -o
+    - /scratch/out.json
+    - $(workspaces.source-code-ws.path)/
+    volumeMounts:
+    - mountPath: /scratch
+      name: scratch
+
+  - name: produce-issues
+    imagePullPolicy: IfNotPresent
+    image: ghcr.io/ocurity/dracon/components/producers/cdxgen/image:latest
+    command: ["app/components/producers/cdxgen/cdxgen-parser"]
+    args:
+    - "-in=/scratch/out.json"
+    - "-out=$(workspaces.source-code-ws.path)/.dracon/producers/cdxgen.pb"
+    volumeMounts:
+    - mountPath: /scratch
+      name: scratch
