@@ -53,6 +53,7 @@ func main() {
 func sendToS3(filename, bucket, region string, data []byte) {
 func sendToS3(filename, bucket, region string, data []byte) {
 func sendToS3(filename, bucket, region string, data []byte) {
+func sendToS3(filename, bucket, region string, data []byte) {
 	sess, err := session.NewSession(&aws.Config{
 		Region: aws.String(region),
 	},
