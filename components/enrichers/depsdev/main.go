@@ -26,6 +26,7 @@ var (
 	writePath          string
 	depsdevBaseURL     = "https://deps.dev"
 	licensesInEvidence string
+	scoreCardInfo      string
 	annotation         string
 )
 
@@ -96,38 +97,65 @@ func lookupEnvOrString(key string, defaultVal string) string {
 	return defaultVal
 }
 
-func makeURL(component cdx.Component) (string, error) {
+func makeURL(component cdx.Component, api bool) (string, error) {
 	instance, err := packageurl.FromString(component.PackageURL)
 	if err != nil {
 		return "", err
 	}
-	baseURL := fmt.Sprintf("%s/_/s", depsdevBaseURL)
+	ecosystem := ""
 	version := url.QueryEscape(component.Version)
 	switch instance.Type {
 	case packageurl.TypeGolang:
-		baseURL += "/go"
+		ecosystem += "/go"
 		version = "v" + version
 	case packageurl.TypePyPi:
-		baseURL += "/pypi"
+		ecosystem += "/pypi"
 	case packageurl.TypeMaven:
-		baseURL += "/maven"
+		ecosystem += "/maven"
 	// case packageurl.TypeCargo:
-	// 	baseURL += "/cargo"
+	// 	ecosystem += "/cargo"
 	case packageurl.TypeNPM:
-		baseURL += "/npm"
+		ecosystem += "/npm"
 	case packageurl.TypeNuget:
-		baseURL += "/nuget"
+		ecosystem += "/nuget"
 	default:
 		log.Println(instance.Namespace, "not supported by this enricher")
 	}
-	baseURL += fmt.Sprintf("/p/%s/v/%s", url.QueryEscape(component.Name), version)
-	return baseURL, nil
+	resultURL := ""
+	if api {
+		resultURL = fmt.Sprintf("%s/_/s%s/p/%s/v/%s", depsdevBaseURL, ecosystem, url.QueryEscape(component.Name), version)
+	} else {
+		resultURL = fmt.Sprintf("%s/%s/p/%s/v/%s", depsdevBaseURL, ecosystem, url.QueryEscape(component.Name), version)
+	}
+	return resultURL, nil
+}
+func addDepsDevLink(component cdx.Component) (cdx.Component, error) {
+	url, err := makeURL(component, false)
+	if err != nil {
+		return component, err
+	}
+	log.Println("url is", url)
+
+	depsDevRef := cdx.ExternalReference{
+		Type: cdx.ERTypeOther,
+		URL:  url,
+	}
+
+	if component.ExternalReferences != nil && len(*component.ExternalReferences) > 0 {
+		refs := append(*component.ExternalReferences, depsDevRef)
+		component.ExternalReferences = &refs
+	} else {
+		refs := []cdx.ExternalReference{depsDevRef}
+		component.ExternalReferences = &refs
+	}
+
+	return component, nil
 }
 
-func addLicenses(component cdx.Component, annotations map[string]string) (cdx.Component, map[string]string, error) {
+func addDepsDevInfo(component cdx.Component, annotations map[string]string) (cdx.Component, map[string]string, error) {
 	var depsResp Response
 	licenses := cdx.Licenses{}
-	url, err := makeURL(component)
+	url, err := makeURL(component, true)
 	if err != nil {
 		return component, annotations, err
 	}
@@ -142,14 +170,37 @@ func addLicenses(component cdx.Component, annotations map[string]string) (cdx.Co
 	}
 	if len(depsResp.Version.Licenses) == 0 {
 		log.Println("could not find license for component", component.Name)
-		// log.Println(resp.Header, resp.StatusCode, depsResp)
 	}
+
 	for _, lic := range depsResp.Version.Licenses {
 		licenseName := cdx.License{
 			Name: lic,
 		}
 		licenses = append(licenses, cdx.LicenseChoice{License: &licenseName})
 		log.Println("found license", lic, "for component", component.Name)
+	}
+	if scoreCardInfo == "true" {
+		for _, project := range depsResp.Version.Projects {
+			if project.ScorecardV2.Date != "" && len(project.ScorecardV2.Check) != 0 && project.ScorecardV2.Score >= 0 {
+				scoreCardInfo, err := json.MarshalIndent(project.ScorecardV2, "", "\t")
+				if err != nil {
+					log.Println("could not marshal score card information, err:", err)
+					continue
+				}
+				properties := []cdx.Property{
+					{
+						Name:  "ScorecardScore",
+						Value: fmt.Sprintf("%f", project.ScorecardV2.Score),
+					},
+					{
+						Name:  "ScorecardInfo",
+						Value: string(scoreCardInfo),
+					},
+				}
+				props := append(*component.Properties, properties...)
+				component.Properties = &props
+			}
+		}
 	}
 	if licensesInEvidence == "true" {
 		evid := cdx.Evidence{
@@ -181,13 +232,18 @@ func enrichIssue(i *v1.Issue) (*v1.EnrichedIssue, error) {
 	for index, component := range *bom.Components {
 		if component.Type == cdx.ComponentTypeLibrary {
 			if component.Licenses == nil {
-				(*bom.Components)[index], annotations, err = addLicenses(component, annotations)
+				(*bom.Components)[index], annotations, err = addDepsDevInfo(component, annotations)
+				if err != nil {
+					log.Println(err)
+					continue
+				}
+				(*bom.Components)[index], err = addDepsDevLink(component)
 				if err != nil {
 					log.Println(err)
 					continue
 				}
 			}
-			// TODO(): enrich with vulnerability and scorecard info whenever a consumer supports showing arbitrary properties in components
+			// TODO(): enrich with vulnerability info whenever a consumer supports showing arbitrary properties in components
 		}
 	}
 
@@ -254,6 +310,7 @@ func main() {
 	flag.StringVar(&readPath, "read_path", lookupEnvOrString("READ_PATH", ""), "where to find producer results")
 	flag.StringVar(&writePath, "write_path", lookupEnvOrString("WRITE_PATH", ""), "where to put enriched results")
 	flag.StringVar(&annotation, "annotation", lookupEnvOrString("ANNOTATION", defaultAnnotation), "what is the annotation this enricher will add to the issues, by default `Enriched Licenses`")
+	flag.StringVar(&scoreCardInfo, "scoreCardInfo", lookupEnvOrString("SCORECARD_INFO", "false"), "add security score card scan results from deps.dev to the components of the SBOM as properties")
 	flag.StringVar(&licensesInEvidence, "licensesInEvidence", lookupEnvOrString("LICENSES_IN_EVIDENCE", ""),
 		`If this flag is provided and set to "true", the enricher will populate the 'evidence' CycloneDX field with license information instead of the license field.
 	This means that the result conforms to the CycloneDX intention of providing accurate information when licensing information cannot be guaranteed to be accurate.
