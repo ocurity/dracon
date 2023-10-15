@@ -48,6 +48,12 @@ func main() {
 }
 
 func getRawIssue(scanStartTime time.Time, res *v1.LaunchToolResponse, iss *v1.Issue) ([]byte, error) {
+	var sbom map[string]interface{}
+	if iss.GetCycloneDXSBOM() != "" {
+		if err := json.Unmarshal([]byte(iss.GetCycloneDXSBOM()), &sbom); err != nil {
+			log.Fatalf("error unmarshaling cyclonedx sbom, err:%s", err)
+		}
+	}
 	jBytes, err := json.Marshal(&draconDocument{
 		ScanStartTime: scanStartTime,
 		ScanID:        res.GetScanInfo().GetScanUuid(),
@@ -64,6 +70,7 @@ func getRawIssue(scanStartTime time.Time, res *v1.LaunchToolResponse, iss *v1.Is
 		Count:         1,
 		FalsePositive: false,
 		CVE:           iss.GetCve(),
+		CycloneDXSBOM: sbom,
 	})
 	if err != nil {
 		return []byte{}, err
@@ -72,6 +79,12 @@ func getRawIssue(scanStartTime time.Time, res *v1.LaunchToolResponse, iss *v1.Is
 }
 
 func getEnrichedIssue(scanStartTime time.Time, res *v1.EnrichedLaunchToolResponse, iss *v1.EnrichedIssue) ([]byte, error) {
+	var sbom map[string]interface{}
+	if iss.GetRawIssue().GetCycloneDXSBOM() != "" {
+		if err := json.Unmarshal([]byte(iss.GetRawIssue().GetCycloneDXSBOM()), &sbom); err != nil {
+			log.Fatalf("error unmarshaling cyclonedx sbom, err:%s", err)
+		}
+	}
 	firstSeenTime := iss.GetFirstSeen().AsTime()
 	jBytes, err := json.Marshal(&draconDocument{
 		ScanStartTime:  scanStartTime,
@@ -91,6 +104,7 @@ func getEnrichedIssue(scanStartTime time.Time, res *v1.EnrichedLaunchToolRespons
 		SeverityText:   enumtransformers.SeverityToText(iss.GetRawIssue().GetSeverity()),
 		ConfidenceText: enumtransformers.ConfidenceToText(iss.GetRawIssue().GetConfidence()),
 		CVE:            iss.GetRawIssue().GetCve(),
+		CycloneDXSBOM:  sbom,
 	})
 	if err != nil {
 		return []byte{}, err
@@ -99,21 +113,22 @@ func getEnrichedIssue(scanStartTime time.Time, res *v1.EnrichedLaunchToolRespons
 }
 
 type draconDocument struct {
-	ScanStartTime  time.Time     `json:"scan_start_time"`
-	ScanID         string        `json:"scan_id"`
-	ToolName       string        `json:"tool_name"`
-	Source         string        `json:"source"`
-	Target         string        `json:"target"`
-	Type           string        `json:"type"`
-	Title          string        `json:"title"`
-	Severity       v1.Severity   `json:"severity"`
-	SeverityText   string        `json:"severity_text"`
-	CVSS           float64       `json:"cvss"`
-	Confidence     v1.Confidence `json:"confidence"`
-	ConfidenceText string        `json:"confidence_text"`
-	Description    string        `json:"description"`
-	FirstFound     time.Time     `json:"first_found"`
-	Count          uint64        `json:"count"`
-	FalsePositive  bool          `json:"false_positive"`
-	CVE            string        `json:"cve"`
+	ScanStartTime  time.Time              `json:"scan_start_time"`
+	ScanID         string                 `json:"scan_id"`
+	ToolName       string                 `json:"tool_name"`
+	Source         string                 `json:"source"`
+	Target         string                 `json:"target"`
+	Type           string                 `json:"type"`
+	Title          string                 `json:"title"`
+	Severity       v1.Severity            `json:"severity"`
+	SeverityText   string                 `json:"severity_text"`
+	CVSS           float64                `json:"cvss"`
+	Confidence     v1.Confidence          `json:"confidence"`
+	ConfidenceText string                 `json:"confidence_text"`
+	Description    string                 `json:"description"`
+	FirstFound     time.Time              `json:"first_found"`
+	Count          uint64                 `json:"count"`
+	FalsePositive  bool                   `json:"false_positive"`
+	CVE            string                 `json:"cve"`
+	CycloneDXSBOM  map[string]interface{} `json:"CycloneDX_SBOM"`
 }
