@@ -1,0 +1,34 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: enricher-codeowners
+  labels:
+    v1.dracon.ocurity.com/component: enricher
+spec:
+  params:
+  - name: enricher-codeowners-annotation
+    type: string
+    default: ""
+
+  workspaces:
+    - name: source-code-ws
+      description: The workspace containing the source-code to scan.
+  steps:
+  - name: run-enricher
+    imagePullPolicy: IfNotPresent
+    image: ghcr.io/ocurity/dracon/components/enrichers/codeowners/image:latest
+    command: ["app/components/enrichers/codeowners/codeowners"]
+    env:
+    - name: READ_PATH
+      value: $(workspaces.source-code-ws.path)/.dracon/producers
+    - name: WRITE_PATH
+      value: "$(workspaces.source-code-ws.path)/.dracon/enrichers/codeowners"
+    - name: ORIGINAL_REPOSITORY_URL
+      value: "$(params.repository_url)"
+    - name: REPO_BASE_PATH
+      value: "$(workspaces.source-code-ws.path)/"
+    - name: REPO_SPARSE_CHECKOUT
+      value: "$(params.sparseCheckoutDirectories)/"
+    - name: ANNOTATION
+      value: "$(params.enricher-codeowners-annotation)"
