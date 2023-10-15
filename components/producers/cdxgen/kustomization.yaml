@@ -28,6 +28,12 @@ patches:
                   - $(params.producer-cdxgen-flags)
               - name: producer-cdxgen-fetch-license
                 value: $(params.producer-cdxgen-fetch-license)
+              - name: producer-cdxgen-github-token
+                value: $(params.producer-cdxgen-github-token)
+              - name: producer-cdxgen-astgen-ignore-file-pattern
+                value: $(params.producer-cdxgen-astgen-ignore-file-pattern)
+              - name: producer-cdxgen-astgen-ignore-dirs
+                value: $(params.producer-cdxgen-astgen-ignore-dirs)
         params:
           - name: producer-cdxgen-flags
             type: array
@@ -35,6 +41,15 @@ patches:
           - name: producer-cdxgen-fetch-license
             type: string
             default: "false"
+          - name: producer-cdxgen-github-token
+            type: string
+            default: ""
+          - name: producer-cdxgen-astgen-ignore-file-pattern
+            type: string
+            default: ""
+          - name: producer-cdxgen-astgen-ignore-dirs
+            type: string
+            default: ""
     target:
       kind: Pipeline
   # Add anchors to Task.
@@ -113,9 +128,16 @@ patches:
         steps:
           - name: run-cdxgen
             image: ghcr.io/cyclonedx/cdxgen:v9.8.10
+            script: node /opt/cdxgen/bin/cdxgen.js -r -p -o /scratch/out.json $(workspaces.source-code-ws.path)/ --spec-version 1.4
             env:
               - name: FETCH_LICENSE
-                value: $(params.cdxgen-fetch-license)
+                value: $(params.producer-cdxgen-fetch-license)
+              - name: GITHUB_TOKEN
+                value: $(params.producer-cdxgen-github-token)
+              - name: ASTGEN_IGNORE_FILE_PATTERN
+                value: $(params.producer-cdxgen-astgen-ignore-file-pattern)
+              - name: ASTGEN_IGNORE_DIRS
+                value: $(params.producer-cdxgen-astgen-ignore-dirs)
               - name: DRACON_SCAN_TIME
                 value: $(params.dracon_scan_start_time)
               - name: DRACON_SCAN_ID
