@@ -79,7 +79,6 @@ func getRawIssue(scanStartTime time.Time, res *v1.LaunchToolResponse, iss *v1.Is
 }
 
 func getEnrichedIssue(scanStartTime time.Time, res *v1.EnrichedLaunchToolResponse, iss *v1.EnrichedIssue) ([]byte, error) {
-
 	var sbom map[string]interface{}
 	if iss.GetRawIssue().GetCycloneDXSBOM() != "" {
 		if err := json.Unmarshal([]byte(iss.GetRawIssue().GetCycloneDXSBOM()), &sbom); err != nil {
