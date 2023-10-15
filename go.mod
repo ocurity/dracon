@@ -13,13 +13,14 @@ require (
 	github.com/golang-migrate/migrate/v4 v4.15.1
 	github.com/golang/protobuf v1.5.2
 	github.com/google/uuid v1.3.0
+	github.com/hairyhenderson/go-codeowners v0.4.0
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/lib/pq v1.10.5
 	github.com/owenrumney/go-sarif/v2 v2.1.2
 	github.com/package-url/packageurl-go v0.1.0
 	github.com/spf13/cobra v1.4.0
 	github.com/spf13/viper v1.11.0
-	github.com/stretchr/testify v1.8.1
+	github.com/stretchr/testify v1.8.4
 	github.com/trivago/tgo v1.0.7
 	go.mongodb.org/mongo-driver v1.10.0
 	golang.org/x/crypto v0.0.0-20220622213112-05595931fe9d

@@ -129,6 +129,7 @@ func makeURL(component cdx.Component, api bool) (string, error) {
 	}
 	return resultURL, nil
 }
+
 func addDepsDevLink(component cdx.Component) (cdx.Component, error) {
 	url, err := makeURL(component, false)
 	if err != nil {
