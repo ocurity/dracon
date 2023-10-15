@@ -79,6 +79,7 @@ func getRawIssue(scanStartTime time.Time, res *v1.LaunchToolResponse, iss *v1.Is
 }
 
 func getEnrichedIssue(scanStartTime time.Time, res *v1.EnrichedLaunchToolResponse, iss *v1.EnrichedIssue) ([]byte, error) {
+
 	var sbom map[string]interface{}
 	if iss.GetRawIssue().GetCycloneDXSBOM() != "" {
 		if err := json.Unmarshal([]byte(iss.GetRawIssue().GetCycloneDXSBOM()), &sbom); err != nil {
@@ -105,6 +106,7 @@ func getEnrichedIssue(scanStartTime time.Time, res *v1.EnrichedLaunchToolRespons
 		ConfidenceText: enumtransformers.ConfidenceToText(iss.GetRawIssue().GetConfidence()),
 		CVE:            iss.GetRawIssue().GetCve(),
 		CycloneDXSBOM:  sbom,
+		Annotations:    iss.GetAnnotations(),
 	})
 	if err != nil {
 		return []byte{}, err
@@ -131,4 +133,5 @@ type draconDocument struct {
 	FalsePositive  bool                   `json:"false_positive"`
 	CVE            string                 `json:"cve"`
 	CycloneDXSBOM  map[string]interface{} `json:"CycloneDX_SBOM"`
+	Annotations    map[string]string      `json:"annotations"`
 }
