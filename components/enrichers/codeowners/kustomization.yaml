@@ -16,22 +16,17 @@ patches:
         workspaces:
           - name: source-code-ws
         tasks:
-          - name: enricher-depsdev
+          - name: enricher-codeowners
             taskRef:
-              name: enricher-depsdev
+              name: enricher-codeowners
             workspaces:
               - name: source-code-ws
                 workspace: source-code-ws
             params:
-              - name: enricher-depsdev-licenses-in-evidence
-                value: $(params.enricher-depsdev-licenses-in-evidence)
-              - name: enricher-depsdev-annotation
-                value: $(params.enricher-depsdev-annotation)
+              - name: enricher-codeowners-annotation
+                value: $(params.enricher-codeowners-annotation)
         params:
-          - name: enricher-depsdev-licenses-in-evidence
-            type: string
-            default: "false"
-          - name: enricher-depsdev-annotation
+          - name: enricher-codeowners-annotation
             type: string
             default: ""
     target:
@@ -41,7 +36,7 @@ patches:
       apiVersion: tekton.dev/v1beta1
       kind: Task
       metadata:
-        name: enricher-depsdev
+        name: enricher-codeowners
         labels:
           v1.dracon.ocurity.com/component: enricher
       spec:
@@ -59,7 +54,7 @@ patches:
             script: echo "$(context.task.name)" > "$(results.anchor.path)"
     target:
       kind: Task
-      name: enricher-depsdev
+      name: enricher-codeowners
   # If we have an producer-aggregator task in the pipeline (added by the
   # producer-aggregator component), make the enricher depend on the completion of
   # it.
@@ -70,7 +65,7 @@ patches:
         name: unused
       spec:
         tasks:
-          - name: enricher-depsdev
+          - name: enricher-codeowners
             params:
               - name: anchors
                 value:
@@ -92,7 +87,7 @@ patches:
             params:
               - name: anchors
                 value:
-                  - $(tasks.enricher-depsdev.results.anchor)
+                  - $(tasks.enricher-codeowners.results.anchor)
     target:
       kind: Pipeline
       annotationSelector: v1.dracon.ocurity.com/has-enricher-aggregator=true

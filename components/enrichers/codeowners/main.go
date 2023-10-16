@@ -1,3 +1,8 @@
+// Package main of the codeowners enricher
+// handles enrichment of individual issues with
+// the groups/usernames listed in the github repository
+// CODEOWNERS files.
+// Owners are matched against the "target" field of the issue
 package main
 
 import (
@@ -17,12 +22,10 @@ import (
 const defaultAnnotation = "Owner"
 
 var (
-	readPath       string
-	writePath      string
-	repoBasePath   string
-	repoURL        string
-	sparseCheckout string
-	annotation     string
+	readPath     string
+	writePath    string
+	repoBasePath string
+	annotation   string
 )
 
 func lookupEnvOrString(key string, defaultVal string) string {
@@ -35,45 +38,32 @@ func lookupEnvOrString(key string, defaultVal string) string {
 func enrichIssue(i *v1.Issue) (*v1.EnrichedIssue, error) {
 	enrichedIssue := v1.EnrichedIssue{}
 	annotations := map[string]string{}
+	targets := []string{}
 	if i.GetCycloneDXSBOM() != "" {
-		annotationsAdded := 0
 		// shortcut, if there is a CycloneDX BOM then there is no target.
-		// we get the url from the repoURL parameter and add the sparse checkout directories to it.
-		targets := []string{}
-		if sparseCheckout != "" {
-			targets = strings.Split(sparseCheckout, ",")
-		} else {
-			targets = []string{"."}
-		}
-		for _, target := range targets {
-			path := filepath.Join(repoBasePath, target)
-			c, err := owners.FromFile()
-			if err != nil {
-				log.Println("could not instantiate owners for path", path, "err", err)
-				continue
-			}
-			owners := c.Owners(".")
-			for _, owner := range owners {
-				annotations[fmt.Sprintf("Owner-%d", annotationsAdded)] = owner
-				annotationsAdded++
-			}
-		}
+		// we get the url from the repoURL parameter
+		targets = []string{"."}
 	} else {
 		target := strings.Split(i.GetTarget(), ":")
-		annotationsAdded := 0
 		if len(target) > 1 {
-			c, err := owners.FromFile(filepath.Join(repoBasePath, target[0]))
-			path := filepath.Join(repoBasePath, target[0])
-			if err != nil {
-				log.Println("could not instantiate owners for path", path, "err", err)
-			}
-			owners := c.Owners(".")
-			for _, owner := range owners {
-				annotations[fmt.Sprintf("Owner-%d", annotationsAdded)] = owner
-				annotationsAdded++
-			}
+			targets = append(targets, target[0])
+		} else {
+			targets = append(targets, i.GetTarget())
 		}
 	}
+	for _, target := range targets {
+		path := filepath.Join(repoBasePath, target)
+		c, err := owners.FromFile(repoBasePath)
+		if err != nil {
+			log.Println("could not instantiate owners for path", path, "err", err)
+			continue
+		}
+		owners := c.Owners(path)
+		for _, owner := range owners {
+			annotations[fmt.Sprintf("Owner-%d", len(annotations))] = owner
+		}
+	}
+
 	enrichedIssue = v1.EnrichedIssue{
 		RawIssue:    i,
 		Annotations: annotations,
@@ -107,7 +97,7 @@ func run() {
 				log.Fatal(err)
 			}
 		} else {
-			log.Println("no enriched issues were created")
+			log.Println("no enriched issues were created for", r.GetToolName())
 		}
 		if len(r.GetIssues()) > 0 {
 			scanStartTime := r.GetScanInfo().GetScanStartTime().AsTime()
@@ -130,8 +120,6 @@ func main() {
 	flag.StringVar(&writePath, "write_path", lookupEnvOrString("WRITE_PATH", ""), "where to put enriched results")
 	flag.StringVar(&annotation, "annotation", lookupEnvOrString("ANNOTATION", defaultAnnotation), "what is the annotation this enricher will add to the issues, by default `Enriched Licenses`")
 	flag.StringVar(&repoBasePath, "repoBasePath", lookupEnvOrString("REPO_BASE_PATH", ""), `the base path of the repository, this is most likely an internally set variable`)
-	flag.StringVar(&repoURL, "repoURL", lookupEnvOrString("REPOSITORY_URL", ""), `the base path of the repository, this is most likely an internally set variable`)
-	flag.StringVar(&sparseCheckout, "sparseCheckout", lookupEnvOrString("REPO_SPARSE_CHECKOUT", ""), `the sparse checkout directories settings passed to this repository`)
 	flag.Parse()
 	run()
 }

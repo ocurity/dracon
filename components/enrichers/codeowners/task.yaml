@@ -24,11 +24,7 @@ spec:
       value: $(workspaces.source-code-ws.path)/.dracon/producers
     - name: WRITE_PATH
       value: "$(workspaces.source-code-ws.path)/.dracon/enrichers/codeowners"
-    - name: ORIGINAL_REPOSITORY_URL
-      value: "$(params.repository_url)"
     - name: REPO_BASE_PATH
       value: "$(workspaces.source-code-ws.path)/"
-    - name: REPO_SPARSE_CHECKOUT
-      value: "$(params.sparseCheckoutDirectories)/"
     - name: ANNOTATION
       value: "$(params.enricher-codeowners-annotation)"
