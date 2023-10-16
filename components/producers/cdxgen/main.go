@@ -1,3 +1,5 @@
+// Package main of the cdxgen producer parses the CycloneDX output of cdxgen and
+// create a singular Dracon issue from it
 package main
 
 import (
