@@ -289,7 +289,7 @@ func run() {
 				log.Fatal(err)
 			}
 		} else {
-			log.Println("no enriched issues were created")
+			log.Println("no enriched issues were created for", r.GetToolName())
 		}
 		if len(r.GetIssues()) > 0 {
 			scanStartTime := r.GetScanInfo().GetScanStartTime().AsTime()
