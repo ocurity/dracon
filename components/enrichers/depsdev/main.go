@@ -160,7 +160,6 @@ func addDepsDevLink(component cdx.Component) (cdx.Component, error) {
 
 	return component, nil
 }
-
 func addDepsDevInfo(component cdx.Component, annotations map[string]string) (cdx.Component, map[string]string, error) {
 	var depsResp Response
 	licenses := cdx.Licenses{}
@@ -254,7 +253,6 @@ func enrichIssue(i *v1.Issue) (*v1.EnrichedIssue, error) {
 				log.Println(err)
 				continue
 			}
-
 			// TODO(): enrich with vulnerability info whenever a consumer supports showing arbitrary properties in components
 		}
 		newComponents = append(newComponents, newComp)
