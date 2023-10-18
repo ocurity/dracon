@@ -33,6 +33,8 @@ patches:
                 value: $(params.consumer-dependency-track-token)
               - name: consumer-dependency-track-project-uuid
                 value: $(params.consumer-dependency-track-project-uuid)
+              - name: consumer-dependency-track-owner-annotation
+                value: $(params.consumer-dependency-track-owner-annotation)
         params:
           - name: consumer-dependency-track-api-url
             type: string
@@ -44,6 +46,9 @@ patches:
             type: string
           - name: consumer-dependency-track-project-uuid
             type: string
+          - name: consumer-dependency-track-owner-annotation
+            type: string
+            default: Owner
     target:
       kind: Pipeline
   # Add anchors to Task.

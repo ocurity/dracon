@@ -4,7 +4,9 @@ import (
 	"context"
 	"encoding/base64"
 	"flag"
+	"fmt"
 	"log"
+	"strings"
 
 	dtrack "github.com/DependencyTrack/client-go"
 	"github.com/google/uuid"
@@ -14,12 +16,13 @@ import (
 )
 
 var (
-	authURL        string
-	apiKey         string
-	projectName    string
-	projectVersion string
-	projectUUID    string
-	client         *dtrack.Client
+	authURL         string
+	apiKey          string
+	projectName     string
+	projectVersion  string
+	projectUUID     string
+	client          *dtrack.Client
+	ownerAnnotation string
 )
 
 func init() {
@@ -28,6 +31,7 @@ func init() {
 	flag.StringVar(&projectName, "projectName", "", "dependency track project name")
 	flag.StringVar(&projectUUID, "projectUUID", "", "dependency track project name")
 	flag.StringVar(&projectVersion, "projectVersion", "", "dependency track project version")
+	flag.StringVar(&ownerAnnotation, "ownerAnnotation", "", "if this consumer is in running after any enricher that adds ownership annotations, then provide the annotation-key for this enricher so it can tag owners as tags")
 	flag.Parse()
 }
 
@@ -66,25 +70,38 @@ func main() {
 func uploadBOMSFromEnriched(responses []*v1.EnrichedLaunchToolResponse) ([]string, error) {
 	var tokens []string
 	for _, res := range responses {
-		var bomIssue *v1.Issue
+		var bomIssue *v1.EnrichedIssue
 		for _, issue := range res.GetIssues() {
 			if issue.GetRawIssue().GetCycloneDXSBOM() != "" && bomIssue == nil {
-				bomIssue = issue.GetRawIssue()
-			} else if bomIssue != nil && *bomIssue.CycloneDXSBOM != "" {
-				log.Fatalf("Tool response for tool %s is malformed, we expected a single issue with an SBOM as part of the tool, got something else instead",
+				bomIssue = issue
+			} else if bomIssue != nil && bomIssue.GetRawIssue().GetCycloneDXSBOM() != "" {
+				log.Printf("Tool response for tool %s is malformed, we expected a single issue with an SBOM as part of the tool, got something else instead",
 					res.GetOriginalResults().GetToolName())
+				continue
 			}
 		}
-		cdxbom, err := cyclonedx.FromDracon(bomIssue)
+		cdxbom, err := cyclonedx.FromDracon(bomIssue.GetRawIssue())
 		if err != nil {
 			return tokens, err
 		}
-		token, err := uploadBOM(bomIssue.GetCycloneDXSBOM(), cdxbom.Metadata.Component.Version)
+		token, err := uploadBOM(bomIssue.GetRawIssue().GetCycloneDXSBOM(), cdxbom.Metadata.Component.Version)
 		if err != nil {
 			log.Fatal("could not upload bom to dependency track, err:", err)
 		}
 		log.Println("upload token is", token)
 		tokens = append(tokens, token)
+		if ownerAnnotation != "" {
+			log.Println("tagging owners")
+			owners := []string{}
+			for key, value := range bomIssue.Annotations {
+				if strings.Contains(key, ownerAnnotation) {
+					owners = append(owners, value)
+				}
+			}
+			if err := addOwnersTags(owners); err != nil {
+				log.Println("could not tag owners, err:", err)
+			}
+		}
 	}
 	return tokens, nil
 }
@@ -97,8 +114,9 @@ func uploadBOMsFromRaw(responses []*v1.LaunchToolResponse) ([]string, error) {
 			if *issue.CycloneDXSBOM != "" && bomIssue == nil {
 				bomIssue = issue
 			} else if bomIssue != nil && *bomIssue.CycloneDXSBOM != "" {
-				log.Fatalf("Tool response for tool %s is malformed, we expected a single issue with an SBOM as part of the tool, got multiple issues with sboms instead",
+				log.Printf("Tool response for tool %s is malformed, we expected a single issue with an SBOM as part of the tool, got multiple issues with sboms instead",
 					res.GetToolName())
+				continue
 			}
 		}
 		cdxbom, err := cyclonedx.FromDracon(bomIssue)
@@ -114,7 +132,30 @@ func uploadBOMsFromRaw(responses []*v1.LaunchToolResponse) ([]string, error) {
 	}
 	return tokens, nil
 }
-
+func addOwnersTags(owners []string) error {
+	// addOwnersTags expects a map of <ownerAnnotation>-<number>:<username> tagging owners
+	// it then adds to the projectUUID the owners in the following tag format: Owner:<username>
+	uuid := uuid.MustParse(projectUUID)
+	project, err := client.Project.Get(context.Background(), uuid)
+	if err != nil {
+		log.Println("could not add project tags error getting project by uuid, err:", err)
+		return err
+	}
+	for _, owner := range owners {
+		found := false
+		for _, t := range project.Tags {
+			if t.Name == fmt.Sprintf("%s:%s", ownerAnnotation, owner) {
+				found = true
+				break
+			}
+		}
+		if !found {
+			project.Tags = append(project.Tags, dtrack.Tag{Name: fmt.Sprintf("%s:%s", ownerAnnotation, owner)})
+		}
+	}
+	_, err = client.Project.Update(context.Background(), project)
+	return err
+}
 func uploadBOM(bom string, projectVersion string) (string, error) {
 	if projectVersion == "" {
 		projectVersion = "Unknown"
