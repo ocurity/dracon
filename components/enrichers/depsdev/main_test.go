@@ -143,6 +143,7 @@ func TestParseIssuesDepsDevScoreCardInfoWritten(t *testing.T) {
 		assert.Equal(t, externalReferences, expectedExternalReferences)
 	}
 }
+
 func TestParseIssuesDepsDevExternalReferenceLinksWritten(t *testing.T) {
 	dir, srv := setup(t)
 	defer srv.Close()
