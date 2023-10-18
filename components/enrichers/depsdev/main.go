@@ -30,6 +30,43 @@ var (
 	annotation         string
 )
 
+type Check struct {
+	Name          string `json:"name,omitempty"`
+	Documentation struct {
+		Short string `json:"short,omitempty"`
+		URL   string `json:"url,omitempty"`
+	} `json:"documentation,omitempty"`
+	Score   int           `json:"score,omitempty"`
+	Reason  string        `json:"reason,omitempty"`
+	Details []interface{} `json:"details,omitempty"`
+}
+type ScorecardV2 struct {
+	Date string `json:"date,omitempty"`
+	Repo struct {
+		Name   string `json:"name,omitempty"`
+		Commit string `json:"commit,omitempty"`
+	} `json:"repo,omitempty"`
+	Scorecard struct {
+		Version string `json:"version,omitempty"`
+		Commit  string `json:"commit,omitempty"`
+	} `json:"scorecard,omitempty"`
+	Check    []Check       `json:"check,omitempty"`
+	Metadata []interface{} `json:"metadata,omitempty"`
+	Score    float64       `json:"score,omitempty"`
+}
+type Project struct {
+	Type        string      `json:"type,omitempty"`
+	Name        string      `json:"name,omitempty"`
+	ObservedAt  int         `json:"observedAt,omitempty"`
+	Issues      int         `json:"issues,omitempty"`
+	Forks       int         `json:"forks,omitempty"`
+	Stars       int         `json:"stars,omitempty"`
+	Description string      `json:"description,omitempty"`
+	License     string      `json:"license,omitempty"`
+	DisplayName string      `json:"displayName,omitempty"`
+	Link        string      `json:"link,omitempty"`
+	ScorecardV2 ScorecardV2 `json:"scorecardV2,omitempty"`
+}
 type Version struct {
 	Version                string        `json:"version,omitempty"`
 	SymbolicVersions       []interface{} `json:"symbolicVersions,omitempty"`
@@ -42,41 +79,7 @@ type Version struct {
 	Links                  struct {
 		Origins []string `json:"origins,omitempty"`
 	} `json:"links,omitempty"`
-	Projects []struct {
-		Type        string `json:"type,omitempty"`
-		Name        string `json:"name,omitempty"`
-		ObservedAt  int    `json:"observedAt,omitempty"`
-		Issues      int    `json:"issues,omitempty"`
-		Forks       int    `json:"forks,omitempty"`
-		Stars       int    `json:"stars,omitempty"`
-		Description string `json:"description,omitempty"`
-		License     string `json:"license,omitempty"`
-		DisplayName string `json:"displayName,omitempty"`
-		Link        string `json:"link,omitempty"`
-		ScorecardV2 struct {
-			Date string `json:"date,omitempty"`
-			Repo struct {
-				Name   string `json:"name,omitempty"`
-				Commit string `json:"commit,omitempty"`
-			} `json:"repo,omitempty"`
-			Scorecard struct {
-				Version string `json:"version,omitempty"`
-				Commit  string `json:"commit,omitempty"`
-			} `json:"scorecard,omitempty"`
-			Check []struct {
-				Name          string `json:"name,omitempty"`
-				Documentation struct {
-					Short string `json:"short,omitempty"`
-					URL   string `json:"url,omitempty"`
-				} `json:"documentation,omitempty"`
-				Score   int           `json:"score,omitempty"`
-				Reason  string        `json:"reason,omitempty"`
-				Details []interface{} `json:"details,omitempty"`
-			} `json:"check,omitempty"`
-			Metadata []interface{} `json:"metadata,omitempty"`
-			Score    float64       `json:"score,omitempty"`
-		} `json:"scorecardV2,omitempty"`
-	} `json:"projects,omitempty"`
+	Projects        []Project     `json:"projects,omitempty"`
 	Advisories      []interface{} `json:"advisories,omitempty"`
 	RelatedPackages struct{}      `json:"relatedPackages,omitempty"`
 }
@@ -125,7 +128,7 @@ func makeURL(component cdx.Component, api bool) (string, error) {
 	if api {
 		resultURL = fmt.Sprintf("%s/_/s%s/p/%s/v/%s", depsdevBaseURL, ecosystem, url.QueryEscape(component.Name), version)
 	} else {
-		resultURL = fmt.Sprintf("%s/%s/p/%s/v/%s", depsdevBaseURL, ecosystem, url.QueryEscape(component.Name), version)
+		resultURL = fmt.Sprintf("%s%s/p/%s/v/%s", depsdevBaseURL, ecosystem, url.QueryEscape(component.Name), version)
 	}
 	return resultURL, nil
 }
@@ -135,8 +138,6 @@ func addDepsDevLink(component cdx.Component) (cdx.Component, error) {
 	if err != nil {
 		return component, err
 	}
-	log.Println("url is", url)
-
 	depsDevRef := cdx.ExternalReference{
 		Type: cdx.ERTypeOther,
 		URL:  url,
@@ -161,7 +162,6 @@ func addDepsDevInfo(component cdx.Component, annotations map[string]string) (cdx
 		return component, annotations, err
 	}
 	resp, err := http.Get(url) // nolint: gosec, url get constructed above with a hardcoded domain and relatively trusted data
-	log.Println("url is", url)
 	if err != nil {
 		return component, annotations, err
 	}
@@ -181,6 +181,7 @@ func addDepsDevInfo(component cdx.Component, annotations map[string]string) (cdx
 		log.Println("found license", lic, "for component", component.Name)
 	}
 	if scoreCardInfo == "true" {
+		log.Println("adding scorecard info")
 		for _, project := range depsResp.Version.Projects {
 			if project.ScorecardV2.Date != "" && len(project.ScorecardV2.Check) != 0 && project.ScorecardV2.Score >= 0 {
 				scoreCardInfo, err := json.MarshalIndent(project.ScorecardV2, "", "\t")
@@ -204,6 +205,7 @@ func addDepsDevInfo(component cdx.Component, annotations map[string]string) (cdx
 		}
 	}
 	if licensesInEvidence == "true" {
+		log.Println("adding Licenses in the 'Evidence' field")
 		evid := cdx.Evidence{
 			Licenses: &licenses,
 		}
@@ -215,7 +217,6 @@ func addDepsDevInfo(component cdx.Component, annotations map[string]string) (cdx
 	} else {
 		component.Licenses = &licenses
 	}
-
 	annotations[annotation] = "True"
 	return component, annotations, nil
 }
@@ -230,24 +231,28 @@ func enrichIssue(i *v1.Issue) (*v1.EnrichedIssue, error) {
 	if bom == nil || *bom.Components == nil {
 		return &enrichedIssue, errors.New("bom does not have components")
 	}
-	for index, component := range *bom.Components {
+	newComponents := (*bom.Components)[:0]
+	for _, component := range *bom.Components {
+		newComp := component
 		if component.Type == cdx.ComponentTypeLibrary {
 			if component.Licenses == nil {
-				(*bom.Components)[index], annotations, err = addDepsDevInfo(component, annotations)
-				if err != nil {
-					log.Println(err)
-					continue
-				}
-				(*bom.Components)[index], err = addDepsDevLink(component)
+				newComp, annotations, err = addDepsDevInfo(component, annotations)
 				if err != nil {
 					log.Println(err)
 					continue
 				}
 			}
+			newComp, err = addDepsDevLink(newComp)
+			if err != nil {
+				log.Println(err)
+				continue
+			}
+
 			// TODO(): enrich with vulnerability info whenever a consumer supports showing arbitrary properties in components
 		}
+		newComponents = append(newComponents, newComp)
 	}
-
+	bom.Components = &newComponents
 	marshalled, err := json.Marshal(bom)
 	if err != nil {
 		return &enrichedIssue, err

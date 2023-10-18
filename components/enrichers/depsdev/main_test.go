@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -9,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	cdx "github.com/CycloneDX/cyclonedx-go"
 	"github.com/google/uuid"
 	v1 "github.com/ocurity/dracon/api/proto/v1"
 	"github.com/ocurity/dracon/pkg/cyclonedx"
@@ -70,23 +72,122 @@ func prepareIssue() string {
 func MockServer(t *testing.T) {
 }
 
-func TestParseIssuesLicensesWritten(t *testing.T) {
+// TODO make this be the common setup method
+// todo add test for deps dev and scorecard stuff
+func setup(t *testing.T) (string, *httptest.Server) {
 	dir := prepareIssue()
 
 	// setup server
 	response := Response{
 		Version: Version{
 			Licenses: []string{license},
+			Projects: []Project{
+				{
+					ScorecardV2: ScorecardV2{
+						Score: 5.5,
+						Check: []Check{
+							{
+								Name:   "foo",
+								Score:  2,
+								Reason: "bar",
+							},
+						},
+					},
+				},
+			},
 		},
 	}
-	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		assert.Contains(t, r.URL.String(), "/_/s/go/p/")
 		json.NewEncoder(w).Encode(response)
 	}))
-	defer svr.Close()
-	depsdevBaseURL = svr.URL
-	run()
+	depsdevBaseURL = srv.URL
+	return dir, srv
+}
+func TestParseIssuesDepsDevScoreCardInfoWritten(t *testing.T) {
+	dir, srv := setup(t)
+	defer srv.Close()
 
+	// run enricher
+	run()
+	assert.FileExists(t, dir+"/depsdevSAT.depsdev.enriched.pb", "file was not created")
+
+	// load *enriched.pb
+	pbBytes, err := ioutil.ReadFile(dir + "/depsdevSAT.depsdev.enriched.pb")
+	assert.NoError(t, err, "could not read enriched file")
+	res := v1.EnrichedLaunchToolResponse{}
+	proto.Unmarshal(pbBytes, &res)
+	expectedExternalReferences := []cdx.ExternalReference{
+		{
+			URL:  "http://127.0.0.1:46679//go/p/cloud.google.com%2Fgo%2Fcompute/v/v1.14.0",
+			Type: "other",
+		}, {
+			URL:  "http://127.0.0.1:46679//go/p/cloud.google.com%2Fgo%2Fcompute%2Fmetadata/v/v0.2.3",
+			Type: "other",
+		}, {
+			URL:  "http://127.0.0.1:46679//go/p/github.com%2FAzure%2Fazure-pipeline-go/v/v0.2.3",
+			Type: "other",
+		},
+	}
+	//  ensure every component has a license attached to it
+	for _, finding := range res.Issues {
+		bom, err := cyclonedx.FromDracon(finding.RawIssue)
+		assert.NoError(t, err, "Could not read enriched cyclone dx info")
+
+		externalReferences := []cdx.ExternalReference{}
+
+		for _, component := range *bom.Components {
+			externalReferences = append(externalReferences, *component.ExternalReferences...)
+		}
+		assert.Equal(t, externalReferences, expectedExternalReferences)
+	}
+}
+func TestParseIssuesDepsDevExternalReferenceLinksWritten(t *testing.T) {
+	dir, srv := setup(t)
+	defer srv.Close()
+
+	// run enricher
+	run()
+	assert.FileExists(t, dir+"/depsdevSAT.depsdev.enriched.pb", "file was not created")
+
+	// load *enriched.pb
+	pbBytes, err := ioutil.ReadFile(dir + "/depsdevSAT.depsdev.enriched.pb")
+	assert.NoError(t, err, "could not read enriched file")
+	res := v1.EnrichedLaunchToolResponse{}
+	proto.Unmarshal(pbBytes, &res)
+	expectedExternalReferences := []cdx.ExternalReference{
+		{
+			URL:  fmt.Sprintf("%s/go/p/cloud.google.com%%2Fgo%%2Fcompute/v/v1.14.0", srv.URL),
+			Type: "other",
+		}, {
+			URL:  fmt.Sprintf("%s/go/p/cloud.google.com%%2Fgo%%2Fcompute%%2Fmetadata/v/v0.2.3", srv.URL),
+			Type: "other",
+		}, {
+			URL:  fmt.Sprintf("%s/go/p/github.com%%2FAzure%%2Fazure-pipeline-go/v/v0.2.3", srv.URL),
+			Type: "other",
+		},
+	}
+	//  ensure every component has a license attached to it
+	for _, finding := range res.Issues {
+		bom, err := cyclonedx.FromDracon(finding.RawIssue)
+		assert.NoError(t, err, "Could not read enriched cyclone dx info")
+
+		externalReferences := []cdx.ExternalReference{}
+
+		for _, component := range *bom.Components {
+			externalReferences = append(externalReferences, *component.ExternalReferences...)
+		}
+		assert.Equal(t, externalReferences, expectedExternalReferences)
+	}
+}
+func TestParseIssuesLicensesWritten(t *testing.T) {
+	dir, srv := setup(t)
+	defer srv.Close()
+
+	licensesInEvidence = "false"
+
+	// run enricher
+	run()
 	assert.FileExists(t, dir+"/depsdevSAT.depsdev.enriched.pb", "file was not created")
 
 	// load *enriched.pb
@@ -112,20 +213,8 @@ func TestParseIssuesLicensesWritten(t *testing.T) {
 }
 
 func TestParseIssuesLicensesWrittenACcurateLicenses(t *testing.T) {
-	dir := prepareIssue()
-
-	// setup server
-	response := Response{
-		Version: Version{
-			Licenses: []string{license},
-		},
-	}
-	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		assert.Contains(t, r.URL.String(), "/_/s/go/p/")
-		json.NewEncoder(w).Encode(response)
-	}))
-	defer svr.Close()
-	depsdevBaseURL = svr.URL
+	dir, srv := setup(t)
+	defer srv.Close()
 	licensesInEvidence = "true"
 
 	run()
