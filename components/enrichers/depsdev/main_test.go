@@ -105,6 +105,7 @@ func setup(t *testing.T) (string, *httptest.Server) {
 	depsdevBaseURL = srv.URL
 	return dir, srv
 }
+
 func TestParseIssuesDepsDevScoreCardInfoWritten(t *testing.T) {
 	dir, srv := setup(t)
 	defer srv.Close()
@@ -142,6 +143,7 @@ func TestParseIssuesDepsDevScoreCardInfoWritten(t *testing.T) {
 		assert.Equal(t, properties, expectedProperties)
 	}
 }
+
 func TestParseIssuesDepsDevExternalReferenceLinksWritten(t *testing.T) {
 	dir, srv := setup(t)
 	defer srv.Close()
@@ -180,6 +182,7 @@ func TestParseIssuesDepsDevExternalReferenceLinksWritten(t *testing.T) {
 		assert.Equal(t, externalReferences, expectedExternalReferences)
 	}
 }
+
 func TestParseIssuesLicensesWritten(t *testing.T) {
 	dir, srv := setup(t)
 	defer srv.Close()
