@@ -115,7 +115,8 @@ func TestUploadBomsFromEnrichedWithOwners(t *testing.T) {
 		Tags: []dtrack.Tag{
 			{Name: "foo:bar"},
 			{Name: "Owner:foo"},
-			{Name: "Owner:bar"}},
+			{Name: "Owner:bar"},
+		},
 	}
 	expectedToken := "7c78f6c9-token"
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
