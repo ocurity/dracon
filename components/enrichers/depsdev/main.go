@@ -30,6 +30,7 @@ var (
 	annotation         string
 )
 
+// Check is a deps.dev ScoreCardV2 check
 type Check struct {
 	Name          string `json:"name,omitempty"`
 	Documentation struct {
@@ -40,6 +41,7 @@ type Check struct {
 	Reason  string        `json:"reason,omitempty"`
 	Details []interface{} `json:"details,omitempty"`
 }
+// ScorecardV2 is a deps.dev ScoreCardV2 result
 type ScorecardV2 struct {
 	Date string `json:"date,omitempty"`
 	Repo struct {
@@ -54,6 +56,7 @@ type ScorecardV2 struct {
 	Metadata []interface{} `json:"metadata,omitempty"`
 	Score    float64       `json:"score,omitempty"`
 }
+// Project is a deps.dev project
 type Project struct {
 	Type        string      `json:"type,omitempty"`
 	Name        string      `json:"name,omitempty"`
@@ -67,6 +70,8 @@ type Project struct {
 	Link        string      `json:"link,omitempty"`
 	ScorecardV2 ScorecardV2 `json:"scorecardV2,omitempty"`
 }
+
+// Version is a deps.dev version, main object in the response
 type Version struct {
 	Version                string        `json:"version,omitempty"`
 	SymbolicVersions       []interface{} `json:"symbolicVersions,omitempty"`
@@ -153,7 +158,6 @@ func addDepsDevLink(component cdx.Component) (cdx.Component, error) {
 
 	return component, nil
 }
-
 func addDepsDevInfo(component cdx.Component, annotations map[string]string) (cdx.Component, map[string]string, error) {
 	var depsResp Response
 	licenses := cdx.Licenses{}
@@ -247,7 +251,6 @@ func enrichIssue(i *v1.Issue) (*v1.EnrichedIssue, error) {
 				log.Println(err)
 				continue
 			}
-
 			// TODO(): enrich with vulnerability info whenever a consumer supports showing arbitrary properties in components
 		}
 		newComponents = append(newComponents, newComp)

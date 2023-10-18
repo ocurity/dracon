@@ -84,6 +84,7 @@ func setup(t *testing.T) (string, *httptest.Server) {
 			Projects: []Project{
 				{
 					ScorecardV2: ScorecardV2{
+						Date:  "irrelevant",
 						Score: 5.5,
 						Check: []Check{
 							{
@@ -105,11 +106,10 @@ func setup(t *testing.T) (string, *httptest.Server) {
 	return dir, srv
 }
 
-
 func TestParseIssuesDepsDevScoreCardInfoWritten(t *testing.T) {
 	dir, srv := setup(t)
 	defer srv.Close()
-
+	scoreCardInfo = "true"
 	// run enricher
 	run()
 	assert.FileExists(t, dir+"/depsdevSAT.depsdev.enriched.pb", "file was not created")
@@ -119,32 +119,30 @@ func TestParseIssuesDepsDevScoreCardInfoWritten(t *testing.T) {
 	assert.NoError(t, err, "could not read enriched file")
 	res := v1.EnrichedLaunchToolResponse{}
 	proto.Unmarshal(pbBytes, &res)
-	expectedExternalReferences := []cdx.ExternalReference{
-		{
-			URL:  "http://127.0.0.1:46679//go/p/cloud.google.com%2Fgo%2Fcompute/v/v1.14.0",
-			Type: "other",
-		}, {
-			URL:  "http://127.0.0.1:46679//go/p/cloud.google.com%2Fgo%2Fcompute%2Fmetadata/v/v0.2.3",
-			Type: "other",
-		}, {
-			URL:  "http://127.0.0.1:46679//go/p/github.com%2FAzure%2Fazure-pipeline-go/v/v0.2.3",
-			Type: "other",
-		},
+	expectedProperties := []cdx.Property{
+		{Name: "aquasecurity:trivy:PkgType", Value: "gomod"},
+		{Name: "ScorecardScore", Value: "5.500000"},
+		{Name: "ScorecardInfo", Value: "{\n\t\"date\": \"irrelevant\",\n\t\"repo\": {},\n\t\"scorecard\": {},\n\t\"check\": [\n\t\t{\n\t\t\t\"name\": \"foo\",\n\t\t\t\"documentation\": {},\n\t\t\t\"score\": 2,\n\t\t\t\"reason\": \"bar\"\n\t\t}\n\t],\n\t\"score\": 5.5\n}"},
+		{Name: "aquasecurity:trivy:PkgType", Value: "gomod"},
+		{Name: "ScorecardScore", Value: "5.500000"},
+		{Name: "ScorecardInfo", Value: "{\n\t\"date\": \"irrelevant\",\n\t\"repo\": {},\n\t\"scorecard\": {},\n\t\"check\": [\n\t\t{\n\t\t\t\"name\": \"foo\",\n\t\t\t\"documentation\": {},\n\t\t\t\"score\": 2,\n\t\t\t\"reason\": \"bar\"\n\t\t}\n\t],\n\t\"score\": 5.5\n}"},
+		{Name: "aquasecurity:trivy:PkgType", Value: "gomod"},
+		{Name: "ScorecardScore", Value: "5.500000"},
+		{Name: "ScorecardInfo", Value: "{\n\t\"date\": \"irrelevant\",\n\t\"repo\": {},\n\t\"scorecard\": {},\n\t\"check\": [\n\t\t{\n\t\t\t\"name\": \"foo\",\n\t\t\t\"documentation\": {},\n\t\t\t\"score\": 2,\n\t\t\t\"reason\": \"bar\"\n\t\t}\n\t],\n\t\"score\": 5.5\n}"},
 	}
 	//  ensure every component has a license attached to it
 	for _, finding := range res.Issues {
 		bom, err := cyclonedx.FromDracon(finding.RawIssue)
 		assert.NoError(t, err, "Could not read enriched cyclone dx info")
 
-		externalReferences := []cdx.ExternalReference{}
+		properties := []cdx.Property{}
 
 		for _, component := range *bom.Components {
-			externalReferences = append(externalReferences, *component.ExternalReferences...)
+			properties = append(properties, *component.Properties...)
 		}
-		assert.Equal(t, externalReferences, expectedExternalReferences)
+		assert.Equal(t, properties, expectedProperties)
 	}
 }
-
 
 func TestParseIssuesDepsDevExternalReferenceLinksWritten(t *testing.T) {
 	dir, srv := setup(t)
@@ -184,7 +182,6 @@ func TestParseIssuesDepsDevExternalReferenceLinksWritten(t *testing.T) {
 		assert.Equal(t, externalReferences, expectedExternalReferences)
 	}
 }
-
 
 func TestParseIssuesLicensesWritten(t *testing.T) {
 	dir, srv := setup(t)
