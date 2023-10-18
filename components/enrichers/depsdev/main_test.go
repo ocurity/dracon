@@ -183,6 +183,7 @@ func TestParseIssuesDepsDevExternalReferenceLinksWritten(t *testing.T) {
 		assert.Equal(t, externalReferences, expectedExternalReferences)
 	}
 }
+
 func TestParseIssuesLicensesWritten(t *testing.T) {
 	dir, srv := setup(t)
 	defer srv.Close()
