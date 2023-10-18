@@ -73,7 +73,7 @@ type Project struct {
 	ScorecardV2 ScorecardV2 `json:"scorecardV2,omitempty"`
 }
 
-// Project is a deps.dev version
+// Version is a deps.dev version, main object in the response
 type Version struct {
 	Version                string        `json:"version,omitempty"`
 	SymbolicVersions       []interface{} `json:"symbolicVersions,omitempty"`
