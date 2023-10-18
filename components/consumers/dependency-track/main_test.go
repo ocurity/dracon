@@ -120,7 +120,6 @@ func TestUploadBomsFromEnrichedWithOwners(t *testing.T) {
 	}
 	expectedToken := "7c78f6c9-token"
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
 		if r.URL.String() == "/api/v1/bom" {
 			body, _ := io.ReadAll(r.Body)
 			var actualRequest dtrack.BOMUploadRequest
