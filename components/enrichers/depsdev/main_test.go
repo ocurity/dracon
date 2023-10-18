@@ -185,6 +185,7 @@ func TestParseIssuesDepsDevExternalReferenceLinksWritten(t *testing.T) {
 	}
 }
 
+
 func TestParseIssuesLicensesWritten(t *testing.T) {
 	dir, srv := setup(t)
 	defer srv.Close()
