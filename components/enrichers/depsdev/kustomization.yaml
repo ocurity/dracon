@@ -25,12 +25,17 @@ patches:
             params:
               - name: enricher-depsdev-licenses-in-evidence
                 value: $(params.enricher-depsdev-licenses-in-evidence)
+              - name: enricher-depsdev-scorecard-info
+                value: $(params.enricher-depsdev-scorecard-info)
               - name: enricher-depsdev-annotation
                 value: $(params.enricher-depsdev-annotation)
         params:
           - name: enricher-depsdev-licenses-in-evidence
             type: string
             default: "false"
+          - name: enricher-depsdev-scorecard-info
+            type: string
+            default: "true"
           - name: enricher-depsdev-annotation
             type: string
             default: ""
