@@ -133,6 +133,7 @@ func uploadBOMsFromRaw(responses []*v1.LaunchToolResponse) ([]string, error) {
 	return tokens, nil
 }
 
+
 func addOwnersTags(owners []string) error {
 	// addOwnersTags expects a map of <ownerAnnotation>-<number>:<username> tagging owners
 	// it then adds to the projectUUID the owners in the following tag format: Owner:<username>
