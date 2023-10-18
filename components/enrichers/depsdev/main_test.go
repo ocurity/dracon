@@ -145,6 +145,7 @@ func TestParseIssuesDepsDevScoreCardInfoWritten(t *testing.T) {
 	}
 }
 
+
 func TestParseIssuesDepsDevExternalReferenceLinksWritten(t *testing.T) {
 	dir, srv := setup(t)
 	defer srv.Close()
