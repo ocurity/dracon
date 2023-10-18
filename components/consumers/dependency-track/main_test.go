@@ -143,7 +143,7 @@ func TestUploadBomsFromEnrichedWithOwners(t *testing.T) {
 			assert.Equal(t, req.Tags, expectedProjectUpdate.Tags)
 		} else {
 			assert.Fail(t, r.URL.String())
-		} //if r.URL.String() == ""
+		} // if r.URL.String() == ""
 	}))
 	defer ts.Close()
 
