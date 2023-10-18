@@ -104,6 +104,7 @@ func setup(t *testing.T) (string, *httptest.Server) {
 	depsdevBaseURL = srv.URL
 	return dir, srv
 }
+
 func TestParseIssuesDepsDevScoreCardInfoWritten(t *testing.T) {
 	dir, srv := setup(t)
 	defer srv.Close()
