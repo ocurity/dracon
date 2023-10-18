@@ -105,6 +105,7 @@ func setup(t *testing.T) (string, *httptest.Server) {
 	return dir, srv
 }
 
+
 func TestParseIssuesDepsDevScoreCardInfoWritten(t *testing.T) {
 	dir, srv := setup(t)
 	defer srv.Close()
