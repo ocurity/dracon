@@ -41,7 +41,6 @@ type Check struct {
 	Reason  string        `json:"reason,omitempty"`
 	Details []interface{} `json:"details,omitempty"`
 }
-
 // ScorecardV2 is a deps.dev ScoreCardV2 result
 type ScorecardV2 struct {
 	Date string `json:"date,omitempty"`
@@ -57,7 +56,6 @@ type ScorecardV2 struct {
 	Metadata []interface{} `json:"metadata,omitempty"`
 	Score    float64       `json:"score,omitempty"`
 }
-
 // Project is a deps.dev project
 type Project struct {
 	Type        string      `json:"type,omitempty"`

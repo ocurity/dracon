@@ -39,6 +39,7 @@ func ToDracon(inFile []byte, format string) ([]*v1.Issue, error) {
 	} else {
 		target = bom.Metadata.Component.PackageURL
 	}
+
 	return []*v1.Issue{
 		{
 			CycloneDXSBOM: &result,

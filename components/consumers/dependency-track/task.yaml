@@ -17,6 +17,9 @@ spec:
       type: string
     - name: consumer-dependency-track-project-uuid
       type: string
+    - name: consumer-dependency-track-owner-annotation
+      type: string
+      default: "Owner"
   workspaces:
     - name: source-code-ws
       description: The workspace containing the source-code to scan.
@@ -31,5 +34,6 @@ spec:
       "-apiKey", "$(params.consumer-dependency-track-token)",
       "-projectName", "$(params.consumer-dependency-track-project-name)",
       "-projectVersion", "$(params.consumer-dependency-track-project-version)",
-      "-projectUUID", "$(params.consumer-dependency-track-project-uuid)"
+      "-projectUUID", "$(params.consumer-dependency-track-project-uuid)",
+      "-ownerAnnotation","$(params.consumer-dependency-track-owner-annotation)"
     ]
