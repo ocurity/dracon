@@ -1,0 +1,15 @@
+FROM node:15-alpine3.12 as node
+
+RUN mkdir -p /opt/npm-audit
+
+COPY index.js /opt/npm-audit/
+COPY package.json /opt/npm-audit/
+COPY package-lock.json /opt/npm-audit/
+
+RUN apk add -U --no-cache ca-certificates \
+    && cd /opt/npm-audit \
+    && npm install --production \
+    && rm -rf /tmp/v8-compile-cache-*
+
+WORKDIR /
+ENTRYPOINT ["/usr/local/bin/node", "/opt/npm-audit/index.js"]

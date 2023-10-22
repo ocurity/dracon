@@ -1,15 +1,20 @@
-.PHONY: build clean clean-protos lint fmt fmt-go fmt-proto
+.PHONY: build clean clean-protos lint fmt fmt-go fmt-proto tests go-tests
 
 proto_defs=$(shell find . -name "*.proto" -not -path "./vendor/*")
 go_protos=$(proto_defs:.proto=.pb.go)
+component_containers=$(shell find ./components -name main.go | xargs -I'{}' sh -c 'echo $$(dirname {})/docker')
 
+GO_TEST_PACKAGES=./...
+
+DOCKER_REPO=ghcr.io/ocurity/dracon
 TEKTON_VERSION=0.44.0
 TEKTON_DASHBOARD_VERSION=0.29.2
+DRACON_VERSION=0.0.1
 
 PROTOC=protoc
 
 build: $(go_protos)
-	@echo bla
+	@echo "done building"
 
 $(go_protos): %.pb.go: %.proto
 	$(PROTOC) --go_out=. --go_opt=paths=source_relative $<
@@ -37,6 +42,43 @@ lint:
 	fi
 	@golangci-lint
 
+go-tests:
+	go test -race -json $(GO_TEST_PACKAGES)
+
+tests: go-tests
+
+$(component_containers):
+	$(shell                                                                                                                                         \
+        set -e;                                                                                                                                     \
+        EXECUTABLE=$$(basename $$(dirname $@));                                                                                                     \
+        echo "$@" | grep -Eq ^components/producers/.*$ && EXECUTABLE=$${EXECUTABLE}-parser || true;                                                 \
+        EXECUTABLE_FOLDER=$$(dirname $@);                                                                                                           \
+        EXECUTABLE_PATH=$$(dirname $@)/$${EXECUTABLE};                                                                                              \
+        if $(MAKE) -C $${EXECUTABLE_FOLDER} --no-print-directory --dry-run build >/dev/null 2>&1;                                                   \
+        then                                                                                                                                        \
+            $(MAKE) -C $${EXECUTABLE_FOLDER} --no-print-directory --quiet build DOCKER_REPO=$(DOCKER_REPO) DRACON_VERSION=$(DRACON_VERSION);        \
+        else                                                                                                                                        \
+            DOCKERFILE_TEMPLATE="                                                                                                                   \
+                FROM golang:1.21.3-bookworm as builder                                                                                           \n \
+                COPY . /build                                                                                                                    \n \
+                WORKDIR /build                                                                                                                   \n \
+                RUN go build -o $${EXECUTABLE_PATH} ./$${EXECUTABLE_FOLDER}/main.go                                                              \n \
+                FROM scratch                                                                                                                     \n \
+                COPY --from=builder /build/$${EXECUTABLE_PATH} /bin/$${EXECUTABLE}                                                               \n \
+                ENTRYPOINT ["/bin/$${EXECUTABLE}"]                                                                                               \n \
+            ";                                                                                                                                      \
+            DOCKERFILE=$$(mktemp);                                                                                                                  \
+            printf "$${DOCKERFILE_TEMPLATE}" > $${DOCKERFILE};                                                                                      \
+            docker build -t $(DOCKER_REPO)/$${EXECUTABLE_FOLDER}:$(DRACON_VERSION) -f $${DOCKERFILE} .;                                             \
+        fi;                                                                                                                                         \
+        if $(MAKE) -C $${EXECUTABLE_FOLDER} --no-print-directory --dry-run build-extras >/dev/null 2>&1;                                            \
+        then                                                                                                                                        \
+            $(MAKE) -C $${EXECUTABLE_FOLDER} --no-print-directory --quiet build-extras DOCKER_REPO=$(DOCKER_REPO) DRACON_VERSION=$(DRACON_VERSION); \
+        fi;                                                                                                                                         \
+	)
+
+components: components/base/openapi_schema.json $(component_containers)
+
 third_party/k8s/tektoncd/pipeline/swagger-v$(TEKTON_VERSION).json:
 	wget "https://raw.githubusercontent.com/tektoncd/pipeline/v$(TEKTON_VERSION)/pkg/apis/pipeline/v1beta1/swagger.json" -O third_party/k8s/tektoncd/pipeline/swagger-v$(TEKTON_VERSION).json
 
@@ -45,6 +87,9 @@ third_party/k8s/tektoncd/pipeline/release-v$(TEKTON_VERSION).yaml:
 
 api/openapi/tekton/openapi_schema.json: third_party/k8s/tektoncd/pipeline/swagger-v$(TEKTON_VERSION).json
 	./scripts/generate_openapi_schema.sh $< $@
+
+components/base/openapi_schema.json: api/openapi/tekton/openapi_schema.json
+	cp $< $@
 
 mirror_images:
 	./scripts/mirror_images.sh
