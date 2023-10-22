@@ -1,5 +1,4 @@
-ARG TYPESCRIPT_NPM_AUDIT_BASE_IMAGE
-FROM ${TYPESCRIPT_NPM_AUDIT_BASE_IMAGE} as node
+FROM node:15-alpine3.12 as node
 
 RUN mkdir -p /opt/npm-audit
 
