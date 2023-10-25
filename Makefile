@@ -1,4 +1,4 @@
-.PHONY: build clean clean-protos lint fmt fmt-go fmt-proto tests go-tests
+.PHONY: build clean clean-protos lint fmt fmt-go fmt-proto tests go-tests release_notes
 
 proto_defs=$(shell find . -name "*.proto" -not -path "./vendor/*")
 go_protos=$(proto_defs:.proto=.pb.go)
@@ -10,6 +10,7 @@ DOCKER_REPO=ghcr.io/ocurity/dracon
 TEKTON_VERSION=0.44.0
 TEKTON_DASHBOARD_VERSION=0.29.2
 DRACON_VERSION=0.0.1
+git log --oneline $(git tag --list --sort=-version:refname | head -n 1)..HEAD | wc -l
 
 PROTOC=protoc
 
@@ -104,3 +105,6 @@ third_party/k8s/tektoncd/pipeline/Chart.yaml: third_party/k8s/tektoncd/pipeline/
 
 third_party/k8s/tektoncd/dashboard/release-v$(TEKTON_DASHBOARD_VERSION).yaml:
     wget "https://github.com/tektoncd/dashboard/releases/download/v$(TEKTON_DASHBOARD_VERSION)/tekton-dashboard-release.yaml" -O third_party/k8s/tektoncd/dashboard/release-v$(TEKTON_DASHBOARD_VERSION).yaml
+
+release_notes:
+	git log --date=short --pretty='format:- %cd %s' -n 20
