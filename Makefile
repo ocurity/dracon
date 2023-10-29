@@ -9,8 +9,10 @@ GO_TEST_PACKAGES=./...
 DOCKER_REPO=ghcr.io/ocurity/dracon
 TEKTON_VERSION=0.44.0
 TEKTON_DASHBOARD_VERSION=0.29.2
-DRACON_VERSION=0.0.1
-git log --oneline $(git tag --list --sort=-version:refname | head -n 1)..HEAD | wc -l
+
+latest_tag=$(shell git tag --list --sort="-version:refname" | head -n 1)
+commits_since_latest_tag=$(shell git log --oneline $(latest_tag)..HEAD | wc -l)
+DRACON_VERSION=$(shell echo $(latest_tag)$$([ $(commits_since_latest_tag) -eq 0 ] || echo "-$$(git log -n 1 --pretty='format:%h')" )$$([ -z "$$(git status --porcelain=v1 2>/dev/null)" ] || echo "-dirty" ))
 
 PROTOC=protoc
 
