@@ -16,23 +16,32 @@ patches:
         workspaces:
           - name: source-code-ws
         tasks:
-          - name: producer-owasp-zaproxy
+          - name: producer-zaproxy
             taskRef:
-              name: producer-owasp-zaproxy
+              name: producer-zaproxy
             workspaces:
               - name: source-code-ws
                 workspace: source-code-ws
             params:
-              - name: producer-owasp-zaproxy-flags
-                value:
-                  - $(params.producer-owasp-zaproxy-flags)
-              - name: producer-owasp-zaproxy-automation-framework-file-base64
-                value: $(params.producer-owasp-zaproxy-automation-framework-file-base64)
+              - name: producer-zaproxy-target
+                value: $(params.producer-zaproxy-target)
+              - name: producer-zaproxy-config-file-base64
+                value: $(params.producer-zaproxy-config-file-base64)
+              - name: producer-zaproxy-flags
+                value: $(params.producer-zaproxy-flags)
+              - name: producer-zaproxy-automation-framework-file-base64
+                value: $(params.producer-zaproxy-automation-framework-file-base64)
         params:
-          - name: producer-owasp-zaproxy-flags
-            type: array
-            default: []
-          - name: producer-owasp-zaproxy-automation-framework-file-base64
+          - name: producer-zaproxy-target
+            type: string
+            default: ""
+          - name: producer-zaproxy-config-file-base64
+            type: string
+            default: ""
+          - name: producer-zaproxy-flags
+            type: string
+            default: ""
+          - name: producer-zaproxy-automation-framework-file-base64
             type: string
             default: ""
     target:
@@ -42,7 +51,7 @@ patches:
       apiVersion: tekton.dev/v1beta1
       kind: Task
       metadata:
-        name: producer-owasp-zaproxy
+        name: producer-zaproxy
         labels:
           v1.dracon.ocurity.com/component: producer
       spec:
@@ -60,7 +69,7 @@ patches:
             script: echo "$(context.task.name)" > "$(results.anchor.path)"
     target:
       kind: Task
-      name: producer-owasp-zaproxy
+      name: producer-zaproxy
   # If we have a `source` task in the pipeline (added by a `source` component),
   # depend on the completion of that source by referencing its anchor.
   - patch: |
@@ -70,7 +79,7 @@ patches:
         name: unused
       spec:
         tasks:
-          - name: producer-owasp-zaproxy
+          - name: producer-zaproxy
             params:
               - name: anchors
                 value:
@@ -92,7 +101,7 @@ patches:
             params:
               - name: anchors
                 value:
-                  - $(tasks.producer-owasp-zaproxy.results.anchor)
+                  - $(tasks.producer-zaproxy.results.anchor)
     target:
       kind: Pipeline
       annotationSelector: v1.dracon.ocurity.com/has-producer-aggregator=true
@@ -101,7 +110,7 @@ patches:
       apiVersion: tekton.dev/v1beta1
       kind: Task
       metadata:
-        name: producer-owasp-zaproxy
+        name: producer-zaproxy
         labels:
           v1.dracon.ocurity.com/component: producer
       spec:
@@ -113,12 +122,7 @@ patches:
         steps:
           - name: run-zap
             image: docker.io/owasp/zap2docker-stable:2.12.0
-            script: |
-              #! /bin/bash
-               set -ex
-               echo "$(params.producer-owasp-zaproxy-automation-framework-file-base64)" | base64 -d > automation.yaml
-               cat automation.yaml
-               zap.sh -cmd -autorun automation.yaml
+            script: "#! /bin/bash\n set -ex\n automation=\"$(params.producer-zaproxy-automation-framework-file-base64)\"\n configFile=\"$(params.producer-zaproxy-config-file-base64)\"\n if [ -z \"$automation\" ]; then \n   if [ -z  \"$configFile\" ]; then\n     echo \"Running ZAP with args: $(params.producer-zaproxy-flags)\"\n     zap.sh -cmd -silent -notel -quickout /zap/wrk/out.json -quickurl $(params.producer-zaproxy-target) $(params.producer-zaproxy-flags)\n   else \n     echo \"$configFile\" | base64 -d > configuration.xml\n     zap.sh -cmd -silent -notel -quickout /zap/wrk/out.json -quickurl $(params.producer-zaproxy-target) -configFile configuration.xml\n     $(p..arams.producer-zaproxy-flags)\n   fi\n else \n   echo \"$automation\" | base64 -d > automation.yaml\n   cat automation.yaml\n   zap.sh -cmd -autorun automation.yaml\n fi\n"
             env:
               - name: DRACON_SCAN_TIME
                 value: $(params.dracon_scan_start_time)
@@ -133,7 +137,7 @@ patches:
                 value: $(params.dracon_scan_id)
     target:
       kind: Task
-      name: producer-owasp-zaproxy
+      name: producer-zaproxy
   - patch: |
       apiVersion: tekton.dev/v1beta1
       kind: Pipeline
@@ -141,7 +145,7 @@ patches:
         name: unused
       spec:
         tasks:
-          - name: producer-owasp-zaproxy
+          - name: producer-zaproxy
             params:
               - name: dracon_scan_id
                 value: $(tasks.base.results.dracon-scan-id)
