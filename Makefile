@@ -110,3 +110,6 @@ third_party/k8s/tektoncd/dashboard/release-v$(TEKTON_DASHBOARD_VERSION).yaml:
 
 release_notes:
 	git log --date=short --pretty='format:- %cd %s' -n 20
+
+bin/kustomize-component-generator:
+	go build -o bin/kustomize-component-generator build/tools/kustomize-component-generator/main.go
