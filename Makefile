@@ -1,8 +1,10 @@
-.PHONY: build clean clean-protos lint fmt fmt-go fmt-proto tests go-tests release_notes
+.PHONY: build clean clean-protos lint fmt fmt-go fmt-proto tests go-tests release_notes kustomizations
 
 proto_defs=$(shell find . -name "*.proto" -not -path "./vendor/*")
 go_protos=$(proto_defs:.proto=.pb.go)
 component_containers=$(shell find ./components -name main.go | xargs -I'{}' sh -c 'echo $$(dirname {})/docker')
+component_tasks=$(shell find ./components -name task.yaml -not -path "./components/sources/git/*" -not -path "./components/enrichers/aggregator/*" -not -path "./components/producers/aggregator/*" -not -path "./components/base/*")
+component_kustomizations=$(component_tasks:task.yaml=kustomization.yaml)
 
 GO_TEST_PACKAGES=./...
 
@@ -22,10 +24,13 @@ build: $(go_protos)
 $(go_protos): %.pb.go: %.proto
 	$(PROTOC) --go_out=. --go_opt=paths=source_relative $<
 
-clean: clean-protos
+clean-kustomizations:
+	rm -rf $(component_kustomizations)
 
 clean-protos:
 	rm -rf $(go_protos)
+
+clean: clean-protos clean-kustomizations
 
 fmt-proto:
 	@echo "Tidying up Proto files"
@@ -113,3 +118,8 @@ release_notes:
 
 bin/kustomize-component-generator:
 	go build -o bin/kustomize-component-generator build/tools/kustomize-component-generator/main.go
+
+$(component_kustomizations): bin/kustomize-component-generator
+	bin/kustomize-component-generator -task "$$(dirname $@)/task.yaml"
+
+kustomizations: $(component_kustomizations)

@@ -5,37 +5,6 @@ subinclude(
     "///k8s//build/defs:helm",
 )
 
-def dracon_component(
-    name: str,
-    task: str,
-    images: list = [],
-    visibility: list = [],
-):
-    kustomization=genrule(
-        name = f"_{name}#kustomization",
-        srcs = {
-            "task": [task],
-        },
-        outs = ["kustomization.yaml"],
-        cmd = """
-        $TOOLS \\
-            --task "$SRCS_TASK" \\
-            --out "$OUTS"
-        """,
-        labels = ["codegen"],
-        tools = ["//build/tools/kustomize-component-generator"],
-    )
-
-    kustomized_config(
-        name = "k8s",
-        srcs = [
-            kustomization,
-            task,
-        ],
-        images = images,
-        visibility = ["//examples/pipelines/..."],
-    )
-
 def dracon_pipeline(
     name: str,
     kustomization_yaml: str,
