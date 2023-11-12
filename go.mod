@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	cloud.google.com/go/bigquery v1.48.0
-	github.com/CycloneDX/cyclonedx-go v0.7.0
+	github.com/CycloneDX/cyclonedx-go v0.7.2
 	github.com/DependencyTrack/client-go v0.8.0
 	github.com/andygrunwald/go-jira v1.15.1
 	github.com/avast/retry-go/v4 v4.3.3
