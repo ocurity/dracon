@@ -8,6 +8,7 @@ go_binary(
     name = "pdf",
     srcs = [
         "main.go",
+        "default.html",
     ],
     static = True,
     deps = [

@@ -81,7 +81,7 @@ func assertErrorToNilf(message string, err error) {
 }
 
 func buildPdf(data any) string {
-	tmpl := template.Must(template.ParseFiles("layout.html"))
+	tmpl := template.Must(template.ParseFiles("default.html"))
 
 	currentPath, err := os.Getwd()
 	if err != nil {
