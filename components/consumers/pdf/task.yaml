@@ -1,0 +1,51 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: consumer-pdf
+  labels:
+    v1.dracon.ocurity.com/component: consumer
+spec:
+  volumes:
+    - name: scratch
+      emptyDir: {}
+  params:
+    - name: consumer-pdf-s3-access-key-id
+      type: string
+    - name: consumer-pdf-s3-secret-access-key
+      type: string
+    - name: consumer-pdf-s3-bucket-name
+      type: string
+    - name: consumer-pdf-s3-bucket-region
+      type: string
+    - name: consumer-pdf-template-location
+      type: string
+      default: ""
+
+  workspaces:
+    - name: source-code-ws
+      description: The workspace containing the source-code to scan.
+  steps:
+    - name: run-consumer
+      imagePullPolicy: IfNotPresent
+      image: ghcr.io/ocurity/dracon/components/consumers/pdf/image:latest
+      env:
+        - name: AWS_ACCESS_KEY_ID
+          value: "$(params.consumer-aws-s3-access-key-id)"
+        - name: AWS_SECRET_ACCESS_KEY
+          value: "$(params.consumer-aws-s3-secret-access-key)"
+      command: ["/app/components/consumers/aws-s3/aws-s3"]
+      args:
+        [
+          "-in",
+          "$(workspaces.source-code-ws.path)/.dracon/enrichers/",
+          "-bucket",
+          "$(params.consumer-aws-s3-bucket-name)",
+          "-region",
+          "$(params.consumer-aws-s3-bucket-region)",
+          "-template",
+          "$(params.consumer-pdf-template-location)",
+        ]
+      volumeMounts:
+        - mountPath: /scratch
+          name: scratch

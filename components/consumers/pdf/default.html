@@ -1,0 +1,20 @@
+<h1>{{.PageTitle}}</h1>
+    {{range .EnrichedLaunchToolResponses}}
+    <h2>{{$.OriginalResults.ScanInfo.ScanUuid}} - {{$.OriginalResults.ToolName}}</h2>
+    <ul>
+        {{range $.Issues}}
+        <h3>{{$.RawIssue.Target}}</h3>
+        <li>
+            <h4>{{$.RawIssue.Title}}</h4>
+            <p>{{$.RawIssue.FirstSeen}} </p>
+            <p>{{$.RawIssue.Count}} </p>
+            <p>{{$.RawIssue.FalsePositive}} </p>
+            <p>{{$.RawIssue.UpdatedAt}} </p>
+            {{ range $key,$element := .Annotations }}
+            <p><b>{{$key}}</b>:{{$element}}</p>
+            {{end}}
+        </li>
+        {{end}}
+    </ul>
+
+    {{end}}
