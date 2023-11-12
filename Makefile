@@ -123,3 +123,6 @@ $(component_kustomizations): bin/kustomize-component-generator
 	bin/kustomize-component-generator -task "$$(dirname $@)/task.yaml"
 
 kustomizations: $(component_kustomizations)
+
+print-%:
+	@echo $($*)
