@@ -44,7 +44,6 @@ func main() {
 		}
 		responses = r
 	}
-
 	result := buildPdf(responses)
 	sendToS3(result, bucket, region)
 }
@@ -87,7 +86,7 @@ func buildPdf(data any) string {
 	if err != nil {
 		panic(err)
 	}
-	f, err := os.OpenFile(filepath.Join(currentPath, "report.html"), os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
+	f, err := os.OpenFile(filepath.Join(currentPath, "report.html"), os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0o600)
 	if err != nil {
 		panic(err)
 	}

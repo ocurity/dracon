@@ -8,7 +8,6 @@ go_binary(
     name = "pdf",
     srcs = [
         "main.go",
-        "default.html",
     ],
     static = True,
     deps = [
@@ -16,12 +15,15 @@ go_binary(
         "//components/consumers",
         "//pkg/enumtransformers",
         "//pkg/templating",
-        "//third_party/go/google.golang.org/protobuf",
         "//third_party/go/github.com/aws/aws-sdk-go",
         "//third_party/go/github.com/playwright-community/playwright-go",
+        "//third_party/go/google.golang.org/protobuf",
     ],
 )
-
+filegroup(
+    name = "template",
+    srcs = ["default.html"],
+)
 # buildkit_distroless_image(
 #     name = "image",
 #     srcs = [":pdf"],
@@ -34,6 +36,7 @@ buildkit_image(
     name = "image",
     srcs = [
         ":pdf",
+        ":template",
     ],
     dockerfile = "Dockerfile",
     visibility = [

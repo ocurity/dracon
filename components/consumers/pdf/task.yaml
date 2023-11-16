@@ -20,7 +20,7 @@ spec:
       type: string
     - name: consumer-pdf-template-location
       type: string
-      default: ""
+      default: "/playwright/default.html"
 
   workspaces:
     - name: source-code-ws
@@ -31,18 +31,18 @@ spec:
       image: ghcr.io/ocurity/dracon/components/consumers/pdf/image:latest
       env:
         - name: AWS_ACCESS_KEY_ID
-          value: "$(params.consumer-aws-s3-access-key-id)"
+          value: "$(params.consumer-pdf-s3-access-key-id)"
         - name: AWS_SECRET_ACCESS_KEY
-          value: "$(params.consumer-aws-s3-secret-access-key)"
-      command: ["/app/components/consumers/aws-s3/aws-s3"]
+          value: "$(params.consumer-pdf-s3-secret-access-key)"
+      command: ["/playwright/pdf"]
       args:
         [
           "-in",
           "$(workspaces.source-code-ws.path)/.dracon/enrichers/",
           "-bucket",
-          "$(params.consumer-aws-s3-bucket-name)",
+          "$(params.consumer-pdf-s3-bucket-name)",
           "-region",
-          "$(params.consumer-aws-s3-bucket-region)",
+          "$(params.consumer-pdf-s3-bucket-region)",
           "-template",
           "$(params.consumer-pdf-template-location)",
         ]

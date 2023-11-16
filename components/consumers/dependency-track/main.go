@@ -157,6 +157,7 @@ func addOwnersTags(owners []string) error {
 	_, err = client.Project.Update(context.Background(), project)
 	return err
 }
+
 func uploadBOM(bom string, projectVersion string) (string, error) {
 	if projectVersion == "" {
 		projectVersion = "Unknown"

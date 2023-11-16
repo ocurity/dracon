@@ -16,24 +16,35 @@ patches:
         workspaces:
           - name: source-code-ws
         tasks:
-          - name: consumer-elasticsearch
+          - name: consumer-pdf
             taskRef:
-              name: consumer-elasticsearch
+              name: consumer-pdf
             workspaces:
               - name: source-code-ws
                 workspace: source-code-ws
             params:
-              - name: consumer-elasticsearch-url
-                value: $(params.consumer-elasticsearch-url)
-              - name: consumer-elasticsearch-description-template
-                value: $(params.consumer-elasticsearch-description-template)
+              - name: consumer-pdf-s3-access-key-id
+                value: $(params.consumer-pdf-s3-access-key-id)
+              - name: consumer-pdf-s3-secret-access-key
+                value: $(params.consumer-pdf-s3-secret-access-key)
+              - name: consumer-pdf-s3-bucket-name
+                value: $(params.consumer-pdf-s3-bucket-name)
+              - name: consumer-pdf-s3-bucket-region
+                value: $(params.consumer-pdf-s3-bucket-region)
+              - name: consumer-pdf-template-location
+                value: $(params.consumer-pdf-template-location)
         params:
-          - name: consumer-elasticsearch-url
+          - name: consumer-pdf-s3-access-key-id
             type: string
-            default: http://dracon-es-http.dracon.svc:9200
-          - name: consumer-elasticsearch-description-template
+          - name: consumer-pdf-s3-secret-access-key
             type: string
-            default: ""
+          - name: consumer-pdf-s3-bucket-name
+            type: string
+          - name: consumer-pdf-s3-bucket-region
+            type: string
+          - name: consumer-pdf-template-location
+            type: string
+            default: /playwright/default.html
     target:
       kind: Pipeline
   # Add anchors to Task.
@@ -41,7 +52,7 @@ patches:
       apiVersion: tekton.dev/v1beta1
       kind: Task
       metadata:
-        name: consumer-elasticsearch
+        name: consumer-pdf
         labels:
           v1.dracon.ocurity.com/component: consumer
       spec:
@@ -59,7 +70,7 @@ patches:
             script: echo "$(context.task.name)" > "$(results.anchor.path)"
     target:
       kind: Task
-      name: consumer-elasticsearch
+      name: consumer-pdf
   # If we have an enricher-aggregator task in the pipeline (added by the
   # enricher-aggregator component), make the consumer depend on the completion of
   # it.
@@ -70,7 +81,7 @@ patches:
         name: unused
       spec:
         tasks:
-          - name: consumer-elasticsearch
+          - name: consumer-pdf
             params:
               - name: anchors
                 value:
