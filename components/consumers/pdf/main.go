@@ -102,7 +102,7 @@ func buildPdf(data any) string {
 		panic(err)
 	}
 	tmpl.Execute(f, data)
-	if err = f.Close(); err != nil{
+	if err = f.Close(); err != nil {
 		panic(err)
 	}
 	pw, err := playwright.Run()
