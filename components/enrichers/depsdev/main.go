@@ -41,6 +41,7 @@ type Check struct {
 	Reason  string        `json:"reason,omitempty"`
 	Details []interface{} `json:"details,omitempty"`
 }
+
 // ScorecardV2 is a deps.dev ScoreCardV2 result
 type ScorecardV2 struct {
 	Date string `json:"date,omitempty"`
@@ -56,6 +57,7 @@ type ScorecardV2 struct {
 	Metadata []interface{} `json:"metadata,omitempty"`
 	Score    float64       `json:"score,omitempty"`
 }
+
 // Project is a deps.dev project
 type Project struct {
 	Type        string      `json:"type,omitempty"`
@@ -158,6 +160,7 @@ func addDepsDevLink(component cdx.Component) (cdx.Component, error) {
 
 	return component, nil
 }
+
 func addDepsDevInfo(component cdx.Component, annotations map[string]string) (cdx.Component, map[string]string, error) {
 	var depsResp Response
 	licenses := cdx.Licenses{}
@@ -232,7 +235,7 @@ func enrichIssue(i *v1.Issue) (*v1.EnrichedIssue, error) {
 	if err != nil {
 		return &enrichedIssue, err
 	}
-	if bom == nil || *bom.Components == nil {
+	if bom == nil || bom.Components == nil {
 		return &enrichedIssue, errors.New("bom does not have components")
 	}
 	newComponents := (*bom.Components)[:0]
