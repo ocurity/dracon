@@ -65,8 +65,8 @@ func sendToS3(filename, bucket, region string) {
 		log.Fatalf("Unable to acquire AWS session in region %s, check your credentials", region)
 	}
 	// filename is statically defined above
-	//nolint:gosec
-	data, err := os.ReadFile(filename) //nolint:gosec
+	//#nosec:G304
+	data, err := os.ReadFile(filename) //#nosec:G304
 	if err != nil {
 		panic(err)
 	}
@@ -96,8 +96,8 @@ func buildPdf(data any) string {
 	if err != nil {
 		panic(err)
 	}
-	//nolint:gosec
-	f, err := os.OpenFile(filepath.Join(currentPath, "report.html"), os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0o600) //nolint:gosec
+	//#nosec: G304
+	f, err := os.OpenFile(filepath.Join(currentPath, "report.html"), os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0o600) //#nosec: G304
 	if err != nil {
 		panic(err)
 	}
