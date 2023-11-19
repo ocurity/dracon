@@ -1,5 +1,3 @@
-package main
-
 // Package main of the pdf consumer implements a simple consumer for
 // applying a go-template to a dracon scan, converting the result to pdf and then
 // uploading the result to the S3 bucket passed as an argument
@@ -7,6 +5,7 @@ package main
 // AWS_ACCESS_KEY_ID
 // AWS_SECRET_ACCESS_KEY
 // to be set along with the "bucket" and "region" arguments to be passed
+package main
 
 import (
 	"bytes"
