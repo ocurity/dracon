@@ -66,7 +66,7 @@ func sendToS3(filename, bucket, region string) {
 	}
 	// filename is statically defined above
 	//nolint:gosec
-	data, err := os.ReadFile(filename)
+	data, err := os.ReadFile(filename) //nolint:gosec
 	if err != nil {
 		panic(err)
 	}
@@ -97,7 +97,7 @@ func buildPdf(data any) string {
 		panic(err)
 	}
 	//nolint:gosec
-	f, err := os.OpenFile(filepath.Join(currentPath, "report.html"), os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0o600)
+	f, err := os.OpenFile(filepath.Join(currentPath, "report.html"), os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0o600) //nolint:gosec
 	if err != nil {
 		panic(err)
 	}
