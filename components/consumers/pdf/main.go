@@ -1,5 +1,13 @@
 package main
 
+// Package main of the pdf consumer implements a simple consumer for
+// applying a go-template to a dracon scan, converting the result to pdf and then
+// uploading the result to the S3 bucket passed as an argument
+// the consumer expects the environment variables
+// AWS_ACCESS_KEY_ID
+// AWS_SECRET_ACCESS_KEY
+// to be set along with the "bucket" and "region" arguments to be passed
+
 import (
 	"bytes"
 	"flag"
@@ -56,6 +64,8 @@ func sendToS3(filename, bucket, region string) {
 	if err != nil {
 		log.Fatalf("Unable to acquire AWS session in region %s, check your credentials", region)
 	}
+	// filename is statically defined above
+	//nolint:gosec
 	data, err := os.ReadFile(filename)
 	if err != nil {
 		panic(err)
@@ -86,13 +96,13 @@ func buildPdf(data any) string {
 	if err != nil {
 		panic(err)
 	}
+	//nolint:gosec
 	f, err := os.OpenFile(filepath.Join(currentPath, "report.html"), os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0o600)
 	if err != nil {
 		panic(err)
 	}
-	defer f.Close()
 	tmpl.Execute(f, data)
-
+	f.Close()
 	pw, err := playwright.Run()
 	assertErrorToNilf("could not launch playwright: %w", err)
 

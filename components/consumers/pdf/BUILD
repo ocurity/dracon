@@ -20,6 +20,7 @@ go_binary(
         "//third_party/go/google.golang.org/protobuf",
     ],
 )
+
 filegroup(
     name = "template",
     srcs = ["default.html"],
