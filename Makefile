@@ -14,6 +14,9 @@ TEKTON_DASHBOARD_VERSION=0.29.2
 ARANGO_DB_VERSION=1.2.19
 NGINX_INGRESS_VERSION=4.2.5
 NAMESPACE=default
+ES_NAMESPACE=elastic-system
+ES_VERSION=2.2.0
+MONGODB_VERSION=13.3.0
 
 latest_tag=$(shell git tag --list --sort="-version:refname" | head -n 1)
 commits_since_latest_tag=$(shell git log --oneline $(latest_tag)..HEAD | wc -l)
@@ -130,7 +133,7 @@ kustomizations: $(component_kustomizations)
 print-%:
 	@echo $($*)
 
-.PHONY: deploy-arangodb-crds deploy-arangodb dev-deploy
+.PHONY: deploy-arangodb-crds deploy-arangodb dev-deploy deploy-elasticsearch deploy-mongodb
 deploy-arangodb-crds:
 	helm upgrade arangodb-crds https://github.com/arangodb/kube-arangodb/releases/download/$(ARANGO_DB_VERSION)/kube-arangodb-crd-$(ARANGO_DB_VERSION).tgz --install
 
@@ -140,4 +143,14 @@ deploy-arangodb: deploy-arangodb-crds
 deploy-nginx:
 	helm upgrade nginx-ingress https://github.com/kubernetes/ingress-nginx/releases/download/helm-chart-$(NGINX_INGRESS_VERSION)/ingress-nginx-$(NGINX_INGRESS_VERSION).tgz --install --namespace $(NAMESPACE) --create-namespace
 
-dev-deploy: deploy-arangodb deploy-nginx
+add-es-helm-repo:
+	helm repo add elastic https://helm.elastic.co
+	helm repo update
+
+deploy-elasticsearch: add-es-helm-repo
+	helm upgrade --install elastic-operator elastic/eck-operator --namespace $(ES_NAMESPACE) --create-namespace --version $(ES_VERSION)
+
+deploy-mongodb:
+	helm upgrade mongodb https://charts.bitnami.com/bitnami/mongodb-$(MONGODB_VERSION).tgz --install --namespace $(NAMESPACE) --create-namespace 
+
+dev-deploy: deploy-arangodb deploy-nginx deploy-elasticsearch deploy-mongodb
