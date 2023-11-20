@@ -1,4 +1,4 @@
-.PHONY: build clean clean-protos lint fmt fmt-go fmt-proto tests go-tests release_notes kustomizations dev-deploy deploy-arangodb deploy-arangodb-crds
+.PHONY: build clean clean-protos lint fmt fmt-go fmt-proto tests go-tests release_notes kustomizations
 
 proto_defs=$(shell find . -name "*.proto" -not -path "./vendor/*")
 go_protos=$(proto_defs:.proto=.pb.go)
@@ -129,8 +129,9 @@ kustomizations: $(component_kustomizations)
 print-%:
 	@echo $($*)
 
+.PHONY: deploy-arangodb-crds deploy-arangodb dev-deploy
 deploy-arangodb-crds:
-	helm upgrade --install arangodb-crds https://github.com/arangodb/kube-arangodb/releases/download/$(ARANGO_DB_VERSION)/kube-arangodb-crd-$(ARANGO_DB_VERSION).tgz
+	helm upgrade arangodb-crds https://github.com/arangodb/kube-arangodb/releases/download/$(ARANGO_DB_VERSION)/kube-arangodb-crd-$(ARANGO_DB_VERSION).tgz --install
 
 deploy-arangodb: deploy-arangodb-crds
 	helm upgrade arangodb-instance deploy/arangodb/ --install --namespace $(NAMESPACE) --create-namespace --values deploy/arangodb/values.yaml
