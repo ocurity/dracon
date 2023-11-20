@@ -17,6 +17,7 @@ NAMESPACE=default
 ES_NAMESPACE=elastic-system
 ES_VERSION=2.2.0
 MONGODB_VERSION=13.3.0
+PG_VERSION=11.9.8
 
 latest_tag=$(shell git tag --list --sort="-version:refname" | head -n 1)
 commits_since_latest_tag=$(shell git log --oneline $(latest_tag)..HEAD | wc -l)
@@ -133,7 +134,7 @@ kustomizations: $(component_kustomizations)
 print-%:
 	@echo $($*)
 
-.PHONY: deploy-arangodb-crds deploy-arangodb dev-deploy deploy-elasticsearch deploy-mongodb
+.PHONY: deploy-arangodb-crds deploy-arangodb dev-deploy deploy-elasticsearch deploy-mongodb deploy-pg
 deploy-arangodb-crds:
 	helm upgrade arangodb-crds https://github.com/arangodb/kube-arangodb/releases/download/$(ARANGO_DB_VERSION)/kube-arangodb-crd-$(ARANGO_DB_VERSION).tgz --install
 
@@ -153,4 +154,7 @@ deploy-elasticsearch: add-es-helm-repo
 deploy-mongodb:
 	helm upgrade mongodb https://charts.bitnami.com/bitnami/mongodb-$(MONGODB_VERSION).tgz --install --namespace $(NAMESPACE) --create-namespace 
 
-dev-deploy: deploy-arangodb deploy-nginx deploy-elasticsearch deploy-mongodb
+deploy-pg:
+	helm upgrade pg https://charts.bitnami.com/bitnami/postgresql-$(PG_VERSION).tgz --install --namespace $(NAMESPACE) --create-namespace
+
+dev-deploy: deploy-arangodb deploy-nginx deploy-elasticsearch deploy-mongodb deploy-pg
