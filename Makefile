@@ -1,4 +1,4 @@
-.PHONY: build clean clean-protos lint fmt fmt-go fmt-proto tests go-tests release_notes kustomizations
+.PHONY: build clean clean-protos lint fmt fmt-go fmt-proto tests go-tests release_notes kustomizations dev-deploy deploy-arangodb deploy-arangodb-crds
 
 proto_defs=$(shell find . -name "*.proto" -not -path "./vendor/*")
 go_protos=$(proto_defs:.proto=.pb.go)
@@ -11,6 +11,8 @@ GO_TEST_PACKAGES=./...
 DOCKER_REPO=ghcr.io/ocurity/dracon
 TEKTON_VERSION=0.44.0
 TEKTON_DASHBOARD_VERSION=0.29.2
+ARANGO_DB_VERSION=1.2.19
+NAMESPACE=default
 
 latest_tag=$(shell git tag --list --sort="-version:refname" | head -n 1)
 commits_since_latest_tag=$(shell git log --oneline $(latest_tag)..HEAD | wc -l)
@@ -126,3 +128,11 @@ kustomizations: $(component_kustomizations)
 
 print-%:
 	@echo $($*)
+
+deploy-arangodb-crds:
+	helm upgrade --install arangodb-crds https://github.com/arangodb/kube-arangodb/releases/download/$(ARANGO_DB_VERSION)/kube-arangodb-crd-$(ARANGO_DB_VERSION).tgz
+
+deploy-arangodb: deploy-arangodb-crds
+	helm upgrade arangodb-instance deploy/arangodb/ --install --namespace $(NAMESPACE) --create-namespace --values deploy/arangodb/values.yaml
+
+dev-deploy: deploy-arangodb
