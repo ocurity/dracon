@@ -12,6 +12,7 @@ DOCKER_REPO=ghcr.io/ocurity/dracon
 TEKTON_VERSION=0.44.0
 TEKTON_DASHBOARD_VERSION=0.29.2
 ARANGO_DB_VERSION=1.2.19
+NGINX_INGRESS_VERSION=4.2.5
 NAMESPACE=default
 
 latest_tag=$(shell git tag --list --sort="-version:refname" | head -n 1)
@@ -136,4 +137,7 @@ deploy-arangodb-crds:
 deploy-arangodb: deploy-arangodb-crds
 	helm upgrade arangodb-instance deploy/arangodb/ --install --namespace $(NAMESPACE) --create-namespace --values deploy/arangodb/values.yaml
 
-dev-deploy: deploy-arangodb
+deploy-nginx:
+	helm upgrade nginx-ingress https://github.com/kubernetes/ingress-nginx/releases/download/helm-chart-$(NGINX_INGRESS_VERSION)/ingress-nginx-$(NGINX_INGRESS_VERSION).tgz --install --namespace $(NAMESPACE) --create-namespace
+
+dev-deploy: deploy-arangodb deploy-nginx
