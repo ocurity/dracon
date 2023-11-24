@@ -1,5 +1,5 @@
 ingress:
   annotations: {}
   className: ""
-  host: ""
+  host: "tekton-dashboard.dracon-dev"
   tlsEnabled: true
