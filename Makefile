@@ -94,31 +94,17 @@ $(component_containers):
 
 components: components/base/openapi_schema.json $(component_containers)
 
-third_party/k8s/tektoncd/pipeline/swagger-v$(TEKTON_VERSION).json:
-	wget "https://raw.githubusercontent.com/tektoncd/pipeline/v$(TEKTON_VERSION)/pkg/apis/pipeline/v1beta1/swagger.json" -O third_party/k8s/tektoncd/pipeline/swagger-v$(TEKTON_VERSION).json
+third_party/tektoncd/swagger-v$(TEKTON_VERSION).json:
+	wget "https://raw.githubusercontent.com/tektoncd/pipeline/v$(TEKTON_VERSION)/pkg/apis/pipeline/v1beta1/swagger.json" -O $@
 
-third_party/k8s/tektoncd/pipeline/release-v$(TEKTON_VERSION).yaml:
-	wget "https://storage.googleapis.com/tekton-releases/pipeline/previous/v$(TEKTON_VERSION)/release.yaml" -O third_party/k8s/tektoncd/pipeline/release-v$(TEKTON_VERSION).yaml
-
-api/openapi/tekton/openapi_schema.json: third_party/k8s/tektoncd/pipeline/swagger-v$(TEKTON_VERSION).json
+api/openapi/tekton/openapi_schema.json: third_party/tektoncd/swagger-v$(TEKTON_VERSION).json
 	./scripts/generate_openapi_schema.sh $< $@
 
-components/base/openapi_schema.json: api/openapi/tekton/openapi_schema.json
+components/base/openapi_schema.json: third_party/tektoncd/swagger-v$(TEKTON_VERSION).json
 	cp $< $@
 
 mirror_images:
 	./scripts/mirror_images.sh
-
-third_party/k8s/tektoncd/pipeline/pipeline.yaml: third_party/k8s/tektoncd/pipeline/release-v$(TEKTON_VERSION).yaml
-	cp third_party/k8s/tektoncd/pipeline/release-v$(TEKTON_VERSION).yaml third_party/k8s/tektoncd/pipeline/release.yaml
-	kustomize build $(shell dirname $@) > $@
-	rm third_party/k8s/tektoncd/pipeline/release.yaml
-
-third_party/k8s/tektoncd/pipeline/Chart.yaml: third_party/k8s/tektoncd/pipeline/pipeline.yaml
-	printf "apiVersion: v2\nappVersion: $(TEKTON_VERSION)\ndescription: A Helm chart for Kubernetes.\nname: pipeline\ntype: application\nversion: 0.1.0\n" > $@
-
-third_party/k8s/tektoncd/dashboard/release-v$(TEKTON_DASHBOARD_VERSION).yaml:
-    wget "https://github.com/tektoncd/dashboard/releases/download/v$(TEKTON_DASHBOARD_VERSION)/tekton-dashboard-release.yaml" -O third_party/k8s/tektoncd/dashboard/release-v$(TEKTON_DASHBOARD_VERSION).yaml
 
 release_notes:
 	git log --date=short --pretty='format:- %cd %s' -n 20
@@ -134,7 +120,7 @@ kustomizations: $(component_kustomizations)
 print-%:
 	@echo $($*)
 
-.PHONY: deploy-arangodb-crds deploy-arangodb dev-deploy deploy-elasticsearch deploy-mongodb deploy-pg
+.PHONY: deploy-arangodb-crds deploy-arangodb dev-deploy deploy-elasticsearch deploy-mongodb deploy-pg deploy-tektoncd-pipeline tektoncd-pipeline-helm tektoncd-dashboard-helm
 deploy-arangodb-crds:
 	helm upgrade arangodb-crds https://github.com/arangodb/kube-arangodb/releases/download/$(ARANGO_DB_VERSION)/kube-arangodb-crd-$(ARANGO_DB_VERSION).tgz --install
 
@@ -156,5 +142,49 @@ deploy-mongodb:
 
 deploy-pg:
 	helm upgrade pg https://charts.bitnami.com/bitnami/postgresql-$(PG_VERSION).tgz --install --namespace $(NAMESPACE) --create-namespace
+	
+deploy/tektoncd/pipeline/release-v$(TEKTON_VERSION).yaml:
+	wget "https://storage.googleapis.com/tekton-releases/pipeline/previous/v$(TEKTON_VERSION)/release.yaml" -O $@
 
-dev-deploy: deploy-arangodb deploy-nginx deploy-elasticsearch deploy-mongodb deploy-pg
+tektoncd-pipeline-helm: deploy/tektoncd/pipeline/release-v$(TEKTON_VERSION).yaml
+	$(shell                                                                                                                                                                                                       \
+	    set -e;                                                                                                                                                                                                   \
+        cd deploy/tektoncd/pipeline;                                                                                                                                                                              \
+		rm templates/*.yaml;                                                                                                                                                                                      \
+		mkdir temp;                                                                                                                                                                                               \
+		cp release-v$(TEKTON_VERSION).yaml release.yaml;                                                                                                                                                          \
+		kustomize build > temp/pipeline.yaml;                                                                                                                                                                     \
+		cd temp;                                                                                                                                                                                                  \
+        yq -s 'select(.) | .kind | downcase + $$index' pipeline.yaml;                                                                                                                                             \
+		yq 'select(.) | .kind | downcase' pipeline.yaml | grep -v '\-\-\-' | uniq | xargs -I{} bash -c "cat {}[0-9]*.yml > ../templates/{}s.yaml";                                                                \
+		cd ..;                                                                                                                                                                                                    \
+		printf "apiVersion: v2\nappVersion: $(TEKTON_VERSION)\ndescription: A Helm chart for Tekton CD v$(TEKTON_VERSION).\nname: tektoncd-pipeline-operator\ntype: application\nversion: 0.1.0\n" > Chart.yaml;  \
+		rm -rf temp release.yaml;                                                                                                                                                                                 \
+	)
+
+deploy-tektoncd-pipeline: tektoncd-pipeline-helm
+	helm upgrade tektoncd ./deploy/tektoncd/pipeline --install
+
+deploy/tektoncd/dashboard/release-v$(TEKTON_DASHBOARD_VERSION).yaml:
+    wget "https://github.com/tektoncd/dashboard/releases/download/v$(TEKTON_DASHBOARD_VERSION)/tekton-dashboard-release.yaml" -O $@
+
+tektoncd-dashboard-helm: deploy/tektoncd/dashboard/release-v$(TEKTON_DASHBOARD_VERSION).yaml
+	$(shell                                                                                                                                                                                                                             \
+	    set -e;                                                                                                                                                                                                                         \
+        cd deploy/tektoncd/dashboard;                                                                                                                                                                                                   \
+		find templates -name '*.yaml' -type f -not -name 'ingress.yaml' -delete;                                                                                                                                                        \
+		mkdir -p temp;                                                                                                                                                                                                                  \
+		cp release-v$(TEKTON_DASHBOARD_VERSION).yaml release.yaml;                                                                                                                                                                      \
+		kustomize build > temp/release.yaml;                                                                                                                                                                                            \
+		cd temp;                                                                                                                                                                                                                        \
+		yq -s 'select(.) | .kind | downcase + $$index' release.yaml;                                                                                                                                                                    \
+		yq 'select(.) | .kind | downcase' ../release-v$(TEKTON_DASHBOARD_VERSION).yaml | grep -v '\-\-\-' | uniq | xargs -I{} bash -c "cat {}[0-9]*.yml > ../templates/{}s.yaml";                                                       \
+		cd ..;                                                                                                                                                                                                                          \
+		printf "apiVersion: v2\nappVersion: $(TEKTON_DASHBOARD_VERSION)\ndescription: A Helm chart for Tekton CD dashboard v$(TEKTON_DASHBOARD_VERSION).\nname: tektoncd-dashboard\ntype: application\nversion: 0.1.0\n" > Chart.yaml;  \
+		rm -rf temp release.yaml;                                                                                                                                                                                                       \
+	)
+
+deploy-tektoncd-dashboard: tektoncd-dashboard-helm
+	helm upgrade tektoncd-dashboard ./deploy/tektoncd/dashboard --install --values ./deploy/tektoncd/dashboard/values.yaml
+
+dev-deploy: deploy-arangodb deploy-nginx deploy-elasticsearch deploy-mongodb deploy-pg deploy-tektoncd-pipeline deploy-tektoncd-dashboard
