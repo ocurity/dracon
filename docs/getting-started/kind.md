@@ -5,9 +5,11 @@ KinD is is a tool for running local Kubernetes clusters using Docker container â
 ## Quick Guide
 
 
-1. Create KinD cluster named `dracon-demo`. For more info, see [official documentation](https://kind.sigs.k8s.io/docs/user/quick-start/#creating-a-cluster):
+1. Create KinD cluster named `dracon-demo` with its own Docker registry. For more info, see 
+[official documentation](https://kind.sigs.k8s.io/docs/user/quick-start/#creating-a-cluster):
 
     ```bash
+    $ docker run -d --restart=always -p "127.0.0.1:5001:5000" --network bridge --name "kind-dracon-demo-registry" registry:2
     $ kind create cluster --name dracon-demo
     ```
 
