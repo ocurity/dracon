@@ -7,13 +7,13 @@ resources:
 # TODO: fix namespaces for tektoncd
 #       some components are in the tekton-pipelines
 #       and some other in tekton-pipeline-resolvers
-# patches:
-# - patch: |-
-#     apiVersion: v1
-#     kind: Namespace
-#     metadata:
-#       name: tekton-pipelines
-#     $patch: delete
+patches:
+- patch: |-
+    apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: tekton-pipelines
+    $patch: delete
 # - patch: |-
 #     - op: remove
 #       path: /metadata/namespace
