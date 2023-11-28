@@ -2,7 +2,9 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: kibana
+  name: {{ include "kibana.fullname" . }}
+  labels:
+    {{- include "kibana.labels" . | nindent 4 }}
   namespace: dracon
   annotations:
     kubernetes.io/ingress.class: nginx
@@ -14,8 +16,10 @@ spec:
       port:
         name: http
   rules:
-  - host: kibana.dracon.localhost
+  - host: {{ .Values.ingress.host }}
+  {{- if .Values.ingress.tlsEnabled }}
   tls:
   - hosts:
-    - kibana.dracon.localhost
+    - {{ .Values.ingress.host }}
     secretName: cert-kibana
+  {{- end }}

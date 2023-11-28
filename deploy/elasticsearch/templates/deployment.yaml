@@ -1,9 +1,11 @@
 apiVersion: elasticsearch.k8s.elastic.co/v1
 kind: Elasticsearch
 metadata:
-  name: dracon
+  name: {{ include "elasticsearch.fullname" . }}
   annotations:
     "helm.sh/hook": post-install,post-upgrade
+  labels:
+    {{- include "elasticsearch.labels" . | nindent 4 }}
 spec:
   version: 8.3.2
   image: docker.elastic.co/elasticsearch/elasticsearch:8.3.2
