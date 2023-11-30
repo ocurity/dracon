@@ -3,6 +3,8 @@
 proto_defs=$(shell find . -name "*.proto" -not -path "./vendor/*")
 go_protos=$(proto_defs:.proto=.pb.go)
 component_containers=$(shell find ./components -name main.go | xargs -I'{}' sh -c 'echo $$(dirname {})/docker')
+component_containers_push=$(component_containers:docker=push)
+component_containers_retag=$(component_containers:docker=retag)
 component_tasks=$(shell find ./components -name task.yaml -not -path "./components/sources/git/*" -not -path "./components/enrichers/aggregator/*" -not -path "./components/producers/aggregator/*" -not -path "./components/base/*")
 component_kustomizations=$(component_tasks:task.yaml=kustomization.yaml)
 
@@ -98,6 +100,16 @@ $(component_containers):
 
 components: components/base/openapi_schema.json $(component_containers)
 
+$(component_containers_push):
+	docker push $(DOCKER_REPO)/$$(dirname $@):$(DRACON_VERSION)
+
+push-component-containers: $(component_containers_push)
+
+$(component_containers_retag):
+	docker tag $(OLD_DOCKER_REPO)/$$(dirname $@):$(DRACON_VERSION) $(DOCKER_REPO)/$$(dirname $@):$(DRACON_VERSION)
+
+retag-component-containers: $(component_containers_retag)
+
 third_party/tektoncd/swagger-v$(TEKTON_VERSION).json:
 	wget "https://raw.githubusercontent.com/tektoncd/pipeline/v$(TEKTON_VERSION)/pkg/apis/pipeline/v1beta1/swagger.json" -O $@
 
@@ -106,9 +118,6 @@ api/openapi/tekton/openapi_schema.json: third_party/tektoncd/swagger-v$(TEKTON_V
 
 components/base/openapi_schema.json: third_party/tektoncd/swagger-v$(TEKTON_VERSION).json
 	cp $< $@
-
-mirror_images:
-	./scripts/mirror_images.sh
 
 release_notes:
 	git log --date=short --pretty='format:- %cd %s' -n 20
