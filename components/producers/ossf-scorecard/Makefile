@@ -1,7 +1,9 @@
-.PHONY build-extras
+.PHONY package-extras
 
 DOCKER_REPO=
 DRACON_VERSION=
 
-build-extras:
-	docker build -t $(DOCKER_REPO)/components/producers/ossf-scorecard:$(DRACON_VERSION) -f Dockerfile ../../..
+DOCKER=docker
+
+package-extras:
+	$(docker) build -t $(DOCKER_REPO)/components/producers/ossf-scorecard:$(DRACON_VERSION) -f Dockerfile ../../..
