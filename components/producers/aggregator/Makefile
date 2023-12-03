@@ -2,6 +2,9 @@
 
 DOCKER_REPO=
 DRACON_VERSION=
+EXECUTABLE_PATH=
 
-build:
-	docker build -t $(DOCKER_REPO)/components/producers/tagger:$(DRACON_VERSION) -f Dockerfile ../../..
+DOCKER=docker
+
+package:
+	$(DOCKER) build -t $(DOCKER_REPO)/components/producers/tagger:$(DRACON_VERSION) -f Dockerfile ../../../bin

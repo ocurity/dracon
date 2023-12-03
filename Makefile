@@ -2,6 +2,7 @@
 
 proto_defs=$(shell find . -name "*.proto" -not -path "./vendor/*")
 go_protos=$(proto_defs:.proto=.pb.go)
+component_binariess=$(shell find ./components -name main.go | xargs -I'{}' sh -c 'echo $$(dirname {})/bin')
 component_containers=$(shell find ./components -name main.go | xargs -I'{}' sh -c 'echo $$(dirname {})/docker')
 component_containers_push=$(component_containers:docker=push)
 component_containers_retag=$(component_containers:docker=retag)
@@ -29,7 +30,9 @@ latest_tag=$(shell git tag --list --sort="-version:refname" | head -n 1)
 commits_since_latest_tag=$(shell git log --oneline $(latest_tag)..HEAD | wc -l)
 DRACON_VERSION=$(shell echo $(latest_tag)$$([ $(commits_since_latest_tag) -eq 0 ] || echo "-$$(git log -n 1 --pretty='format:%h')" )$$([ -z "$$(git status --porcelain=v1 2>/dev/null)" ] || echo "-dirty" ))
 
+GO=go
 PROTOC=protoc
+DOCKER=docker
 
 build: $(go_protos)
 	@echo "done building"
@@ -68,37 +71,45 @@ go-tests:
 
 tests: go-tests
 
-$(component_containers):
-	$(shell                                                                                                                                         \
-        set -e;                                                                                                                                     \
-        EXECUTABLE=$$(basename $$(dirname $@));                                                                                                     \
-        echo "$@" | grep -Eq ^components/producers/.*$ && EXECUTABLE=$${EXECUTABLE}-parser || true;                                                 \
-        EXECUTABLE_FOLDER=$$(dirname $@);                                                                                                           \
-        EXECUTABLE_PATH=$$(dirname $@)/$${EXECUTABLE};                                                                                              \
-        if $(MAKE) -C $${EXECUTABLE_FOLDER} --no-print-directory --dry-run build >/dev/null 2>&1;                                                   \
-        then                                                                                                                                        \
-            $(MAKE) -C $${EXECUTABLE_FOLDER} --no-print-directory --quiet build DOCKER_REPO=$(DOCKER_REPO) DRACON_VERSION=$(DRACON_VERSION);        \
-        else                                                                                                                                        \
-            DOCKERFILE_TEMPLATE="                                                                                                                   \
-                FROM golang:1.21.3-bookworm as builder                                                                                           \n \
-                COPY . /build                                                                                                                    \n \
-                WORKDIR /build                                                                                                                   \n \
-                RUN go build -o $${EXECUTABLE_PATH} ./$${EXECUTABLE_FOLDER}/main.go                                                              \n \
-                FROM scratch                                                                                                                     \n \
-                COPY --from=builder /build/$${EXECUTABLE_PATH} /bin/$${EXECUTABLE}                                                               \n \
-                ENTRYPOINT ["/bin/$${EXECUTABLE}"]                                                                                               \n \
-            ";                                                                                                                                      \
-            DOCKERFILE=$$(mktemp);                                                                                                                  \
-            printf "$${DOCKERFILE_TEMPLATE}" > $${DOCKERFILE};                                                                                      \
-            docker build -t $(DOCKER_REPO)/$${EXECUTABLE_FOLDER}:$(DRACON_VERSION) -f $${DOCKERFILE} .;                                             \
-        fi;                                                                                                                                         \
-        if $(MAKE) -C $${EXECUTABLE_FOLDER} --no-print-directory --dry-run build-extras >/dev/null 2>&1;                                            \
-        then                                                                                                                                        \
-            $(MAKE) -C $${EXECUTABLE_FOLDER} --no-print-directory --quiet build-extras DOCKER_REPO=$(DOCKER_REPO) DRACON_VERSION=$(DRACON_VERSION); \
-        fi;                                                                                                                                         \
+$(component_binariess):
+	$(shell                                                                                         \
+        set -e;                                                                                     \
+        EXECUTABLE=$$(basename $$(dirname $@));                                                     \
+        echo "$@" | grep -Eq ^components/producers/.*$ && EXECUTABLE=$${EXECUTABLE}-parser || true; \
+        EXECUTABLE_FOLDER=$$(dirname $@);                                                           \
+        EXECUTABLE_PATH=$$(dirname $$(dirname $@))/$${EXECUTABLE};                                  \
+		echo "building bin/$${EXECUTABLE_PATH}" > /dev/stderr;                                      \
+        $(GO) build -o bin/$${EXECUTABLE_PATH} ./$${EXECUTABLE_FOLDER}/main.go;                     \
 	)
 
-components: components/base/openapi_schema.json $(component_containers)
+component-binaries: $(component_binariess)
+
+$(component_containers): %/docker: %/bin
+	$(shell                                                                                                                                                                      \
+        set -e;                                                                                                                                                                  \
+        EXECUTABLE=$$(basename $$(dirname $@));                                                                                                                                  \
+        echo "$@" | grep -Eq ^components/producers/.*$ && EXECUTABLE=$${EXECUTABLE}-parser || true;                                                                              \
+        EXECUTABLE_FOLDER=$$(dirname $@);                                                                                                                                        \
+        EXECUTABLE_PATH=$$(dirname $$(dirname $@))/$${EXECUTABLE};                                                                                                               \
+        if $(MAKE) -C $${EXECUTABLE_FOLDER} --no-print-directory --dry-run package >/dev/null 2>&1;                                                                              \
+        then                                                                                                                                                                     \
+            $(MAKE) -C $${EXECUTABLE_FOLDER} --no-print-directory --quiet build DOCKER_REPO=$(DOCKER_REPO) DRACON_VERSION=$(DRACON_VERSION); EXECUTABLE_PATH=$(EXECUTABLE_PATH); \
+        else                                                                                                                                                                     \
+            DOCKERFILE_TEMPLATE="                                                                                                                                                \
+                FROM scratch                                                                                                                                                  \n \
+                COPY $${EXECUTABLE_PATH} /bin/$${EXECUTABLE}                                                                                                                  \n \
+                ENTRYPOINT ["/bin/$${EXECUTABLE}"]                                                                                                                            \n \
+            ";                                                                                                                                                                   \
+            DOCKERFILE=$$(mktemp);                                                                                                                                               \
+            printf "$${DOCKERFILE_TEMPLATE}" > $${DOCKERFILE};                                                                                                                   \
+            docker build -t $(DOCKER_REPO)/$${EXECUTABLE_FOLDER}:$(DRACON_VERSION) -f $${DOCKERFILE} ./bin;                                                                      \
+        fi;                                                                                                                                                                      \
+        if $(MAKE) -C $${EXECUTABLE_FOLDER} --no-print-directory --dry-run package-extras >/dev/null 2>&1;                                                                       \
+        then                                                                                                                                                                     \
+			$(MAKE) -C $${EXECUTABLE_FOLDER} --no-print-directory --quiet package-extras DOCKER_REPO=$(DOCKER_REPO) DRACON_VERSION=$(DRACON_VERSION);  fi; \
+	)
+
+components: $(component_containers)
 
 $(component_containers_push):
 	docker push $(DOCKER_REPO)/$$(dirname $@):$(DRACON_VERSION)
