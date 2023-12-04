@@ -7,8 +7,8 @@ metadata:
   labels:
     {{- include "elasticsearch.labels" . | nindent 4 }}
 spec:
-  version: 8.3.2
-  image: docker.elastic.co/elasticsearch/elasticsearch:8.3.2
+  version: {{ .Values.version }}
+  image: docker.elastic.co/elasticsearch/elasticsearch:{{ .Values.version }}
   http:
     tls:
       selfSignedCertificate:

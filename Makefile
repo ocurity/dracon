@@ -19,6 +19,7 @@ NGINX_INGRESS_VERSION=4.2.5
 NAMESPACE=default
 ES_NAMESPACE=elastic-system
 ES_OPERATOR_VERSION=2.2.0
+ES_VERSION=8.3.2
 MONGODB_VERSION=13.3.0
 PG_VERSION=11.9.8
 NGINX_INGRESS_NS=ingress-nginx
@@ -174,10 +175,19 @@ deploy-elasticoperator: add-es-helm-repo
 		--version=$(ES_OPERATOR_VERSION)
 
 deploy-elasticsearch: deploy-elasticoperator
-	helm upgrade elasticsearch deploy/elasticsearch/ \
+	helm upgrade dracon-es deploy/elasticsearch/ \
 		--install \
+		--set version=$(ES_VERSION) \
 		--namespace $(DRACON_NS) \
 		--create-namespace
+
+deploy-kibana: deploy-elasticsearch
+	helm upgrade dracon-kb deploy/kibana/ \
+		--install \
+		--set version=$(ES_VERSION) \
+		--set es_name=dracon-es-elasticsearch \
+		--namespace $(DRACON_NS) \
+		--version $(ES_VERSION)
 
 deploy-mongodb:
 	helm upgrade consumer-mongodb https://charts.bitnami.com/bitnami/mongodb-$(MONGODB_VERSION).tgz \
@@ -242,4 +252,4 @@ deploy-tektoncd-dashboard: tektoncd-dashboard-helm
 		--values ./deploy/tektoncd/dashboard/values.yaml \
 		--namespace $(TEKTON_NS)
 
-dev-deploy: deploy-nginx deploy-arangodb deploy-elasticsearch deploy-mongodb deploy-pg deploy-tektoncd-pipeline deploy-tektoncd-dashboard
+dev-deploy: deploy-nginx deploy-arangodb deploy-kibana deploy-mongodb deploy-pg deploy-tektoncd-pipeline deploy-tektoncd-dashboard

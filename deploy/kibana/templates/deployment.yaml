@@ -7,11 +7,11 @@ metadata:
   labels:
     {{- include "kibana.labels" . | nindent 4 }}
 spec:
-  version: 8.3.2
-  image: docker.elastic.co/kibana/kibana:8.3.2
+  version: {{ .Values.version }}
+  image: docker.elastic.co/kibana/kibana:{{ .Values.version }}
   count: 1
   elasticsearchRef:
-    name: dracon
+    name: {{ .Values.es_name }}
   # config:
   #   xpack.security.enabled: false
   http:

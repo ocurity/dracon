@@ -63,34 +63,55 @@ and run the following:
 $ make components
 ```
 
-2. If you used KinD with a local repository run the following:
+* If you used KinD with a local repository run the following:
 
 ```bash
-$ make retag-component-containers DOCKER_REPO=localhost:5001/ocurity/dracon OLD_DOCKER_REPO=ghcr.io/ocurity/dracon
+$ make components DOCKER_REPO=localhost:5001/ocurity/dracon
 ```
 
-3. Push the images to a cluster
-
-```bash
-$ make push-component-containers DOCKER_REPO=localhost:5001/ocurity/dracon
-```
-
-4. Deploy Tekton
+2. Deploy Tekton
 
 ```bash
 $ make dev-deploy
 ```
 
-* some times the deployment of the Helm packages will run very fast, Nginx pods don't have time to
-  start and a webhook invocation might fail. You can just re-run the command and it will work after
-  a couple of seconds.
+> :warning: **Warning 1:** make sure that all pods are up an running before proceeding
 
-5. 
-   ```bash
-   $ ./pleasew deploy //examples/pipelines/golang-project:pipeline
-   $ ./pleasew deploy //examples/pipelines/golang-project/pipelinerun:pipelinerun
-   ```
+3. Deploy the Helm chart with the golang project
+
+```bash
+$ helm upgrade golang-project-pipeline ./examples/pipelines/golang-project/ \
+    --install \
+    --namespace dracon
 ```
-1. Wait for the pipeline to finish running by monitoring it in https://tekton.dracon.localhost:8443.
 
-2. Once the pipelinerun has finished running you can view your results in Kibana: https://kibana.dracon.localhost:8443.
+4. Start a pipeline run
+
+```bash
+$ kubectl apply -n dracon -f ./examples/pipelines/golang-project/pipelinerun/pipelinerun.yaml
+```
+
+5. Expose the Tekton dashboard and Kibana UI
+
+```bash
+$ kubectl -n tekton-pipelines port-forward svc/tekton-dashboard 9097:9097
+$ kubectl -n dracon port-forward svc/dracon-kb-kibana-kb-http 5601:5601
+```
+
+6. Get the token to access Kibana
+
+```bash
+# The username is `elastic`.
+$ kubectl -n dracon get secret dracon-es-elasticsearch-es-elastic-user \
+        -o=jsonpath='{.data.elastic}' \
+        | base64 -d - \
+        | xargs echo "$1"
+```
+
+7. Deploy the Golang pipeline
+
+
+
+8. Wait for the pipeline to finish running by monitoring it in http://localhost:9097.
+
+9.  Once the pipelinerun has finished running you can view your results in Kibana: http://localhost:5601.
