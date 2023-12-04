@@ -16,13 +16,13 @@ TEKTON_VERSION=0.44.0
 TEKTON_DASHBOARD_VERSION=0.29.2
 ARANGODB_VERSION=1.2.19
 NGINX_INGRESS_VERSION=4.2.5
+NGINX_INGRESS_NS=ingress-nginx
 NAMESPACE=default
 ES_NAMESPACE=elastic-system
 ES_OPERATOR_VERSION=2.2.0
 ES_VERSION=8.3.2
 MONGODB_VERSION=13.3.0
 PG_VERSION=11.9.8
-NGINX_INGRESS_NS=ingress-nginx
 DRACON_NS=dracon
 TEKTON_NS=tekton-pipelines
 ARANGODB_NS=arangodb
@@ -162,6 +162,7 @@ deploy-nginx:
 		--install \
 		--namespace $(NGINX_INGRESS_NS) \
 		--create-namespace \
+		--set "controller.admissionWebhooks.enabled=false"
 
 add-es-helm-repo:
 	helm repo add elastic https://helm.elastic.co
