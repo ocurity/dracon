@@ -9,6 +9,7 @@ import (
 	v1 "github.com/ocurity/dracon/api/proto/v1"
 	"github.com/ocurity/dracon/components/producers"
 	"github.com/ocurity/dracon/components/producers/kics/types"
+	"github.com/ocurity/dracon/pkg/context"
 	"github.com/ocurity/dracon/pkg/sarif"
 )
 
@@ -48,14 +49,18 @@ func main() {
 		if err := producers.ParseJSON(inFile, &results); err != nil {
 			log.Fatal(err)
 		}
-		if err := producers.WriteDraconOut("KICS", parseOut(results)); err != nil {
+		res, err := parseOut(results)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if err := producers.WriteDraconOut("KICS", res); err != nil {
 			log.Fatal(err)
 		}
 
 	}
 }
 
-func parseOut(results types.KICSOut) []*v1.Issue {
+func parseOut(results types.KICSOut) ([]*v1.Issue, error) {
 	issues := []*v1.Issue{}
 	for _, query := range results.Queries {
 		queryCopy := query
@@ -64,8 +69,7 @@ func parseOut(results types.KICSOut) []*v1.Issue {
 		for _, file := range query.Files {
 			queryCopy.Files = []types.KICSFile{file}
 			description, _ := json.Marshal(queryCopy)
-
-			issues = append(issues, &v1.Issue{
+			iss := &v1.Issue{
 				Target:     fmt.Sprintf("%s:%d", file.FileName, file.Line),
 				Type:       file.IssueType,
 				Severity:   KICSSeverityToDracon(query.Severity),
@@ -75,11 +79,17 @@ func parseOut(results types.KICSOut) []*v1.Issue {
 					file.ResourceType,
 					file.ResourceName),
 				Description: string(description),
-			})
+			}
+			cs, err := context.ExtractCode(iss)
+			if err != nil {
+				return nil, err
+			}
+			iss.ContextSegment = &cs
+			issues = append(issues, iss)
 
 		}
 	}
-	return issues
+	return issues, nil
 }
 
 // KICSSeverityToDracon maps KCIS Severity Strings to dracon struct.

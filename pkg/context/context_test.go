@@ -7,18 +7,17 @@ import (
 	"testing"
 
 	v1 "github.com/ocurity/dracon/api/proto/v1"
+	"github.com/ocurity/dracon/pkg/testutil"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestExtractCodeLineRange(t *testing.T) {
-	file, err := os.CreateTemp("", "dracon_context_test")
+	file, err := testutil.CreateFile("dracon_context_test", code)
 	if err != nil {
-		t.Errorf("could not setup tests for context pkg, could not create temporary files")
+		t.Error(err)
 	}
 	defer os.Remove(file.Name())
-	if err := os.WriteFile(file.Name(), []byte(code), os.ModeAppend); err != nil {
-		t.Errorf("could not setup tests for context pk, could not write temporary file")
-	}
+
 	issue := v1.Issue{
 		Target:      fmt.Sprintf("%s:%d-%d", file.Name(), 15, 18),
 		Type:        "id:985",
@@ -35,14 +34,12 @@ func TestExtractCodeLineRange(t *testing.T) {
 }
 
 func TestExtractCodeLineRangeLessThanDefault(t *testing.T) {
-	file, err := os.CreateTemp("", "dracon_context_test")
+	file, err := testutil.CreateFile("dracon_context_test", code)
 	if err != nil {
-		t.Errorf("could not setup tests for context pkg, could not create temporary files")
+		t.Error(err)
 	}
 	defer os.Remove(file.Name())
-	if err := os.WriteFile(file.Name(), []byte(code), os.ModeAppend); err != nil {
-		t.Errorf("could not setup tests for context pk, could not write temporary file")
-	}
+
 	issue := v1.Issue{
 		Target:      fmt.Sprintf("%s:%d-%d", file.Name(), 3, 18),
 		Type:        "id:985",
@@ -59,14 +56,12 @@ func TestExtractCodeLineRangeLessThanDefault(t *testing.T) {
 }
 
 func TestExtractCodeLine(t *testing.T) {
-	file, err := os.CreateTemp("", "dracon_context_test")
+	file, err := testutil.CreateFile("dracon_context_test", code)
 	if err != nil {
-		t.Errorf("could not setup tests for context pkg, could not create temporary files")
+		t.Error(err)
 	}
 	defer os.Remove(file.Name())
-	if err := os.WriteFile(file.Name(), []byte(code), os.ModeAppend); err != nil {
-		t.Errorf("could not setup tests for context pk, could not write temporary file")
-	}
+
 	issue := v1.Issue{
 		Target:      fmt.Sprintf("%s:%d", file.Name(), 17),
 		Type:        "id:985",

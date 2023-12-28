@@ -17,6 +17,7 @@ go_test(
     ],
     deps = [
         "//api/proto/v1",
+        "//pkg/testutil",
         "//third_party/go/github.com/stretchr/testify",
     ],
 )

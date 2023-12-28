@@ -14,6 +14,7 @@ go_binary(
         "//api/proto/v1",
         "//components/producers",
         "//components/producers/kics/types",
+        "//pkg/context",
         "//pkg/sarif",
     ],
 )
@@ -30,6 +31,8 @@ go_test(
         "//components/producers/kics/types",
         "//pkg/sarif",
         "//third_party/go/github.com/stretchr/testify",
+        "//pkg/testutil",
+        "//pkg/context",
     ],
 )
 

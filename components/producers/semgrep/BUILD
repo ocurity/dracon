@@ -12,6 +12,7 @@ go_binary(
         "//api/proto/v1",
         "//components/producers",
         "//components/producers/semgrep/types",
+        "//pkg/context",
     ],
 )
 
@@ -25,6 +26,8 @@ go_test(
         "//api/proto/v1",
         "//components/producers",
         "//components/producers/semgrep/types",
+        "//pkg/context",
+        "//pkg/testutil",
         "//third_party/go/github.com/stretchr/testify",
     ],
 )

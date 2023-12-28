@@ -26,6 +26,7 @@ go_test(
         "//api/proto/v1",
         "//components/producers",
         "//pkg/context",
+        "//pkg/testutil",
         "//third_party/go/github.com/stretchr/testify",
     ],
 )

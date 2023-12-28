@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	v1 "github.com/ocurity/dracon/api/proto/v1"
+	"github.com/ocurity/dracon/pkg/testutil"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -24,17 +25,7 @@ var code = `func GetProducts(ctx context.Context, db *sql.DB, category string) (
 			return nil, err
 		}`
 
-func TestParseIssues(t *testing.T) {
-	file, err := os.CreateTemp("", "dracon_context_test")
-	if err != nil {
-		t.Errorf("could not setup tests for context pkg, could not create temporary files")
-	}
-	defer os.Remove(file.Name())
-	if err := os.WriteFile(file.Name(), []byte(code), os.ModeAppend); err != nil {
-		t.Errorf("could not setup tests for context pk, could not write temporary file")
-	}
-
-	exampleOutput := fmt.Sprintf(`
+var gosecout = `
 {
 	"Issues": [
 		{
@@ -54,7 +45,16 @@ func TestParseIssues(t *testing.T) {
 		"nosec": 0,
 		"found": 1
 	}
-}`, file.Name())
+}`
+
+func TestParseIssues(t *testing.T) {
+
+	f, err := testutil.CreateFile("gosec_tests_vuln_code", code)
+	if err != nil {
+		t.Error(err)
+	}
+	defer os.Remove(f.Name())
+	exampleOutput := fmt.Sprintf(gosecout, f.Name())
 	var results GoSecOut
 	err = json.Unmarshal([]byte(exampleOutput), &results)
 	assert.Nil(t, err)
@@ -62,7 +62,7 @@ func TestParseIssues(t *testing.T) {
 	issues, err := parseIssues(&results)
 	assert.Nil(t, err)
 	expectedIssue := &v1.Issue{
-		Target:         fmt.Sprintf("%s:2", file.Name()),
+		Target:         fmt.Sprintf("%s:2", f.Name()),
 		Type:           "G304",
 		Title:          "Potential file inclusion via variable",
 		Severity:       v1.Severity_SEVERITY_MEDIUM,

@@ -1,10 +1,10 @@
 // Package context offers a set of methods which permit components to
-//  add information about the context of each vulnerability
-//  this information is highly depended on the actual vulnerability and the component.
-//  For example for SAST components, context can be a call graph or
-//  a few lines of code before and after the line that triggered the finding.
-//  For DAST components it can be a serialised request/response.
-
+//
+//	add information about the context of each vulnerability
+//	this information is highly depended on the actual vulnerability and the component.
+//	For example for SAST components, context can be a call graph or
+//	a few lines of code before and after the line that triggered the finding.
+//	For DAST components it can be a serialised request/response.
 package context
 
 import (
@@ -17,6 +17,7 @@ import (
 	v1 "github.com/ocurity/dracon/api/proto/v1"
 )
 
+// DefaultLineRange controls how many lines of code context will be returned by default
 const DefaultLineRange = 10
 
 // ExtractCode takes a path and line (or line range) for a vulnerable code segment and
