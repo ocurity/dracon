@@ -62,6 +62,9 @@ message Issue {
   string uuid = 10;
   // optional field that allows us to also encode a bill of materials in an issue
   optional string cyclone_d_x_s_b_o_m = 11;
+
+  // optional string that allows producers to communicate relevant code/request segments
+  optional string context_segment = 12;
 }
 
 /* Represents an issue that has been enriched with metadata from the enrichment service */
