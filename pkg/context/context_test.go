@@ -81,6 +81,7 @@ func TestExtractCodeLine(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, strings.Join(strings.Split(code, "\n")[17-DefaultLineRange:17+DefaultLineRange], "\n"), codeRange)
 }
+
 func TestExtractCodeInvalidTarget(t *testing.T) {
 	// target is ip, url or file that does not exist
 
