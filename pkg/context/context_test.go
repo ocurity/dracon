@@ -58,6 +58,7 @@ func TestExtractCodeLineRangeLessThanDefault(t *testing.T) {
 	assert.Equal(t, strings.Join(strings.Split(code, "\n")[:18+DefaultLineRange], "\n"), codeRange)
 }
 
+
 func TestExtractCodeLine(t *testing.T) {
 	file, err := os.CreateTemp("", "dracon_context_test")
 	if err != nil {
