@@ -9,6 +9,7 @@ import (
 	v1 "github.com/ocurity/dracon/api/proto/v1"
 	"github.com/ocurity/dracon/components/producers"
 	"github.com/ocurity/dracon/components/producers/terraform-tfsec/types"
+	"github.com/ocurity/dracon/pkg/context"
 	"github.com/ocurity/dracon/pkg/sarif"
 )
 
@@ -48,18 +49,22 @@ func main() {
 		if err := producers.ParseJSON(inFile, &results); err != nil {
 			log.Fatal(err)
 		}
-		if err := producers.WriteDraconOut("tfsec", parseOut(results)); err != nil {
+		issues, err := parseOut(results)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if err := producers.WriteDraconOut("tfsec", issues); err != nil {
 			log.Fatal(err)
 		}
 
 	}
 }
 
-func parseOut(results types.TfSecOut) []*v1.Issue {
+func parseOut(results types.TfSecOut) ([]*v1.Issue, error) {
 	issues := []*v1.Issue{}
 	for _, res := range results.Results {
 		description, _ := json.Marshal(res)
-		issues = append(issues, &v1.Issue{
+		iss := &v1.Issue{
 			Target: fmt.Sprintf("%s:%d-%d",
 				res.Location.Filename,
 				res.Location.StartLine,
@@ -69,9 +74,15 @@ func parseOut(results types.TfSecOut) []*v1.Issue {
 			Severity:    TfSecSeverityToDracon(res.Severity),
 			Confidence:  v1.Confidence_CONFIDENCE_MEDIUM,
 			Description: string(description),
-		})
+		}
+		cs, err := context.ExtractCode(iss)
+		if err != nil {
+			return nil, err
+		}
+		iss.ContextSegment = &cs
+		issues = append(issues, iss)
 	}
-	return issues
+	return issues, nil
 }
 
 // TfSecSeverityToDracon maps tfsec Severity Strings to dracon struct.
