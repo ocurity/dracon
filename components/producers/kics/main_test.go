@@ -14,7 +14,6 @@ import (
 )
 
 func TestParseOut(t *testing.T) {
-
 	expectedIssues := []*v1.Issue{
 		{
 			Target:      "sql_server_predictable_admin_account_name:10",
