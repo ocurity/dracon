@@ -65,7 +65,8 @@ func TestParseIssues(t *testing.T) {
 			Cve:            "",
 			Uuid:           "",
 			ContextSegment: &code,
-		}}
+		},
+	}
 
 	assert.Equal(t, expectedIssues, issues)
 }
