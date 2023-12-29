@@ -23,7 +23,6 @@ var code = `q += ' LIMIT + %(limit)s '
             return [Student.from_raw(r) for r in results]`
 
 func TestParseIssues(t *testing.T) {
-
 	f, err := testutil.CreateFile("bandit_tests_vuln_code", code)
 	if err != nil {
 		t.Error(err)
