@@ -67,7 +67,6 @@ var code = `q += ' LIMIT + %(limit)s '
             return [Student.from_raw(r) for r in results]`
 
 func TestParseIssues(t *testing.T) {
-
 	f, err := testutil.CreateFile("semgrep_tests_vuln_code", code)
 	if err != nil {
 		t.Error(err)
