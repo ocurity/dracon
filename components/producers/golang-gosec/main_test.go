@@ -48,7 +48,6 @@ var gosecout = `
 }`
 
 func TestParseIssues(t *testing.T) {
-
 	f, err := testutil.CreateFile("gosec_tests_vuln_code", code)
 	if err != nil {
 		t.Error(err)
