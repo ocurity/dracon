@@ -1,4 +1,4 @@
-// Package test contains helper functions and subpackages to make testing the project easier
+// Package testutil contains helper functions and subpackages to make testing the project easier
 package testutil
 
 import (
