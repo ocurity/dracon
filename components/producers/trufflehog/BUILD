@@ -12,6 +12,7 @@ go_binary(
     deps = [
         "//api/proto/v1",
         "//components/producers",
+        "//pkg/context",
         "//third_party/go/github.com/mitchellh/mapstructure",
     ],
 )
@@ -26,6 +27,8 @@ go_test(
     deps = [
         "//api/proto/v1",
         "//components/producers",
+        "//pkg/context",
+        "//pkg/testutil",
         "//third_party/go/github.com/mitchellh/mapstructure",
         "//third_party/go/github.com/stretchr/testify",
     ],

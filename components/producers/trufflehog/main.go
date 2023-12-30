@@ -35,8 +35,10 @@ func main() {
 		}
 		truffleResults[i] = x
 	}
-	issues := parseIssues(truffleResults)
-
+	issues, err := parseIssues(truffleResults)
+	if err != nil {
+		log.Fatal(err)
+	}
 	if err := producers.WriteDraconOut(
 		"trufflehog",
 		issues,
@@ -45,7 +47,7 @@ func main() {
 	}
 }
 
-func parseIssues(out []TrufflehogOut) []*v1.Issue {
+func parseIssues(out []TrufflehogOut) ([]*v1.Issue, error) {
 	issues := []*v1.Issue{}
 
 	for _, r := range out {
@@ -61,17 +63,20 @@ func parseIssues(out []TrufflehogOut) []*v1.Issue {
 			target = fmt.Sprintf("%s:%s:%s:%d", r.SourceMetadata.Data.Git.Repository, r.SourceMetadata.Data.Git.Commit, r.SourceMetadata.Data.Git.File, r.SourceMetadata.Data.Git.Line)
 			description = fmt.Sprintf("Raw:%s\nRedacted:%s\nTimestamp:%s\nEmail:%s\n", r.Raw, r.Redacted, r.SourceMetadata.Data.Git.Timestamp, r.SourceMetadata.Data.Git.Email)
 		}
-		issues = append(issues, &v1.Issue{
-			Target:      target,
-			Type:        r.SourceName,
-			Title:       fmt.Sprintf("%s - %s", r.DecoderName, r.DetectorName),
-			Severity:    v1.Severity_SEVERITY_UNSPECIFIED,
-			Cvss:        0.0,
-			Confidence:  confidence,
-			Description: description,
-		})
+		raw := r.Raw
+		iss := &v1.Issue{
+			Target:         target,
+			Type:           r.SourceName,
+			Title:          fmt.Sprintf("%s - %s", r.DecoderName, r.DetectorName),
+			Severity:       v1.Severity_SEVERITY_UNSPECIFIED,
+			Cvss:           0.0,
+			Confidence:     confidence,
+			Description:    description,
+			ContextSegment: &raw,
+		}
+		issues = append(issues, iss)
 	}
-	return issues
+	return issues, nil
 }
 
 // TrufflehogOut represents the output of a Trufflehog run
