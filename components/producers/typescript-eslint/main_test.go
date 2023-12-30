@@ -2,27 +2,30 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
+	"os"
 	"testing"
 
 	v1 "github.com/ocurity/dracon/api/proto/v1"
 	"github.com/ocurity/dracon/components/producers/typescript-eslint/types"
+	"github.com/ocurity/dracon/pkg/testutil"
 
 	"github.com/stretchr/testify/assert"
 )
 
-const exampleOutput = `[{"filePath":"/foo/bar/js/types/File.ts",
+const exampleOutput = `[{"filePath":"%s",
 "messages":[
 	{"ruleId":"@typescript-eslint/explicit-module-boundary-types",
 	"severity":1,
 	"message":"Missing return type on function.",
-	"line":21,
+	"line":1,
 	"column":46,
 	"nodeType":"ArrowFunctionExpression",
 	"messageId":"missingReturnType",
-	"endLine":160,"endColumn":104},
+	"endLine":2,"endColumn":104},
 
 	{"ruleId":"jsdoc/require-jsdoc","severity":1,"message":"Missing JSDoc comment.",
-	"line":29,"column":1,"nodeType":"FunctionDeclaration",
+	"line":3,"column":1,"nodeType":"FunctionDeclaration",
 	"messageId":"missingJsDoc","endColumn":null,
 	"fix":{"range":[890,890],"text":"/**\n *\n */\n"}}],
 
@@ -34,29 +37,45 @@ const exampleOutput = `[{"filePath":"/foo/bar/js/types/File.ts",
 	"usedDeprecatedRules":[{"ruleId":"jsx-a11y/accessible-emoji","replacedBy":[]},{"ruleId":"jsx-a11y/label-has-for","replacedBy":[]}	]
 	}]`
 
+var code = `some
+vulnerable
+typescript
+or
+javascript`
+
 func TestParseIssues(t *testing.T) {
+
+	f, err := testutil.CreateFile("tfsec_tests_vuln_code", code)
+	if err != nil {
+		t.Error(err)
+	}
+	defer os.Remove(f.Name())
+
 	var results []types.ESLintIssue
-	err := json.Unmarshal([]byte(exampleOutput), &results)
+	err = json.Unmarshal([]byte(fmt.Sprintf(exampleOutput, f.Name())), &results)
 	assert.Nil(t, err)
-	issues := parseIssues(results)
+	issues, err := parseIssues(results)
+	assert.Nil(t, err)
 
 	expectedIssue := &v1.Issue{
-		Target:      "/foo/bar/js/types/File.ts:21:46",
-		Type:        "@typescript-eslint/explicit-module-boundary-types",
-		Title:       "@typescript-eslint/explicit-module-boundary-types",
-		Severity:    v1.Severity_SEVERITY_MEDIUM,
-		Cvss:        0.0,
-		Confidence:  v1.Confidence_CONFIDENCE_MEDIUM,
-		Description: "Missing return type on function.",
+		Target:         f.Name() + ":1-2",
+		Type:           "@typescript-eslint/explicit-module-boundary-types",
+		Title:          "@typescript-eslint/explicit-module-boundary-types",
+		Severity:       v1.Severity_SEVERITY_MEDIUM,
+		Cvss:           0.0,
+		Confidence:     v1.Confidence_CONFIDENCE_MEDIUM,
+		Description:    "Missing return type on function.",
+		ContextSegment: &code,
 	}
 	issue2 := &v1.Issue{
-		Target:      "/foo/bar/js/types/File.ts:29:1",
-		Type:        "jsdoc/require-jsdoc",
-		Title:       "jsdoc/require-jsdoc",
-		Severity:    v1.Severity_SEVERITY_MEDIUM,
-		Cvss:        0.0,
-		Confidence:  v1.Confidence_CONFIDENCE_MEDIUM,
-		Description: "Missing JSDoc comment.",
+		Target:         f.Name() + ":3",
+		Type:           "jsdoc/require-jsdoc",
+		Title:          "jsdoc/require-jsdoc",
+		Severity:       v1.Severity_SEVERITY_MEDIUM,
+		Cvss:           0.0,
+		Confidence:     v1.Confidence_CONFIDENCE_MEDIUM,
+		Description:    "Missing JSDoc comment.",
+		ContextSegment: &code,
 	}
 	assert.Equal(t, expectedIssue, issues[0])
 	assert.Equal(t, issue2, issues[1])

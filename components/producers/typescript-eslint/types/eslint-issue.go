@@ -7,6 +7,7 @@ type Message struct {
 	Message  string `json:"message"`
 	Line     int    `json:"line"`
 	Column   int    `json:"column"`
+	EndLine int `json:"endLine"`
 }
 
 // ESLintIssue represents a ESLint Result.
