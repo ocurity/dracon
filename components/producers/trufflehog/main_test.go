@@ -11,7 +11,6 @@ import (
 )
 
 func TestParseIssues(t *testing.T) {
-
 	results, err := producers.ParseMultiJSONMessages([]byte(exampleOutput))
 	assert.Nil(t, err)
 
