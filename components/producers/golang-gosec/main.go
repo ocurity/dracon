@@ -5,6 +5,7 @@ import (
 	"log"
 
 	v1 "github.com/ocurity/dracon/api/proto/v1"
+	"github.com/ocurity/dracon/pkg/context"
 
 	"github.com/ocurity/dracon/components/producers"
 )
@@ -24,8 +25,10 @@ func main() {
 		log.Fatal(err)
 	}
 
-	issues := parseIssues(&results)
-
+	issues, err := parseIssues(&results)
+	if err != nil {
+		log.Fatal(err)
+	}
 	if err := producers.WriteDraconOut(
 		"gosec",
 		issues,
@@ -34,10 +37,10 @@ func main() {
 	}
 }
 
-func parseIssues(out *GoSecOut) []*v1.Issue {
+func parseIssues(out *GoSecOut) ([]*v1.Issue, error) {
 	issues := []*v1.Issue{}
 	for _, r := range out.Issues {
-		issues = append(issues, &v1.Issue{
+		iss := &v1.Issue{
 			Target:      fmt.Sprintf("%s:%v", r.File, r.Line),
 			Type:        r.RuleID,
 			Title:       r.Details,
@@ -45,9 +48,15 @@ func parseIssues(out *GoSecOut) []*v1.Issue {
 			Cvss:        0.0,
 			Confidence:  v1.Confidence(v1.Confidence_value[fmt.Sprintf("CONFIDENCE_%s", r.Confidence)]),
 			Description: r.Code,
-		})
+		}
+		code, err := context.ExtractCode(iss)
+		if err != nil {
+			return nil, err
+		}
+		iss.ContextSegment = &code
+		issues = append(issues, iss)
 	}
-	return issues
+	return issues, nil
 }
 
 // GoSecOut represents the output of a GoSec run.

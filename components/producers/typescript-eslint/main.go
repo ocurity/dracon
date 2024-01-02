@@ -6,6 +6,7 @@ import (
 
 	v1 "github.com/ocurity/dracon/api/proto/v1"
 	"github.com/ocurity/dracon/components/producers/typescript-eslint/types"
+	"github.com/ocurity/dracon/pkg/context"
 
 	"github.com/ocurity/dracon/components/producers"
 )
@@ -24,7 +25,10 @@ func main() {
 	if err := producers.ParseJSON(inFile, &results); err != nil {
 		log.Fatal(err)
 	}
-	issues := parseIssues(results)
+	issues, err := parseIssues(results)
+	if err != nil {
+		log.Fatal(err)
+	}
 	if err := producers.WriteDraconOut(
 		"eslint",
 		issues,
@@ -33,7 +37,7 @@ func main() {
 	}
 }
 
-func parseIssues(out []types.ESLintIssue) []*v1.Issue {
+func parseIssues(out []types.ESLintIssue) ([]*v1.Issue, error) {
 	issues := []*v1.Issue{}
 	for _, r := range out {
 		for _, msg := range r.Messages {
@@ -43,8 +47,12 @@ func parseIssues(out []types.ESLintIssue) []*v1.Issue {
 			} else if msg.Severity == 2 {
 				sev = v1.Severity_SEVERITY_HIGH
 			}
+			target := fmt.Sprintf("%s:%d", r.FilePath, msg.Line)
+			if msg.EndLine != 0 {
+				target = fmt.Sprintf("%s:%d-%d", r.FilePath, msg.Line, msg.EndLine)
+			}
 			iss := &v1.Issue{
-				Target:      fmt.Sprintf("%s:%v:%v", r.FilePath, msg.Line, msg.Column),
+				Target:      target,
 				Type:        msg.RuleID,
 				Title:       msg.RuleID,
 				Severity:    sev,
@@ -52,8 +60,13 @@ func parseIssues(out []types.ESLintIssue) []*v1.Issue {
 				Confidence:  v1.Confidence_CONFIDENCE_MEDIUM,
 				Description: msg.Message,
 			}
+			cs, err := context.ExtractCode(iss)
+			if err != nil {
+				return nil, err
+			}
+			iss.ContextSegment = &cs
 			issues = append(issues, iss)
 		}
 	}
-	return issues
+	return issues, nil
 }

@@ -6,6 +6,7 @@ import (
 
 	v1 "github.com/ocurity/dracon/api/proto/v1"
 	"github.com/ocurity/dracon/components/producers/semgrep/types"
+	"github.com/ocurity/dracon/pkg/context"
 
 	"github.com/ocurity/dracon/components/producers"
 )
@@ -25,7 +26,10 @@ func main() {
 		log.Fatal(err)
 	}
 
-	issues := parseIssues(results)
+	issues, err := parseIssues(results)
+	if err != nil {
+		log.Fatal(err)
+	}
 	if err := producers.WriteDraconOut(
 		"semgrep",
 		issues,
@@ -34,7 +38,7 @@ func main() {
 	}
 }
 
-func parseIssues(out types.SemgrepResults) []*v1.Issue {
+func parseIssues(out types.SemgrepResults) ([]*v1.Issue, error) {
 	issues := []*v1.Issue{}
 
 	results := out.Results
@@ -49,16 +53,21 @@ func parseIssues(out types.SemgrepResults) []*v1.Issue {
 		}
 
 		sev := severityMap[r.Extra.Severity]
-
-		issues = append(issues, &v1.Issue{
+		iss := &v1.Issue{
 			Target:      fmt.Sprintf("%s:%v-%v", r.Path, r.Start.Line, r.End.Line),
 			Type:        r.Extra.Message,
 			Title:       r.CheckID,
 			Severity:    sev,
 			Cvss:        0.0,
 			Confidence:  v1.Confidence_CONFIDENCE_MEDIUM,
-			Description: r.Extra.Lines,
-		})
+			Description: fmt.Sprintf("%s\n extra lines: %s", r.Extra.Message, r.Extra.Lines),
+		}
+		cs, err := context.ExtractCode(iss)
+		if err != nil {
+			return nil, err
+		}
+		iss.ContextSegment = &cs
+		issues = append(issues, iss)
 	}
-	return issues
+	return issues, nil
 }

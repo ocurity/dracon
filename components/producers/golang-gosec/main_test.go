@@ -2,14 +2,30 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
+	"os"
 	"testing"
 
 	v1 "github.com/ocurity/dracon/api/proto/v1"
+	"github.com/ocurity/dracon/pkg/testutil"
 
 	"github.com/stretchr/testify/assert"
 )
 
-const exampleOutput = `
+var code = `func GetProducts(ctx context.Context, db *sql.DB, category string) ([]Product, error) {
+	rows, err := db.QueryContext(ctx, "SELECT * FROM product WHERE category='"+category+"'")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var products []Product
+	for rows.Next() {
+		var product Product
+		if err := rows.Scan(&product.Id, &product.Name, &product.Category, &product.Price); err != nil {
+			return nil, err
+		}`
+
+var gosecout = `
 {
 	"Issues": [
 		{
@@ -17,9 +33,9 @@ const exampleOutput = `
 			"confidence": "HIGH",
 			"rule_id": "G304",
 			"details": "Potential file inclusion via variable",
-			"file": "/tmp/source/foo.go",
+			"file": "%s",
 			"code": "ioutil.ReadFile(path)",
-			"line": "33",
+			"line": "2",
 			"column": "44"
 		}
 	],
@@ -32,20 +48,27 @@ const exampleOutput = `
 }`
 
 func TestParseIssues(t *testing.T) {
+	f, err := testutil.CreateFile("gosec_tests_vuln_code", code)
+	if err != nil {
+		t.Error(err)
+	}
+	defer os.Remove(f.Name())
+	exampleOutput := fmt.Sprintf(gosecout, f.Name())
 	var results GoSecOut
-	err := json.Unmarshal([]byte(exampleOutput), &results)
+	err = json.Unmarshal([]byte(exampleOutput), &results)
 	assert.Nil(t, err)
 
-	issues := parseIssues(&results)
-
+	issues, err := parseIssues(&results)
+	assert.Nil(t, err)
 	expectedIssue := &v1.Issue{
-		Target:      "/tmp/source/foo.go:33",
-		Type:        "G304",
-		Title:       "Potential file inclusion via variable",
-		Severity:    v1.Severity_SEVERITY_MEDIUM,
-		Cvss:        0.0,
-		Confidence:  v1.Confidence_CONFIDENCE_HIGH,
-		Description: "ioutil.ReadFile(path)",
+		Target:         fmt.Sprintf("%s:2", f.Name()),
+		Type:           "G304",
+		Title:          "Potential file inclusion via variable",
+		Severity:       v1.Severity_SEVERITY_MEDIUM,
+		Cvss:           0.0,
+		Confidence:     v1.Confidence_CONFIDENCE_HIGH,
+		Description:    "ioutil.ReadFile(path)",
+		ContextSegment: &code,
 	}
 
 	assert.Equal(t, []*v1.Issue{expectedIssue}, issues)

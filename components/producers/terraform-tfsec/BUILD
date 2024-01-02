@@ -14,6 +14,7 @@ go_binary(
         "//api/proto/v1",
         "//components/producers",
         "//components/producers/terraform-tfsec/types",
+        "//pkg/context",
         "//pkg/sarif",
     ],
 )
@@ -28,7 +29,9 @@ go_test(
         "//api/proto/v1",
         "//components/producers",
         "//components/producers/terraform-tfsec/types",
+        "//pkg/context",
         "//pkg/sarif",
+        "//pkg/testutil",
         "//third_party/go/github.com/stretchr/testify",
     ],
 )

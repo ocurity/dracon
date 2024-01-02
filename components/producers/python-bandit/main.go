@@ -3,8 +3,10 @@ package main
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	v1 "github.com/ocurity/dracon/api/proto/v1"
+	"github.com/ocurity/dracon/pkg/context"
 
 	"github.com/ocurity/dracon/components/producers"
 )
@@ -26,7 +28,11 @@ func main() {
 
 	issues := []*v1.Issue{}
 	for _, res := range results.Results {
-		issues = append(issues, parseResult(res))
+		iss, err := parseResult(res)
+		if err != nil {
+			log.Fatal(err)
+		}
+		issues = append(issues, iss)
 	}
 
 	if err := producers.WriteDraconOut(
@@ -37,16 +43,26 @@ func main() {
 	}
 }
 
-func parseResult(r *BanditResult) *v1.Issue {
-	return &v1.Issue{
-		Target:      fmt.Sprintf("%s:%v", r.Filename, r.LineRange),
+func parseResult(r *BanditResult) (*v1.Issue, error) {
+	rng := []string{}
+	for _, r := range r.LineRange {
+		rng = append(rng, fmt.Sprintf("%d", r))
+	}
+	iss := v1.Issue{
+		Target:      fmt.Sprintf("%s:%s", r.Filename, strings.Join(rng, "-")),
 		Type:        r.TestID,
 		Title:       r.TestName,
 		Severity:    v1.Severity(v1.Severity_value[fmt.Sprintf("SEVERITY_%s", r.IssueSeverity)]),
 		Cvss:        0.0,
 		Confidence:  v1.Confidence(v1.Confidence_value[fmt.Sprintf("CONFIDENCE_%s", r.IssueConfidence)]),
-		Description: r.IssueText,
+		Description: fmt.Sprintf("%s\ncode:%s", r.IssueText, r.Code),
 	}
+	code, err := context.ExtractCode(&iss) // Bandit only extracts a small code sample, we think it's better to have more
+	if err != nil {
+		return nil, err
+	}
+	iss.ContextSegment = &code
+	return &iss, nil
 }
 
 // BanditOut represents the output of a bandit run.

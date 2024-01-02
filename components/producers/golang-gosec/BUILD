@@ -12,6 +12,7 @@ go_binary(
     deps = [
         "//api/proto/v1",
         "//components/producers",
+        "//pkg/context",
     ],
 )
 
@@ -24,6 +25,8 @@ go_test(
     deps = [
         "//api/proto/v1",
         "//components/producers",
+        "//pkg/context",
+        "//pkg/testutil",
         "//third_party/go/github.com/stretchr/testify",
     ],
 )

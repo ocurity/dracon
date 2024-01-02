@@ -18,7 +18,15 @@ go_binary(
 go_test(
     name = "python-bandit_test",
     srcs = [
+        "main.go",
         "main_test.go",
+    ],
+    deps = [
+        "//api/proto/v1",
+        "//components/producers",
+        "//pkg/context",
+        "//pkg/testutil",
+        "//third_party/go/github.com/stretchr/testify",
     ],
 )
 
