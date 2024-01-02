@@ -10,7 +10,6 @@ import (
 	"github.com/ocurity/dracon/pkg/testutil"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 var code = `q += ' LIMIT + %(limit)s '
@@ -25,13 +24,14 @@ var code = `q += ' LIMIT + %(limit)s '
 
 func TestParseIssues(t *testing.T) {
 	f, err := testutil.CreateFile("bandit_tests_vuln_code", code)
-	require.NoError(t, err)
-	defer func() { require.NoError(t, os.Remove(f.Name())) }()
-
+	if err != nil {
+		t.Error(err)
+	}
+	defer os.Remove(f.Name())
 	exampleOutput := fmt.Sprintf(sampleOut, f.Name(), f.Name())
-
 	var results BanditOut
-	require.NoError(t, json.Unmarshal([]byte(exampleOutput), &results))
+	err = json.Unmarshal([]byte(exampleOutput), &results)
+	assert.Nil(t, err)
 
 	issues := []*v1.Issue{}
 	for _, res := range results.Results {
@@ -68,7 +68,7 @@ func TestParseIssues(t *testing.T) {
 		},
 	}
 
-	require.Equal(t, expectedIssues, issues)
+	assert.Equal(t, expectedIssues, issues)
 }
 
 var sampleOut = `{

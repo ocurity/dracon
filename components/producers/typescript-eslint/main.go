@@ -30,6 +30,10 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	issues, err := parseIssues(results)
+	if err != nil {
+		log.Fatal(err)
+	}
 	if err := producers.WriteDraconOut(
 		"eslint",
 		issues,

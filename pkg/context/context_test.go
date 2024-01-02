@@ -8,13 +8,15 @@ import (
 
 	v1 "github.com/ocurity/dracon/api/proto/v1"
 	"github.com/ocurity/dracon/pkg/testutil"
-	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestExtractCodeLineRange(t *testing.T) {
 	file, err := testutil.CreateFile("dracon_context_test", code)
-	require.NoError(t, err)
-	defer func() { require.NoError(t, os.Remove(file.Name())) }()
+	if err != nil {
+		t.Error(err)
+	}
+	defer os.Remove(file.Name())
 
 	issue := v1.Issue{
 		Target:      fmt.Sprintf("%s:%d-%d", file.Name(), 15, 18),
@@ -27,15 +29,16 @@ func TestExtractCodeLineRange(t *testing.T) {
 		Source:      "",
 	}
 	codeRange, err := ExtractCode(&issue)
-	require.NoError(t, err)
-	require.Equal(t, strings.Join(strings.Split(code, "\n")[15-DefaultLineRange:18+DefaultLineRange], "\n"), codeRange)
+	assert.Nil(t, err)
+	assert.Equal(t, strings.Join(strings.Split(code, "\n")[15-DefaultLineRange:18+DefaultLineRange], "\n"), codeRange)
 }
 
 func TestExtractCodeLineRangeLessThanDefault(t *testing.T) {
 	file, err := testutil.CreateFile("dracon_context_test", code)
-	require.NoError(t, err)
-
-	defer func() { require.NoError(t, os.Remove(file.Name())) }()
+	if err != nil {
+		t.Error(err)
+	}
+	defer os.Remove(file.Name())
 
 	issue := v1.Issue{
 		Target:      fmt.Sprintf("%s:%d-%d", file.Name(), 3, 18),
@@ -48,14 +51,16 @@ func TestExtractCodeLineRangeLessThanDefault(t *testing.T) {
 		Source:      "",
 	}
 	codeRange, err := ExtractCode(&issue)
-	require.NoError(t, err)
-	require.Equal(t, strings.Join(strings.Split(code, "\n")[:18+DefaultLineRange], "\n"), codeRange)
+	assert.Nil(t, err)
+	assert.Equal(t, strings.Join(strings.Split(code, "\n")[:18+DefaultLineRange], "\n"), codeRange)
 }
 
 func TestExtractCodeLine(t *testing.T) {
 	file, err := testutil.CreateFile("dracon_context_test", code)
-	require.NoError(t, err)
-	defer func() { require.NoError(t, os.Remove(file.Name())) }()
+	if err != nil {
+		t.Error(err)
+	}
+	defer os.Remove(file.Name())
 
 	issue := v1.Issue{
 		Target:      fmt.Sprintf("%s:%d", file.Name(), 17),
@@ -68,12 +73,13 @@ func TestExtractCodeLine(t *testing.T) {
 		Source:      "",
 	}
 	codeRange, err := ExtractCode(&issue)
-	require.NoError(t, err)
-	require.Equal(t, strings.Join(strings.Split(code, "\n")[17-DefaultLineRange:17+DefaultLineRange], "\n"), codeRange)
+	assert.Nil(t, err)
+	assert.Equal(t, strings.Join(strings.Split(code, "\n")[17-DefaultLineRange:17+DefaultLineRange], "\n"), codeRange)
 }
 
 func TestExtractCodeInvalidTarget(t *testing.T) {
 	// target is ip, url or file that does not exist
+
 	issue := v1.Issue{
 		Target:      "/foo/bar:15",
 		Type:        "id:985",
@@ -85,15 +91,15 @@ func TestExtractCodeInvalidTarget(t *testing.T) {
 		Source:      "",
 	}
 	_, err := ExtractCode(&issue)
-	require.Error(t, err)
+	assert.NotNil(t, err)
 
 	issue.Target = "192.168.1.1"
 	_, err = ExtractCode(&issue)
-	require.Error(t, err)
+	assert.NotNil(t, err)
 
 	issue.Target = "https://www.example.com?a=9-2"
 	_, err = ExtractCode(&issue)
-	require.Error(t, err)
+	assert.NotNil(t, err)
 }
 
 const code = `from typing import Optional, NamedTuple

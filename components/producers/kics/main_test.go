@@ -69,7 +69,7 @@ func TestParseOut(t *testing.T) {
 		t.Fail()
 	}
 	issues, err := parseOut(results)
-	require.NoError(t, err)
+	assert.Nil(t, err)
 
 	found := 0
 	assert.Equal(t, len(expectedIssues), len(issues))

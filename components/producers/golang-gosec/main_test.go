@@ -49,23 +49,19 @@ var gosecout = `
 
 func TestParseIssues(t *testing.T) {
 	f, err := testutil.CreateFile("gosec_tests_vuln_code", code)
-	require.NoError(t, err)
-	tempFileName := f.Name()
-
-	defer func() {
-		require.NoError(t, os.Remove(tempFileName))
-	}()
-
-	exampleOutput := fmt.Sprintf(gosecout, tempFileName)
+	if err != nil {
+		t.Error(err)
+	}
+	defer os.Remove(f.Name())
+	exampleOutput := fmt.Sprintf(gosecout, f.Name())
 	var results GoSecOut
 	err = json.Unmarshal([]byte(exampleOutput), &results)
-	require.NoError(t, err)
+	assert.Nil(t, err)
 
 	issues, err := parseIssues(&results)
-	require.NoError(t, err)
-
+	assert.Nil(t, err)
 	expectedIssue := &v1.Issue{
-		Target:         fmt.Sprintf("%s:2", tempFileName),
+		Target:         fmt.Sprintf("%s:2", f.Name()),
 		Type:           "G304",
 		Title:          "Potential file inclusion via variable",
 		Severity:       v1.Severity_SEVERITY_MEDIUM,
