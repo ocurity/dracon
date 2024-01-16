@@ -19,12 +19,12 @@ func genSampleIssues() []*v1.Issue {
 	for i := 0; i < 5; i++ {
 		newIssue := &v1.Issue{
 			Target:      fmt.Sprintf("%d some/target", i),
-			Type:        fmt.Sprintf("%d some type"),
-			Title:       fmt.Sprintf("%d /some/target is vulnerable"),
+			Type:        fmt.Sprintf("%d some type", i),
+			Title:       fmt.Sprintf("%d /some/target is vulnerable", i),
 			Severity:    v1.Severity_SEVERITY_HIGH,
 			Cvss:        float64(i),
 			Confidence:  v1.Confidence_CONFIDENCE_MEDIUM,
-			Description: fmt.Sprintf("%d foo bar"),
+			Description: fmt.Sprintf("%d foo bar", i),
 			Cve:         "CVE-2017-11770",
 		}
 		issues = append(issues, newIssue)
