@@ -70,7 +70,7 @@ lint:
 go-tests:
 	go test -race -json $(GO_TEST_PACKAGES)
 
-tests: go-tests
+test: go-tests
 
 $(component_binariess):
 	$(shell                                                                                         \
