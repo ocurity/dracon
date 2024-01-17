@@ -40,7 +40,7 @@ func NewAdvisoryData(url string) (*AdvisoryData, error) {
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
+	if resp.StatusCode >= http.StatusBadRequest {
 		return nil, errors.New("npm Registry request failed: " + resp.Status)
 	}
 
