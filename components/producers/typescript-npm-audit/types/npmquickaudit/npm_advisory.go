@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io/ioutil"
 	"net/http"
+	"strings"
 )
 
 // AdvisoryData represents a subset of the data returned in an advisoryData
@@ -43,7 +44,7 @@ func NewAdvisoryData(url string) (*AdvisoryData, error) {
 		return nil, errors.New("npm Registry request failed: " + resp.Status)
 	}
 
-	if resp.Header.Get("Content-Type") != "application/json" {
+	if !strings.Contains(resp.Header.Get("Content-Type"), "application/json") {
 		return nil, errors.New("npm Registry did not respond with JSON content")
 	}
 
