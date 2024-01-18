@@ -3,7 +3,8 @@ package npmquickaudit
 import (
 	"encoding/json"
 	"errors"
-	"io/ioutil"
+	"fmt"
+	"io"
 	"net/http"
 	"strings"
 )
@@ -21,9 +22,11 @@ type AdvisoryData struct {
 	VulnerableVersions string   `json:"vulnerable_versions"`
 }
 
-// NewAdvisoryData constructs an AdvisoryData from the npm Registry advisory at
-// the given URL.
-func NewAdvisoryData(url string) (*AdvisoryData, error) {
+// FetchAdvisoryData constructs an AdvisoryData from the npm registry advisory
+// at the given URL.
+// If the advisory redirects to Github, then the code will automatically fetch
+// the GH advisory.
+func FetchAdvisoryData(url string) (*AdvisoryData, error) {
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
@@ -44,13 +47,23 @@ func NewAdvisoryData(url string) (*AdvisoryData, error) {
 		return nil, errors.New("npm Registry request failed: " + resp.Status)
 	}
 
-	if !strings.Contains(resp.Header.Get("Content-Type"), "application/json") {
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	if !strings.HasPrefix(resp.Header.Get("Content-Type"), "application/json") {
 		return nil, errors.New("npm Registry did not respond with JSON content")
 	}
 
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
+	if resp.StatusCode > 300 {
+		if resp.Header.Get("Location") == "" {
+			return nil, fmt.Errorf("%s: no location header in redirect response", url)
+		}
+		return FetchAdvisoryData(resp.Header.Get("Location"))
+	} else if resp.StatusCode == 200 && strings.Contains(string(body), "Redirect") && resp.Header.Get("Location") != "" {
+		// under normal circumstances we should not get a response like this but the  NPM API currently has a bug
+		return FetchAdvisoryData(resp.Header.Get("Location"))
 	}
 
 	var data map[string]json.RawMessage

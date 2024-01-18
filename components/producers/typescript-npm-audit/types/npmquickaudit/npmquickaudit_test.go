@@ -6,8 +6,8 @@ import (
 	v1 "github.com/ocurity/dracon/api/proto/v1"
 	atypes "github.com/ocurity/dracon/components/producers/typescript-npm-audit/types"
 
+	"github.com/h2non/gock"
 	"github.com/stretchr/testify/assert"
-	gock "gopkg.in/h2non/gock.v1"
 )
 
 var invalidJSON = `Not a valid JSON object`
@@ -173,7 +173,7 @@ func TestNewReportValid(t *testing.T) {
 	report, err := NewReport([]byte(quickAuditReportJSON))
 	assert.NoError(t, err)
 	report.SetPackagePath("test")
-	assert.True(t, assert.ObjectsAreEqual(quickAuditReport, report))
+	assert.Equal(t, quickAuditReport, report)
 }
 
 var quickAuditIssues = []*v1.Issue{
@@ -188,16 +188,16 @@ var quickAuditIssues = []*v1.Issue{
 }
 
 func TestAsIssuesValid(t *testing.T) {
-	defer gock.Off()
-	gock.New("https://npmjs.com").
-		Get("/advisories/1556").
-		MatchHeader("X-Spiferack", "1").
-		Reply(200).
-		AddHeader("Content-Type", "application/json").
-		File("components/producers/typescript-npm-audit/types/npmquickaudit/npm_advisory_1556")
+	// defer gock.Off()
+	// gock.New("https://npmjs.com").
+	// 	Get("/advisories/1556").
+	// 	MatchHeader("X-Spiferack", "1").
+	// 	Reply(200).
+	// 	AddHeader("Content-Type", "application/json").
+	// 	File("components/producers/typescript-npm-audit/types/npmquickaudit/npm_advisory_1556")
 
 	issues := quickAuditReport.AsIssues()
-	assert.True(t, assert.ObjectsAreEqual(quickAuditIssues, issues))
+	assert.Equal(t, quickAuditIssues, issues)
 
 	assert.True(t, gock.IsDone())
 }

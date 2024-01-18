@@ -172,7 +172,7 @@ func (r *Report) AsIssues() []*v1.Issue {
 			}
 
 			var description string
-			aData, err := NewAdvisoryData(a.URL)
+			aData, err := FetchAdvisoryData(a.URL)
 			if err == nil {
 				description = fmt.Sprintf("Vulnerable versions: %s\nRecommendation: %s\nOverview: %s\nReferences: %s\n",
 					aData.VulnerableVersions, aData.Recommendation, aData.Overview, aData.References)

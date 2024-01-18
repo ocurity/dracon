@@ -24,7 +24,7 @@ func TestNewAdvisoryDataNotFound(t *testing.T) {
 		MatchHeader("X-Spiferack", "1").
 		Reply(404)
 
-	advisory, err := NewAdvisoryData("https://npmjs.com/advisories/404")
+	advisory, err := FetchAdvisoryData("https://npmjs.com/advisories/404")
 	assert.Nil(t, advisory)
 	assert.Error(t, err)
 
@@ -40,7 +40,7 @@ func TestNewAdvisoryDataNotJSON(t *testing.T) {
 		AddHeader("Content-Type", "application/json").
 		File("components/producers/typescript-npm-audit/types/npmquickaudit/npm_advisory_not_json")
 
-	advisory, err := NewAdvisoryData("https://npmjs.com/advisories/666")
+	advisory, err := FetchAdvisoryData("https://npmjs.com/advisories/666")
 	assert.Nil(t, advisory)
 	assert.Errorf(t, err, "npm Registry did not respond with JSON content")
 
@@ -56,7 +56,7 @@ func TestNewAdvisoryDataNoAdvisoryData(t *testing.T) {
 		AddHeader("Content-Type", "application/json").
 		File("components/producers/typescript-npm-audit/types/npmquickaudit/npm_advisory_no_advisorydata")
 
-	advisory, err := NewAdvisoryData("https://npmjs.com/advisories/999")
+	advisory, err := FetchAdvisoryData("https://npmjs.com/advisories/999")
 	assert.Nil(t, advisory)
 	assert.Errorf(t, err, "npm Registry response did not contain an advisoryData key")
 
@@ -72,7 +72,7 @@ func TestNewAdvisoryDataValid(t *testing.T) {
 		AddHeader("Content-Type", "application/json").
 		File("components/producers/typescript-npm-audit/types/npmquickaudit/npm_advisory_1556")
 
-	advisory, err := NewAdvisoryData("https://npmjs.com/advisories/1556")
+	advisory, err := FetchAdvisoryData("https://npmjs.com/advisories/1556")
 	assert.NoError(t, err)
 	assert.True(t, assert.ObjectsAreEqual(advisoryAST, advisory))
 
