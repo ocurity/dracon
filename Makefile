@@ -35,7 +35,10 @@ GO=go
 PROTOC=protoc
 DOCKER=docker
 
-build: $(go_protos)
+internal/github/advisories.go: third_party/github/openapi.json
+	oapi-codegen --include-tags="security-advisories" -package github -o internal/github/advisories.go third_party/github/openapi.json
+
+build: $(go_protos) internal/github/advisories.go
 	@echo "done building"
 
 $(go_protos): %.pb.go: %.proto
@@ -124,6 +127,9 @@ retag-component-containers: $(component_containers_retag)
 
 third_party/tektoncd/swagger-v$(TEKTON_VERSION).json:
 	wget "https://raw.githubusercontent.com/tektoncd/pipeline/v$(TEKTON_VERSION)/pkg/apis/pipeline/v1beta1/swagger.json" -O $@
+
+third_party/github/openapi.json:
+	wget "https://raw.githubusercontent.com/github/rest-api-description/main/descriptions/api.github.com/api.github.com.2022-11-28.json" -O $@
 
 api/openapi/tekton/openapi_schema.json: third_party/tektoncd/swagger-v$(TEKTON_VERSION).json
 	./scripts/generate_openapi_schema.sh $< $@
