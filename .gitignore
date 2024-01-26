@@ -1,5 +1,4 @@
 /dist/
-/vendor/
 __pycache__
 *.pyc
 **/node_modules/
