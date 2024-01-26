@@ -1,17 +1,16 @@
 module github.com/ocurity/dracon
 
-go 1.20
+go 1.21.6
 
 require (
 	cloud.google.com/go/bigquery v1.48.0
-	github.com/CycloneDX/cyclonedx-go v0.7.0
+	github.com/CycloneDX/cyclonedx-go v0.7.2
 	github.com/DependencyTrack/client-go v0.8.0
 	github.com/andygrunwald/go-jira v1.15.1
 	github.com/avast/retry-go/v4 v4.3.3
 	github.com/aws/aws-sdk-go v1.17.7
 	github.com/elastic/go-elasticsearch/v8 v8.3.0
 	github.com/golang-migrate/migrate/v4 v4.15.1
-	github.com/golang/protobuf v1.5.2
 	github.com/google/uuid v1.3.0
 	github.com/hairyhenderson/go-codeowners v0.4.0
 	github.com/jmoiron/sqlx v1.3.5
@@ -45,6 +44,7 @@ require (
 	github.com/go-stack/stack v1.8.1 // indirect
 	github.com/goccy/go-json v0.9.11 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
+	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/flatbuffers v2.0.8+incompatible // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
