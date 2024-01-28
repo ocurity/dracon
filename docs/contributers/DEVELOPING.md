@@ -20,13 +20,13 @@ We provide a complete development environment using the [Please build system](ht
 4. Run formatters.
 
     ```bash
-    $ ./pleasew fmt-all
+    $ make fmt
     ```
 
 5. Run linters.
 
     ```bash
-    $ ./pleasew lint
+    $ make lint
     ```
 
 #### Cleaning Up
