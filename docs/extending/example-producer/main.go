@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 
@@ -20,7 +21,7 @@ func main() {
 	}
 
 	var results ExampleToolOut
-	if err := producers.ParseJSON(inFile, &results); err != nil {
+	if err := json.Unmarshal(inFile, &results); err != nil {
 		log.Fatal(err)
 	}
 
@@ -52,7 +53,7 @@ func parseIssues(out *ExampleToolOut) []*v1.Issue {
 
 // ExampleToolOut represents the output of an ExampleTool run.
 type ExampleToolOut struct {
-	Issues []ExampleToolssue `json:"Issues"`
+	Issues []ExampleToolIssue `json:"Issues"`
 }
 
 // ExampleToolIssue represents an Example Tool Result.

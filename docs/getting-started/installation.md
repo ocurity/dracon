@@ -3,7 +3,7 @@
 This guide will help to quickly setup Dracon on a Kubernetes cluster and get a pipeline running.
 The first step is to create a dev Kubernetes cluster in order to deploy Tekton. We suggest you use
 KiND to provision a local test cluster quickly. If you already have a K8s cluster then you can skip
-directly to the 
+directly to the [Deploying Dracon dependencies](#Deploying-Dracon-dependencies) section.
 
 ## Setting up a [KinD](https://kind.sigs.k8s.io/) cluster
 
@@ -21,6 +21,8 @@ $ ./scripts/kind-with-registry.sh
 
 ## Deploying Dracon dependencies
 
+> :warning: **Warning 2:** make sure that you have all the needed tools installed in your system
+
 1. When your Kubernetes cluster is ready to deploy the dependencies, make sure that you have set
    the correct context and then run the following:
 
@@ -37,6 +39,8 @@ e. Kibana
 f. MongoDB
 g. Postgres
 h. TektonCD and TektonCD Dashboard
+
+> :warning: **Warning 3:** make sure that all pods are up an running before proceeding
 
 2. Expose the TektonCD Dashboard
 
@@ -89,6 +93,33 @@ have their own Makefiles. In those cases you can place a `.custom_image` file in
 with the base image you wish to use and that will be picked up by the Makefile and build the
 container.
 
+## Running one of the example pipelines
+
+You can easily check Dracon in action if you run one of the example pipelines included in the repo.
+Running the `golang-project` is as simple as running:
+
+```bash
+helm upgrade golang-project-pipeline ./examples/pipelines/golang-project \
+  --install \
+  --namespace dracon \
+  --create-namespace
+```
+
+If you want to use a custom container registry, add the following flag:
+`--set "container_registry=localhost:5001/ocurity/dracon"`.
+
+If you wish to use a specific version of Dracon components then add the following flag:
+`--set "dracon_os_component_version=v0.4.0"`.
+
+This will deploy the pipeline object, which describes which components and in what sequence will
+exexute. In order to execute an instance of the pipeline you need to deploy the following manifest.
+
+```bash
+$ kubectl apply -n dracon -f ./examples/pipelines/golang-project/pipelinerun/pipelinerun.yaml
+```
+
+You can also run a pipeline using the Tekton Dashboard.
+
 ## Running your first Dracon pipeline
 
 1. Create the following simple Dracon Pipeline in your directory:
@@ -103,7 +134,7 @@ container.
   namespace: default
 
   resources:
-  - https://github.com/ocurity/dracon//components/base/
+  - https://github.com/ocurity/dracon/components/base/
 
   components:
   - https://github.com/ocurity/dracon/components/sources/git/
@@ -162,46 +193,3 @@ $ kubectl create -f pipelinerun.yaml
 5. Observe the PipelineRun at http://localhost:8001/api/v1/namespaces/tekton-pipelines/services/tekton-dashboard:http/proxy/#/about
 
 6. Once the PipelineRun has finished, you can view the output in Kibana at http://localhost:5601.
-
-
-
-
-
-3. Deploy the Helm chart with the golang project
-
-```bash
-$ helm upgrade golang-project-pipeline ./examples/pipelines/golang-project/ \
-    --install \
-    --namespace dracon
-```
-
-4. Start a pipeline run
-
-```bash
-$ kubectl apply -n dracon -f ./examples/pipelines/golang-project/pipelinerun/pipelinerun.yaml
-```
-
-5. Expose the Tekton dashboard and Kibana UI
-
-```bash
-$ kubectl -n tekton-pipelines port-forward svc/tekton-dashboard 9097:9097
-$ kubectl -n dracon port-forward svc/dracon-kb-kibana-kb-http 5601:5601
-```
-
-6. Get the token to access Kibana
-
-```bash
-# The username is `elastic`.
-$ kubectl -n dracon get secret dracon-es-elasticsearch-es-elastic-user \
-        -o=jsonpath='{.data.elastic}' \
-        | base64 -d - \
-        | xargs echo "$1"
-```
-
-7. Deploy the Golang pipeline
-
-
-
-8. Wait for the pipeline to finish running by monitoring it in http://localhost:9097.
-
-9.  Once the pipelinerun has finished running you can view your results in Kibana: http://localhost:5601.
