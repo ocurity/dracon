@@ -6,109 +6,148 @@ kind: Component
 resources:
   - task.yaml
 patches:
-  - target:
+  # Add the Task to the Tekton Pipeline.
+  - patch: |
+      apiVersion: tekton.dev/v1beta1
       kind: Pipeline
-    patch: |
-      - path: /spec/workspaces/-
-        op: add
-        value:
-          name: source-code-ws
-      - path: /spec/params/-
-        op: add
-        value:
-          name: producer-aggregator-anchors
-          type: array
-          description: A list of tasks that this task depends on.
-          default: []
-      - path: /spec/tasks/-
-        op: add
-        value:
-          name: producer-aggregator
-          taskRef:
-            name: producer-aggregator
-          workspaces:
-            - name: source-code-ws
-              workspace: source-code-ws
-          params:
-            - name: producer-aggregator-anchors
-              value:
-                - $(params.producer-aggregator-anchors)
-  - target:
+      metadata:
+        name: unused
+      spec:
+        workspaces:
+          - name: source-code-ws
+        tasks:
+          - name: producer-aggregator
+            taskRef:
+              name: producer-aggregator
+            workspaces:
+              - name: source-code-ws
+                workspace: source-code-ws
+            params:
+              - name: producer-aggregator-anchors
+                value:
+                  - $(params.producer-aggregator-anchors)
+        params:
+          - name: producer-aggregator-anchors
+            description: A list of tasks that this task depends on.
+            type: array
+            default: []
+    target:
       kind: Pipeline
-      annotationSelector: v1.dracon.ocurity.com/has-source=true
-    patch: |
-      - path: /spec/tasks/-/params/-
-        op: add
-        value:
-          name: anchors
-          value:
-            - $(tasks.source.results.anchor)
-  - target:
-      kind: Pipeline
-      annotationSelector: v1.dracon.ocurity.com/has-producer-aggregator=true
-    patch: |
-      - path: /spec/tasks/-/params/-
-        op: add
-        value:
-          name: anchors
-          value:
-            - $(tasks.enricher-aggregator.results.anchor)
-  - target:
+  # Add anchors to Task.
+  - patch: |
+      apiVersion: tekton.dev/v1beta1
+      kind: Task
+      metadata:
+        name: producer-aggregator
+        labels:
+          v1.dracon.ocurity.com/component: producer
+      spec:
+        params:
+          - name: anchors
+            type: array
+            description: A list of tasks that this task depends on using their anchors.
+            default: []
+        results:
+          - name: anchor
+            description: An anchor to allow other tasks to depend on this task.
+        steps:
+          - name: anchor
+            image: docker.io/busybox:1.35.0
+            script: echo "$(context.task.name)" > "$(results.anchor.path)"
+    target:
       kind: Task
       name: producer-aggregator
-    patch: |
-      - path: /spec/params/-
-        op: add
-        value:
-          name: dracon_scan_id
-          type: string
-      - path: /spec/params/-
-        op: add
-        value:
-          name: dracon_scan_start_time
-          type: string
-      - path: /spec/steps/0/env/-
-        op: add
-        value:
-          name: DRACON_SCAN_TIME
-          value: $(params.dracon_scan_start_time)
-      - path: /spec/steps/0/env/-
-        op: add
-        value:
-          name: DRACON_SCAN_ID
-          value: $(params.dracon_scan_id)
-      - path: /spec/steps/1/env/-
-        op: add
-        value:
-          name: DRACON_SCAN_TIME
-          value: $(params.dracon_scan_start_time)
-      - path: /spec/steps/1/env/-
-        op: add
-        value:
-          name: DRACON_SCAN_ID
-          value: $(params.dracon_scan_id)
-      - path: /spec/steps/2/env/-
-        op: add
-        value:
-          name: DRACON_SCAN_TIME
-          value: $(params.dracon_scan_start_time)
-      - path: /spec/steps/2/env/-
-        op: add
-        value:
-          name: DRACON_SCAN_ID
-          value: $(params.dracon_scan_id)
-  # - patch: |
-  #     apiVersion: tekton.dev/v1beta1
-  #     kind: Pipeline
-  #     metadata:
-  #       name: unused
-  #     spec:
-  #       tasks:
-  #         - name: producer-aggregator
-  #           params:
-  #             - name: dracon_scan_id
-  #               value: $(tasks.base.results.dracon-scan-id)
-  #             - name: dracon_scan_start_time
-  #               value: $(tasks.base.results.dracon-scan-start-time)
-  #   target:
-  #     kind: Pipeline
+  # If we have a `source` task in the pipeline (added by a `source` component),
+  # depend on the completion of that source by referencing its anchor.
+  - patch: |
+      apiVersion: tekton.dev/v1beta1
+      kind: Pipeline
+      metadata:
+        name: unused
+      spec:
+        tasks:
+          - name: producer-aggregator
+            params:
+              - name: anchors
+                value:
+                  - $(tasks.source.results.anchor)
+    target:
+      kind: Pipeline
+      annotationSelector: v1.dracon.ocurity.com/has-source=true
+  # If we have a producer-aggregator task in the pipeline (added by the
+  # producer-aggregator component), make it depend on the completion of this
+  # producer.
+  - patch: |
+      apiVersion: tekton.dev/v1beta1
+      kind: Pipeline
+      metadata:
+        name: unused
+      spec:
+        tasks:
+          - name: producer-aggregator
+            params:
+              - name: anchors
+                value:
+                  - $(tasks.producer-aggregator.results.anchor)
+    target:
+      kind: Pipeline
+      annotationSelector: v1.dracon.ocurity.com/has-producer-aggregator=true
+  # Add scan information to Task.
+  - patch: |
+      apiVersion: tekton.dev/v1beta1
+      kind: Task
+      metadata:
+        name: producer-aggregator
+        labels:
+          v1.dracon.ocurity.com/component: producer
+      spec:
+        params:
+          - name: dracon_scan_id
+            type: string
+          - name: dracon_scan_start_time
+            type: string
+        steps:
+          - name: anchor
+            image: docker.io/busybox
+            script: echo "$(context.task.name)" > "$(results.anchor.path)"
+            env:
+              - name: DRACON_SCAN_TIME
+                value: $(params.dracon_scan_start_time)
+              - name: DRACON_SCAN_ID
+                value: $(params.dracon_scan_id)
+          - name: aggregate
+            image: docker.io/busybox
+            env:
+              - name: DRACON_SCAN_TIME
+                value: $(params.dracon_scan_start_time)
+              - name: DRACON_SCAN_ID
+                value: $(params.dracon_scan_id)
+          - name: tag
+            image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/aggregator/image:{{ default "latest" .Values.dracon_os_component_version }}'
+            env:
+              - name: READ_PATH
+                value: $(workspaces.source-code-ws.path)/.dracon/producers
+              - name: WRITE_PATH
+                value: $(workspaces.source-code-ws.path)/.dracon/producers
+              - name: DRACON_SCAN_TIME
+                value: $(params.dracon_scan_start_time)
+              - name: DRACON_SCAN_ID
+                value: $(params.dracon_scan_id)
+    target:
+      kind: Task
+      name: producer-aggregator
+  - patch: |
+      apiVersion: tekton.dev/v1beta1
+      kind: Pipeline
+      metadata:
+        name: unused
+      spec:
+        tasks:
+          - name: producer-aggregator
+            params:
+              - name: dracon_scan_id
+                value: $(tasks.base.results.dracon-scan-id)
+              - name: dracon_scan_start_time
+                value: $(tasks.base.results.dracon-scan-start-time)
+    target:
+      kind: Pipeline
