@@ -13,9 +13,17 @@ jobs:
   build:
     name: Format
     runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+      cancel-in-progress: true
     steps:
-      - name: Check out code
-        uses: actions/checkout@v2
+    - name: Check out code
+      uses: actions/checkout@v4
 
-      - name: Format
-        run: ./pleasew fmt-all
+    - name: Setup Go 1.21.6
+      uses: actions/setup-go@v4
+      with:
+        go-version: 1.21.6
+
+    - name: Format
+      run: make install-lint-tools fmt && test $(git diff -p | wc -l) -eq 0
