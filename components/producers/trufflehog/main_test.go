@@ -8,20 +8,21 @@ import (
 	"github.com/ocurity/dracon/components/producers"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestParseIssues(t *testing.T) {
 	results, err := producers.ParseMultiJSONMessages([]byte(exampleOutput))
-	assert.Nil(t, err)
+	require.NoError(t, err)
 
 	truffleResults := make([]TrufflehogOut, len(results))
 	for i, r := range results {
 		var x TrufflehogOut
-		mapstructure.Decode(r, &x)
+		require.NoError(t, mapstructure.Decode(r, &x))
 		truffleResults[i] = x
 	}
 	issues, err := parseIssues(truffleResults)
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	cs0 := "https://admin:admin@the-internet.herokuapp.com/basic_auth"
 	CS1 := "wellnessbirdie-jaworskironni-bennettliz"
 	expectedIssues := []v1.Issue{
@@ -46,8 +47,23 @@ func TestParseIssues(t *testing.T) {
 			ContextSegment: &CS1,
 		},
 	}
-	assert.Equal(t, expectedIssues[0], *issues[0])
-	assert.Equal(t, expectedIssues[1], *issues[1])
+	assert.Equal(t, expectedIssues[0].Target, issues[0].Target)
+	assert.Equal(t, expectedIssues[0].Type, issues[0].Type)
+	assert.Equal(t, expectedIssues[0].Title, issues[0].Title)
+	assert.Equal(t, expectedIssues[0].Severity, issues[0].Severity)
+	assert.Equal(t, expectedIssues[0].Cvss, issues[0].Cvss)
+	assert.Equal(t, expectedIssues[0].Confidence, issues[0].Confidence)
+	assert.Equal(t, expectedIssues[0].Description, issues[0].Description)
+	assert.Equal(t, expectedIssues[0].ContextSegment, issues[0].ContextSegment)
+
+	assert.Equal(t, expectedIssues[1].Target, issues[1].Target)
+	assert.Equal(t, expectedIssues[1].Type, issues[1].Type)
+	assert.Equal(t, expectedIssues[1].Title, issues[1].Title)
+	assert.Equal(t, expectedIssues[1].Severity, issues[1].Severity)
+	assert.Equal(t, expectedIssues[1].Cvss, issues[1].Cvss)
+	assert.Equal(t, expectedIssues[1].Confidence, issues[1].Confidence)
+	assert.Equal(t, expectedIssues[1].Description, issues[1].Description)
+	assert.Equal(t, expectedIssues[1].ContextSegment, issues[1].ContextSegment)
 }
 
 const exampleOutput = `

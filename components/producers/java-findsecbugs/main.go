@@ -4,7 +4,7 @@ import (
 	"encoding/xml"
 	"flag"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
 	"strconv"
@@ -80,7 +80,7 @@ func loadXML(filename string) ([]byte, error) {
 		log.Fatal(err)
 	}
 	defer xmlFile.Close()
-	return ioutil.ReadAll(xmlFile)
+	return io.ReadAll(xmlFile)
 }
 
 func readXML(xmlFile []byte) []*v1.Issue {

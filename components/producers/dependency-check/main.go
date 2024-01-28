@@ -3,8 +3,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
+	"os"
 
 	v1 "github.com/ocurity/dracon/api/proto/v1"
 
@@ -97,7 +97,7 @@ func main() {
 	if err := producers.ParseFlags(); err != nil {
 		log.Fatal(err)
 	}
-	jsonBytes, err := ioutil.ReadFile(producers.InResults)
+	jsonBytes, err := os.ReadFile(producers.InResults)
 	if err != nil {
 		log.Fatal(err)
 	}

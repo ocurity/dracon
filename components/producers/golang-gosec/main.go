@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 
@@ -21,7 +22,7 @@ func main() {
 	}
 
 	var results GoSecOut
-	if err := producers.ParseJSON(inFile, &results); err != nil {
+	if err := json.Unmarshal(inFile, &results); err != nil {
 		log.Fatal(err)
 	}
 

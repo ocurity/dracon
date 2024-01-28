@@ -9,6 +9,7 @@ import (
 	"github.com/ocurity/dracon/components/producers/zaproxy/types"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 var riskcodetests = []struct {
@@ -50,7 +51,7 @@ func TestZapConfidenceToDraconConfidenceParametrized(t *testing.T) {
 func TestZapOutputWhenOneSiteAndOneAlert(t *testing.T) {
 	var results types.ZapOut
 	err := json.Unmarshal([]byte(exampleOutput1), &results)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	issues := parseOut(&results)
 	expectedIssues := []*v1.Issue{
 		{
@@ -84,7 +85,7 @@ func TestZapOutputWhenOneSiteAndOneAlert(t *testing.T) {
 func TestZapOutputWhenTwoSitesAndMultipleAlerts(t *testing.T) {
 	var results types.ZapOut
 	err := json.Unmarshal([]byte(exampleOutput2), &results)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	issues := parseOut(&results)
 	expectedIssues := []*v1.Issue{
 		{

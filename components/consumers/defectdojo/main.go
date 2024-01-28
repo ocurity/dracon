@@ -27,20 +27,6 @@ var (
 	issueTemplate          string
 )
 
-func init() {
-	// envUser := os.Getenv(EnvDojoUser)
-	// envToken := os.Getenv(EnvDojoToken)
-	// envURL := os.Getenv(EnvDojoURL)
-
-	flag.StringVar(&authUser, "dojoUser", "", "defect dojo user")
-	flag.StringVar(&authToken, "dojoToken", "", "defect dojo api token")
-	flag.StringVar(&authURL, "dojoURL", "", "defect dojo api base url")
-	flag.StringVar(&productID, "dojoProductID", "", "defect dojo product ID if you want to create an engagement")
-	flag.StringVar(&issueTemplate, "descriptionTemplate", "", "a Go Template string describing how to show Raw or Enriched issues")
-	flag.BoolVar(&newEngagementEveryScan, "createEngagement", false, "for every dracon scan id, create a different engagement")
-	flag.Parse()
-}
-
 func handleRawResults(product int, dojoClient *client.Client, responses []*v1.LaunchToolResponse) error {
 	if len(responses) == 0 {
 		log.Println("No tool responses provided")
@@ -156,6 +142,19 @@ func handleEnrichedResults(product int, dojoClient *client.Client, responses []*
 }
 
 func main() {
+	// envUser := os.Getenv(EnvDojoUser)
+	// envToken := os.Getenv(EnvDojoToken)
+	// envURL := os.Getenv(EnvDojoURL)
+
+	flag.StringVar(&authUser, "dojoUser", "", "defect dojo user")
+	flag.StringVar(&authToken, "dojoToken", "", "defect dojo api token")
+	flag.StringVar(&authURL, "dojoURL", "", "defect dojo api base url")
+	flag.StringVar(&productID, "dojoProductID", "", "defect dojo product ID if you want to create an engagement")
+	flag.StringVar(&issueTemplate, "descriptionTemplate", "", "a Go Template string describing how to show Raw or Enriched issues")
+	flag.BoolVar(&newEngagementEveryScan, "createEngagement", false, "for every dracon scan id, create a different engagement")
+
+	flag.Parse()
+
 	if err := consumers.ParseFlags(); err != nil {
 		log.Fatal(err)
 	}
