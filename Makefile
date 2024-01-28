@@ -92,7 +92,7 @@ clean: clean-protos clean-kustomizations
 ########################################
 ######### CODE QUALITY TARGETS #########
 ########################################
-.PHONY: lint install-lint-tools tests go-tests
+.PHONY: lint install-lint-tools tests go-tests fmt fmt-proto fmt-go
 
 lint:
 	@reviewdog -fail-on-error $$([ "${CI}" = "true" ] && echo "-reporter=github-pr-review") -diff="git diff origin/main" -tee
@@ -111,6 +111,16 @@ go-tests:
 	@go test -race -json $(GO_TEST_PACKAGES)
 
 test: go-tests
+
+fmt-proto:
+	@echo "Tidying up Proto files"
+	@buf format -w ./api/proto
+
+fmt-go:
+	@echo "Tidying up Go files"
+	@gofmt -l -w $$(find . -name *.go -not -path "./vendor/*" | xargs -n 1 dirname | uniq)
+
+fmt: fmt-go fmt-proto
 
 ########################################
 ########## DEPLOYMENT TARGETS ##########
