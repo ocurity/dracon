@@ -1,35 +1,35 @@
 ---
 runner:
   go/vet:
-    cmd: go vet $(go list ./... | grep -v /vendor/ | grep -v github.com/ocurity/dracon/api/proto/)
+    cmd: go vet $(go list ./... | grep -v /vendor/)
     format: govet
 
   go/staticcheck:
-    cmd: staticcheck $(go list ./... | grep -v /vendor/ | grep -v github.com/ocurity/dracon/api/proto)
+    cmd: staticcheck $(go list ./... | grep -v /vendor/)
     format: staticcheck
 
   go/revive:
-    cmd: revive -exclude ./vendor/... -exclude ./api/proto/... -config revive.toml ./...
+    cmd: revive -exclude ./vendor/... -config revive.toml ./...
     errorformat:
       - '%f:%l:%c: %m'
  
   go/containedctx:
-    cmd: go vet -vettool=$(which containedctx) $(go list ./... | grep -v /vendor/ | grep -v github.com/ocurity/dracon/api/proto)
+    cmd: go vet -vettool=$(which containedctx) $(go list ./... | grep -v /vendor/)
     errorformat:
       - '%f:%l:%c: %m'
 
   go/ineffassign:
-    cmd: ineffassign $(go list ./... | grep -v /vendor/ | grep -v github.com/ocurity/dracon/api/proto)
+    cmd: ineffassign $(go list ./... | grep -v /vendor/)
     errorformat:
       - '%f:%l:%c: %m'
 
   go/errorlint:
-    cmd: go-errorlint -errorf-multi -errorf -test $(go list ./... | grep -v /vendor/ | grep -v github.com/ocurity/dracon/api/proto)
+    cmd: go-errorlint -errorf-multi -errorf -test $(go list ./... | grep -v /vendor/)
     errorformat:
       - '%f:%l:%c: %m'
 
   go/errcheck:
-    cmd: errcheck -asserts -blank $(go list ./... | grep -v /vendor/ | grep -v github.com/ocurity/dracon/api/proto)
+    cmd: errcheck -asserts -blank $(go list ./... | grep -v /vendor/)
     errorformat:
       - '%f:%l:%c:%m'
 
