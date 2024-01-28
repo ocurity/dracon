@@ -1,7 +1,7 @@
 package tekton
 
 import (
-	"github.com/ocurity/dracon/build/tools/kustomize-component-generator/types/kubernetes"
+	"github.com/ocurity/dracon/pkg/components/generator/types/kubernetes"
 )
 
 // Task represents a Tekton Task configuration.
