@@ -12,6 +12,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestCountEnrichedMessages(t *testing.T) {
@@ -61,15 +62,15 @@ func TestCountRawMessages(t *testing.T) {
 
 func TestProcessEnrichedMessages(t *testing.T) {
 	tstamp, err := time.Parse(time.RFC3339, "2020-04-13T11:51:53Z")
-	assert.Nil(t, err)
+	require.NoError(t, err)
 
 	startTime := timestamppb.New(tstamp)
 	tstamp, err = time.Parse(time.RFC3339, "2020-04-13T11:51:53Z")
-	assert.Nil(t, err)
+	require.NoError(t, err)
 
 	firstSeen := timestamppb.New(tstamp)
 	tstamp, err = time.Parse(time.RFC3339, "2020-04-13T11:51:53Z")
-	assert.Nil(t, err)
+	require.NoError(t, err)
 
 	updatedAt := timestamppb.New(tstamp)
 
@@ -119,13 +120,13 @@ func TestProcessEnrichedMessages(t *testing.T) {
 		},
 	}
 	messages, err := ProcessEnrichedMessages(response)
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, messages[0], expectedMessage)
 }
 
 func TestProcessRawMessages(t *testing.T) {
 	tstamp, err := time.Parse(time.RFC3339, "2020-04-13T11:51:53Z")
-	assert.Nil(t, err)
+	require.NoError(t, err)
 
 	startTime := timestamppb.New(tstamp)
 	expectedMessage := `{"scan_start_time":"2020-04-13T11:51:53Z","scan_id":"babbb83-4627-41c6-8ba0-70ee866290e9","tool_name":"test","source":"//foo/bar:baz","target":"//foo1/bar1:baz2","type":"test type","title":"Unit Test Title","severity":1,"cvss":0,"confidence":1,"description":"this is a test description","first_found":"2020-04-13T11:51:53Z","count":1,"false_positive":false,"cve":"CVE-0000-99999"}`
@@ -153,7 +154,7 @@ func TestProcessRawMessages(t *testing.T) {
 		},
 	}
 	messages, err := ProcessRawMessages(response)
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, messages[0], expectedMessage)
 }
 
@@ -162,16 +163,19 @@ func TestPushMetrics(t *testing.T) {
 	want := "OK"
 	scanUUID := "test-uuid"
 	scanStartTime, err := time.Parse(time.RFC3339, "2020-04-13T11:51:53Z")
-	assert.Nil(t, err)
+	require.NoError(t, err)
 
 	issuesNo := 1234
 	slackIn := `{"text":"Dracon scan test-uuid, started at 2020-04-13 11:51:53 +0000 UTC, completed with 1234 issues out of which, 0 new"}`
 	slackStub := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		buf := new(bytes.Buffer)
-		buf.ReadFrom(r.Body)
+		_, err = buf.ReadFrom(r.Body)
+		require.NoError(t, err)
 		assert.Equal(t, buf.String(), slackIn)
 		w.WriteHeader(200)
-		w.Write([]byte(want))
+
+		_, err = w.Write([]byte(want))
+		require.NoError(t, err)
 	}))
 	defer slackStub.Close()
 	PushMetrics(scanUUID, issuesNo, scanStartTime, 0, template, slackStub.URL)
@@ -183,10 +187,13 @@ func TestPush(t *testing.T) {
 	slackIn := `{"text":"` + testMessage + `"}`
 	slackStub := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		buf := new(bytes.Buffer)
-		buf.ReadFrom(r.Body)
+		_, err := buf.ReadFrom(r.Body)
+		require.NoError(t, err)
 		assert.Equal(t, buf.String(), slackIn)
 		w.WriteHeader(200)
-		w.Write([]byte(want))
+
+		_, err = w.Write([]byte(want))
+		require.NoError(t, err)
 	}))
 	defer slackStub.Close()
 

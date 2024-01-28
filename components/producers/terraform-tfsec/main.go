@@ -46,7 +46,7 @@ func main() {
 		}
 	} else {
 		var results types.TfSecOut
-		if err := producers.ParseJSON(inFile, &results); err != nil {
+		if err := json.Unmarshal(inFile, &results); err != nil {
 			log.Fatal(err)
 		}
 		issues, err := parseOut(results)

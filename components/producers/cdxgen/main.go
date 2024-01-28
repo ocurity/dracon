@@ -17,7 +17,7 @@ func main() {
 	var results []*v1.Issue
 	inFile, err := producers.ReadInFile()
 	if err != nil {
-		log.Fatal("could not load file err:%s", err)
+		log.Fatalf("could not load file err:%s", err)
 	}
 	results, err = handleCycloneDX(inFile)
 	if err != nil {
@@ -26,7 +26,7 @@ func main() {
 	if err := producers.WriteDraconOut(
 		"cdxgen", results,
 	); err != nil {
-		log.Fatal("could not write dracon out err:%s", err)
+		log.Fatalf("could not write dracon out err:%s", err)
 	}
 }
 

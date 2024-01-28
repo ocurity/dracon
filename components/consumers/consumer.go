@@ -40,19 +40,10 @@ func ParseFlags() error {
 
 // LoadToolResponse loads raw results from producers.
 func LoadToolResponse() ([]*v1.LaunchToolResponse, error) {
-	res, err := putil.LoadToolResponse(inResults)
-	if err != nil {
-		return nil, err
-	}
-	return res, nil
+	return putil.LoadToolResponse(inResults)
 }
 
 // LoadEnrichedToolResponse loads enriched results from the enricher.
 func LoadEnrichedToolResponse() ([]*v1.EnrichedLaunchToolResponse, error) {
-	res, err := putil.LoadEnrichedToolResponse(inResults)
-	if err != nil {
-		return nil, err
-	}
-
-	return res, nil
+	return putil.LoadEnrichedToolResponse(inResults)
 }

@@ -9,12 +9,13 @@ import (
 	v1 "github.com/ocurity/dracon/api/proto/v1"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestParseIssues(t *testing.T) {
 	safetyIssues := types.Out{}
 	err := json.Unmarshal([]byte(exampleOutput), &safetyIssues)
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	draconIssues := parseIssues(safetyIssues.Vulnerabilities)
 	expectedIssues := []*v1.Issue{
 		{

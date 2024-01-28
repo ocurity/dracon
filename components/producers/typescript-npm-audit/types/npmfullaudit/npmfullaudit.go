@@ -13,7 +13,6 @@ import (
 	"strings"
 
 	v1 "github.com/ocurity/dracon/api/proto/v1"
-	"github.com/ocurity/dracon/components/producers"
 	atypes "github.com/ocurity/dracon/components/producers/typescript-npm-audit/types"
 )
 
@@ -44,18 +43,11 @@ type Advisory struct {
 // NewReport constructs a Report from an npm Full Audit report.
 func NewReport(report []byte) (atypes.Report, error) {
 	var r *Report
-	if err := producers.ParseJSON(report, &r); err != nil {
-		//nolint:errorlint
-		switch err.(type) {
-		case *json.SyntaxError,
-			*json.UnmarshalTypeError, *json.UnsupportedTypeError, *json.UnsupportedValueError:
-			return nil, &atypes.ParsingError{
-				Type:          "npm_full_audit",
-				PrintableType: PrintableType,
-				Err:           err,
-			}
-		default:
-			return nil, err
+	if err := json.Unmarshal(report, &r); err != nil {
+		return nil, &atypes.ParsingError{
+			Type:          "npm_full_audit",
+			PrintableType: PrintableType,
+			Err:           err,
 		}
 	}
 

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
@@ -61,13 +62,13 @@ func main() {
 func handleJSON(inFile []byte) ([]*v1.Issue, error) {
 	if Combined {
 		var results types.CombinedOut
-		if err := producers.ParseJSON(inFile, &results); err != nil {
+		if err := json.Unmarshal(inFile, &results); err != nil {
 			return []*v1.Issue{}, err
 		}
 		return parseCombinedOut(results), nil
 	}
 	var results types.TrivyOut
-	if err := producers.ParseJSON(inFile, &results); err != nil {
+	if err := json.Unmarshal(inFile, &results); err != nil {
 		return []*v1.Issue{}, err
 	}
 	return parseSingleOut(results), nil
