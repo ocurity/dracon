@@ -3,7 +3,6 @@ apiVersion: tekton.dev/v1beta1
 kind: PipelineRun
 metadata:
   generateName: dracon-golang-project-
-  namespace: dracon
 spec:
   pipelineRef:
     name: dracon-golang-project
