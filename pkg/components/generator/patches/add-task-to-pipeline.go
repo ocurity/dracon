@@ -5,8 +5,8 @@ import (
 	"log"
 	"strings"
 
-	kustomize "github.com/ocurity/dracon/build/tools/kustomize-component-generator/types/kustomize.config.k8s.io/v1alpha1"
-	tekton "github.com/ocurity/dracon/build/tools/kustomize-component-generator/types/tekton.dev/v1beta1"
+	kustomize "github.com/ocurity/dracon/pkg/components/generator/types/kustomize.config.k8s.io/v1alpha1"
+	tekton "github.com/ocurity/dracon/pkg/components/generator/types/tekton.dev/v1beta1"
 )
 
 // AddTaskToPipeline implements Patch for adding the Task to the Tekton

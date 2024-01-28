@@ -2,7 +2,7 @@ package kustomize
 
 import (
 	wordwrap "github.com/mitchellh/go-wordwrap"
-	"github.com/ocurity/dracon/build/tools/kustomize-component-generator/types/kubernetes"
+	"github.com/ocurity/dracon/pkg/components/generator/types/kubernetes"
 	"gopkg.in/yaml.v3"
 )
 
