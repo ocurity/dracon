@@ -1,7 +1,9 @@
-.PHONY: build
+.PHONY: container
 
 DOCKER_REPO=
 DRACON_VERSION=
 
-build:
-	docker build -t $(DOCKER_REPO)/components/producerts/typescripit-eslint/eslint-wrapper:$(DRACON_VERSION) -f Dockerfile ../../../..
+DOCKER=docker
+
+container:
+	$(DOCKER) build -t $(DOCKER_REPO)/components/producers/typescripit-eslint/eslint-wrapper:$(DRACON_VERSION) -f Dockerfile ../../../.. 1>&2

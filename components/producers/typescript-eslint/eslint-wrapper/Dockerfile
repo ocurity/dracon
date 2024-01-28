@@ -1,5 +1,4 @@
-ARG ESLINT_WRAPPER_BASE_IMAGE
-FROM ${ESLINT_WRAPPER_BASE_IMAGE}
+FROM node:lts
 
 WORKDIR /home/node/workspace
 COPY components/producers/typescript-eslint/eslint-wrapper/eslintrc.js /home/node/workspace

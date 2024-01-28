@@ -13,8 +13,8 @@ fi
 executable=$(basename $(dirname "${1})"))
 
 echo "${1}" | grep -Eq ^components/producers/.*$ && executable="${executable}-parser" || true
-echo "${1}" | grep -Eq ^components/enrichers/.*$ && executable="${executable}" || true
-echo "${1}" | grep -Eq ^components/consumers/.*$ && executable="${executable}" || true
+echo "${1}" | grep -Eq ^components/enrichers/.*$ && executable="${executable}-enricher" || true
+echo "${1}" | grep -Eq ^components/consumers/.*$ && executable="${executable}-consumer" || true
 
 executable_src_path=$(dirname "${1}")
 executable_path=$(dirname $(dirname "${1}"))/"${executable}"
