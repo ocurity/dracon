@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	v1 "github.com/ocurity/dracon/api/proto/v1"
 	"github.com/ocurity/dracon/components/producers/docker-trivy/types"
@@ -100,7 +101,7 @@ func TestParseSingleOut(t *testing.T) {
 func TestHandleSarif(t *testing.T) {
 	results := trivySarif
 	issues, err := handleSarif([]byte(results))
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	expectedIssues := []*v1.Issue{
 		{
 			Target:     "library/ubuntu:1-1",

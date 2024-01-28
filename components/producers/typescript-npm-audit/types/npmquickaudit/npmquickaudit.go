@@ -14,7 +14,6 @@ import (
 	"strings"
 
 	v1 "github.com/ocurity/dracon/api/proto/v1"
-	"github.com/ocurity/dracon/components/producers"
 	atypes "github.com/ocurity/dracon/components/producers/typescript-npm-audit/types"
 )
 
@@ -126,7 +125,7 @@ func (f *Fix) UnmarshalJSON(data []byte) error {
 // NewReport constructs a Report from an npm Full Audit report.
 func NewReport(report []byte) (atypes.Report, error) {
 	var r *Report
-	if err := producers.ParseJSON(report, &r); err != nil {
+	if err := json.Unmarshal(report, &r); err != nil {
 		//nolint:errorlint
 		switch err.(type) {
 		case *json.SyntaxError,

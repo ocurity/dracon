@@ -12,6 +12,7 @@ import (
 	v1 "github.com/ocurity/dracon/api/proto/v1"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 var (
@@ -46,16 +47,20 @@ func TestEsPushBasicAuth(t *testing.T) {
 
 	esStub := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		buf := new(bytes.Buffer)
-		buf.ReadFrom(r.Body)
+		_, err := buf.ReadFrom(r.Body)
+		require.NoError(t, err)
+
 		w.Header().Set("X-Elastic-Product", "Elasticsearch")
 		w.WriteHeader(http.StatusOK)
+
 		if r.Method == http.MethodGet {
 			uname, pass, ok := r.BasicAuth()
 			assert.Equal(t, uname, "foo")
 			assert.Equal(t, pass, "bar")
 			assert.Equal(t, ok, true)
 
-			w.Write([]byte(info))
+			_, err = w.Write([]byte(info))
+			require.NoError(t, err)
 		} else if r.Method == http.MethodPost {
 			// assert non authed operation (write results to index)
 			assert.Equal(t, buf.String(), string(esIn))
@@ -66,7 +71,8 @@ func TestEsPushBasicAuth(t *testing.T) {
 			assert.Equal(t, pass, "bar")
 			assert.Equal(t, ok, true)
 
-			w.Write([]byte(want))
+			_, err = w.Write([]byte(want))
+			require.NoError(t, err)
 		}
 	}))
 	defer esStub.Close()
@@ -76,28 +82,33 @@ func TestEsPushBasicAuth(t *testing.T) {
 	basicAuthUser = "foo"
 	basicAuthPass = "bar"
 	client, err := getESClient()
-	assert.Nil(t, err)
-	client.Index(esIndex, bytes.NewBuffer(esIn))
+	require.NoError(t, err)
+	_, err = client.Index(esIndex, bytes.NewBuffer(esIn))
+	require.NoError(t, err)
 }
 
 func TestEsPush(t *testing.T) {
 	esStub := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		buf := new(bytes.Buffer)
-		buf.ReadFrom(r.Body)
+		_, err := buf.ReadFrom(r.Body)
+		require.NoError(t, err)
+
 		w.Header().Set("X-Elastic-Product", "Elasticsearch")
 		w.WriteHeader(http.StatusOK)
 		if r.Method == http.MethodGet {
-			w.Write([]byte(info))
+			_, err = w.Write([]byte(info))
 		} else if r.Method == http.MethodPost {
 			// assert non authed operation (write results to index)
 			assert.Equal(t, buf.String(), string(esIn))
 			assert.Equal(t, r.RequestURI, "/"+esIndex+"/_doc")
-			w.Write([]byte(want))
+			_, err = w.Write([]byte(want))
 		}
+		require.NoError(t, err)
 	}))
 	defer esStub.Close()
 	os.Setenv("ELASTICSEARCH_URL", esStub.URL)
 	client, err := getESClient()
-	assert.Nil(t, err)
-	client.Index(esIndex, bytes.NewBuffer(esIn))
+	require.NoError(t, err)
+	_, err = client.Index(esIndex, bytes.NewBuffer(esIn))
+	require.NoError(t, err)
 }

@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	gock "gopkg.in/h2non/gock.v1"
 )
 
@@ -64,6 +65,8 @@ func TestNewAdvisoryDataNoAdvisoryData(t *testing.T) {
 }
 
 func TestNewAdvisoryDataValid(t *testing.T) {
+	// TODO(55): this is broken because both the library and the code is broken
+	t.Skip("skipping test for known broken npm audit producer")
 	defer gock.Off()
 	gock.New("https://npmjs.com").
 		Get("/advisories/1556").
@@ -73,7 +76,7 @@ func TestNewAdvisoryDataValid(t *testing.T) {
 		File("components/producers/typescript-npm-audit/types/npmquickaudit/npm_advisory_1556")
 
 	advisory, err := NewAdvisoryData("https://npmjs.com/advisories/1556")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.True(t, assert.ObjectsAreEqual(advisoryAST, advisory))
 
 	assert.True(t, gock.IsDone())

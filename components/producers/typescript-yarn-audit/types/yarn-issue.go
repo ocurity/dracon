@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	v1 "github.com/ocurity/dracon/api/proto/v1"
-	"github.com/ocurity/dracon/components/producers"
 )
 
 func yarnToIssueSeverity(severity string) v1.Severity {
@@ -186,7 +185,7 @@ func NewReport(reportLines [][]byte) (*YarnAuditReport, []error) {
 
 	for _, line := range reportLines {
 		var auditLine yarnAuditLine
-		if err := producers.ParseJSON(line, &auditLine); err != nil {
+		if err := json.Unmarshal(line, &auditLine); err != nil {
 			log.Printf("Error parsing JSON line '%s': %s\n", line, err)
 			errors = append(errors, err)
 		} else {

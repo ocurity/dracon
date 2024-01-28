@@ -2,7 +2,6 @@ package producers
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"testing"
 	"time"
@@ -11,6 +10,7 @@ import (
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -18,17 +18,9 @@ type testJ struct {
 	Foo string
 }
 
-func TestParseJSON(t *testing.T) {
-	testJSON := `{"Foo":"bar"}`
-
-	var inJSON testJ
-	assert.Nil(t, ParseJSON([]byte(testJSON), &inJSON))
-	assert.Equal(t, inJSON.Foo, "bar")
-}
-
 func TestWriteDraconOut(t *testing.T) {
-	tmpFile, err := ioutil.TempFile("", "dracon-test")
-	assert.Nil(t, err)
+	tmpFile, err := os.CreateTemp("", "dracon-test")
+	require.NoError(t, err)
 	defer os.Remove(tmpFile.Name())
 
 	baseTime := time.Now().UTC()
@@ -50,13 +42,13 @@ func TestWriteDraconOut(t *testing.T) {
 			},
 		},
 	)
-	assert.Nil(t, err)
+	require.NoError(t, err)
 
-	pBytes, err := ioutil.ReadFile(tmpFile.Name())
-	assert.NoError(t, err)
+	pBytes, err := os.ReadFile(tmpFile.Name())
+	require.NoError(t, err)
+
 	res := v1.LaunchToolResponse{}
-	err = proto.Unmarshal(pBytes, &res)
-	assert.Nil(t, err)
+	require.NoError(t, proto.Unmarshal(pBytes, &res))
 
 	assert.Equal(t, "dracon-test", res.GetToolName())
 	assert.Equal(t, "./foobar", res.GetIssues()[0].GetTarget())
@@ -68,8 +60,8 @@ func TestWriteDraconOut(t *testing.T) {
 }
 
 func TestWriteDraconOutAppend(t *testing.T) {
-	tmpFile, err := ioutil.TempFile("", "dracon-test")
-	assert.Nil(t, err)
+	tmpFile, err := os.CreateTemp("", "dracon-test")
+	require.NoError(t, err)
 	defer os.Remove(tmpFile.Name())
 
 	baseTime := time.Now().UTC()
@@ -92,13 +84,14 @@ func TestWriteDraconOutAppend(t *testing.T) {
 				},
 			},
 		)
-		assert.Nil(t, err)
+		require.NoError(t, err)
 	}
 
-	pBytes, err := ioutil.ReadFile(tmpFile.Name())
+	pBytes, err := os.ReadFile(tmpFile.Name())
+	require.NoError(t, err)
+
 	res := v1.LaunchToolResponse{}
-	err = proto.Unmarshal(pBytes, &res)
-	assert.Nil(t, err)
+	require.NoError(t, proto.Unmarshal(pBytes, &res))
 
 	assert.Equal(t, "dracon-test", res.GetToolName())
 	assert.Equal(t, baseTime.Unix(), res.GetScanInfo().GetScanStartTime().GetSeconds())
@@ -117,14 +110,13 @@ func TestParseMultiJSONMessages(t *testing.T) {
 	testJSON := `{"Foo":"bar"}{"Foo":"barbar"}{"Foo":"barbarbar"}`
 
 	inJSON, err := ParseMultiJSONMessages([]byte(testJSON))
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	want := make([]testJ, len(inJSON))
 
 	for i, v := range inJSON {
 		var x testJ
-		mapstructure.Decode(v, &x)
+		require.NoError(t, mapstructure.Decode(v, &x))
 		want[i] = x
-
 	}
 	assert.Equal(t, want[0].Foo, "bar")
 }

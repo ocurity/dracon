@@ -1,10 +1,7 @@
 package consumers
 
 import (
-	"io/ioutil"
-	"log"
 	"os"
-	"path"
 	"testing"
 	"time"
 
@@ -12,13 +9,16 @@ import (
 
 	"github.com/ocurity/dracon/pkg/putil"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestLoadToolResponse(t *testing.T) {
-	tmpDir, err := ioutil.TempDir("", "dracon-test")
-	assert.Nil(t, err)
-	tmpFile, err := ioutil.TempFile(tmpDir, "dracon-test-*.pb")
-	assert.Nil(t, err)
+	tmpDir, err := os.MkdirTemp("", "dracon-test")
+	require.NoError(t, err)
+
+	tmpFile, err := os.CreateTemp(tmpDir, "dracon-test-*.pb")
+	require.NoError(t, err)
+
 	defer os.Remove(tmpFile.Name())
 	issues := []*v1.Issue{
 		{
@@ -31,16 +31,13 @@ func TestLoadToolResponse(t *testing.T) {
 	scanID := "ab3d3290-cd9f-482c-97dc-ec48bdfcc4de"
 	os.Setenv(EnvDraconStartTime, timestamp)
 	os.Setenv(EnvDraconScanID, scanID)
-	err = putil.WriteResults("test-tool", issues, tmpFile.Name(), scanID, timestamp)
-	assert.Nil(t, err)
 
-	log.Println(tmpDir)
-	inResults = path.Dir(tmpDir)
+	require.NoError(t, putil.WriteResults("test-tool", issues, tmpFile.Name(), scanID, timestamp))
+	inResults = tmpDir
 
 	toolRes, err := LoadToolResponse()
-	assert.Nil(t, err)
-	log.Println(toolRes)
+	require.NoError(t, err)
 
-	assert.Equal(t, "test-tool", toolRes[0].GetToolName())
+	assert.Equal(t, "test-tool", toolRes[0].GetToolName(), toolRes)
 	assert.Equal(t, scanID, toolRes[0].GetScanInfo().GetScanUuid())
 }

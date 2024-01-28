@@ -2,13 +2,14 @@ package client
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/ocurity/dracon/components/consumers/defectdojo/types"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestDojoClient(t *testing.T) {
@@ -16,13 +17,14 @@ func TestDojoClient(t *testing.T) {
 	mockTs := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, r.RequestURI, "/users")
 		called = true
-		w.Write([]byte(`{"count":1,"next":null,"previous":null,"results":[{"id":1,"username":"admin","first_name":"Admin","last_name":"User","email":"admin@defectdojo.local","last_login":"2022-05-31T20:26:54.928778Z","is_active":true,"is_superuser":true}]}`))
+		_, err := w.Write([]byte(`{"count":1,"next":null,"previous":null,"results":[{"id":1,"username":"admin","first_name":"Admin","last_name":"User","email":"admin@defectdojo.local","last_login":"2022-05-31T20:26:54.928778Z","is_active":true,"is_superuser":true}]}`))
+		require.NoError(t, err)
 	}))
 	authToken := "foo"
 	authUser := "bar"
 	client, err := DojoClient(mockTs.URL, authToken, authUser)
 	c := &Client{host: mockTs.URL, apiToken: authToken, user: authUser}
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	assert.True(t, called)
 	assert.Equal(t, client, c)
 }
@@ -34,7 +36,10 @@ func TestCreateFinding(t *testing.T) {
 		called = true
 		assert.Equal(t, r.Method, "POST")
 		assert.Equal(t, r.RequestURI, "/findings")
-		b, _ := ioutil.ReadAll(r.Body)
+
+		b, err := io.ReadAll(r.Body)
+		require.NoError(t, err)
+
 		var actual, exp types.FindingCreateRequest
 		exp = types.FindingCreateRequest{
 			Test:              1,
@@ -52,10 +57,13 @@ func TestCreateFinding(t *testing.T) {
 			Tags:              []string{"tests"},
 			Date:              "2006-01-02",
 		}
-		json.Unmarshal(b, &actual)
+		require.NoError(t, json.Unmarshal(b, &actual))
 		assert.Equal(t, actual, exp)
-		w.Write([]byte(expected))
+
+		_, err = w.Write([]byte(expected))
+		require.NoError(t, err)
 	}))
+
 	c := &Client{host: mockTs.URL, apiToken: "test", user: ""}
 	_, err := c.CreateFinding("title",
 		"description",
@@ -67,7 +75,7 @@ func TestCreateFinding(t *testing.T) {
 		1,
 		1,
 		0, 0, false, false, false, 3.9)
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	assert.True(t, called)
 }
 
@@ -77,9 +85,12 @@ func TestCreateEngagement(t *testing.T) {
 		called = true
 		assert.Equal(t, r.Method, "POST")
 		assert.Equal(t, r.RequestURI, "/engagements")
-		b, _ := ioutil.ReadAll(r.Body)
+
+		b, err := io.ReadAll(r.Body)
+		require.NoError(t, err)
+
 		var engagement types.EngagementRequest
-		json.Unmarshal(b, &engagement)
+		require.NoError(t, json.Unmarshal(b, &engagement))
 
 		expectedEngagement := types.EngagementRequest{
 			Tags:                      []string{"foo.git/somesha"},
@@ -90,10 +101,13 @@ func TestCreateEngagement(t *testing.T) {
 			Product:                   2,
 		}
 		assert.Equal(t, expectedEngagement, engagement)
-		w.Write([]byte(`{"id":4,"tags":["foo.git/somesha"],"name":"dracon scan foo","description":null,"version":"string","first_contacted":null,"target_start":"2022-06-01","target_end":"2022-06-01","reason":null,"updated":"2022-06-01T16:29:18.965507Z","created":"2022-06-01T16:29:18.908694Z","active":true,"tracker":null,"test_strategy":null,"threat_model":true,"api_test":true,"pen_test":true,"check_list":true,"status":"","progress":"threat_model","tmodel_path":"none","done_testing":false,"engagement_type":"Interactive","build_id":"foo","commit_hash":null,"branch_tag":null,"source_code_management_uri":null,"deduplication_on_engagement":false,"lead":null,"requester":null,"preset":null,"report_type":null,"product":2,"build_server":null,"source_code_management_server":null,"orchestration_engine":null,"notes":[],"files":[],"risk_acceptance":[]}`))
+
+		_, err = w.Write([]byte(`{"id":4,"tags":["foo.git/somesha"],"name":"dracon scan foo","description":null,"version":"string","first_contacted":null,"target_start":"2022-06-01","target_end":"2022-06-01","reason":null,"updated":"2022-06-01T16:29:18.965507Z","created":"2022-06-01T16:29:18.908694Z","active":true,"tracker":null,"test_strategy":null,"threat_model":true,"api_test":true,"pen_test":true,"check_list":true,"status":"","progress":"threat_model","tmodel_path":"none","done_testing":false,"engagement_type":"Interactive","build_id":"foo","commit_hash":null,"branch_tag":null,"source_code_management_uri":null,"deduplication_on_engagement":false,"lead":null,"requester":null,"preset":null,"report_type":null,"product":2,"build_server":null,"source_code_management_server":null,"orchestration_engine":null,"notes":[],"files":[],"risk_acceptance":[]}`))
+		require.NoError(t, err)
 	}))
+
 	c := &Client{host: mockTs.URL, apiToken: "test", user: ""}
 	_, err := c.CreateEngagement("dracon scan foo", "2022-06-01", []string{"foo.git/somesha"}, 2)
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	assert.True(t, called)
 }

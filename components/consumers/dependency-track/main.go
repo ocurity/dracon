@@ -25,17 +25,21 @@ var (
 	ownerAnnotation string
 )
 
-func init() {
+func main() {
 	flag.StringVar(&apiKey, "apiKey", "", "dependency track api key")
 	flag.StringVar(&authURL, "url", "", "dependency track base url")
 	flag.StringVar(&projectName, "projectName", "", "dependency track project name")
 	flag.StringVar(&projectUUID, "projectUUID", "", "dependency track project name")
 	flag.StringVar(&projectVersion, "projectVersion", "", "dependency track project version")
-	flag.StringVar(&ownerAnnotation, "ownerAnnotation", "", "if this consumer is in running after any enricher that adds ownership annotations, then provide the annotation-key for this enricher so it can tag owners as tags")
-	flag.Parse()
-}
+	flag.StringVar(
+		&ownerAnnotation,
+		"ownerAnnotation",
+		"",
+		"if this consumer is in running after any enricher that adds ownership annotations, then provide the annotation-key for this enricher so it can tag owners as tags",
+	)
 
-func main() {
+	flag.Parse()
+
 	if err := consumers.ParseFlags(); err != nil {
 		log.Fatal(err)
 	}

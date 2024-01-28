@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestUnmarshalJSON(t *testing.T) {
@@ -83,7 +84,7 @@ func TestUnmarshalJSON(t *testing.T) {
 
 	safetyIssues := Out{}
 	err := json.Unmarshal([]byte(exampleOutput), &safetyIssues)
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, safetyIssues, expectedOutput)
 }
 

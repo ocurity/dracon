@@ -3,9 +3,9 @@ package main
 import (
 	"encoding/json"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
 	dtrack "github.com/DependencyTrack/client-go"
@@ -13,6 +13,7 @@ import (
 	v1 "github.com/ocurity/dracon/api/proto/v1"
 	cyclonedx "github.com/ocurity/dracon/pkg/cyclonedx"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestUploadBomsFromRaw(t *testing.T) {
@@ -28,29 +29,36 @@ func TestUploadBomsFromRaw(t *testing.T) {
 	//nolint:gosec
 	expectedToken := "7c78f6c9-token"
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		body, _ := ioutil.ReadAll(r.Body)
+		body, err := io.ReadAll(r.Body)
+		require.NoError(t, err)
+
 		var actualRequest dtrack.BOMUploadRequest
-		json.Unmarshal(body, &actualRequest)
+		require.NoError(t, json.Unmarshal(body, &actualRequest))
 		assert.Equal(t, expectedRequest, actualRequest)
-		w.Write([]byte("{\"Token\":\"" + expectedToken + "\"}"))
+
+		_, err = w.Write([]byte("{\"Token\":\"" + expectedToken + "\"}"))
+		require.NoError(t, err)
 	}))
 	defer ts.Close()
 	projectUUID = projUUID.String()
 	apiKey = "test"
 	projectName = "test"
 	c, err := dtrack.NewClient(ts.URL, dtrack.WithAPIKey(apiKey))
-	assert.Nil(t, err)
+	require.NoError(t, err)
+
+	rawSaaSBOM, err := os.ReadFile("./testdata/saasBOM.json")
+	require.NoError(t, err)
 
 	client = c
-	issues, err := cyclonedx.ToDracon([]byte(saasBOM), "json")
+	issues, err := cyclonedx.ToDracon(rawSaaSBOM, "json")
 
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	ltr := v1.LaunchToolResponse{
 		ToolName: "SAT",
 		Issues:   issues,
 	}
 	tokens, err := uploadBOMsFromRaw([]*v1.LaunchToolResponse{&ltr})
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, tokens, []string{expectedToken})
 }
 
@@ -65,11 +73,15 @@ func TestUploadBomsFromEnriched(t *testing.T) {
 	}
 	expectedToken := "7c78f6c9-token"
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		body, _ := ioutil.ReadAll(r.Body)
+		body, err := io.ReadAll(r.Body)
+		require.NoError(t, err)
+
 		var actualRequest dtrack.BOMUploadRequest
-		json.Unmarshal(body, &actualRequest)
+		require.NoError(t, json.Unmarshal(body, &actualRequest))
 		assert.Equal(t, expectedRequest, actualRequest)
-		w.Write([]byte("{\"Token\":\"" + expectedToken + "\"}"))
+
+		_, err = w.Write([]byte("{\"Token\":\"" + expectedToken + "\"}"))
+		require.NoError(t, err)
 	}))
 	defer ts.Close()
 
@@ -77,12 +89,15 @@ func TestUploadBomsFromEnriched(t *testing.T) {
 	apiKey = "test"
 	projectName = "test"
 	c, err := dtrack.NewClient(ts.URL, dtrack.WithAPIKey(apiKey))
-	assert.Nil(t, err)
+	require.NoError(t, err)
+
+	rawSaaSBOM, err := os.ReadFile("./testdata/saasBOM.json")
+	require.NoError(t, err)
 
 	client = c
-	issues, err := cyclonedx.ToDracon([]byte(saasBOM), "json")
+	issues, err := cyclonedx.ToDracon(rawSaaSBOM, "json")
 
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	ltr := v1.LaunchToolResponse{
 		ToolName: "SAT",
 		Issues:   issues,
@@ -94,7 +109,7 @@ func TestUploadBomsFromEnriched(t *testing.T) {
 		},
 	}
 	tokens, err := uploadBOMSFromEnriched([]*v1.EnrichedLaunchToolResponse{&eltr})
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, tokens, []string{expectedToken})
 }
 
@@ -118,14 +133,19 @@ func TestUploadBomsFromEnrichedWithOwners(t *testing.T) {
 			{Name: "Owner:bar"},
 		},
 	}
+
 	expectedToken := "7c78f6c9-token"
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.String() == "/api/v1/bom" {
-			body, _ := io.ReadAll(r.Body)
+			body, err := io.ReadAll(r.Body)
+			require.NoError(t, err)
+
 			var actualRequest dtrack.BOMUploadRequest
-			json.Unmarshal(body, &actualRequest)
+			require.NoError(t, json.Unmarshal(body, &actualRequest))
 			assert.Equal(t, expectedRequest, actualRequest)
-			w.Write([]byte("{\"Token\":\"" + expectedToken + "\"}"))
+
+			_, err = w.Write([]byte("{\"Token\":\"" + expectedToken + "\"}"))
+			require.NoError(t, err)
 		} else if r.URL.String() == "/api/v1/project/7c78f6c9-b4b0-493c-a912-0bb0a4f221f1" {
 			project := dtrack.Project{
 				UUID: projUUID,
@@ -133,17 +153,22 @@ func TestUploadBomsFromEnrichedWithOwners(t *testing.T) {
 				PURL: "pkg://npm/xyz/asdf@v1.2.2",
 				Tags: []dtrack.Tag{{Name: "foo:bar"}, {Name: "Owner:foo"}},
 			}
-			res, _ := json.Marshal(project)
-			w.Write(res)
+			res, err := json.Marshal(project)
+			require.NoError(t, err)
+
+			_, err = w.Write(res)
+			require.NoError(t, err)
 			w.WriteHeader(http.StatusOK)
 		} else if r.URL.String() == "/api/v1/project" && r.Method == http.MethodPost {
-			body, _ := io.ReadAll(r.Body)
+			body, err := io.ReadAll(r.Body)
+			require.NoError(t, err)
+
 			var req dtrack.Project
-			json.Unmarshal(body, &req)
+			require.NoError(t, json.Unmarshal(body, &req))
 			assert.Equal(t, req.Tags, expectedProjectUpdate.Tags)
 		} else {
 			assert.Fail(t, r.URL.String())
-		} // if r.URL.String() == ""
+		}
 	}))
 	defer ts.Close()
 
@@ -151,12 +176,15 @@ func TestUploadBomsFromEnrichedWithOwners(t *testing.T) {
 	apiKey = "test"
 	projectName = "test"
 	c, err := dtrack.NewClient(ts.URL, dtrack.WithAPIKey(apiKey))
-	assert.Nil(t, err)
+	require.NoError(t, err)
+
+	rawSaaSBOM, err := os.ReadFile("./testdata/saasBOM.json")
+	require.NoError(t, err)
 
 	client = c
-	issues, err := cyclonedx.ToDracon([]byte(saasBOM), "json")
+	issues, err := cyclonedx.ToDracon(rawSaaSBOM, "json")
+	require.NoError(t, err)
 
-	assert.Nil(t, err)
 	ltr := v1.LaunchToolResponse{
 		ToolName: "SAT",
 		Issues:   issues,
@@ -175,209 +203,6 @@ func TestUploadBomsFromEnrichedWithOwners(t *testing.T) {
 	}
 	ownerAnnotation = "Owner"
 	tokens, err := uploadBOMSFromEnriched([]*v1.EnrichedLaunchToolResponse{&eltr})
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, tokens, []string{expectedToken})
 }
-
-const saasBOM = `{
-	"bomFormat": "CycloneDX",
-	"specVersion": "1.4",
-	"serialNumber": "urn:uuid:3e671687-395b-41f5-a30f-a58921a69b79",
-	"version": 1,
-	"metadata": {
-	  "timestamp": "2021-01-10T12:00:00Z",
-	  "component": {
-		"bom-ref": "acme-application",
-		"type": "application",
-		"name": "Acme Cloud Example",
-		"version": "2022-1"
-	  }
-	},
-	"services": [
-	  {
-		"bom-ref": "api-gateway",
-		"provider": {
-		  "name": "Acme Inc",
-		  "url": [ "https://example.com" ]
-		},
-		"group": "com.example",
-		"name": "API Gateway",
-		"version": "2022-1",
-		"description": "Example API Gateway",
-		"endpoints": [
-		  "https://example.com/",
-		  "https://example.com/app"
-		],
-		"authenticated": false,
-		"x-trust-boundary": true,
-		"data": [
-		  {
-			"classification": "PII",
-			"flow": "bi-directional"
-		  },
-		  {
-			"classification": "PIFI",
-			"flow": "bi-directional"
-		  },
-		  {
-			"classification": "Public",
-			"flow": "bi-directional"
-		  }
-		],
-		"externalReferences": [
-		  {
-			"type": "documentation",
-			"url": "http://example.com/app/swagger"
-		  }
-		],
-		"services": [
-		  {
-			"bom-ref": "ms-1.example.com",
-			"provider": {
-			  "name": "Acme Inc",
-			  "url": [ "https://example.com" ]
-			},
-			"group": "com.example",
-			"name": "Microservice 1",
-			"version": "2022-1",
-			"description": "Example Microservice",
-			"endpoints": [
-			  "https://ms-1.example.com"
-			],
-			"authenticated": true,
-			"x-trust-boundary": false,
-			"data": [
-			  {
-				"classification": "PII",
-				"flow": "bi-directional"
-			  }
-			],
-			"externalReferences": [
-			  {
-				"type": "documentation",
-				"url": "https://ms-1.example.com/swagger"
-			  }
-			]
-		  },
-		  {
-			"bom-ref": "ms-2.example.com",
-			"provider": {
-			  "name": "Acme Inc",
-			  "url": [ "https://example.com" ]
-			},
-			"group": "com.example",
-			"name": "Microservice 2",
-			"version": "2022-1",
-			"description": "Example Microservice",
-			"endpoints": [
-			  "https://ms-2.example.com"
-			],
-			"authenticated": true,
-			"x-trust-boundary": false,
-			"data": [
-			  {
-				"classification": "PIFI",
-				"flow": "bi-directional"
-			  }
-			],
-			"externalReferences": [
-			  {
-				"type": "documentation",
-				"url": "https://ms-2.example.com/swagger"
-			  }
-			]
-		  },
-		  {
-			"bom-ref": "ms-3.example.com",
-			"provider": {
-			  "name": "Acme Inc",
-			  "url": [ "https://example.com" ]
-			},
-			"group": "com.example",
-			"name": "Microservice 3",
-			"version": "2022-1",
-			"description": "Example Microservice",
-			"endpoints": [
-			  "https://ms-3.example.com"
-			],
-			"authenticated": true,
-			"x-trust-boundary": false,
-			"data": [
-			  {
-				"classification": "Public",
-				"flow": "bi-directional"
-			  }
-			],
-			"externalReferences": [
-			  {
-				"type": "documentation",
-				"url": "https://ms-3.example.com/swagger"
-			  }
-			]
-		  },
-		  {
-			"bom-ref": "ms-1-pgsql.example.com",
-			"group": "org.postgresql",
-			"name": "Postgres",
-			"version": "14.1",
-			"description": "Postgres database for Microservice #1",
-			"endpoints": [
-			  "https://ms-1-pgsql.example.com:5432"
-			],
-			"authenticated": true,
-			"x-trust-boundary": false,
-			"data": [
-			  {
-				"classification": "PII",
-				"flow": "bi-directional"
-			  }
-			]
-		  },
-		  {
-			"bom-ref": "s3-example.amazon.com",
-			"group": "com.amazon",
-			"name": "S3",
-			"description": "S3 bucket",
-			"endpoints": [
-			  "https://s3-example.amazon.com"
-			],
-			"authenticated": true,
-			"x-trust-boundary": true,
-			"data": [
-			  {
-				"classification": "Public",
-				"flow": "bi-directional"
-			  }
-			]
-		  }
-		]
-	  }
-	],
-	"dependencies": [
-	  {
-		"ref": "acme-application",
-		"dependsOn": [ "api-gateway" ]
-	  },
-	  {
-		"ref": "api-gateway",
-		"dependsOn": [
-		  "ms-1.example.com",
-		  "ms-2.example.com",
-		  "ms-3.example.com"
-		]
-	  },
-	  {
-		"ref": "ms-1.example.com",
-		"dependsOn": [ "ms-1-pgsql.example.com" ]
-	  },
-	  {
-		"ref": "ms-2.example.com",
-		"dependsOn": [ ]
-	  },
-	  {
-		"ref": "ms-3.example.com",
-		"dependsOn": [ "s3-example.amazon.com" ]
-	  }
-	]
-  }
-  `

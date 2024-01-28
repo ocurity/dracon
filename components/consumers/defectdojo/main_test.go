@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"math/rand"
 	"net/http"
@@ -16,6 +16,7 @@ import (
 	"github.com/ocurity/dracon/components/consumers/defectdojo/types"
 	"github.com/ocurity/dracon/pkg/templating"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -153,7 +154,9 @@ func TestHandleRawResults(t *testing.T) {
 	var foundEngagements []*types.EngagementRequest
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		body, _ := ioutil.ReadAll(r.Body)
+		body, err := io.ReadAll(r.Body)
+		require.NoError(t, err)
+
 		switch string(r.URL.Path) {
 		case "/users":
 			assert.Equal(t, r.Method, http.MethodGet)
@@ -173,41 +176,41 @@ func TestHandleRawResults(t *testing.T) {
 					},
 				},
 			}
-			json.NewEncoder(w).Encode(result)
+			require.NoError(t, json.NewEncoder(w).Encode(result))
 
 		case "/tests":
 			testRequest := &types.TestCreateRequest{}
-			json.Unmarshal(body, testRequest)
+			require.NoError(t, json.Unmarshal(body, testRequest))
 			assert.Contains(t, testRequests, testRequest)
 
 			foundTests = append(foundTests, testRequest) // ensure each test is only registered once
 			w.WriteHeader(http.StatusOK)
-			json.NewEncoder(w).Encode(&types.TestCreateResponse{})
+			require.NoError(t, json.NewEncoder(w).Encode(&types.TestCreateResponse{}))
 		case "/findings":
 			findingRequest := &types.FindingCreateRequest{}
-			json.Unmarshal(body, findingRequest)
+			require.NoError(t, json.Unmarshal(body, findingRequest))
 			assert.Contains(t, findingsRequests, findingRequest)
 
 			foundFindings = append(foundFindings, findingRequest) // ensure each finding is only registered once
-			json.NewEncoder(w).Encode(createFindingResponse(findingRequest))
+			require.NoError(t, json.NewEncoder(w).Encode(createFindingResponse(findingRequest)))
 		case "/engagements":
 			engagementRequest := &types.EngagementRequest{}
-			json.Unmarshal(body, engagementRequest)
+			require.NoError(t, json.Unmarshal(body, engagementRequest))
 
 			assert.Contains(t, engagementRequests, engagementRequest)
 			foundEngagements = append(foundEngagements, engagementRequest) // ensure each engagement is only registered once
 			w.WriteHeader(http.StatusOK)
-			json.NewEncoder(w).Encode(&types.EngagementResponse{})
+			require.NoError(t, json.NewEncoder(w).Encode(&types.EngagementResponse{}))
 		default:
 			log.Fatal("unexpected url ", r.URL.String())
 		}
 	}))
 	defer ts.Close()
 	client, err := client.DojoClient(ts.URL, apiKey, dojoUser)
-	assert.Nil(t, err)
+	require.NoError(t, err)
 
 	err = handleRawResults(product, client, input)
-	assert.Nil(t, err)
+	require.NoError(t, err)
 
 	assert.Equal(t, foundEngagements, engagementRequests)
 	assert.Equal(t, foundFindings, findingsRequests)
@@ -225,7 +228,9 @@ func TestHandleEnrichedResults(t *testing.T) {
 	var foundEngagements []*types.EngagementRequest
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		body, _ := ioutil.ReadAll(r.Body)
+		body, err := io.ReadAll(r.Body)
+		require.NoError(t, err)
+
 		switch string(r.URL.String()) {
 		case "/users":
 			assert.Equal(t, r.Method, http.MethodGet)
@@ -245,43 +250,43 @@ func TestHandleEnrichedResults(t *testing.T) {
 					},
 				},
 			}
-			json.NewEncoder(w).Encode(result)
+			require.NoError(t, json.NewEncoder(w).Encode(result))
 
 		case "/tests":
 			testRequest := &types.TestCreateRequest{}
-			json.Unmarshal(body, testRequest)
+			require.NoError(t, json.Unmarshal(body, testRequest))
 			assert.Contains(t, testRequests, testRequest)
 
 			foundTests = append(foundTests, testRequest) // ensure each test is only registered once
 			w.WriteHeader(http.StatusOK)
-			json.NewEncoder(w).Encode(&types.TestCreateResponse{})
+			require.NoError(t, json.NewEncoder(w).Encode(&types.TestCreateResponse{}))
 
 		case "/findings":
 			findingRequest := &types.FindingCreateRequest{}
-			json.Unmarshal(body, &findingRequest)
+			require.NoError(t, json.Unmarshal(body, &findingRequest))
 			assert.Contains(t, findingsRequests, findingRequest)
 			assert.Contains(t, string(body), "Policy.Blah.Decision")
 			foundFindings = append(foundFindings, findingRequest) // ensure each finding is only registered once
 
-			json.NewEncoder(w).Encode(createFindingResponse(findingRequest))
+			require.NoError(t, json.NewEncoder(w).Encode(createFindingResponse(findingRequest)))
 		case "/engagements":
 			engagementRequest := &types.EngagementRequest{}
-			json.Unmarshal(body, &engagementRequest)
+			require.NoError(t, json.Unmarshal(body, &engagementRequest))
 
 			assert.Contains(t, engagementRequests, engagementRequest)
 			foundEngagements = append(foundEngagements, engagementRequest) // ensure each engagement is only registered once
 			w.WriteHeader(http.StatusOK)
-			json.NewEncoder(w).Encode(&types.EngagementResponse{})
+			require.NoError(t, json.NewEncoder(w).Encode(&types.EngagementResponse{}))
 		default:
 			log.Fatal("unexpected url ", r.URL.String())
 		}
 	}))
 	defer ts.Close()
 	client, err := client.DojoClient(ts.URL, apiKey, dojoUser)
-	assert.Nil(t, err)
+	require.NoError(t, err)
 
 	err = handleEnrichedResults(product, client, input)
-	assert.Nil(t, err)
+	require.NoError(t, err)
 
 	assert.Equal(t, foundEngagements, engagementRequests)
 	assert.Equal(t, foundFindings, findingsRequests)

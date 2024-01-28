@@ -21,7 +21,7 @@ func main() {
 	}
 
 	var results []types.TestSSLFinding
-	if err := producers.ParseJSON(inFile, &results); err != nil {
+	if err := json.Unmarshal(inFile, &results); err != nil {
 		log.Fatal(err)
 	}
 	if err := producers.WriteDraconOut("testssl.sh", parseOut(results)); err != nil {

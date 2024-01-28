@@ -1,7 +1,6 @@
 package main
 
 import (
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -12,7 +11,7 @@ import (
 )
 
 func assertFilesContents(t *testing.T, fileNamesToContents map[string]string, dir string) {
-	files, err := ioutil.ReadDir(dir)
+	files, err := os.ReadDir(dir)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -31,7 +30,7 @@ func assertFilesContents(t *testing.T, fileNamesToContents map[string]string, di
 }
 
 func TestGoPURL(t *testing.T) {
-	out, err := ioutil.TempDir("/tmp", "")
+	out, err := os.MkdirTemp("/tmp", "")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -46,7 +45,7 @@ func TestGoPURL(t *testing.T) {
 }
 
 func TestNPMPURL(t *testing.T) {
-	out, err := ioutil.TempDir("/tmp", "")
+	out, err := os.MkdirTemp("/tmp", "")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -60,7 +59,7 @@ func TestNPMPURL(t *testing.T) {
 }
 
 func TestPyPiPurl(t *testing.T) {
-	out, err := ioutil.TempDir("/tmp", "")
+	out, err := os.MkdirTemp("/tmp", "")
 	if err != nil {
 		log.Fatal(err)
 	}

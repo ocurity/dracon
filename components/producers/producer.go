@@ -10,7 +10,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -90,15 +89,6 @@ func ReadInFile() ([]byte, error) {
 	return buffer.Bytes(), nil
 }
 
-// ParseJSON provides a generic method to parse JSON input (e.g. the results
-// provided by a tool) into a given struct.
-func ParseJSON(in []byte, structure interface{}) error {
-	if err := json.Unmarshal(in, &structure); err != nil {
-		return err
-	}
-	return nil
-}
-
 // ParseMultiJSONMessages provides method to parse tool results in JSON format.
 // It allows for parsing single JSON files with multiple JSON messages in them.
 func ParseMultiJSONMessages(in []byte) ([]interface{}, error) {
@@ -153,7 +143,7 @@ func getSource() string {
 		return "unknown"
 	}
 
-	dat, err := ioutil.ReadFile(sourceMetaPath)
+	dat, err := os.ReadFile(sourceMetaPath)
 	if err != nil {
 		log.Println(err)
 	}
