@@ -4,41 +4,29 @@ We provide a complete development environment using the [Please build system](ht
 
 ## Getting Started
 
-1. Set up the development environment.
+1. Use the [Getting Started](../../docs/getting-started/installation.md) guide to setup your
+development environment and Tekton.
+2. Make your changes :).
+3. Run the formatters.
 
     ```bash
-    $ ./pleasew dev
+    $ make fmt
     ```
 
-2. Deploy supporting resources that Dracon uses.
+4. Run linters.
 
     ```bash
-    $ ./pleasew dev_deploy
+    $ make lint
     ```
 
-3. Make your changes :).
-4. Run formatters.
+5. Run tests.
 
     ```bash
-    $ ./pleasew fmt-all
+    $ make test
     ```
 
-5. Run linters.
+6. Make sure you have updated all manifests in case you are changing anything in the tools that
+generate templates.
 
-    ```bash
-    $ ./pleasew lint
-    ```
-
-#### Cleaning Up
-
-1. Run the following to delete the K3D cluster:
-
-    ```bash
-    $ ./pleasew run //build/k8s/k3d:teardown
-    ```
-
-2. Run the following to remove all build artefacts:
-
-    ```bash
-    $ ./pleasew cleanup
-    ```
+7. All commits must be signed off and must include a ticket number along with a clear description
+of what is being changed.
