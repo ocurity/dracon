@@ -4,8 +4,8 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
+	"os"
 	"strings"
 
 	v1 "github.com/ocurity/dracon/api/proto/v1"
@@ -32,7 +32,7 @@ func main() {
 	flag.Parse()
 
 	ctx := context.Background()
-	bytesRead, err := ioutil.ReadFile(hashesLoc)
+	bytesRead, err := os.ReadFile(hashesLoc)
 	if err != nil {
 		fmt.Println(err)
 		panic("Could not read hashes file")
