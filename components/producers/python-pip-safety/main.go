@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 
@@ -41,7 +42,7 @@ func main() {
 	}
 
 	issues := types.Out{}
-	if err := producers.ParseJSON(inFile, &issues); err != nil {
+	if err := json.Unmarshal(inFile, &issues); err != nil {
 		log.Fatal(err)
 	}
 

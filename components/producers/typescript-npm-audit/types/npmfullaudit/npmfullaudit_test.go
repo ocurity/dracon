@@ -7,6 +7,7 @@ import (
 	atypes "github.com/ocurity/dracon/components/producers/typescript-npm-audit/types"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 var invalidJSON = `Not a valid JSON object`
@@ -107,7 +108,7 @@ var fullAuditReport = `{
 func TestParseValidReport(t *testing.T) {
 	report, err := NewReport([]byte(fullAuditReport))
 	report.SetPackagePath("test")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	issues := report.AsIssues()
 	assert.Len(t, issues, 1)

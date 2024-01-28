@@ -7,6 +7,7 @@ import (
 	v1 "github.com/ocurity/dracon/api/proto/v1"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 const exampleOutput = `
@@ -44,7 +45,7 @@ const exampleOutput = `
 func TestParseIssues(t *testing.T) {
 	var results ScorecardOut
 	err := json.Unmarshal([]byte(exampleOutput), &results)
-	assert.Nil(t, err)
+	require.NoError(t, err)
 
 	issues := parseIssues(&results)
 	expectedIssue := &v1.Issue{

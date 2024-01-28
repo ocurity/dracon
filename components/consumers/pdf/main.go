@@ -51,24 +51,29 @@ func main() {
 		}
 		responses = r
 	}
-	result := buildPdf(responses)
-	sendToS3(result, bucket, region)
+	result, err := buildPdf(responses)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if err = sendToS3(result, bucket, region); err != nil {
+		log.Fatal(err)
+	}
 }
 
-func sendToS3(filename, bucket, region string) {
-	sess, err := session.NewSession(&aws.Config{
-		Region: aws.String(region),
-	},
-	)
+func sendToS3(filename, bucket, region string) error {
+	sess, err := session.NewSession(&aws.Config{Region: aws.String(region)})
 	if err != nil {
-		log.Fatalf("Unable to acquire AWS session in region %s, check your credentials", region)
+		return fmt.Errorf("unable to start session with AWS API: %w", err)
 	}
+
 	// filename is statically defined above
 	//#nosec:G304
 	data, err := os.ReadFile(filename) //#nosec:G304
 	if err != nil {
-		panic(err)
+		return fmt.Errorf("could not open file: %w", err)
 	}
+
 	uploader := s3manager.NewUploader(sess)
 	_, err = uploader.Upload(&s3manager.UploadInput{
 		Bucket: aws.String(bucket),
@@ -76,55 +81,68 @@ func sendToS3(filename, bucket, region string) {
 		Body:   bytes.NewReader(data),
 	})
 	if err != nil {
-		log.Fatalf("Unable to upload %q to %q, %v", filename, bucket, err)
+		return fmt.Errorf("unable to upload %q to %q: %w", filename, bucket, err)
 	}
 
 	fmt.Printf("Successfully uploaded %q to %q\n", filename, bucket)
+	return nil
 }
 
-func assertErrorToNilf(message string, err error) {
-	if err != nil {
-		log.Fatalf(message, err)
-	}
-}
-
-func buildPdf(data any) string {
+func buildPdf(data any) (string, error) {
 	tmpl := template.Must(template.ParseFiles("default.html"))
+	cleanupRun := func(msg string, cleanup func() error) {
+		if err := cleanup(); err != nil {
+			log.Printf(msg, err)
+		}
+	}
 
 	currentPath, err := os.Getwd()
 	if err != nil {
-		panic(err)
+		return "", fmt.Errorf("could not get current working directory: %w", err)
 	}
+
+	reportHTMLPath := filepath.Join(currentPath, "report.html")
 	//#nosec: G304
-	f, err := os.OpenFile(filepath.Join(currentPath, "report.html"), os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0o600) //#nosec: G304
+	f, err := os.OpenFile(reportHTMLPath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0o600) //#nosec: G304
 	if err != nil {
-		panic(err)
+		return "", fmt.Errorf("could not open report.html: %w", err)
 	}
-	tmpl.Execute(f, data)
-	if err = f.Close(); err != nil {
-		panic(err)
+	defer cleanupRun("could not close file: %w", f.Close)
+
+	if err = tmpl.Execute(f, data); err != nil {
+		return "", fmt.Errorf("could not apply data to template: %w", err)
 	}
+
 	pw, err := playwright.Run()
-	assertErrorToNilf("could not launch playwright: %w", err)
+	if err != nil {
+		return "", fmt.Errorf("could not launch playwright: %w", err)
+	}
+	defer cleanupRun("could not stop Playwrigh: %w", pw.Stop)
 
 	browser, err := pw.Chromium.Launch()
-	assertErrorToNilf("could not launch Chromium: %w", err)
+	if err != nil {
+		return "", fmt.Errorf("could not launch Chromium: %w", err)
+	}
+	defer cleanupRun("could not close browser: %w", browser.Close)
 
 	context, err := browser.NewContext()
-	assertErrorToNilf("could not create context: %w", err)
+	if err != nil {
+		return "", fmt.Errorf("could not create context: %w", err)
+	}
 
 	page, err := context.NewPage()
-	assertErrorToNilf("could not create page: %w", err)
+	if err != nil {
+		return "", fmt.Errorf("could not create page: %w", err)
+	}
 
-	_, err = page.Goto(fmt.Sprintf("file:///%s", filepath.Join(currentPath, "report.html")))
-	assertErrorToNilf("could not goto: %w", err)
+	reportPage := fmt.Sprintf("file:///%s", reportHTMLPath)
+	if _, err = page.Goto(reportPage); err != nil {
+		return "", fmt.Errorf("could not goto page %s in the browser: %w", reportPage, err)
+	}
 
 	_, err = page.PDF(playwright.PagePdfOptions{
-		Path: playwright.String(filepath.Join(currentPath, "report.pdf")),
+		Path: playwright.String(reportHTMLPath),
 	})
-	assertErrorToNilf("could not create PDF: %w", err)
-	assertErrorToNilf("could not close browser: %w", browser.Close())
-	assertErrorToNilf("could not stop Playwright: %w", pw.Stop())
 
-	return filepath.Join(currentPath, "report.pdf")
+	return reportHTMLPath, err
 }

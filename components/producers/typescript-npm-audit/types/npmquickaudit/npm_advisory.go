@@ -3,7 +3,7 @@ package npmquickaudit
 import (
 	"encoding/json"
 	"errors"
-	"io/ioutil"
+	"io"
 	"net/http"
 )
 
@@ -47,7 +47,7 @@ func NewAdvisoryData(url string) (*AdvisoryData, error) {
 		return nil, errors.New("npm Registry did not respond with JSON content")
 	}
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
