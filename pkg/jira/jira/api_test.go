@@ -6,6 +6,7 @@ import (
 
 	jira "github.com/andygrunwald/go-jira"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/trivago/tgo/tcontainer"
 
 	"github.com/ocurity/dracon/pkg/jira/config"
@@ -112,6 +113,5 @@ func TestAssembleIssue(t *testing.T) {
 }
 
 func TestCreateIssue(t *testing.T) {
-	err := sampleClient.CreateIssue(sampleResult)
-	assert.NoError(t, err)
+	require.NoError(t, sampleClient.CreateIssue(sampleResult))
 }

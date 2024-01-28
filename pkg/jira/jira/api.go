@@ -2,7 +2,7 @@ package jira
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 
 	jira "github.com/andygrunwald/go-jira"
@@ -93,12 +93,14 @@ func (c Client) CreateIssue(draconResult document.Document) error {
 	ri, resp, err := c.JiraClient.Issue.Create(issue)
 	if err != nil {
 		if resp != nil {
-			body, _ := ioutil.ReadAll(resp.Body)
-			log.Printf("Error occurred posting to Jira. Response body:\n%s", body)
+			body, readErr := io.ReadAll(resp.Body)
+			if readErr != nil {
+				return fmt.Errorf("error while trying to create Jira ticket and error while trying to read response body: %w\n\n%w", err, readErr)
+			}
+			return fmt.Errorf("error while trying to create new Jira ticket %s: %w", string(body), err)
 		} else {
-			log.Println("create issue jira response is nil, should be anything but that")
+			return fmt.Errorf("error while trying to create new Jira ticket: %w", err)
 		}
-		return err
 	}
 	log.Printf("Created Jira Issue ID %s. jira_key=%s", ri.ID, string(ri.Key))
 	return nil

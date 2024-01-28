@@ -2,7 +2,6 @@ package putil
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -31,7 +30,7 @@ func WriteEnrichedResults(
 	if err != nil {
 		return err
 	}
-	if err := ioutil.WriteFile(outFile, outBytes, 0o600); err != nil {
+	if err := os.WriteFile(outFile, outBytes, 0o600); err != nil {
 		return err
 	}
 
@@ -71,7 +70,7 @@ func WriteResults(
 		return err
 	}
 
-	if err := ioutil.WriteFile(outFile, outBytes, 0o600); err != nil {
+	if err := os.WriteFile(outFile, outBytes, 0o600); err != nil {
 		return fmt.Errorf("could not write to file '%s': %w", outFile, err)
 	}
 
@@ -81,7 +80,7 @@ func WriteResults(
 
 // AppendResults appends the given issues to the existing output file.
 func AppendResults(issues []*v1.Issue, outFile string) error {
-	outBytes, err := ioutil.ReadFile(outFile)
+	outBytes, err := os.ReadFile(outFile)
 	if err != nil {
 		return fmt.Errorf("could not read file '%s': %w", outFile, err)
 	}
@@ -98,7 +97,7 @@ func AppendResults(issues []*v1.Issue, outFile string) error {
 		return err
 	}
 
-	if err := ioutil.WriteFile(outFile, outBytes, 0o600); err != nil {
+	if err := os.WriteFile(outFile, outBytes, 0o600); err != nil {
 		return fmt.Errorf("could not write to file '%s': %w", outFile, err)
 	}
 

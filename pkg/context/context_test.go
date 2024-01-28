@@ -9,6 +9,7 @@ import (
 	v1 "github.com/ocurity/dracon/api/proto/v1"
 	"github.com/ocurity/dracon/pkg/testutil"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestExtractCodeLineRange(t *testing.T) {
@@ -29,7 +30,7 @@ func TestExtractCodeLineRange(t *testing.T) {
 		Source:      "",
 	}
 	codeRange, err := ExtractCode(&issue)
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, strings.Join(strings.Split(code, "\n")[15-DefaultLineRange:18+DefaultLineRange], "\n"), codeRange)
 }
 
@@ -51,7 +52,7 @@ func TestExtractCodeLineRangeLessThanDefault(t *testing.T) {
 		Source:      "",
 	}
 	codeRange, err := ExtractCode(&issue)
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, strings.Join(strings.Split(code, "\n")[:18+DefaultLineRange], "\n"), codeRange)
 }
 
@@ -73,7 +74,7 @@ func TestExtractCodeLine(t *testing.T) {
 		Source:      "",
 	}
 	codeRange, err := ExtractCode(&issue)
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, strings.Join(strings.Split(code, "\n")[17-DefaultLineRange:17+DefaultLineRange], "\n"), codeRange)
 }
 
