@@ -1,5 +1,6 @@
 component_binariess=$(shell find ./components -name main.go | xargs -I'{}' sh -c 'echo $$(dirname {})/bin')
 component_containers=$(shell find ./components -name main.go | xargs -I'{}' sh -c 'echo $$(dirname {})/docker')
+component_kustomizations=$(shell find ./components -name kustomization.yaml | xargs -I'{}' sh -c 'echo $$(dirname {})/kustomization')
 component_containers_publish=$(component_containers:docker=publish)
 latest_tag=$(shell git tag --list --sort="-version:refname" | head -n 1)
 commits_since_latest_tag=$(shell git log --oneline $(latest_tag)..HEAD | wc -l)
@@ -43,7 +44,21 @@ components: $(component_containers)
 bin/cmd/kustomize-component-generator:
 	@go build -o bin/cmd/kustomize-component-generator cmd/component-generator/main.go
 
-build: bin/kustomize-component-generator components
+third_party/tektoncd/swagger-v$(TEKTON_VERSION).json:
+	@wget "https://raw.githubusercontent.com/tektoncd/pipeline/v$(TEKTON_VERSION)/pkg/apis/pipeline/v1beta1/swagger.json" -O $@
+
+api/openapi/tekton/openapi_schema.json: third_party/tektoncd/swagger-v$(TEKTON_VERSION).json
+	./scripts/generate_openapi_schema.sh $< $@
+
+components/base/openapi_schema.json: third_party/tektoncd/swagger-v$(TEKTON_VERSION).json
+	@cp $< $@
+
+$(component_kustomizations): bin/cmd/kustomize-component-generator
+	bin/cmd/kustomize-component-generator -task "$$(dirname $@)/task.yaml"
+
+kustomizations: $(component_kustomizations)
+
+build: components kustomizations
 	@echo "done building"
 
 $(component_containers_publish): %/publish: %/docker
