@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	v1 "github.com/ocurity/dracon/api/proto/v1"
 	"github.com/ocurity/dracon/components/producers/terraform-tfsec/types"
@@ -22,9 +23,9 @@ func TestParseOut(t *testing.T) {
 
 	var results types.TfSecOut
 	err = json.Unmarshal([]byte(fmt.Sprintf(exampleOutput, f.Name(), f.Name())), &results)
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	issues, err := parseOut(results)
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	expectedIssues := []*v1.Issue{
 		{
 			Target:      f.Name() + ":4-4",

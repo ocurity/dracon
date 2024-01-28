@@ -7,6 +7,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	v1 "github.com/ocurity/dracon/api/proto/v1"
 	"github.com/ocurity/dracon/pkg/jira/document"
@@ -14,15 +15,15 @@ import (
 
 func TestProcessEnrichedMessages(t *testing.T) {
 	tstampStart, err := time.Parse(time.RFC3339, "2020-04-13T11:51:53Z")
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	startTime := timestamppb.New(tstampStart)
 
 	tstampFS, err := time.Parse(time.RFC3339, "2020-04-13T11:51:53Z")
-	assert.Nil(t, err)
+	require.NoError(t, err)
 
 	firstSeen := timestamppb.New(tstampFS)
 	tstampUAT, err := time.Parse(time.RFC3339, "2020-04-13T11:51:53Z")
-	assert.Nil(t, err)
+	require.NoError(t, err)
 
 	updatedAt := timestamppb.New(tstampUAT)
 
@@ -95,7 +96,7 @@ func TestProcessEnrichedMessages(t *testing.T) {
 
 func TestProcessRawMessages(t *testing.T) {
 	tstamp, err := time.Parse(time.RFC3339, "2020-04-13T11:51:53Z")
-	assert.Nil(t, err)
+	require.NoError(t, err)
 
 	startTime := timestamppb.New(tstamp)
 

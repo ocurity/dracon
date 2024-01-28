@@ -3,10 +3,9 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"log"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
 	"time"
@@ -14,6 +13,7 @@ import (
 	"github.com/google/uuid"
 	v1 "github.com/ocurity/dracon/api/proto/v1"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -31,10 +31,9 @@ func genSampleIssues() []*v1.Issue {
 		v1.Severity_SEVERITY_LOW,
 		v1.Severity_SEVERITY_INFO,
 	}
-	raw := make([]*v1.Issue, 0)
+	raw := make([]*v1.Issue, expectedNumFindings)
 	for i := 0; i < expectedNumFindings; i++ {
-		id := uuid.New()
-		rI := &v1.Issue{
+		raw[i] = &v1.Issue{
 			Target:      fmt.Sprintf("%d some/target", i),
 			Type:        fmt.Sprintf("%d some type", i),
 			Title:       fmt.Sprintf("%d /some/target is vulnerable", i),
@@ -43,24 +42,17 @@ func genSampleIssues() []*v1.Issue {
 			Confidence:  v1.Confidence_CONFIDENCE_MEDIUM,
 			Description: fmt.Sprintf("%d foo bar", i),
 			Cve:         "CVE-2017-11770",
-			Uuid:        id.String(),
+			Uuid:        uuid.New().String(),
 		}
-
-		raw = append(raw, rI)
-
 	}
 	return raw
 }
 
-func MockServer(t *testing.T) {
-}
-
 func TestParseIssues(t *testing.T) {
 	// prepare
-	dir, err := ioutil.TempDir("/tmp", "")
-	if err != nil {
-		log.Fatal(err)
-	}
+	dir, err := os.MkdirTemp("/tmp", "")
+	require.NoError(t, err)
+
 	rawIssues := genSampleIssues()
 
 	id := uuid.New()
@@ -75,8 +67,9 @@ func TestParseIssues(t *testing.T) {
 		},
 	}
 	// write sample raw issues in mktemp
-	out, _ := proto.Marshal(&orig)
-	ioutil.WriteFile(dir+"/policySat.tagged.pb", out, 0o600)
+	out, err := proto.Marshal(&orig)
+	require.NoError(t, err)
+	require.NoError(t, os.WriteFile(dir+"/policySat.tagged.pb", out, 0o600))
 
 	readPath = dir
 	writePath = dir
@@ -93,7 +86,7 @@ func TestParseIssues(t *testing.T) {
 		}
 
 		if strings.Contains(r.URL.String(), "/v1/data") {
-			json.NewDecoder(r.Body).Decode(&body)
+			require.NoError(t, json.NewDecoder(r.Body).Decode(&body))
 			if strings.Contains(fmt.Sprintf("%#v\n ", body), "SEVERITY_CRITICAL") {
 				fmt.Fprintf(w, "{\"result\":{\"allow\":false}}")
 			} else {
@@ -111,14 +104,16 @@ func TestParseIssues(t *testing.T) {
 	assert.FileExists(t, dir+"/policySat.policy.enriched.pb", "file was not created")
 
 	// load *enriched.pb
-	pbBytes, err := ioutil.ReadFile(dir + "/policySat.policy.enriched.pb")
+	pbBytes, err := os.ReadFile(dir + "/policySat.policy.enriched.pb")
+	require.NoError(t, err)
+
 	res := v1.EnrichedLaunchToolResponse{}
-	proto.Unmarshal(pbBytes, &res)
+	require.NoError(t, proto.Unmarshal(pbBytes, &res))
 
 	//  ensure every finding has a policy decision and that for every finding the handler was called once
 	for _, finding := range res.Issues {
 		if finding.RawIssue.Severity != v1.Severity_SEVERITY_CRITICAL {
-			assert.True(t, strings.Contains(fmt.Sprintf("%#v\n", finding.Annotations), "\"Policy Pass: example/policySat\":\"true\""))
+			assert.Contains(t, fmt.Sprintf("%#v\n", finding.Annotations), "\"Policy Pass: example/policySat\":\"true\"")
 		}
 	}
 }

@@ -10,6 +10,7 @@ import (
 	"github.com/ocurity/dracon/pkg/testutil"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 var code = `q += ' LIMIT + %(limit)s '
@@ -31,7 +32,7 @@ func TestParseIssues(t *testing.T) {
 	exampleOutput := fmt.Sprintf(sampleOut, f.Name(), f.Name())
 	var results BanditOut
 	err = json.Unmarshal([]byte(exampleOutput), &results)
-	assert.Nil(t, err)
+	require.NoError(t, err)
 
 	issues := []*v1.Issue{}
 	for _, res := range results.Results {

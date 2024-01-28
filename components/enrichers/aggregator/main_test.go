@@ -4,9 +4,9 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
-	"io/ioutil"
-	"log"
+	"os"
 	"path/filepath"
+	"strconv"
 	"testing"
 	"time"
 
@@ -15,6 +15,7 @@ import (
 	"github.com/google/uuid"
 	v1 "github.com/ocurity/dracon/api/proto/v1"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -75,8 +76,8 @@ func createObjects(toolRuns, issuesInEach, annotationsEach int) ([]*v1.EnrichedL
 		for _, issue := range response.GetIssues() {
 			is := issue
 			is.Annotations = map[string]string{
-				fmt.Sprintf("Enricher.Annotation.%d", z): string(z),
-				"Conflict-Annotation":                    string(z),
+				fmt.Sprintf("Enricher.Annotation.%d", z): strconv.Itoa(z),
+				"Conflict-Annotation":                    strconv.Itoa(z),
 				"Same annotation":                        "same",
 			}
 			iss = append(iss, is)
@@ -90,8 +91,8 @@ func createObjects(toolRuns, issuesInEach, annotationsEach int) ([]*v1.EnrichedL
 			for _, issue := range response.GetIssues() {
 				ni := issue
 				ni.Annotations = map[string]string{
-					fmt.Sprintf("Enricher.Annotation.%d", z): string(z),
-					"Conflict-Annotation":                    string(z),
+					fmt.Sprintf("Enricher.Annotation.%d", z): strconv.Itoa(z),
+					"Conflict-Annotation":                    strconv.Itoa(z),
 					"Same annotation":                        "same",
 				}
 				newIssues = append(newIssues, ni)
@@ -105,14 +106,12 @@ func createObjects(toolRuns, issuesInEach, annotationsEach int) ([]*v1.EnrichedL
 
 func TestSignIssues(t *testing.T) {
 	// prepare
-	indir, err := ioutil.TempDir("/tmp", "")
-	if err != nil {
-		log.Fatal(err)
-	}
-	outdir, err := ioutil.TempDir("/tmp", "")
-	if err != nil {
-		log.Fatal(err)
-	}
+	indir, err := os.MkdirTemp("/tmp", "")
+	require.NoError(t, err)
+
+	outdir, err := os.MkdirTemp("/tmp", "")
+	require.NoError(t, err)
+
 	toolRuns := 1
 	issuesInEach := 1
 	expectedNumAnnotations := 1
@@ -120,25 +119,27 @@ func TestSignIssues(t *testing.T) {
 	for i, resp := range responses {
 		// write sample enriched responses in mktemp
 		out, _ := proto.Marshal(resp)
-		ioutil.WriteFile(fmt.Sprintf("%s/aggregatorSat%d.enriched.pb", indir, i), out, 0o600)
+		require.NoError(t, os.WriteFile(fmt.Sprintf("%s/aggregatorSat%d.enriched.pb", indir, i), out, 0o600))
 	}
 
 	readPath = indir
 	writePath = outdir
 
 	public, private, err := sign.GenerateKey(rand.Reader)
-	if err != nil {
-		log.Fatal("could not generate key for signatures")
-	}
-	signKey = base64.StdEncoding.EncodeToString(private[:])
+	require.NoError(t, err)
 
+	signKey = base64.StdEncoding.EncodeToString(private[:])
 	run()
-	files, err := ioutil.ReadDir(writePath)
+
+	files, err := os.ReadDir(writePath)
+	require.NoError(t, err)
+
 	for _, file := range files {
-		pbBytes, err := ioutil.ReadFile(filepath.Join(writePath, file.Name()))
-		assert.Nil(t, err)
+		pbBytes, err := os.ReadFile(filepath.Join(writePath, file.Name()))
+		require.NoError(t, err)
+
 		res := v1.EnrichedLaunchToolResponse{}
-		proto.Unmarshal(pbBytes, &res)
+		require.NoError(t, proto.Unmarshal(pbBytes, &res))
 
 		found := false
 		for _, er := range expectedResponses {
@@ -149,8 +150,9 @@ func TestSignIssues(t *testing.T) {
 					issueFound := false
 					for _, otherIssue := range res.GetIssues() {
 						if expectedIssue.RawIssue.Title == otherIssue.RawIssue.Title {
+							decoded, err := base64.StdEncoding.DecodeString(otherIssue.Annotations[signatureAnnotation])
+							require.NoError(t, err)
 
-							decoded, _ := base64.StdEncoding.DecodeString(otherIssue.Annotations[signatureAnnotation])
 							_, valid := sign.Open(nil, decoded, public)
 							assert.True(t, valid)
 							issueFound = true
@@ -166,14 +168,12 @@ func TestSignIssues(t *testing.T) {
 
 func TestAggregateIssues(t *testing.T) {
 	// prepare
-	indir, err := ioutil.TempDir("/tmp", "")
-	if err != nil {
-		log.Fatal(err)
-	}
-	outdir, err := ioutil.TempDir("/tmp", "")
-	if err != nil {
-		log.Fatal(err)
-	}
+	indir, err := os.MkdirTemp("/tmp", "")
+	require.NoError(t, err)
+
+	outdir, err := os.MkdirTemp("/tmp", "")
+	require.NoError(t, err)
+
 	toolRuns := 3
 	issuesInEach := 4
 	expectedNumAnnotations := 4
@@ -181,18 +181,21 @@ func TestAggregateIssues(t *testing.T) {
 	for i, resp := range responses {
 		// write sample enriched responses in mktemp
 		out, _ := proto.Marshal(resp)
-		ioutil.WriteFile(fmt.Sprintf("%s/aggregatorSat%d.enriched.pb", indir, i), out, 0o600)
+		require.NoError(t, os.WriteFile(fmt.Sprintf("%s/aggregatorSat%d.enriched.pb", indir, i), out, 0o600))
 	}
+
 	signKey = ""
 	readPath = indir
 	writePath = outdir
 	run()
-	files, err := ioutil.ReadDir(writePath)
+	files, err := os.ReadDir(writePath)
+	require.NoError(t, err)
+
 	for _, file := range files {
-		pbBytes, err := ioutil.ReadFile(filepath.Join(writePath, file.Name()))
-		assert.Nil(t, err)
+		pbBytes, err := os.ReadFile(filepath.Join(writePath, file.Name()))
+		require.NoError(t, err)
 		res := v1.EnrichedLaunchToolResponse{}
-		proto.Unmarshal(pbBytes, &res)
+		require.NoError(t, proto.Unmarshal(pbBytes, &res))
 
 		found := false
 		for _, er := range expectedResponses {
