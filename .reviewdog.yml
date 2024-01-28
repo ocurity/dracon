@@ -1,42 +1,45 @@
 ---
 runner:
+  go/vet:
+    cmd: go vet $(go list ./... | grep -v /vendor/)
+    format: govet
+
   go/staticcheck:
-    cmd: |
-      ./pleasew run //third_party/binary/dominikh/go-tools:staticcheck -- $(./pleasew query alltargets --include go | grep -v "//third_party/" | cut -f3- -d/ | cut -f1 -d: | awk '{ print "./" $0 }' | xargs)
-    errorformat:
-      - '%E%f:%l:%c: %m'
+    cmd: staticcheck $(go list ./... | grep -v /vendor/)
+    format: staticcheck
 
   go/revive:
-    cmd: |
-      ./pleasew run //third_party/binary/mgechev/revive:revive -- $(./pleasew query alltargets --include go | grep -v "//third_party/" | cut -f3- -d/ | cut -f1 -d: | awk '{ print "./" $0 }' | xargs)
+    cmd: revive -exclude ./vendor/... -config revive.toml ./...
     errorformat:
-      - '%E%f:%l:%c: %m'
-
-  go/vet:
-    cmd: |
-      ./pleasew run "//third_party/go:toolchain|go" -- vet $(./pleasew query alltargets --include go | grep -v "//third_party/" | cut -f3- -d/ | cut -f1 -d: | awk '{ print "./" $0 }' | xargs)
+      - '%f:%l:%c: %m'
+ 
+  go/containedctx:
+    cmd: go vet -vettool=$(which containedctx) $(go list ./... | grep -v /vendor/)
     errorformat:
-      - '%E%f:%l:%c: %m'
+      - '%f:%l:%c: %m'
 
-  go/gosec:
-    cmd: |
-      ./pleasew run //third_party/binary/securego/gosec:gosec -- -fmt golint $(./pleasew query alltargets --include go | grep -v "//third_party/" | cut -f3- -d/ | cut -f1 -d: | awk '{ print "./" $0 }' | xargs)
+  go/ineffassign:
+    cmd: ineffassign $(go list ./... | grep -v /vendor/)
     errorformat:
-      - '%E%f:%l:%c: %m'
+      - '%f:%l:%c: %m'
 
-  go/fmt:
-    cmd: |
-      ./pleasew run //third_party/go/mvdan.cc/gofumpt:gofumpt -- -d $(./pleasew query alltargets --include go | grep -v "//third_party/" | cut -f3- -d/ | cut -f1 -d: | awk '{ print "./" $0 }' | xargs)
-    format: diff
-    level: error
+  go/errorlint:
+    cmd: go-errorlint -errorf-multi -errorf -test $(go list ./... | grep -v /vendor/)
+    errorformat:
+      - '%f:%l:%c: %m'
 
-  buf_lint:
-    cmd: ./pleasew run "//third_party/binary/bufbuild/buf:buf|buf" -- lint --path api/
-    level: error
+  go/errcheck:
+    cmd: errcheck -asserts -blank $(go list ./... | grep -v /vendor/)
     errorformat:
       - '%f:%l:%c:%m'
 
-  buf_format:
-    cmd: ./pleasew run "//third_party/binary/bufbuild/buf:buf|buf" -- format --diff --path api/
-    format: diff
+  # TODO: figure out how to set errorformat to parse the error output
+  # actionlint:
+  #   cmd: actionlint
+  #   errorformat:
+  #     - 
+
+  buf_lint:
+    cmd: buf lint . --path ./api/
     level: error
+    format: buf

@@ -89,6 +89,24 @@ clean-protos:
 clean: clean-protos clean-kustomizations
 
 ########################################
+######### CODE QUALITY TARGETS #########
+########################################
+.PHONY: lint install-lint-tools
+
+lint:
+	@reviewdog -fail-on-error $$([ "${CI}" = "true" ] && echo "-reporter=github-pr-review") -diff="git diff origin/main" -tee
+
+install-lint-tools:
+	@go install honnef.co/go/tools/cmd/staticcheck@latest
+	@go install github.com/mgechev/revive@latest
+	@go install github.com/sivchari/containedctx/cmd/containedctx@latest
+	@go install github.com/gordonklaus/ineffassign@latest
+	@go install github.com/polyfloyd/go-errorlint@latest
+	@go install github.com/kisielk/errcheck@latest
+	@go install github.com/rhysd/actionlint/cmd/actionlint@latest
+	@go install github.com/bufbuild/buf/cmd/buf@v1.28.1
+
+########################################
 ########## DEPLOYMENT TARGETS ##########
 ########################################
 .PHONY: deploy-arangodb-crds deploy-arangodb dev-deploy deploy-elasticsearch deploy-mongodb deploy-pg deploy-tektoncd-pipeline tektoncd-pipeline-helm tektoncd-dashboard-helm
