@@ -21,7 +21,7 @@ type testJ struct {
 func TestWriteDraconOut(t *testing.T) {
 	tmpFile, err := os.CreateTemp("", "dracon-test")
 	require.NoError(t, err)
-	defer require.NoError(t, os.Remove(tmpFile.Name()))
+	defer os.Remove(tmpFile.Name())
 
 	baseTime := time.Now().UTC()
 	timestamp := baseTime.Format(time.RFC3339)
@@ -62,7 +62,7 @@ func TestWriteDraconOut(t *testing.T) {
 func TestWriteDraconOutAppend(t *testing.T) {
 	tmpFile, err := os.CreateTemp("", "dracon-test")
 	require.NoError(t, err)
-	defer require.NoError(t, os.Remove(tmpFile.Name()))
+	defer os.Remove(tmpFile.Name())
 
 	baseTime := time.Now().UTC()
 	timestamp := baseTime.Format(time.RFC3339)

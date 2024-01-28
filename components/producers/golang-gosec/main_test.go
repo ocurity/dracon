@@ -9,6 +9,7 @@ import (
 	v1 "github.com/ocurity/dracon/api/proto/v1"
 	"github.com/ocurity/dracon/pkg/testutil"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -56,10 +57,10 @@ func TestParseIssues(t *testing.T) {
 	exampleOutput := fmt.Sprintf(gosecout, f.Name())
 	var results GoSecOut
 	err = json.Unmarshal([]byte(exampleOutput), &results)
-	assert.Nil(t, err)
+	require.NoError(t, err)
 
 	issues, err := parseIssues(&results)
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	expectedIssue := &v1.Issue{
 		Target:         fmt.Sprintf("%s:2", f.Name()),
 		Type:           "G304",

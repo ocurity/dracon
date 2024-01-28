@@ -53,9 +53,9 @@ func TestParseIssues(t *testing.T) {
 
 	var results []types.ESLintIssue
 	err = json.Unmarshal([]byte(fmt.Sprintf(exampleOutput, f.Name())), &results)
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	issues, err := parseIssues(results)
-	assert.Nil(t, err)
+	require.NoError(t, err)
 
 	expectedIssue := &v1.Issue{
 		Target:         f.Name() + ":1-2",

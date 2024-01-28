@@ -23,9 +23,9 @@ func TestParseOut(t *testing.T) {
 
 	var results types.TfSecOut
 	err = json.Unmarshal([]byte(fmt.Sprintf(exampleOutput, f.Name(), f.Name())), &results)
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	issues, err := parseOut(results)
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	expectedIssues := []*v1.Issue{
 		{
 			Target:      f.Name() + ":4-4",

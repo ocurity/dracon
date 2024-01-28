@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"path"
 	"testing"
 	"time"
 
@@ -54,9 +53,8 @@ func TestParseIssues(t *testing.T) {
 	}
 
 	// write sample raw issues in mktemp
-	out, err := proto.Marshal(&resp)
-	require.NoError(t, err)
-	require.NoError(t, os.WriteFile(path.Join(dir, "/taggerSat.pb"), out, 0o600))
+	out, _ := proto.Marshal(&resp)
+	require.NoError(t, os.WriteFile(dir+"/taggerSat.pb", out, 0o600))
 
 	readPath = dir
 	writePath = dir

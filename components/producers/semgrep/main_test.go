@@ -77,9 +77,9 @@ func TestParseIssues(t *testing.T) {
 	semgrepResults := types.SemgrepResults{}
 	err = json.Unmarshal([]byte(fmt.Sprintf(exampleOutput, f.Name(), f.Name())), &semgrepResults)
 
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	issues, err := parseIssues(semgrepResults)
-	assert.Nil(t, err)
+	require.NoError(t, err)
 
 	expectedIssue := &v1.Issue{
 		Target:         f.Name() + ":3-3",

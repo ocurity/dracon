@@ -22,7 +22,7 @@ func TestParseIssues(t *testing.T) {
 		truffleResults[i] = x
 	}
 	issues, err := parseIssues(truffleResults)
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	cs0 := "https://admin:admin@the-internet.herokuapp.com/basic_auth"
 	CS1 := "wellnessbirdie-jaworskironni-bennettliz"
 	expectedIssues := []v1.Issue{

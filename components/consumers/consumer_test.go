@@ -1,7 +1,6 @@
 package consumers
 
 import (
-	"encoding/json"
 	"os"
 	"testing"
 	"time"
@@ -20,8 +19,7 @@ func TestLoadToolResponse(t *testing.T) {
 	tmpFile, err := os.CreateTemp(tmpDir, "dracon-test-*.pb")
 	require.NoError(t, err)
 
-	defer require.NoError(t, os.Remove(tmpFile.Name()))
-
+	defer os.Remove(tmpFile.Name())
 	issues := []*v1.Issue{
 		{
 			Target:      "/dracon/source/foobar",
@@ -31,25 +29,16 @@ func TestLoadToolResponse(t *testing.T) {
 	}
 	timestamp := time.Now().UTC().Format(time.RFC3339)
 	scanID := "ab3d3290-cd9f-482c-97dc-ec48bdfcc4de"
-	tags := map[string]string{
-		"assetID":       "someID",
-		"assetPriority": "priotity",
-	}
-	scanTags, err := json.Marshal(tags)
-	assert.NoError(t, err)
+	os.Setenv(EnvDraconStartTime, timestamp)
+	os.Setenv(EnvDraconScanID, scanID)
 
-	require.NoError(t, os.Setenv(EnvDraconStartTime, timestamp))
-	require.NoError(t, os.Setenv(EnvDraconScanID, scanID))
-	require.NoError(t, os.Setenv(EnvDraconScanTags, string(scanTags)))
+	require.NoError(t, putil.WriteResults("test-tool", issues, tmpFile.Name(), scanID, timestamp))
+	inResults = tmpDir
 
-	resultTempDir := tmpFile.Name()
-	resultFile := "test-tool"
-	assert.NoError(t, putil.WriteResults(resultFile, issues, resultTempDir, scanID, timestamp, tags))
+	toolRes, err := LoadToolResponse()
+	require.NoError(t, err)
 
-	toolRes, err := putil.LoadToolResponse(resultTempDir)
-	assert.NoError(t, err)
-
-	assert.Equal(t, "test-tool", toolRes[0].GetToolName())
+	assert.Equal(t, "test-tool", toolRes[0].GetToolName(), toolRes)
 	assert.Equal(t, scanID, toolRes[0].GetScanInfo().GetScanUuid())
 	assert.Equal(t, tags, toolRes[0].GetScanInfo().GetScanTags())
 }
