@@ -6,6 +6,8 @@ example_pipeline_kustomizations=$(shell find ./examples/pipelines -name kustomiz
 latest_tag=$(shell git tag --list --sort="-version:refname" | head -n 1)
 commits_since_latest_tag=$(shell git log --oneline $(latest_tag)..HEAD | wc -l)
 
+GO_TEST_PACKAGES=$(shell go list ./... | grep -v /vendor/)
+
 DOCKER_REPO=europe-west1-docker.pkg.dev/oc-dracon-saas/demo/ocurity/dracon
 DRACON_VERSION=$(shell echo $(latest_tag)$$([ $(commits_since_latest_tag) -eq 0 ] || echo "-$$(git log -n 1 --pretty='format:%h')" )$$([ -z "$$(git status --porcelain=v1 2>/dev/null)" ] || echo "-dirty" ))
 TEKTON_VERSION=0.44.0
@@ -90,7 +92,7 @@ clean: clean-protos clean-kustomizations
 ########################################
 ######### CODE QUALITY TARGETS #########
 ########################################
-.PHONY: lint install-lint-tools
+.PHONY: lint install-lint-tools tests go-tests
 
 lint:
 	@reviewdog -fail-on-error $$([ "${CI}" = "true" ] && echo "-reporter=github-pr-review") -diff="git diff origin/main" -tee
@@ -104,6 +106,11 @@ install-lint-tools:
 	@go install github.com/kisielk/errcheck@latest
 	@go install github.com/rhysd/actionlint/cmd/actionlint@latest
 	@go install github.com/bufbuild/buf/cmd/buf@v1.28.1
+
+go-tests:
+	@go test -race -json $(GO_TEST_PACKAGES)
+
+test: go-tests
 
 ########################################
 ########## DEPLOYMENT TARGETS ##########
