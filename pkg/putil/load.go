@@ -2,7 +2,6 @@ package putil
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -21,7 +20,7 @@ func LoadToolResponse(inPath string) ([]*v1.LaunchToolResponse, error) {
 			return fmt.Errorf("Path %s doesn't exist", path)
 		}
 		if !f.IsDir() && (strings.HasSuffix(f.Name(), ".pb")) {
-			pbBytes, err := ioutil.ReadFile(path)
+			pbBytes, err := os.ReadFile(path)
 			if err != nil {
 				return err
 			}
@@ -47,7 +46,7 @@ func LoadTaggedToolResponse(inPath string) ([]*v1.LaunchToolResponse, error) {
 			return fmt.Errorf("Path %s doesn't exist", path)
 		}
 		if !f.IsDir() && (strings.HasSuffix(f.Name(), ".tagged.pb")) {
-			pbBytes, err := ioutil.ReadFile(path)
+			pbBytes, err := os.ReadFile(path)
 			if err != nil {
 				return err
 			}
@@ -73,7 +72,7 @@ func LoadEnrichedToolResponse(inPath string) ([]*v1.EnrichedLaunchToolResponse, 
 			return fmt.Errorf("Path %s doesn't exist", path)
 		}
 		if !f.IsDir() && (strings.HasSuffix(f.Name(), ".enriched.aggregated.pb")) {
-			pbBytes, err := ioutil.ReadFile(path)
+			pbBytes, err := os.ReadFile(path)
 			if err != nil {
 				return err
 			}
@@ -99,7 +98,7 @@ func LoadEnrichedNonAggregatedToolResponse(inPath string) ([]*v1.EnrichedLaunchT
 			return fmt.Errorf("Path %s doesn't exist", path)
 		}
 		if !f.IsDir() && (strings.HasSuffix(f.Name(), ".enriched.pb")) {
-			pbBytes, err := ioutil.ReadFile(path)
+			pbBytes, err := os.ReadFile(path)
 			if err != nil {
 				return err
 			}

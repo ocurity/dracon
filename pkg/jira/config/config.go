@@ -3,12 +3,11 @@ package config
 import (
 	"encoding/json"
 	"io"
-	"io/ioutil"
 )
 
 // New reads the configuration from the file/Reader and parses it into a Config object.
 func New(r io.Reader) (Config, error) {
-	configBytes, err := ioutil.ReadAll(r)
+	configBytes, err := io.ReadAll(r)
 	if err != nil {
 		return Config{}, err
 	}

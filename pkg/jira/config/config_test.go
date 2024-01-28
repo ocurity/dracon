@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 var sampleConfig = Config{
@@ -90,6 +91,6 @@ func TestGetConfig(t *testing.T) {
 `
 	reader := strings.NewReader(testConfig)
 	res, err := New(reader)
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	assert.EqualValues(t, res, sampleConfig)
 }
