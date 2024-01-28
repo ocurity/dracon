@@ -207,11 +207,7 @@ func parseOut(run sarif.Run, rules map[string]*sarif.ReportingDescriptor, toolNa
 	return issues
 }
 
-func addIssue(rules map[string]*sarif.ReportingDescriptor,
-	issues []*v1.Issue,
-	target, toolName string,
-	res *sarif.Result,
-) []*v1.Issue {
+func addIssue(rules map[string]*sarif.ReportingDescriptor, issues []*v1.Issue, target, toolName string, res *sarif.Result) []*v1.Issue {
 	rule, ok := rules[*res.RuleID]
 	var description string
 	if !ok {

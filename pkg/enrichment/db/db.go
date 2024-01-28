@@ -23,7 +23,7 @@ import (
 // migrationsFS holds the SQL migration files as static assets.
 //
 //nolint:typecheck
-//go:embed *.sql
+//go:embed migrations/*.sql
 var migrationsFS embed.FS
 
 // EnrichDatabase represents the db methods that are used for the enricher.
@@ -77,26 +77,29 @@ func NewDB(connStr string) (*DB, error) {
 		return nil, fmt.Errorf("could not walk migrations: %w", err)
 	}
 
-	s := bindata.Resource(assetNames,
+	resources := bindata.Resource(assetNames,
 		func(name string) ([]byte, error) {
 			return fs.ReadFile(migrationsFS, filepath.Join(".", name))
 		})
+	log.Printf("migrations discovered are %q", resources.Names)
 
-	d, err := bindata.WithInstance(s)
+	resourcesDriver, err := bindata.WithInstance(resources)
 	if err != nil {
 		return nil, fmt.Errorf("could not create migration bindata instance: %w", err)
 	}
-	m, err := migrate.NewWithInstance("go-bindata", d, "dracon", driver)
+
+	m, err := migrate.NewWithInstance("go-bindata", resourcesDriver, "dracon", driver)
 	if err != nil {
 		return nil, err
 	}
+
 	dbVersion, isDBDirty, err := m.Version()
 	if err != nil && !errors.Is(err, migrate.ErrNilVersion) {
 		return nil, fmt.Errorf("error getting migration db version: %w", err)
 	}
+
 	log.Printf("migrationVersion: %d, isDBDirty %v", dbVersion, isDBDirty)
-	err = m.Up()
-	if err != nil && !errors.Is(err, migrate.ErrNoChange) {
+	if err = m.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
 		return nil, fmt.Errorf("could not migrate DB: %w", err)
 	}
 
