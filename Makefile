@@ -91,7 +91,7 @@ clean: clean-protos clean-kustomizations
 ########################################
 ######### CODE QUALITY TARGETS #########
 ########################################
-.PHONY: lint install-lint-tools
+.PHONY: lint install-lint-tools tests go-tests
 
 lint:
 	@reviewdog -fail-on-error $$([ "${CI}" = "true" ] && echo "-reporter=github-pr-review") -diff="git diff origin/main" -tee
@@ -105,6 +105,11 @@ install-lint-tools:
 	@go install github.com/kisielk/errcheck@latest
 	@go install github.com/rhysd/actionlint/cmd/actionlint@latest
 	@go install github.com/bufbuild/buf/cmd/buf@v1.28.1
+
+go-tests:
+	@go test -race -json $(GO_TEST_PACKAGES)
+
+test: go-tests
 
 ########################################
 ########## DEPLOYMENT TARGETS ##########
