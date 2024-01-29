@@ -5,39 +5,15 @@ on:
       - 'v*'
     branches:
       - main
-  # Trigger, but do nothing in PRs so we can check that the workflow is valid.
-  pull_request:
-    branches:
-      - main
-
-env:
-  PLZ_CONFIG_PROFILE: ci
 
 permissions:
   # Grant the ability to checkout the repository
   contents: read
 
 jobs:
-  pre-release:
-    name: Publish
-    if: github.event_name != 'pull_request' && github.ref_type == 'tag'
-    runs-on: ubuntu-latest
-    permissions:
-      # Grant the ability to create GitHub Releases.
-      contents: write
-    steps:
-      - name: Check out code
-        uses: actions/checkout@v2
-
-      - name: Create pre-release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./pleasew run //build/releases:pre-release
-
-  push-docker-images:
+  publish-docker-images:
     name: Push Docker images
     runs-on: ubuntu-latest
-    if: github.event_name != 'pull_request'
     permissions:
       # Grant the ability to write to GitHub Packages (push Docker images to
       # GitHub Container Registry).
@@ -56,4 +32,4 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish Docker images
-        run: ./pleasew run //build/releases:publish-images
+        run: make publish-component-containers
