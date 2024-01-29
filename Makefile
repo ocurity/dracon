@@ -31,7 +31,7 @@ export
 ########################################
 ############# BUILD TARGETS ############
 ########################################
-.PHONY: components component-binaries build publish-component-containers
+.PHONY: components component-binaries build publish-component-containers clean-kustomizations clean-protos clean
 
 $(component_binariess):
 	./scripts/build_component_binary.sh $@
@@ -70,6 +70,14 @@ $(component_containers_publish): %/publish: %/docker
 	./scripts/publish_component_container.sh $@
 
 publish-component-containers: $(component_containers_publish)
+
+clean-kustomizations:
+	@rm -rf $(component_kustomizations)
+
+clean-protos:
+	@rm -rf $(go_protos)
+
+clean: clean-protos clean-kustomizations
 
 ########################################
 ########## DEPLOYMENT TARGETS ##########
