@@ -24,7 +24,7 @@ then
     make -C "${executable_src_path}" --no-print-directory --quiet container DOCKER_REPO="${DOCKER_REPO}" DRACON_VERSION="${DRACON_VERSION}"
 else
     dockerfile_template="
-        FROM scratch                               \n
+        FROM ${BASE_IMAGE:-scratch}                \n
         COPY ${executable_path} /bin/${executable} \n
         ENTRYPOINT ["/bin/${executable}"]          \n
     "
@@ -35,5 +35,5 @@ fi
 
 if make -C "${executable_src_path}" --no-print-directory --dry-run extras >/dev/null 2>&1
 then
-    make -C "${executable_src_path}" --no-print-directory --quiet package-extras DOCKER_REPO="${DOCKER_REPO}" DRACON_VERSION="${DRACON_VERSION}"
+    make -C "${executable_src_path}" --no-print-directory --quiet extras DOCKER_REPO="${DOCKER_REPO}" DRACON_VERSION="${DRACON_VERSION}"
 fi

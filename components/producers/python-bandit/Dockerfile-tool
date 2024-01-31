@@ -1,4 +1,5 @@
-FROM python:3.10-slim
+ARG PYTHON_BANDIT_BASE_IMAGE
+FROM ${PYTHON_BANDIT_BASE_IMAGE}
 
 RUN pip3 install bandit
 
