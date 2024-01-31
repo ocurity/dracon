@@ -2,11 +2,14 @@
 
 CONTAINER_REPO=
 DRACON_VERSION=
+OSSF_SCORECARD_SAFETY_BASE_IMAGE=$(shell test -e .custom_image && cat .custom_image || echo "alpine:latest")
 
 DOCKER=docker
 
 extras:
-	$(DOCKER) build -t $(DOCKER_REPO)/components/producers/ossf-scorecard:$(DRACON_VERSION) -f Dockerfile ../../.. 1>&2
+	$(DOCKER) build --tag $(CONTAINER_REPO)/components/producers/ossf-scorecard:$(DRACON_VERSION) \
+					--file Dockerfile \
+					--build-arg OSSF_SCORECARD_SAFETY_BASE_IMAGE=$(OSSF_SCORECARD_SAFETY_BASE_IMAGE) ../../.. 1>&2
 
 publish-extras:
 	$(DOCKER) push $(CONTAINER_REPO)/components/producers/ossf-scorecard:$(DRACON_VERSION) 1>&2

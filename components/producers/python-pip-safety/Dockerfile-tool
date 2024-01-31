@@ -1,4 +1,5 @@
-FROM python:3.10-slim
+ARG PYTHON_PIP_SAFETY_BASE_IMAGE
+FROM ${PYTHON_PIP_SAFETY_BASE_IMAGE}
 
 RUN pip3 install safety
 
