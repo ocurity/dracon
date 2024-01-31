@@ -36,7 +36,7 @@ func main() {
 
 	component, ok := task.Metadata.Labels["v1.dracon.ocurity.com/component"]
 	if !ok {
-		log.Fatalf("missing .metadata.labels[\"v1.dracon.ocurity.com/component\"]")
+		log.Fatalf("task is missing .metadata.labels[\"v1.dracon.ocurity.com/component\"]")
 	}
 
 	switch component {

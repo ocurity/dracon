@@ -108,7 +108,7 @@ func (p *AddTaskToPipeline) addParameters(pipeline *tekton.Pipeline) {
 		case "string":
 			pipelineSpecTaskParameter.Value = fmt.Sprintf("$(params.%s)", param.Name)
 		default:
-			panic(fmt.Sprintf("unsupported parameter type '%s'", param.Type))
+			panic(fmt.Sprintf("unsupported parameter type '%s' from parameter '%s'", param.Type, param.Name))
 		}
 
 		for _, t := range pipeline.Spec.Tasks {

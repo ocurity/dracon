@@ -51,7 +51,7 @@ func (p *AddEnricherAggregatorAnchor) GeneratePatch() *kustomize.TargetPatch {
 	)
 
 	return &kustomize.TargetPatch{
-		DescriptiveComment: "If we have a enricher-aggregator task in the pipeline (added by the enricher-aggregator component), make it depend on the completion of this enricher.",
+		DescriptiveComment: "If we have an enricher-aggregator task in the pipeline (added by the enricher-aggregator component), make it depend on the completion of this enricher.",
 		Target: &kustomize.Target{
 			Kind:               "Pipeline",
 			AnnotationSelector: `v1.dracon.ocurity.com/has-enricher-aggregator=true`,
