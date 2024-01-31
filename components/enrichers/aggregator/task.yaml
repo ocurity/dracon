@@ -7,11 +7,11 @@ metadata:
     v1.dracon.ocurity.com/component: enricher
 spec:
   params:
-  - name: anchors
+  - name: enricher-aggregator-anchors
     description: A list of tasks that this task depends on.
     type: array
     default: []
-  - name: b64-signature-key
+  - name: enricher-aggregator-b64-signature-key
     description: An optional key to sign each aggregated result with
     type: string
     default: ""
@@ -41,4 +41,4 @@ spec:
       value: "$(workspaces.source-code-ws.path)/.dracon/enrichers"
 
     - name: B64_SIGNATURE_KEY
-      value: "$(params.b64-signature-key)"
+      value: "$(params.enricher-aggregator-b64-signature-key)"
