@@ -6,6 +6,7 @@ metadata:
   name: git-clone
   labels:
     app.kubernetes.io/version: "0.6"
+    v1.dracon.ocurity.com/component: source
   annotations:
     tekton.dev/pipelines.minVersion: "0.29.0"
     tekton.dev/categories: Git
@@ -47,61 +48,62 @@ spec:
         A workspace containing CA certificates, this will be used by Git to
         verify the peer with when fetching or pushing over HTTPS.
   params:
-    - name: url
+    - name: git-clone-url
       description: Repository URL to clone from.
       type: string
-    - name: revision
+    - name: git-clone-revision
       description: Revision to checkout. (branch, tag, sha, ref, etc...)
       type: string
       default: ""
-    - name: refspec
+    - name: git-clone-refspec
       description: Refspec to fetch before checking out revision.
+      type: string
       default: ""
-    - name: submodules
+    - name: git-clone-submodules
       description: Initialize and fetch git submodules.
       type: string
       default: "true"
-    - name: depth
+    - name: git-clone-depth
       description: Perform a shallow clone, fetching only the most recent N commits.
       type: string
       default: "1"
-    - name: sslVerify
+    - name: git-clone-sslVerify
       description: Set the `http.sslVerify` global git config. Setting this to `false` is not advised unless you are sure that you trust your git remote.
       type: string
       default: "true"
-    - name: subdirectory
+    - name: git-clone-subdirectory
       description: Subdirectory inside the `output` Workspace to clone the repo into.
       type: string
       default: ""
-    - name: sparseCheckoutDirectories
+    - name: git-clone-sparseCheckoutDirectories
       description: Define the directory patterns to match or exclude when performing a sparse checkout.
       type: string
       default: ""
-    - name: deleteExisting
+    - name: git-clone-deleteExisting
       description: Clean out the contents of the destination directory if it already exists before cloning.
       type: string
       default: "true"
-    - name: httpProxy
+    - name: git-clone-httpProxy
       description: HTTP proxy server for non-SSL requests.
       type: string
       default: ""
-    - name: httpsProxy
+    - name: git-clone-httpsProxy
       description: HTTPS proxy server for SSL requests.
       type: string
       default: ""
-    - name: noProxy
+    - name: git-clone-noProxy
       description: Opt out of proxying HTTP/HTTPS requests.
       type: string
       default: ""
-    - name: verbose
+    - name: git-clone-verbose
       description: Log the commands that are executed during `git-clone`'s operation.
       type: string
       default: "true"
-    - name: gitInitImage
+    - name: git-clone-gitInitImage
       description: The image providing the git-init binary that this Task runs.
       type: string
       default: "gcr.io/tekton-releases/github.com/tektoncd/pipeline/cmd/git-init:v0.29.0"
-    - name: userHome
+    - name: git-clone-userHome
       description: |
         Absolute path to the user's home directory. Set this explicitly if you are running the image as a non-root user or have overridden
         the gitInitImage param with an image containing custom user configuration.
@@ -119,33 +121,33 @@ spec:
       - name: HOME
         value: "$(params.userHome)"
       - name: PARAM_URL
-        value: $(params.url)
+        value: $(params.git-clone-url)
       - name: PARAM_REVISION
-        value: $(params.revision)
+        value: $(params.git-clone-revision)
       - name: PARAM_REFSPEC
-        value: $(params.refspec)
+        value: $(params.git-clone-refspec)
       - name: PARAM_SUBMODULES
-        value: $(params.submodules)
+        value: $(params.git-clone-submodules)
       - name: PARAM_DEPTH
-        value: $(params.depth)
+        value: $(params.git-clone-depth)
       - name: PARAM_SSL_VERIFY
-        value: $(params.sslVerify)
+        value: $(params.git-clone-sslVerify)
       - name: PARAM_SUBDIRECTORY
-        value: $(params.subdirectory)
+        value: $(params.git-clone-subdirectory)
       - name: PARAM_DELETE_EXISTING
-        value: $(params.deleteExisting)
+        value: $(params.git-clone-deleteExisting)
       - name: PARAM_HTTP_PROXY
-        value: $(params.httpProxy)
+        value: $(params.git-clone-httpProxy)
       - name: PARAM_HTTPS_PROXY
         value: $(params.httpsProxy)
       - name: PARAM_NO_PROXY
-        value: $(params.noProxy)
+        value: $(params.git-clone-noProxy)
       - name: PARAM_VERBOSE
-        value: $(params.verbose)
+        value: $(params.git-clone-verbose)
       - name: PARAM_SPARSE_CHECKOUT_DIRECTORIES
-        value: $(params.sparseCheckoutDirectories)
+        value: $(params.git-clone-sparseCheckoutDirectories)
       - name: PARAM_USER_HOME
-        value: $(params.userHome)
+        value: $(params.git-clone-userHome)
       - name: WORKSPACE_OUTPUT_PATH
         value: $(workspaces.output.path)
       - name: WORKSPACE_SSH_DIRECTORY_BOUND
