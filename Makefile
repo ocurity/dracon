@@ -23,6 +23,7 @@ PG_VERSION=11.9.8
 DRACON_NS=dracon
 TEKTON_NS=tekton-pipelines
 ARANGODB_NS=arangodb
+BASE_IMAGE=scratch
 
 DOCKER=docker
 PROTOC=protoc
