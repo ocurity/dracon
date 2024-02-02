@@ -2,6 +2,7 @@ component_binariess=$(shell find ./components -name main.go | xargs -I'{}' sh -c
 component_containers=$(shell find ./components -name main.go | xargs -I'{}' sh -c 'echo $$(dirname {})/docker')
 component_kustomizations=$(shell find ./components -name kustomization.yaml | xargs -I'{}' sh -c 'echo $$(dirname {})/kustomization')
 component_containers_publish=$(component_containers:docker=publish)
+example_pipeline_kustomizations=$(shell find ./examples/pipelines -name kustomization.yaml | xargs -I'{}' sh -c 'echo $$(dirname {})/helm-templates')
 latest_tag=$(shell git tag --list --sort="-version:refname" | head -n 1)
 commits_since_latest_tag=$(shell git log --oneline $(latest_tag)..HEAD | wc -l)
 
@@ -69,6 +70,13 @@ $(component_containers_publish): %/publish: %/docker
 	./scripts/publish_component_container.sh $@
 
 publish-component-containers: $(component_containers_publish)
+
+$(example_pipeline_kustomizations):
+	@echo "Generating templates for $$(dirname $@)"
+	@mkdir -p "$$(dirname $@)/templates"
+	@kustomize build --load-restrictor LoadRestrictionsNone $$(dirname $@) > "$$(dirname $@)/templates/all.yaml"
+
+example-pipelines-helm-manifests: $(example_pipeline_kustomizations)
 
 clean-kustomizations:
 	rm -rf $(component_kustomizations)
