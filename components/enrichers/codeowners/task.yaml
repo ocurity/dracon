@@ -17,7 +17,7 @@ spec:
   steps:
   - name: run-enricher
     imagePullPolicy: IfNotPresent
-    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/enrichers/codeowners/image:latest'
+    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/enrichers/codeowners/image:{{ default "latest" .Values.dracon_os_component_version }}'
     command: ["app/components/enrichers/codeowners/codeowners"]
     env:
     - name: READ_PATH

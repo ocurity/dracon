@@ -28,7 +28,7 @@ spec:
       name: scratch
   - name: produce-issues
     imagePullPolicy: IfNotPresent
-    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/dependency-check/image:latest'
+    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/dependency-check/image:{{ default "latest" .Values.dracon_os_component_version }}'
     command: ["app/components/producers/dependency-check/dependency-check-parser"]
     args:
     - "-in=/scratch/dependency-check-report.json"

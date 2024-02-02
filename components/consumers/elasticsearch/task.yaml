@@ -19,7 +19,7 @@ spec:
   steps:
   - name: run-consumer
     imagePullPolicy: IfNotPresent
-    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/consumers/elasticsearch/image:latest'
+    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/consumers/elasticsearch/image:{{ default "latest" .Values.dracon_os_component_version }}'
     command: ["/app/components/consumers/elasticsearch/elasticsearch"]
     env:
     - name: ELASTICSEARCH_URL
