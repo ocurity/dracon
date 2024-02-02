@@ -26,7 +26,7 @@ spec:
   steps:
   - name: run-consumer
     imagePullPolicy: IfNotPresent
-    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/consumers/dependency-track/image:latest'
+    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/consumers/dependency-track/image:{{ default "latest" .Values.dracon_os_component_version }}'
     command: ["/app/components/consumers/dependency-track/dependency-track"]
     args: [
       "-in", "$(workspaces.source-code-ws.path)/.dracon/enrichers/",
