@@ -1,0 +1,390 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: dracon-iac-project
+spec:
+  params:
+  - default: http://dracon-es-http.dracon.svc:9200
+    name: consumer-elasticsearch-url
+    type: string
+  - default: ""
+    name: consumer-elasticsearch-description-template
+    type: string
+  tasks:
+  - name: consumer-elasticsearch
+    params:
+    - name: consumer-elasticsearch-url
+      value: $(params.consumer-elasticsearch-url)
+    - name: consumer-elasticsearch-description-template
+      value: $(params.consumer-elasticsearch-description-template)
+    taskRef:
+      name: consumer-elasticsearch
+    workspaces:
+    - name: source-code-ws
+      workspace: source-code-ws
+  workspaces:
+  - name: source-code-ws
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  labels:
+    v1.dracon.ocurity.com/component: consumer
+  name: consumer-elasticsearch-iac-project
+spec:
+  params:
+  - default: []
+    description: A list of tasks that this task depends on using their anchors.
+    name: anchors
+    type: array
+  results:
+  - description: An anchor to allow other tasks to depend on this task.
+    name: anchor
+  steps:
+  - image: docker.io/busybox:1.35.0
+    name: anchor
+    script: echo "$(context.task.name)" > "$(results.anchor.path)"
+  workspaces:
+  - description: The workspace containing the source-code to scan.
+    name: source-code-ws
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  labels:
+    v1.dracon.ocurity.com/component: consumer
+  name: consumer-mongodb-iac-project
+spec:
+  params:
+  - default: []
+    description: A list of tasks that this task depends on using their anchors.
+    name: anchors
+    type: array
+  results:
+  - description: An anchor to allow other tasks to depend on this task.
+    name: anchor
+  steps:
+  - image: docker.io/busybox:1.35.0
+    name: anchor
+    script: echo "$(context.task.name)" > "$(results.anchor.path)"
+  workspaces:
+  - description: The workspace containing the source-code to scan.
+    name: source-code-ws
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  labels:
+    v1.dracon.ocurity.com/component: enricher
+  name: enricher-aggregator-iac-project
+spec:
+  params:
+  - default: []
+    description: A list of tasks that this task depends on using their anchors.
+    name: anchors
+    type: array
+  results:
+  - description: An anchor to allow other tasks to depend on this task.
+    name: anchor
+  steps:
+  - image: docker.io/busybox:1.35.0
+    name: anchor
+    script: echo "$(context.task.name)" > "$(results.anchor.path)"
+  workspaces:
+  - description: The workspace containing the source-code to scan.
+    name: source-code-ws
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  labels:
+    v1.dracon.ocurity.com/component: enricher
+  name: enricher-deduplication-iac-project
+spec:
+  params:
+  - default: []
+    description: A list of tasks that this task depends on using their anchors.
+    name: anchors
+    type: array
+  results:
+  - description: An anchor to allow other tasks to depend on this task.
+    name: anchor
+  steps:
+  - image: docker.io/busybox:1.35.0
+    name: anchor
+    script: echo "$(context.task.name)" > "$(results.anchor.path)"
+  workspaces:
+  - description: The workspace containing the source-code to scan.
+    name: source-code-ws
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  labels:
+    v1.dracon.ocurity.com/component: enricher
+  name: enricher-policy-iac-project
+spec:
+  params:
+  - default: []
+    description: A list of tasks that this task depends on using their anchors.
+    name: anchors
+    type: array
+  results:
+  - description: An anchor to allow other tasks to depend on this task.
+    name: anchor
+  sidecars:
+  - args:
+    - run
+    - --server
+    - --addr
+    - 0.0.0.0:8181
+    - --log-level
+    - debug
+    command:
+    - /opa
+    image: docker.io/openpolicyagent/opa:0.44.0-rootless
+    name: open-policy-agent
+    resources:
+      limits:
+        cpu: 1
+        memory: 5Gi
+      requests:
+        cpu: 0.5
+        memory: 512Mi
+    securityContext:
+      runAsGroup: 70
+      runAsUser: 70
+  steps:
+  - image: docker.io/busybox:1.35.0
+    name: anchor
+    script: echo "$(context.task.name)" > "$(results.anchor.path)"
+  workspaces:
+  - description: The workspace containing the source-code to scan.
+    name: source-code-ws
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  annotations:
+    tekton.dev/categories: Git
+    tekton.dev/displayName: git clone
+    tekton.dev/pipelines.minVersion: 0.29.0
+    tekton.dev/platforms: linux/amd64,linux/s390x,linux/ppc64le,linux/arm64
+    tekton.dev/tags: git
+  labels:
+    app.kubernetes.io/version: "0.6"
+    v1.dracon.ocurity.com/component: source
+  name: git-clone-iac-project
+spec:
+  description: |-
+    These Tasks are Git tasks to work with repositories used by other tasks in your Pipeline.
+    The git-clone Task will clone a repo from the provided url into the output Workspace. By default the repo will be cloned into the root of your Workspace. You can clone into a subdirectory by setting this Task's subdirectory param. This Task also supports sparse checkouts. To perform a sparse checkout, pass a list of comma separated directory patterns to this Task's sparseCheckoutDirectories param.
+  params:
+  - default: []
+    description: A list of tasks that this task depends on using their anchors.
+    name: anchors
+    type: array
+  results:
+  - description: An anchor to allow other tasks to depend on this task.
+    name: anchor
+  steps:
+  - image: docker.io/busybox:1.35.0
+    name: anchor
+    script: echo "$(context.task.name)" > "$(results.anchor.path)"
+  workspaces:
+  - description: The git repo will be cloned onto the volume backing this Workspace.
+    name: output
+  - description: |
+      A .ssh directory with private key, known_hosts, config, etc. Copied to
+      the user's home before git commands are executed. Used to authenticate
+      with the git remote when performing the clone. Binding a Secret to this
+      Workspace is strongly recommended over other volume types.
+    name: ssh-directory
+    optional: true
+  - description: |
+      A Workspace containing a .gitconfig and .git-credentials file. These
+      will be copied to the user's home before any git commands are run. Any
+      other files in this Workspace are ignored. It is strongly recommended
+      to use ssh-directory over basic-auth whenever possible and to bind a
+      Secret to this Workspace over other volume types.
+    name: basic-auth
+    optional: true
+  - description: |
+      A workspace containing CA certificates, this will be used by Git to
+      verify the peer with when fetching or pushing over HTTPS.
+    name: ssl-ca-directory
+    optional: true
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  labels:
+    v1.dracon.ocurity.com/component: producer
+  name: producer-aggregator-iac-project
+spec:
+  params:
+  - name: dracon_scan_id
+    type: string
+  - name: dracon_scan_start_time
+    type: string
+  results:
+  - description: An anchor to allow other tasks to depend on this task.
+    name: anchor
+  steps:
+  - env:
+    - name: DRACON_SCAN_TIME
+      value: $(params.dracon_scan_start_time)
+    - name: DRACON_SCAN_ID
+      value: $(params.dracon_scan_id)
+    image: docker.io/busybox
+    name: anchor
+    script: echo "$(context.task.name)" > "$(results.anchor.path)"
+  - env:
+    - name: DRACON_SCAN_TIME
+      value: $(params.dracon_scan_start_time)
+    - name: DRACON_SCAN_ID
+      value: $(params.dracon_scan_id)
+    image: docker.io/busybox
+    name: aggregate
+  - env:
+    - name: READ_PATH
+      value: $(workspaces.source-code-ws.path)/.dracon/producers
+    - name: WRITE_PATH
+      value: $(workspaces.source-code-ws.path)/.dracon/producers
+    - name: DRACON_SCAN_TIME
+      value: $(params.dracon_scan_start_time)
+    - name: DRACON_SCAN_ID
+      value: $(params.dracon_scan_id)
+    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/aggregator/image:{{
+      default "latest" .Values.dracon_os_component_version }}'
+    name: tag
+  workspaces:
+  - description: The workspace containing the source-code to scan.
+    name: source-code-ws
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  labels:
+    v1.dracon.ocurity.com/component: producer
+  name: producer-docker-trivy-iac-project
+spec:
+  params:
+  - name: dracon_scan_id
+    type: string
+  - name: dracon_scan_start_time
+    type: string
+  results:
+  - description: An anchor to allow other tasks to depend on this task.
+    name: anchor
+  steps:
+  - env:
+    - name: DRACON_SCAN_TIME
+      value: $(params.dracon_scan_start_time)
+    - name: DRACON_SCAN_ID
+      value: $(params.dracon_scan_id)
+    image: docker.io/aquasec/trivy:0.37.1
+    name: run-trivy
+  - env:
+    - name: DRACON_SCAN_TIME
+      value: $(params.dracon_scan_start_time)
+    - name: DRACON_SCAN_ID
+      value: $(params.dracon_scan_id)
+    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/docker-trivy/image:{{
+      default "latest" .Values.dracon_os_component_version }}'
+    name: produce-issues
+  volumes:
+  - emptyDir: {}
+    name: scratch
+  workspaces:
+  - description: The workspace containing the source-code to scan.
+    name: source-code-ws
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  labels:
+    v1.dracon.ocurity.com/component: producer
+  name: producer-kics-iac-project
+spec:
+  params:
+  - name: dracon_scan_id
+    type: string
+  - name: dracon_scan_start_time
+    type: string
+  results:
+  - description: An anchor to allow other tasks to depend on this task.
+    name: anchor
+  steps:
+  - env:
+    - name: DRACON_SCAN_TIME
+      value: $(params.dracon_scan_start_time)
+    - name: DRACON_SCAN_ID
+      value: $(params.dracon_scan_id)
+    image: docker.io/checkmarx/kics:v1.6.9
+    name: run-kics
+    script: |
+      #!/bin/sh
+      /app/bin/kics \
+      scan \
+      -p $(workspaces.source-code-ws.path) \
+      -o /scratch \
+      --minimal-ui \
+      --no-progress \
+      --output-name out \
+      --payload-lines \
+      --report-formats json \
+      --silent
+      cat /scratch/out.json
+  - env:
+    - name: DRACON_SCAN_TIME
+      value: $(params.dracon_scan_start_time)
+    - name: DRACON_SCAN_ID
+      value: $(params.dracon_scan_id)
+    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/kics/image:{{
+      default "latest" .Values.dracon_os_component_version }}'
+    name: produce-issues
+  volumes:
+  - emptyDir: {}
+    name: scratch
+  workspaces:
+  - description: The workspace containing the source-code to scan.
+    name: source-code-ws
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  labels:
+    v1.dracon.ocurity.com/component: producer
+  name: producer-terraform-tfsec-iac-project
+spec:
+  params:
+  - name: dracon_scan_id
+    type: string
+  - name: dracon_scan_start_time
+    type: string
+  results:
+  - description: An anchor to allow other tasks to depend on this task.
+    name: anchor
+  steps:
+  - env:
+    - name: DRACON_SCAN_TIME
+      value: $(params.dracon_scan_start_time)
+    - name: DRACON_SCAN_ID
+      value: $(params.dracon_scan_id)
+    image: docker.io/aquasec/tfsec:v1.28
+    name: run-tfsec
+  - env:
+    - name: DRACON_SCAN_TIME
+      value: $(params.dracon_scan_start_time)
+    - name: DRACON_SCAN_ID
+      value: $(params.dracon_scan_id)
+    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/terraform-tfsec/image:{{
+      default "latest" .Values.dracon_os_component_version }}'
+    name: produce-issues
+  volumes:
+  - emptyDir: {}
+    name: scratch
+  workspaces:
+  - description: The workspace containing the source-code to scan.
+    name: source-code-ws

@@ -1,0 +1,220 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: dracon-npm-audit-purl-project
+spec:
+  params:
+  - default: mongodb://consumer-mongodb:consumer-mongodb@consumer-mongodb.$(context.taskRun.namespace).svc:27017/consumer-mongodb
+    name: consumer-mongodb-db-uri
+    type: string
+  - default: consumer-mongodb
+    name: consumer-mongodb-db-name
+    type: string
+  - default: consumer-mongodb
+    name: consumer-mongodb-collection-name
+    type: string
+  tasks:
+  - name: consumer-mongodb
+    params:
+    - name: consumer-mongodb-db-uri
+      value: $(params.consumer-mongodb-db-uri)
+    - name: consumer-mongodb-db-name
+      value: $(params.consumer-mongodb-db-name)
+    - name: consumer-mongodb-collection-name
+      value: $(params.consumer-mongodb-collection-name)
+    taskRef:
+      name: consumer-mongodb
+    workspaces:
+    - name: source-code-ws
+      workspace: source-code-ws
+  workspaces:
+  - name: source-code-ws
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  labels:
+    v1.dracon.ocurity.com/component: consumer
+  name: consumer-mongodb-npm-audit-purl-project
+spec:
+  params:
+  - default: []
+    description: A list of tasks that this task depends on using their anchors.
+    name: anchors
+    type: array
+  results:
+  - description: An anchor to allow other tasks to depend on this task.
+    name: anchor
+  steps:
+  - image: docker.io/busybox:1.35.0
+    name: anchor
+    script: echo "$(context.task.name)" > "$(results.anchor.path)"
+  workspaces:
+  - description: The workspace containing the source-code to scan.
+    name: source-code-ws
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  labels:
+    v1.dracon.ocurity.com/component: enricher
+  name: enricher-aggregator-npm-audit-purl-project
+spec:
+  params:
+  - default: []
+    description: A list of tasks that this task depends on using their anchors.
+    name: anchors
+    type: array
+  results:
+  - description: An anchor to allow other tasks to depend on this task.
+    name: anchor
+  steps:
+  - image: docker.io/busybox:1.35.0
+    name: anchor
+    script: echo "$(context.task.name)" > "$(results.anchor.path)"
+  workspaces:
+  - description: The workspace containing the source-code to scan.
+    name: source-code-ws
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  labels:
+    v1.dracon.ocurity.com/component: enricher
+  name: enricher-deduplication-npm-audit-purl-project
+spec:
+  params:
+  - default: []
+    description: A list of tasks that this task depends on using their anchors.
+    name: anchors
+    type: array
+  results:
+  - description: An anchor to allow other tasks to depend on this task.
+    name: anchor
+  steps:
+  - image: docker.io/busybox:1.35.0
+    name: anchor
+    script: echo "$(context.task.name)" > "$(results.anchor.path)"
+  workspaces:
+  - description: The workspace containing the source-code to scan.
+    name: source-code-ws
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  labels:
+    v1.dracon.ocurity.com/component: producer
+  name: producer-aggregator-npm-audit-purl-project
+spec:
+  params:
+  - name: dracon_scan_id
+    type: string
+  - name: dracon_scan_start_time
+    type: string
+  results:
+  - description: An anchor to allow other tasks to depend on this task.
+    name: anchor
+  steps:
+  - env:
+    - name: DRACON_SCAN_TIME
+      value: $(params.dracon_scan_start_time)
+    - name: DRACON_SCAN_ID
+      value: $(params.dracon_scan_id)
+    image: docker.io/busybox
+    name: anchor
+    script: echo "$(context.task.name)" > "$(results.anchor.path)"
+  - env:
+    - name: DRACON_SCAN_TIME
+      value: $(params.dracon_scan_start_time)
+    - name: DRACON_SCAN_ID
+      value: $(params.dracon_scan_id)
+    image: docker.io/busybox
+    name: aggregate
+  - env:
+    - name: READ_PATH
+      value: $(workspaces.source-code-ws.path)/.dracon/producers
+    - name: WRITE_PATH
+      value: $(workspaces.source-code-ws.path)/.dracon/producers
+    - name: DRACON_SCAN_TIME
+      value: $(params.dracon_scan_start_time)
+    - name: DRACON_SCAN_ID
+      value: $(params.dracon_scan_id)
+    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/aggregator/image:{{
+      default "latest" .Values.dracon_os_component_version }}'
+    name: tag
+  workspaces:
+  - description: The workspace containing the source-code to scan.
+    name: source-code-ws
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  labels:
+    v1.dracon.ocurity.com/component: producer
+  name: producer-typescript-npm-audit-npm-audit-purl-project
+spec:
+  params:
+  - name: dracon_scan_id
+    type: string
+  - name: dracon_scan_start_time
+    type: string
+  results:
+  - description: An anchor to allow other tasks to depend on this task.
+    name: anchor
+  steps:
+  - env:
+    - name: DRACON_SCAN_TIME
+      value: $(params.dracon_scan_start_time)
+    - name: DRACON_SCAN_ID
+      value: $(params.dracon_scan_id)
+    image: docker.io/node:lts
+    name: run-npm-audit
+    script: |
+      #!/usr/bin/env bash
+      set -x
+      cd $(workspaces.source-code-ws.path)
+      npm i --package-lock-only
+      npm audit --json > /scratch/out.json || true
+  - env:
+    - name: DRACON_SCAN_TIME
+      value: $(params.dracon_scan_start_time)
+    - name: DRACON_SCAN_ID
+      value: $(params.dracon_scan_id)
+    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/typescript-npm-audit/image:{{
+      default "latest" .Values.dracon_os_component_version }}'
+    name: produce-issues
+  volumes:
+  - emptyDir: {}
+    name: scratch
+  workspaces:
+  - description: The workspace containing the source-code to scan.
+    name: source-code-ws
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  annotations:
+    tekton.dev/pipelines.minVersion: 0.29.0
+    tekton.dev/platforms: linux/amd64,linux/s390x,linux/ppc64le,linux/arm64
+  labels:
+    app.kubernetes.io/version: "0.6"
+    v1.dracon.ocurity.com/component: source
+  name: source-dependency-npm-audit-purl-project
+spec:
+  description: This source component accepts a purl argument belonging to one of the
+    supported types and generates a dependency file relevant to the type.
+  params:
+  - default: []
+    description: A list of tasks that this task depends on using their anchors.
+    name: anchors
+    type: array
+  results:
+  - description: An anchor to allow other tasks to depend on this task.
+    name: anchor
+  steps:
+  - image: docker.io/busybox:1.35.0
+    name: anchor
+    script: echo "$(context.task.name)" > "$(results.anchor.path)"
+  workspaces:
+  - description: The generated file will be stored onto the volume backing this Workspace.
+    name: source-code-ws
