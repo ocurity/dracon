@@ -12,8 +12,8 @@ spec:
   steps:
   - name: run-enricher
     imagePullPolicy: IfNotPresent
-    image: ghcr.io/ocurity/dracon/components/enrichers/deduplication/image:latest
-    command: ["app/components/enrichers/deduplication/enricher"]
+    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/enrichers/deduplication:{{ default "latest" .Values.dracon_os_component_version }}'
+    command: ["/app/components/enrichers/deduplication/enricher"]
     env:
     - name: ENRICHER_READ_PATH
       value: $(workspaces.source-code-ws.path)/.dracon/producers

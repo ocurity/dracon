@@ -32,8 +32,8 @@ spec:
 
   - name: produce-issues
     imagePullPolicy: IfNotPresent
-    image: ghcr.io/ocurity/dracon/components/producers/typescript-npm-audit/image:latest
-    command: ["app/components/producers/typescript-npm-audit/npm-audit-parser"]
+    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/typescript-npm-audit:{{ default "latest" .Values.dracon_os_component_version }}'
+    command: ["/app/components/producers/typescript-npm-audit/npm-audit-parser"]
     args:
     - "-in=/scratch/out.json"
     - "-out=$(workspaces.source-code-ws.path)/.dracon/producers/typescript-npm-audit.pb"

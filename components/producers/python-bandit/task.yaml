@@ -15,7 +15,7 @@ spec:
   steps:
   - name: run-bandit
     imagePullPolicy: IfNotPresent
-    image: ghcr.io/ocurity/dracon/components/producers/python-bandit/tool:latest
+    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/python-bandit/tool:{{ default "latest" .Values.dracon_os_component_version }}'
     script: |
       bandit \
         --recursive \
@@ -29,8 +29,8 @@ spec:
 
   - name: produce-issues
     imagePullPolicy: IfNotPresent
-    image: ghcr.io/ocurity/dracon/components/producers/python-bandit/image:latest
-    command: ["app/components/producers/python-bandit/python-bandit-parser"]
+    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/python-bandit:{{ default "latest" .Values.dracon_os_component_version }}'
+    command: ["/app/components/producers/python-bandit/python-bandit-parser"]
     args:
     - "-in=/scratch/out.json"
     - "-out=$(workspaces.source-code-ws.path)/.dracon/producers/python-bandit.pb"

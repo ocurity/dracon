@@ -22,8 +22,8 @@ spec:
       type: string
   steps:
     - name: generate-package
-      image: "ghcr.io/ocurity/dracon/components/sources/dependency/image:latest"
-      command: ["app/components/sources/dependency/dependency"]
+      image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/sources/dependency:{{ default "latest" .Values.dracon_os_component_version }}'
+      command: ["/app/components/sources/dependency/dependency"]
       args: 
       - "-purl"
       - "$(params.source-dependency-purl)"

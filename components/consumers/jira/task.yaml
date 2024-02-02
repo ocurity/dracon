@@ -34,7 +34,7 @@ spec:
       cat $(workspaces.source-code-ws.path)/.dracon/consumers/jira/config.json
   - name: run-consumer
     imagePullPolicy: IfNotPresent
-    image: ghcr.io/ocurity/dracon/components/consumers/jira/image:latest
+    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/consumers/jira:{{ default "latest" .Values.dracon_os_component_version }}'
     command: ["/app/components/consumers/jira/jira"]
     env:
     - name: DRACON_JIRA_TOKEN

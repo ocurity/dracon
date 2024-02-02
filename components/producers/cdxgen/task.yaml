@@ -47,8 +47,8 @@ spec:
 
     - name: produce-issues
       imagePullPolicy: IfNotPresent
-      image: ghcr.io/ocurity/dracon/components/producers/cdxgen/image:latest
-      command: ["app/components/producers/cdxgen/cdxgen-parser"]
+      image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/cdxgen:{{ default "latest" .Values.dracon_os_component_version }}'
+      command: ["/app/components/producers/cdxgen/cdxgen-parser"]
       args:
         - "-in=/scratch/out.json"
         - "-out=$(workspaces.source-code-ws.path)/.dracon/producers/cdxgen.pb"

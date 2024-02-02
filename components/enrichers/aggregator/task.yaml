@@ -22,23 +22,17 @@ spec:
     - name: source-code-ws
       description: The workspace containing the source-code to scan.
   steps:
-  - name: anchor
-    image: docker.io/busybox:1.35.0
-    script: echo "$(context.task.name)" > "$(results.anchor.path)"
-
   - name: aggregate
     image: docker.io/busybox:1.35.0
     command: ["ls","-lah"]
     args: ["$(workspaces.source-code-ws.path)"]
-
   - name: aggregate-tagged-issues
-    image:  ghcr.io/ocurity/dracon/components/enrichers/aggregator/image:latest
-    command: ["app/components/enrichers/aggregator/aggregator"]
+    image:  '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/enrichers/aggregator:{{ default "latest" .Values.dracon_os_component_version }}'
+    command: ["/app/components/enrichers/aggregator/aggregator"]
     env:
     - name: READ_PATH
       value: $(workspaces.source-code-ws.path)/.dracon/enrichers
     - name: WRITE_PATH
       value: "$(workspaces.source-code-ws.path)/.dracon/enrichers"
-
     - name: B64_SIGNATURE_KEY
       value: "$(params.enricher-aggregator-b64-signature-key)"
