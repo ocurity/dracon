@@ -20,7 +20,7 @@ message ScanInfo {
 }
 
 /* LaunchToolReponse consists of a response built by a producer,
-   * to be interpreted by a consumer */
+ * to be interpreted by a consumer */
 message LaunchToolResponse {
   // The scan information, see above for details
   ScanInfo scan_info = 1;
