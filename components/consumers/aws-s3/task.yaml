@@ -24,7 +24,7 @@ spec:
   steps:
     - name: run-consumer
       imagePullPolicy: IfNotPresent
-      image: ghcr.io/ocurity/dracon/components/consumers/aws-s3/image:latest
+      image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/consumers/aws-s3/image:latest'
       env:
         - name: AWS_ACCESS_KEY_ID
           value: "$(params.consumer-aws-s3-access-key-id)"

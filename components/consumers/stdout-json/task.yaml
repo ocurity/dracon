@@ -12,7 +12,7 @@ spec:
   steps:
   - name: run-consumer
     imagePullPolicy: IfNotPresent
-    image: ghcr.io/ocurity/dracon/components/consumers/stdout-json/image:latest
+    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/consumers/stdout-json/image:latest'
     command: ["/app/components/consumers/stdout-json/stdout-json"]
     args:
       - "-in"

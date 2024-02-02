@@ -32,7 +32,7 @@ spec:
     args: ["$(workspaces.source-code-ws.path)"]
 
   - name: aggregate-tagged-issues
-    image:  ghcr.io/ocurity/dracon/components/enrichers/aggregator/image:latest
+    image:  '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/enrichers/aggregator/image:latest'
     command: ["app/components/enrichers/aggregator/aggregator"]
     env:
     - name: READ_PATH
