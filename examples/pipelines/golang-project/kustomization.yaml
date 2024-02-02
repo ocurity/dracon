@@ -4,7 +4,6 @@ kind: Kustomization
 nameSuffix: -golang-project
 resources:
   - ../../../components/base/pipeline.yaml
-  - ../../../components/base/task.yaml
 components:
   - ../../../components/sources/git
   - ../../../components/producers/aggregator
