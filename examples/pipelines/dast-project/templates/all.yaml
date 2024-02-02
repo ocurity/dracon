@@ -1,0 +1,258 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: dracon-dast-project
+spec:
+  params:
+  - default: http://dracon-es-http.dracon.svc:9200
+    name: consumer-elasticsearch-url
+    type: string
+  - default: ""
+    name: consumer-elasticsearch-description-template
+    type: string
+  tasks:
+  - name: consumer-elasticsearch
+    params:
+    - name: consumer-elasticsearch-url
+      value: $(params.consumer-elasticsearch-url)
+    - name: consumer-elasticsearch-description-template
+      value: $(params.consumer-elasticsearch-description-template)
+    taskRef:
+      name: consumer-elasticsearch
+    workspaces:
+    - name: source-code-ws
+      workspace: source-code-ws
+  workspaces:
+  - name: source-code-ws
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  labels:
+    v1.dracon.ocurity.com/component: consumer
+  name: consumer-elasticsearch-dast-project
+spec:
+  params:
+  - default: []
+    description: A list of tasks that this task depends on using their anchors.
+    name: anchors
+    type: array
+  results:
+  - description: An anchor to allow other tasks to depend on this task.
+    name: anchor
+  steps:
+  - image: docker.io/busybox:1.35.0
+    name: anchor
+    script: echo "$(context.task.name)" > "$(results.anchor.path)"
+  workspaces:
+  - description: The workspace containing the source-code to scan.
+    name: source-code-ws
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  labels:
+    v1.dracon.ocurity.com/component: consumer
+  name: consumer-mongodb-dast-project
+spec:
+  params:
+  - default: []
+    description: A list of tasks that this task depends on using their anchors.
+    name: anchors
+    type: array
+  results:
+  - description: An anchor to allow other tasks to depend on this task.
+    name: anchor
+  steps:
+  - image: docker.io/busybox:1.35.0
+    name: anchor
+    script: echo "$(context.task.name)" > "$(results.anchor.path)"
+  workspaces:
+  - description: The workspace containing the source-code to scan.
+    name: source-code-ws
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  labels:
+    v1.dracon.ocurity.com/component: enricher
+  name: enricher-aggregator-dast-project
+spec:
+  params:
+  - default: []
+    description: A list of tasks that this task depends on using their anchors.
+    name: anchors
+    type: array
+  results:
+  - description: An anchor to allow other tasks to depend on this task.
+    name: anchor
+  steps:
+  - image: docker.io/busybox:1.35.0
+    name: anchor
+    script: echo "$(context.task.name)" > "$(results.anchor.path)"
+  workspaces:
+  - description: The workspace containing the source-code to scan.
+    name: source-code-ws
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  labels:
+    v1.dracon.ocurity.com/component: enricher
+  name: enricher-deduplication-dast-project
+spec:
+  params:
+  - default: []
+    description: A list of tasks that this task depends on using their anchors.
+    name: anchors
+    type: array
+  results:
+  - description: An anchor to allow other tasks to depend on this task.
+    name: anchor
+  steps:
+  - image: docker.io/busybox:1.35.0
+    name: anchor
+    script: echo "$(context.task.name)" > "$(results.anchor.path)"
+  workspaces:
+  - description: The workspace containing the source-code to scan.
+    name: source-code-ws
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  labels:
+    v1.dracon.ocurity.com/component: enricher
+  name: enricher-policy-dast-project
+spec:
+  params:
+  - default: []
+    description: A list of tasks that this task depends on using their anchors.
+    name: anchors
+    type: array
+  results:
+  - description: An anchor to allow other tasks to depend on this task.
+    name: anchor
+  sidecars:
+  - args:
+    - run
+    - --server
+    - --addr
+    - 0.0.0.0:8181
+    - --log-level
+    - debug
+    command:
+    - /opa
+    image: docker.io/openpolicyagent/opa:0.44.0-rootless
+    name: open-policy-agent
+    resources:
+      limits:
+        cpu: 1
+        memory: 5Gi
+      requests:
+        cpu: 0.5
+        memory: 512Mi
+    securityContext:
+      runAsGroup: 70
+      runAsUser: 70
+  steps:
+  - image: docker.io/busybox:1.35.0
+    name: anchor
+    script: echo "$(context.task.name)" > "$(results.anchor.path)"
+  workspaces:
+  - description: The workspace containing the source-code to scan.
+    name: source-code-ws
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  labels:
+    v1.dracon.ocurity.com/component: producer
+  name: producer-aggregator-dast-project
+spec:
+  params:
+  - name: dracon_scan_id
+    type: string
+  - name: dracon_scan_start_time
+    type: string
+  results:
+  - description: An anchor to allow other tasks to depend on this task.
+    name: anchor
+  steps:
+  - env:
+    - name: DRACON_SCAN_TIME
+      value: $(params.dracon_scan_start_time)
+    - name: DRACON_SCAN_ID
+      value: $(params.dracon_scan_id)
+    image: docker.io/busybox
+    name: anchor
+    script: echo "$(context.task.name)" > "$(results.anchor.path)"
+  - env:
+    - name: DRACON_SCAN_TIME
+      value: $(params.dracon_scan_start_time)
+    - name: DRACON_SCAN_ID
+      value: $(params.dracon_scan_id)
+    image: docker.io/busybox
+    name: aggregate
+  - env:
+    - name: READ_PATH
+      value: $(workspaces.source-code-ws.path)/.dracon/producers
+    - name: WRITE_PATH
+      value: $(workspaces.source-code-ws.path)/.dracon/producers
+    - name: DRACON_SCAN_TIME
+      value: $(params.dracon_scan_start_time)
+    - name: DRACON_SCAN_ID
+      value: $(params.dracon_scan_id)
+    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/aggregator/image:{{
+      default "latest" .Values.dracon_os_component_version }}'
+    name: tag
+  workspaces:
+  - description: The workspace containing the source-code to scan.
+    name: source-code-ws
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  labels:
+    v1.dracon.ocurity.com/component: producer
+  name: producer-zaproxy-dast-project
+spec:
+  params:
+  - name: dracon_scan_id
+    type: string
+  - name: dracon_scan_start_time
+    type: string
+  results:
+  - description: An anchor to allow other tasks to depend on this task.
+    name: anchor
+  steps:
+  - env:
+    - name: DRACON_SCAN_TIME
+      value: $(params.dracon_scan_start_time)
+    - name: DRACON_SCAN_ID
+      value: $(params.dracon_scan_id)
+    image: docker.io/owasp/zap2docker-stable:2.12.0
+    name: run-zap
+    script: "#! /bin/bash\n set -ex\n automation=\"$(params.producer-zaproxy-automation-framework-file-base64)\"\n
+      configFile=\"$(params.producer-zaproxy-config-file-base64)\"\n if [ -z \"$automation\"
+      ]; then \n   if [ -z  \"$configFile\" ]; then\n     echo \"Running ZAP with
+      args: $(params.producer-zaproxy-flags)\"\n     zap.sh -cmd -silent -notel -quickout
+      /zap/wrk/out.json -quickurl $(params.producer-zaproxy-target) $(params.producer-zaproxy-flags)\n
+      \  else \n     echo \"$configFile\" | base64 -d > configuration.xml\n     zap.sh
+      -cmd -silent -notel -quickout /zap/wrk/out.json -quickurl $(params.producer-zaproxy-target)
+      -configFile configuration.xml\n     $(p..arams.producer-zaproxy-flags)\n   fi\n
+      else \n   echo \"$automation\" | base64 -d > automation.yaml\n   cat automation.yaml\n
+      \  zap.sh -cmd -autorun automation.yaml\n fi\n"
+  - env:
+    - name: DRACON_SCAN_TIME
+      value: $(params.dracon_scan_start_time)
+    - name: DRACON_SCAN_ID
+      value: $(params.dracon_scan_id)
+    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/zaproxy/image:{{
+      default "latest" .Values.dracon_os_component_version }}'
+    name: produce-issues
+  volumes:
+  - emptyDir: {}
+    name: scratch
+  workspaces:
+  - description: The workspace containing the source-code to scan.
+    name: source-code-ws
