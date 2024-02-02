@@ -42,8 +42,8 @@ spec:
 
   - name: produce-issues
     imagePullPolicy: IfNotPresent
-    image: ghcr.io/ocurity/dracon/components/producers/docker-trivy/image:latest
-    command: ["app/components/producers/docker-trivy/trivy-parser"]
+    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/docker-trivy:{{ default "latest" .Values.dracon_os_component_version }}'
+    command: ["/app/components/producers/docker-trivy/trivy-parser"]
     args:
     - "-format=$(params.producer-docker-trivy-format)"
     - "-in=/scratch/out.json"

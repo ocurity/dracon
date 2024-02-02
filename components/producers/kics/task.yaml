@@ -39,8 +39,8 @@ spec:
         cpu: "1"
   - name: produce-issues
     imagePullPolicy: IfNotPresent
-    image: ghcr.io/ocurity/dracon/components/producers/kics/image:latest
-    command: ["app/components/producers/kics/kics-parser"]
+    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/kics:{{ default "latest" .Values.dracon_os_component_version }}'
+    command: ["/app/components/producers/kics/kics-parser"]
     args:
     - "-in=/scratch/out.json"
     - "-out=$(workspaces.source-code-ws.path)/.dracon/producers/kics.pb"

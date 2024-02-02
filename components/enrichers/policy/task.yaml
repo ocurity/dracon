@@ -35,8 +35,8 @@ spec:
   steps:
   - name: run-enricher
     imagePullPolicy: IfNotPresent
-    image: ghcr.io/ocurity/dracon/components/enrichers/policy/image:latest
-    command: ["app/components/enrichers/policy/policy"]
+    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/enrichers/policy:{{ default "latest" .Values.dracon_os_component_version }}'
+    command: ["/app/components/enrichers/policy/policy"]
     env:
     - name: READ_PATH
       value: $(workspaces.source-code-ws.path)/.dracon/producers

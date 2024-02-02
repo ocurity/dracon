@@ -143,7 +143,7 @@ patches:
               - name: DRACON_SCAN_ID
                 value: $(params.dracon_scan_id)
           - name: produce-issues
-            image: ghcr.io/ocurity/dracon/components/producers/cdxgen/image:latest
+            image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/cdxgen:{{ default "latest" .Values.dracon_os_component_version }}'
             env:
               - name: DRACON_SCAN_TIME
                 value: $(params.dracon_scan_start_time)

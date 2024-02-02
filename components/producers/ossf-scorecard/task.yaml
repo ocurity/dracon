@@ -23,7 +23,7 @@ spec:
       description: The workspace containing the source-code to scan.
   steps:
   - name: run-ossf-scorecard
-    image: ghcr.io/ocurity/dracon/components/producers/ossf-scorecard/scorecard-dracon:latest
+    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/ossf-scorecard/scorecard-dracon:{{ default "latest" .Values.dracon_os_component_version }}'
     env:
       - name: GITHUB_AUTH_TOKEN
         value: "$(params.producer-ossf-scorecard-github-auth-token)"
@@ -39,8 +39,8 @@ spec:
 
   - name: produce-issues
     imagePullPolicy: IfNotPresent
-    image: ghcr.io/ocurity/dracon/components/producers/ossf-scorecard/image:latest
-    command: ["app/components/producers/ossf-scorecard/ossf-scorecard-parser"]
+    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/ossf-scorecard:{{ default "latest" .Values.dracon_os_component_version }}'
+    command: ["/app/components/producers/ossf-scorecard/ossf-scorecard-parser"]
     args:
     - "-in=/scratch/out.json"
     - "-out=$(workspaces.source-code-ws.path)/.dracon/producers/ossf-scorecard.pb"
