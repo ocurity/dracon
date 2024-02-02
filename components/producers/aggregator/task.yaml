@@ -26,7 +26,7 @@ spec:
     command: ["ls"]
     args: ["$(workspaces.source-code-ws.path)"]
   - name: tag
-    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/aggregator/image:latest'
+    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/aggregator/image:{{ default "latest" .Values.dracon_os_component_version }}'
     command: ["app/components/producers/aggregator/tagger"]
     env:
     - name: READ_PATH
