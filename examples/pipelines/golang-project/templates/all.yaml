@@ -1,12 +1,7 @@
 apiVersion: tekton.dev/v1beta1
 kind: Pipeline
 metadata:
-  annotations:
-    v1.dracon.ocurity.com/has-enricher-aggregator: "true"
-    v1.dracon.ocurity.com/has-producer-aggregator: "true"
-    v1.dracon.ocurity.com/has-source: "true"
   name: dracon-golang-project
-  namespace: dracon
 spec:
   params:
   - default: http://dracon-es-http.dracon.svc:9200
@@ -15,164 +10,18 @@ spec:
   - default: ""
     name: consumer-elasticsearch-description-template
     type: string
-  - default: mongodb://consumer-mongodb:consumer-mongodb@consumer-mongodb.$(context.taskRun.namespace).svc:27017/consumer-mongodb
-    name: consumer-mongodb-db-uri
-    type: string
-  - default: consumer-mongodb
-    name: consumer-mongodb-db-name
-    type: string
-  - default: consumer-mongodb
-    name: consumer-mongodb-collection-name
-    type: string
-  - default: cGFja2FnZSBleGFtcGxlLmdvc2VjCgpkZWZhdWx0IGFsbG93IDo9IGZhbHNlCgphbGxvdyA9dHJ1ZSB7CiAgICBwcmludChpbnB1dCkKICAgIGNoZWNrX3NldmVyaXR5Cn0KCmNoZWNrX3NldmVyaXR5IHsKICAgIGlucHV0LnNldmVyaXR5ID09ICJTRVZFUklUWV9ISUdIIgp9CmNoZWNrX3NldmVyaXR5IHsKICAgIGlucHV0LnNldmVyaXR5ID09ICJTRVZFUklUWV9NRURJVU0iCn0KY2hlY2tfc2V2ZXJpdHkgewogICAgaW5wdXQuc2V2ZXJpdHkgPT0gIlNFVkVSSVRZX0xPVyIKfQ==
-    name: enricher-policy-base64-policy
-    type: string
-  - default: ""
-    name: enricher-policy-annotation
-    type: string
-  - default:
-    - -r
-    - -quiet
-    - -sort
-    - -nosec
-    name: producer-golang-gosec-flags
-    type: array
-  - description: Repository URL to clone from.
-    name: repository_url
-    type: string
-  - default: ""
-    description: Define the directory patterns to match or exclude when performing
-      a sparse checkout.
-    name: sparseCheckoutDirectories
-    type: string
-  - default: ""
-    description: Optional Revision to checkout, this can be a commit sha or a branch
-    name: repository_revision
-    type: string
   tasks:
   - name: consumer-elasticsearch
     params:
-    - name: anchors
-      value:
-      - $(tasks.enricher-aggregator.results.anchor)
     - name: consumer-elasticsearch-url
       value: $(params.consumer-elasticsearch-url)
     - name: consumer-elasticsearch-description-template
       value: $(params.consumer-elasticsearch-description-template)
     taskRef:
-      name: consumer-elasticsearch-golang-project
+      name: consumer-elasticsearch
     workspaces:
     - name: source-code-ws
       workspace: source-code-ws
-  - name: consumer-mongodb
-    params:
-    - name: anchors
-      value:
-      - $(tasks.enricher-aggregator.results.anchor)
-    - name: consumer-mongodb-db-uri
-      value: $(params.consumer-mongodb-db-uri)
-    - name: consumer-mongodb-db-name
-      value: $(params.consumer-mongodb-db-name)
-    - name: consumer-mongodb-collection-name
-      value: $(params.consumer-mongodb-collection-name)
-    taskRef:
-      name: consumer-mongodb-golang-project
-    workspaces:
-    - name: source-code-ws
-      workspace: source-code-ws
-  - name: enricher-aggregator
-    params:
-    - name: anchors
-      value:
-      - $(tasks.enricher-deduplication.results.anchor)
-      - $(tasks.enricher-policy.results.anchor)
-    taskRef:
-      name: enricher-aggregator-golang-project
-    workspaces:
-    - name: source-code-ws
-      workspace: source-code-ws
-  - name: enricher-deduplication
-    params:
-    - name: anchors
-      value:
-      - $(tasks.producer-aggregator.results.anchor)
-    taskRef:
-      name: enricher-deduplication-golang-project
-    workspaces:
-    - name: source-code-ws
-      workspace: source-code-ws
-  - name: enricher-policy
-    params:
-    - name: anchors
-      value:
-      - $(tasks.producer-aggregator.results.anchor)
-    - name: enricher-policy-base64-policy
-      value: $(params.enricher-policy-base64-policy)
-    - name: enricher-policy-annotation
-      value: $(params.enricher-policy-annotation)
-    taskRef:
-      name: enricher-policy-golang-project
-    workspaces:
-    - name: source-code-ws
-      workspace: source-code-ws
-  - name: producer-golang-nancy
-    params:
-    - name: dracon_scan_id
-      value: $(tasks.base.results.dracon-scan-id)
-    - name: dracon_scan_start_time
-      value: $(tasks.base.results.dracon-scan-start-time)
-    - name: anchors
-      value:
-      - $(tasks.source.results.anchor)
-    taskRef:
-      name: producer-golang-nancy-golang-project
-    workspaces:
-    - name: source-code-ws
-      workspace: source-code-ws
-  - name: producer-aggregator
-    params:
-    - name: anchors
-      value:
-      - $(tasks.producer-golang-nancy.results.anchor)
-      - $(tasks.producer-golang-gosec.results.anchor)
-    taskRef:
-      name: producer-aggregator-golang-project
-    workspaces:
-    - name: source-code-ws
-      workspace: source-code-ws
-  - name: producer-golang-gosec
-    params:
-    - name: dracon_scan_id
-      value: $(tasks.base.results.dracon-scan-id)
-    - name: dracon_scan_start_time
-      value: $(tasks.base.results.dracon-scan-start-time)
-    - name: anchors
-      value:
-      - $(tasks.source.results.anchor)
-    - name: producer-golang-gosec-flags
-      value:
-      - $(params.producer-golang-gosec-flags)
-    taskRef:
-      name: producer-golang-gosec-golang-project
-    workspaces:
-    - name: source-code-ws
-      workspace: source-code-ws
-  - name: source
-    params:
-    - name: url
-      value: $(params.repository_url)
-    - name: revision
-      value: $(params.repository_revision)
-    - name: sparseCheckoutDirectories
-      value: $(params.sparseCheckoutDirectories)
-    taskRef:
-      name: git-clone-golang-project
-    workspaces:
-    - name: output
-      workspace: source-code-ws
-  - name: base
-    taskRef:
-      name: base-golang-project
   workspaces:
   - name: source-code-ws
 ---
@@ -180,41 +29,14 @@ apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
   labels:
-    v1.dracon.ocurity.com/component: base
-  name: base-golang-project
-  namespace: dracon
-spec:
-  results:
-  - description: The scan start time
-    name: dracon-scan-start-time
-  - description: The scan unique id
-    name: dracon-scan-id
-  steps:
-  - image: docker.io/busybox:1.35.0
-    name: generate-scan-id-start-time
-    script: |
-      cat /proc/sys/kernel/random/uuid | tee $(results.dracon-scan-id.path)
-      date +"%Y-%m-%dT%H:%M:%SZ" | tee $(results.dracon-scan-start-time.path)
----
-apiVersion: tekton.dev/v1beta1
-kind: Task
-metadata:
-  labels:
     v1.dracon.ocurity.com/component: consumer
   name: consumer-elasticsearch-golang-project
-  namespace: dracon
 spec:
   params:
   - default: []
     description: A list of tasks that this task depends on using their anchors.
     name: anchors
     type: array
-  - default: http://dracon-es-http.dracon.svc:9200
-    name: consumer-elasticsearch-url
-    type: string
-  - default: ""
-    name: consumer-elasticsearch-description-template
-    type: string
   results:
   - description: An anchor to allow other tasks to depend on this task.
     name: anchor
@@ -222,21 +44,6 @@ spec:
   - image: docker.io/busybox:1.35.0
     name: anchor
     script: echo "$(context.task.name)" > "$(results.anchor.path)"
-  - args:
-    - -in
-    - $(workspaces.source-code-ws.path)/.dracon/enrichers/
-    - -es-index
-    - dracon
-    - -descriptionTemplate
-    - $(params.consumer-elasticsearch-description-template)
-    command:
-    - /app/components/consumers/elasticsearch/elasticsearch
-    env:
-    - name: ELASTICSEARCH_URL
-      value: $(params.consumer-elasticsearch-url)
-    image: ghcr.io/ocurity/dracon/components/consumers/elasticsearch/image:latest
-    imagePullPolicy: IfNotPresent
-    name: run-consumer
   workspaces:
   - description: The workspace containing the source-code to scan.
     name: source-code-ws
@@ -247,22 +54,12 @@ metadata:
   labels:
     v1.dracon.ocurity.com/component: consumer
   name: consumer-mongodb-golang-project
-  namespace: dracon
 spec:
   params:
   - default: []
     description: A list of tasks that this task depends on using their anchors.
     name: anchors
     type: array
-  - default: mongodb://consumer-mongodb:consumer-mongodb@consumer-mongodb.$(context.taskRun.namespace).svc:27017/consumer-mongodb
-    name: consumer-mongodb-db-uri
-    type: string
-  - default: consumer-mongodb
-    name: consumer-mongodb-db-name
-    type: string
-  - default: consumer-mongodb
-    name: consumer-mongodb-collection-name
-    type: string
   results:
   - description: An anchor to allow other tasks to depend on this task.
     name: anchor
@@ -270,20 +67,6 @@ spec:
   - image: docker.io/busybox:1.35.0
     name: anchor
     script: echo "$(context.task.name)" > "$(results.anchor.path)"
-  - args:
-    - -in
-    - $(workspaces.source-code-ws.path)/.dracon/enrichers/
-    - -db-uri
-    - $(params.consumer-mongodb-db-uri)
-    - -db-name
-    - $(params.consumer-mongodb-db-name)
-    - -collection-name
-    - $(params.consumer-mongodb-collection-name)
-    command:
-    - /app/components/consumers/mongodb/mongodb
-    image: ghcr.io/ocurity/dracon/components/consumers/mongodb/image:latest
-    imagePullPolicy: IfNotPresent
-    name: run-consumer
   workspaces:
   - description: The workspace containing the source-code to scan.
     name: source-code-ws
@@ -294,17 +77,12 @@ metadata:
   labels:
     v1.dracon.ocurity.com/component: enricher
   name: enricher-aggregator-golang-project
-  namespace: dracon
 spec:
   params:
   - default: []
-    description: A list of tasks that this task depends on.
+    description: A list of tasks that this task depends on using their anchors.
     name: anchors
     type: array
-  - default: ""
-    description: An optional key to sign each aggregated result with
-    name: b64-signature-key
-    type: string
   results:
   - description: An anchor to allow other tasks to depend on this task.
     name: anchor
@@ -312,24 +90,6 @@ spec:
   - image: docker.io/busybox:1.35.0
     name: anchor
     script: echo "$(context.task.name)" > "$(results.anchor.path)"
-  - args:
-    - $(workspaces.source-code-ws.path)
-    command:
-    - ls
-    - -lah
-    image: docker.io/busybox:1.35.0
-    name: aggregate
-  - command:
-    - app/components/enrichers/aggregator/aggregator
-    env:
-    - name: READ_PATH
-      value: $(workspaces.source-code-ws.path)/.dracon/enrichers
-    - name: WRITE_PATH
-      value: $(workspaces.source-code-ws.path)/.dracon/enrichers
-    - name: B64_SIGNATURE_KEY
-      value: $(params.b64-signature-key)
-    image: ghcr.io/ocurity/dracon/components/enrichers/aggregator/image:latest
-    name: aggregate-tagged-issues
   workspaces:
   - description: The workspace containing the source-code to scan.
     name: source-code-ws
@@ -340,7 +100,6 @@ metadata:
   labels:
     v1.dracon.ocurity.com/component: enricher
   name: enricher-deduplication-golang-project
-  namespace: dracon
 spec:
   params:
   - default: []
@@ -354,18 +113,6 @@ spec:
   - image: docker.io/busybox:1.35.0
     name: anchor
     script: echo "$(context.task.name)" > "$(results.anchor.path)"
-  - command:
-    - app/components/enrichers/deduplication/enricher
-    env:
-    - name: ENRICHER_READ_PATH
-      value: $(workspaces.source-code-ws.path)/.dracon/producers
-    - name: ENRICHER_WRITE_PATH
-      value: $(workspaces.source-code-ws.path)/.dracon/enrichers/deduplication
-    - name: ENRICHER_DB_CONNECTION
-      value: postgresql://dracon:dracon@dracon-enrichment-db.$(context.taskRun.namespace).svc?sslmode=disable
-    image: ghcr.io/ocurity/dracon/components/enrichers/deduplication/image:latest
-    imagePullPolicy: IfNotPresent
-    name: run-enricher
   workspaces:
   - description: The workspace containing the source-code to scan.
     name: source-code-ws
@@ -376,19 +123,12 @@ metadata:
   labels:
     v1.dracon.ocurity.com/component: enricher
   name: enricher-policy-golang-project
-  namespace: dracon
 spec:
   params:
   - default: []
     description: A list of tasks that this task depends on using their anchors.
     name: anchors
     type: array
-  - default: cGFja2FnZSBleGFtcGxlLmdvc2VjCgpkZWZhdWx0IGFsbG93IDo9IGZhbHNlCgphbGxvdyA9dHJ1ZSB7CiAgICBwcmludChpbnB1dCkKICAgIGNoZWNrX3NldmVyaXR5Cn0KCmNoZWNrX3NldmVyaXR5IHsKICAgIGlucHV0LnNldmVyaXR5ID09ICJTRVZFUklUWV9ISUdIIgp9CmNoZWNrX3NldmVyaXR5IHsKICAgIGlucHV0LnNldmVyaXR5ID09ICJTRVZFUklUWV9NRURJVU0iCn0KY2hlY2tfc2V2ZXJpdHkgewogICAgaW5wdXQuc2V2ZXJpdHkgPT0gIlNFVkVSSVRZX0xPVyIKfQ==
-    name: enricher-policy-base64-policy
-    type: string
-  - default: ""
-    name: enricher-policy-annotation
-    type: string
   results:
   - description: An anchor to allow other tasks to depend on this task.
     name: anchor
@@ -418,22 +158,6 @@ spec:
   - image: docker.io/busybox:1.35.0
     name: anchor
     script: echo "$(context.task.name)" > "$(results.anchor.path)"
-  - command:
-    - app/components/enrichers/policy/policy
-    env:
-    - name: READ_PATH
-      value: $(workspaces.source-code-ws.path)/.dracon/producers
-    - name: WRITE_PATH
-      value: $(workspaces.source-code-ws.path)/.dracon/enrichers/policy
-    - name: POLICY
-      value: $(params.enricher-policy-base64-policy)
-    - name: OPA_SERVER
-      value: http://localhost:8181
-    - name: ANNOTATION
-      value: $(params.enricher-policy-annotation)
-    image: ghcr.io/ocurity/dracon/components/enrichers/policy/image:latest
-    imagePullPolicy: IfNotPresent
-    name: run-enricher
   workspaces:
   - description: The workspace containing the source-code to scan.
     name: source-code-ws
@@ -449,201 +173,24 @@ metadata:
     tekton.dev/tags: git
   labels:
     app.kubernetes.io/version: "0.6"
+    v1.dracon.ocurity.com/component: source
   name: git-clone-golang-project
-  namespace: dracon
 spec:
   description: |-
     These Tasks are Git tasks to work with repositories used by other tasks in your Pipeline.
     The git-clone Task will clone a repo from the provided url into the output Workspace. By default the repo will be cloned into the root of your Workspace. You can clone into a subdirectory by setting this Task's subdirectory param. This Task also supports sparse checkouts. To perform a sparse checkout, pass a list of comma separated directory patterns to this Task's sparseCheckoutDirectories param.
   params:
-  - description: Repository URL to clone from.
-    name: url
-    type: string
-  - default: ""
-    description: Revision to checkout. (branch, tag, sha, ref, etc...)
-    name: revision
-    type: string
-  - default: ""
-    description: Refspec to fetch before checking out revision.
-    name: refspec
-  - default: "true"
-    description: Initialize and fetch git submodules.
-    name: submodules
-    type: string
-  - default: "1"
-    description: Perform a shallow clone, fetching only the most recent N commits.
-    name: depth
-    type: string
-  - default: "true"
-    description: Set the `http.sslVerify` global git config. Setting this to `false`
-      is not advised unless you are sure that you trust your git remote.
-    name: sslVerify
-    type: string
-  - default: ""
-    description: Subdirectory inside the `output` Workspace to clone the repo into.
-    name: subdirectory
-    type: string
-  - default: ""
-    description: Define the directory patterns to match or exclude when performing
-      a sparse checkout.
-    name: sparseCheckoutDirectories
-    type: string
-  - default: "true"
-    description: Clean out the contents of the destination directory if it already
-      exists before cloning.
-    name: deleteExisting
-    type: string
-  - default: ""
-    description: HTTP proxy server for non-SSL requests.
-    name: httpProxy
-    type: string
-  - default: ""
-    description: HTTPS proxy server for SSL requests.
-    name: httpsProxy
-    type: string
-  - default: ""
-    description: Opt out of proxying HTTP/HTTPS requests.
-    name: noProxy
-    type: string
-  - default: "true"
-    description: Log the commands that are executed during `git-clone`'s operation.
-    name: verbose
-    type: string
-  - default: gcr.io/tekton-releases/github.com/tektoncd/pipeline/cmd/git-init:v0.29.0
-    description: The image providing the git-init binary that this Task runs.
-    name: gitInitImage
-    type: string
-  - default: /tekton/home
-    description: |
-      Absolute path to the user's home directory. Set this explicitly if you are running the image as a non-root user or have overridden
-      the gitInitImage param with an image containing custom user configuration.
-    name: userHome
-    type: string
+  - default: []
+    description: A list of tasks that this task depends on using their anchors.
+    name: anchors
+    type: array
   results:
   - description: An anchor to allow other tasks to depend on this task.
     name: anchor
-  - description: The precise commit SHA that was fetched by this Task.
-    name: commit
-  - description: The precise URL that was fetched by this Task.
-    name: url
   steps:
-  - image: $(params.gitInitImage)
-    name: add-anchor
-    script: echo "git-clone" > "$(results.anchor.path)"
-  - env:
-    - name: HOME
-      value: $(params.userHome)
-    - name: PARAM_URL
-      value: $(params.url)
-    - name: PARAM_REVISION
-      value: $(params.revision)
-    - name: PARAM_REFSPEC
-      value: $(params.refspec)
-    - name: PARAM_SUBMODULES
-      value: $(params.submodules)
-    - name: PARAM_DEPTH
-      value: $(params.depth)
-    - name: PARAM_SSL_VERIFY
-      value: $(params.sslVerify)
-    - name: PARAM_SUBDIRECTORY
-      value: $(params.subdirectory)
-    - name: PARAM_DELETE_EXISTING
-      value: $(params.deleteExisting)
-    - name: PARAM_HTTP_PROXY
-      value: $(params.httpProxy)
-    - name: PARAM_HTTPS_PROXY
-      value: $(params.httpsProxy)
-    - name: PARAM_NO_PROXY
-      value: $(params.noProxy)
-    - name: PARAM_VERBOSE
-      value: $(params.verbose)
-    - name: PARAM_SPARSE_CHECKOUT_DIRECTORIES
-      value: $(params.sparseCheckoutDirectories)
-    - name: PARAM_USER_HOME
-      value: $(params.userHome)
-    - name: WORKSPACE_OUTPUT_PATH
-      value: $(workspaces.output.path)
-    - name: WORKSPACE_SSH_DIRECTORY_BOUND
-      value: $(workspaces.ssh-directory.bound)
-    - name: WORKSPACE_SSH_DIRECTORY_PATH
-      value: $(workspaces.ssh-directory.path)
-    - name: WORKSPACE_BASIC_AUTH_DIRECTORY_BOUND
-      value: $(workspaces.basic-auth.bound)
-    - name: WORKSPACE_BASIC_AUTH_DIRECTORY_PATH
-      value: $(workspaces.basic-auth.path)
-    - name: WORKSPACE_SSL_CA_DIRECTORY_BOUND
-      value: $(workspaces.ssl-ca-directory.bound)
-    - name: WORKSPACE_SSL_CA_DIRECTORY_PATH
-      value: $(workspaces.ssl-ca-directory.path)
-    image: $(params.gitInitImage)
-    name: clone
-    script: |
-      #!/usr/bin/env sh
-      set -eu
-
-      if [ "${PARAM_VERBOSE}" = "true" ] ; then
-        set -x
-      fi
-
-
-      if [ "${WORKSPACE_BASIC_AUTH_DIRECTORY_BOUND}" = "true" ] ; then
-        cp "${WORKSPACE_BASIC_AUTH_DIRECTORY_PATH}/.git-credentials" "${PARAM_USER_HOME}/.git-credentials"
-        cp "${WORKSPACE_BASIC_AUTH_DIRECTORY_PATH}/.gitconfig" "${PARAM_USER_HOME}/.gitconfig"
-        chmod 400 "${PARAM_USER_HOME}/.git-credentials"
-        chmod 400 "${PARAM_USER_HOME}/.gitconfig"
-      fi
-
-      if [ "${WORKSPACE_SSH_DIRECTORY_BOUND}" = "true" ] ; then
-        cp -R "${WORKSPACE_SSH_DIRECTORY_PATH}" "${PARAM_USER_HOME}"/.ssh
-        chmod 700 "${PARAM_USER_HOME}"/.ssh
-        chmod -R 400 "${PARAM_USER_HOME}"/.ssh/*
-      fi
-
-      if [ "${WORKSPACE_SSL_CA_DIRECTORY_BOUND}" = "true" ] ; then
-         export GIT_SSL_CAPATH="${WORKSPACE_SSL_CA_DIRECTORY_PATH}"
-      fi
-      CHECKOUT_DIR="${WORKSPACE_OUTPUT_PATH}/${PARAM_SUBDIRECTORY}"
-
-      cleandir() {
-        # Delete any existing contents of the repo directory if it exists.
-        #
-        # We don't just "rm -rf ${CHECKOUT_DIR}" because ${CHECKOUT_DIR} might be "/"
-        # or the root of a mounted volume.
-        if [ -d "${CHECKOUT_DIR}" ] ; then
-          # Delete non-hidden files and directories
-          rm -rf "${CHECKOUT_DIR:?}"/*
-          # Delete files and directories starting with . but excluding ..
-          rm -rf "${CHECKOUT_DIR}"/.[!.]*
-          # Delete files and directories starting with .. plus any other character
-          rm -rf "${CHECKOUT_DIR}"/..?*
-        fi
-      }
-
-      if [ "${PARAM_DELETE_EXISTING}" = "true" ] ; then
-        cleandir
-      fi
-
-      test -z "${PARAM_HTTP_PROXY}" || export HTTP_PROXY="${PARAM_HTTP_PROXY}"
-      test -z "${PARAM_HTTPS_PROXY}" || export HTTPS_PROXY="${PARAM_HTTPS_PROXY}"
-      test -z "${PARAM_NO_PROXY}" || export NO_PROXY="${PARAM_NO_PROXY}"
-
-      /ko-app/git-init \
-        -url="${PARAM_URL}" \
-        -revision="${PARAM_REVISION}" \
-        -refspec="${PARAM_REFSPEC}" \
-        -path="${CHECKOUT_DIR}" \
-        -sslVerify="${PARAM_SSL_VERIFY}" \
-        -submodules="${PARAM_SUBMODULES}" \
-        -depth="${PARAM_DEPTH}" \
-        -sparseCheckoutDirectories="${PARAM_SPARSE_CHECKOUT_DIRECTORIES}"
-      cd "${CHECKOUT_DIR}"
-      RESULT_SHA="$(git rev-parse HEAD)"
-      EXIT_CODE="$?"
-      if [ "${EXIT_CODE}" != 0 ] ; then
-        exit "${EXIT_CODE}"
-      fi
-      printf "%s" "${RESULT_SHA}" > "$(results.commit.path)"
-      printf "%s" "${PARAM_URL}" > "$(results.url.path)"
+  - image: docker.io/busybox:1.35.0
+    name: anchor
+    script: echo "$(context.task.name)" > "$(results.anchor.path)"
   workspaces:
   - description: The git repo will be cloned onto the volume backing this Workspace.
     name: output
@@ -674,34 +221,42 @@ metadata:
   labels:
     v1.dracon.ocurity.com/component: producer
   name: producer-aggregator-golang-project
-  namespace: dracon
 spec:
   params:
-  - default: []
-    description: A list of tasks that this task depends on.
-    name: anchors
-    type: array
+  - name: dracon_scan_id
+    type: string
+  - name: dracon_scan_start_time
+    type: string
   results:
   - description: An anchor to allow other tasks to depend on this task.
     name: anchor
   steps:
-  - image: docker.io/busybox
+  - env:
+    - name: DRACON_SCAN_TIME
+      value: $(params.dracon_scan_start_time)
+    - name: DRACON_SCAN_ID
+      value: $(params.dracon_scan_id)
+    image: docker.io/busybox
     name: anchor
     script: echo "$(context.task.name)" > "$(results.anchor.path)"
-  - args:
-    - $(workspaces.source-code-ws.path)
-    command:
-    - ls
+  - env:
+    - name: DRACON_SCAN_TIME
+      value: $(params.dracon_scan_start_time)
+    - name: DRACON_SCAN_ID
+      value: $(params.dracon_scan_id)
     image: docker.io/busybox
     name: aggregate
-  - command:
-    - app/components/producers/aggregator/tagger
-    env:
+  - env:
     - name: READ_PATH
       value: $(workspaces.source-code-ws.path)/.dracon/producers
     - name: WRITE_PATH
       value: $(workspaces.source-code-ws.path)/.dracon/producers
-    image: ghcr.io/ocurity/dracon/components/producers/aggregator/image:latest
+    - name: DRACON_SCAN_TIME
+      value: $(params.dracon_scan_start_time)
+    - name: DRACON_SCAN_ID
+      value: $(params.dracon_scan_id)
+    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/aggregator/image:{{
+      default "latest" .Values.dracon_os_component_version }}'
     name: tag
   workspaces:
   - description: The workspace containing the source-code to scan.
@@ -713,65 +268,31 @@ metadata:
   labels:
     v1.dracon.ocurity.com/component: producer
   name: producer-golang-gosec-golang-project
-  namespace: dracon
 spec:
   params:
   - name: dracon_scan_id
     type: string
   - name: dracon_scan_start_time
     type: string
-  - default: []
-    description: A list of tasks that this task depends on using their anchors.
-    name: anchors
-    type: array
-  - default:
-    - -r
-    - -quiet
-    - -sort
-    - -nosec
-    name: producer-golang-gosec-flags
-    type: array
   results:
   - description: An anchor to allow other tasks to depend on this task.
     name: anchor
   steps:
-  - args:
-    - $(params.producer-golang-gosec-flags[*])
-    - -fmt=json
-    - -out=/scratch/out.json
-    - -no-fail
-    - $(workspaces.source-code-ws.path)/...
-    command:
-    - gosec
-    env:
+  - env:
     - name: DRACON_SCAN_TIME
       value: $(params.dracon_scan_start_time)
     - name: DRACON_SCAN_ID
       value: $(params.dracon_scan_id)
     image: docker.io/securego/gosec:2.15.0
     name: run-gosec
-    volumeMounts:
-    - mountPath: /scratch
-      name: scratch
-  - args:
-    - -in=/scratch/out.json
-    - -out=$(workspaces.source-code-ws.path)/.dracon/producers/golang-gosec.pb
-    command:
-    - app/components/producers/golang-gosec/golang-gosec-parser
-    env:
+  - env:
     - name: DRACON_SCAN_TIME
       value: $(params.dracon_scan_start_time)
     - name: DRACON_SCAN_ID
       value: $(params.dracon_scan_id)
-    image: ghcr.io/ocurity/dracon/components/producers/golang-gosec/image:latest
-    imagePullPolicy: IfNotPresent
+    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/golang-gosec/image:{{
+      default "latest" .Values.dracon_os_component_version }}'
     name: produce-issues
-    volumeMounts:
-    - mountPath: /scratch
-      name: scratch
-  - image: docker.io/busybox:1.35.0
-    name: anchor
-    script: echo "$(context.task.name)" > "$(results.anchor.path)"
   volumes:
   - emptyDir: {}
     name: scratch
@@ -785,17 +306,12 @@ metadata:
   labels:
     v1.dracon.ocurity.com/component: producer
   name: producer-golang-nancy-golang-project
-  namespace: dracon
 spec:
   params:
   - name: dracon_scan_id
     type: string
   - name: dracon_scan_start_time
     type: string
-  - default: []
-    description: A list of tasks that this task depends on using their anchors.
-    name: anchors
-    type: array
   results:
   - description: An anchor to allow other tasks to depend on this task.
     name: anchor
@@ -823,51 +339,21 @@ spec:
          cat $(workspaces.source-code-ws.path)/Gopkg.lock
        fi
        ls -lah /scratch
-    volumeMounts:
-    - mountPath: /scratch
-      name: scratch
-  - command:
-    - /bin/sh
-    - -c
-    - |
-      if [[ ! -f "$(workspaces.source-code-ws.path)/Gopkg.lock" ]]; then
-        echo "Running nancy with golist"
-        cat /scratch/golist.json | nancy sleuth -o json > /scratch/out.json || true
-      else
-        echo "Running nancy in dep mode"
-        nancy sleuth -p "$(workspaces.source-code-ws.path)/Gopkg.lock" -o json > /scratch/out.json || true
-      fi
-      cat /scratch/out.json
-    env:
+  - env:
     - name: DRACON_SCAN_TIME
       value: $(params.dracon_scan_start_time)
     - name: DRACON_SCAN_ID
       value: $(params.dracon_scan_id)
     image: docker.io/sonatypecommunity/nancy:v1.0.42-alpine
-    imagePullPolicy: IfNotPresent
     name: run-nancy
-    volumeMounts:
-    - mountPath: /scratch
-      name: scratch
-  - args:
-    - -in=/scratch/out.json
-    - -out=$(workspaces.source-code-ws.path)/.dracon/producers/golang-nancy.pb
-    command:
-    - app/components/producers/golang-nancy/golang-nancy-parser
-    env:
+  - env:
     - name: DRACON_SCAN_TIME
       value: $(params.dracon_scan_start_time)
     - name: DRACON_SCAN_ID
       value: $(params.dracon_scan_id)
-    image: ghcr.io/ocurity/dracon/components/producers/golang-nancy/image:latest
-    imagePullPolicy: IfNotPresent
+    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/golang-nancy/image:{{
+      default "latest" .Values.dracon_os_component_version }}'
     name: produce-issues
-    volumeMounts:
-    - mountPath: /scratch
-      name: scratch
-  - image: docker.io/busybox:1.35.0
-    name: anchor
-    script: echo "$(context.task.name)" > "$(results.anchor.path)"
   volumes:
   - emptyDir: {}
     name: scratch
