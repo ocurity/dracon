@@ -1,0 +1,6 @@
+apiVersion: v2
+name: "misc-project"
+description: "A Helm chart for deploying a Dracon pipeline for a project using miscellaneous tools."
+type: "application"
+version: 0.0.1
+appVersion: "0.0.1"

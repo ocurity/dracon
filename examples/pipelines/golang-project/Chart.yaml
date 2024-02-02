@@ -1,0 +1,6 @@
+apiVersion: v2
+name: "dracon-golang-project"
+description: "A Helm chart for deploying a Dracon pipeline for a Golang project."
+type: "application"
+version: 0.0.1
+appVersion: "0.0.1"
