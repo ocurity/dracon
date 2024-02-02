@@ -25,7 +25,7 @@ spec:
 
   - name: produce-issues
     imagePullPolicy: IfNotPresent
-    image: ghcr.io/ocurity/dracon/components/producers/typescript-eslint/image:latest
+    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/typescript-eslint/image:latest'
     command: ["app/components/producers/typescript-yarn-audit/yarn-audit-parser"]
     args:
     - "-in=/scratch/out.json"

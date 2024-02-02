@@ -37,7 +37,7 @@ spec:
       name: scratch
   - name: produce-issues
     imagePullPolicy: IfNotPresent
-    image: ghcr.io/ocurity/dracon/components/producers/trufflehog/image:latest
+    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/trufflehog/image:latest'
     command: ["/app/components/producers/trufflehog/trufflehog-parser"]
     args:
     - "-in=/scratch/out.json"

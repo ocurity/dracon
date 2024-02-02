@@ -18,7 +18,7 @@ spec:
       description: The workspace containing the source-code to scan.
   steps:
   - name: run-eslint
-    image: ghcr.io/ocurity/dracon/components/producers/typescript-eslint/eslint-wrapper/eslint:latest
+    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/typescript-eslint/eslint-wrapper/eslint:latest'
     command: ["/home/node/workspace/eslint-wrapper"]
     args:
      - -t
@@ -29,7 +29,7 @@ spec:
     - mountPath: /scratch
       name: scratch
   - name: produce-issues
-    image: ghcr.io/ocurity/dracon/components/producers/typescript-eslint/image:latest
+    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/typescript-eslint/image:latest'
     command: ["app/components/producers/typescript-eslint/typescript-eslint-parser"]
     args:
     - "-in=/scratch/out.json"
