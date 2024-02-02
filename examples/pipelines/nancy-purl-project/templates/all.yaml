@@ -1,0 +1,237 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: dracon-nancy-purl-project
+spec:
+  params:
+  - default: mongodb://consumer-mongodb:consumer-mongodb@consumer-mongodb.$(context.taskRun.namespace).svc:27017/consumer-mongodb
+    name: consumer-mongodb-db-uri
+    type: string
+  - default: consumer-mongodb
+    name: consumer-mongodb-db-name
+    type: string
+  - default: consumer-mongodb
+    name: consumer-mongodb-collection-name
+    type: string
+  tasks:
+  - name: consumer-mongodb
+    params:
+    - name: consumer-mongodb-db-uri
+      value: $(params.consumer-mongodb-db-uri)
+    - name: consumer-mongodb-db-name
+      value: $(params.consumer-mongodb-db-name)
+    - name: consumer-mongodb-collection-name
+      value: $(params.consumer-mongodb-collection-name)
+    taskRef:
+      name: consumer-mongodb
+    workspaces:
+    - name: source-code-ws
+      workspace: source-code-ws
+  workspaces:
+  - name: source-code-ws
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  labels:
+    v1.dracon.ocurity.com/component: consumer
+  name: consumer-mongodb-nancy-purl-project
+spec:
+  params:
+  - default: []
+    description: A list of tasks that this task depends on using their anchors.
+    name: anchors
+    type: array
+  results:
+  - description: An anchor to allow other tasks to depend on this task.
+    name: anchor
+  steps:
+  - image: docker.io/busybox:1.35.0
+    name: anchor
+    script: echo "$(context.task.name)" > "$(results.anchor.path)"
+  workspaces:
+  - description: The workspace containing the source-code to scan.
+    name: source-code-ws
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  labels:
+    v1.dracon.ocurity.com/component: enricher
+  name: enricher-aggregator-nancy-purl-project
+spec:
+  params:
+  - default: []
+    description: A list of tasks that this task depends on using their anchors.
+    name: anchors
+    type: array
+  results:
+  - description: An anchor to allow other tasks to depend on this task.
+    name: anchor
+  steps:
+  - image: docker.io/busybox:1.35.0
+    name: anchor
+    script: echo "$(context.task.name)" > "$(results.anchor.path)"
+  workspaces:
+  - description: The workspace containing the source-code to scan.
+    name: source-code-ws
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  labels:
+    v1.dracon.ocurity.com/component: enricher
+  name: enricher-deduplication-nancy-purl-project
+spec:
+  params:
+  - default: []
+    description: A list of tasks that this task depends on using their anchors.
+    name: anchors
+    type: array
+  results:
+  - description: An anchor to allow other tasks to depend on this task.
+    name: anchor
+  steps:
+  - image: docker.io/busybox:1.35.0
+    name: anchor
+    script: echo "$(context.task.name)" > "$(results.anchor.path)"
+  workspaces:
+  - description: The workspace containing the source-code to scan.
+    name: source-code-ws
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  labels:
+    v1.dracon.ocurity.com/component: producer
+  name: producer-aggregator-nancy-purl-project
+spec:
+  params:
+  - name: dracon_scan_id
+    type: string
+  - name: dracon_scan_start_time
+    type: string
+  results:
+  - description: An anchor to allow other tasks to depend on this task.
+    name: anchor
+  steps:
+  - env:
+    - name: DRACON_SCAN_TIME
+      value: $(params.dracon_scan_start_time)
+    - name: DRACON_SCAN_ID
+      value: $(params.dracon_scan_id)
+    image: docker.io/busybox
+    name: anchor
+    script: echo "$(context.task.name)" > "$(results.anchor.path)"
+  - env:
+    - name: DRACON_SCAN_TIME
+      value: $(params.dracon_scan_start_time)
+    - name: DRACON_SCAN_ID
+      value: $(params.dracon_scan_id)
+    image: docker.io/busybox
+    name: aggregate
+  - env:
+    - name: READ_PATH
+      value: $(workspaces.source-code-ws.path)/.dracon/producers
+    - name: WRITE_PATH
+      value: $(workspaces.source-code-ws.path)/.dracon/producers
+    - name: DRACON_SCAN_TIME
+      value: $(params.dracon_scan_start_time)
+    - name: DRACON_SCAN_ID
+      value: $(params.dracon_scan_id)
+    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/aggregator/image:{{
+      default "latest" .Values.dracon_os_component_version }}'
+    name: tag
+  workspaces:
+  - description: The workspace containing the source-code to scan.
+    name: source-code-ws
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  labels:
+    v1.dracon.ocurity.com/component: producer
+  name: producer-golang-nancy-nancy-purl-project
+spec:
+  params:
+  - name: dracon_scan_id
+    type: string
+  - name: dracon_scan_start_time
+    type: string
+  results:
+  - description: An anchor to allow other tasks to depend on this task.
+    name: anchor
+  steps:
+  - env:
+    - name: DRACON_SCAN_TIME
+      value: $(params.dracon_scan_start_time)
+    - name: DRACON_SCAN_ID
+      value: $(params.dracon_scan_id)
+    image: docker.io/golang:1.18
+    name: go-deps
+    script: |
+      #!/bin/bash -xe
+      echo $(workspaces.source-code-ws.path)
+      ls -lah $(workspaces.source-code-ws.path)
+      if [[ ! -f "$(workspaces.source-code-ws.path)/Gopkg.lock" ]]; then
+         paths=$(find $(workspaces.source-code-ws.path) -iname "go.mod")
+         touch /scratch/golist.json
+         for path in $paths; do
+           cd $path && go list -json -deps ./... >> /scratch/golist.json
+           cd $(workspaces.source-code-ws.path)
+         done
+         cat /scratch/golist.json
+       else
+         cat $(workspaces.source-code-ws.path)/Gopkg.lock
+       fi
+       ls -lah /scratch
+  - env:
+    - name: DRACON_SCAN_TIME
+      value: $(params.dracon_scan_start_time)
+    - name: DRACON_SCAN_ID
+      value: $(params.dracon_scan_id)
+    image: docker.io/sonatypecommunity/nancy:v1.0.42-alpine
+    name: run-nancy
+  - env:
+    - name: DRACON_SCAN_TIME
+      value: $(params.dracon_scan_start_time)
+    - name: DRACON_SCAN_ID
+      value: $(params.dracon_scan_id)
+    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/golang-nancy/image:{{
+      default "latest" .Values.dracon_os_component_version }}'
+    name: produce-issues
+  volumes:
+  - emptyDir: {}
+    name: scratch
+  workspaces:
+  - description: The workspace containing the source-code to scan.
+    name: source-code-ws
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  annotations:
+    tekton.dev/pipelines.minVersion: 0.29.0
+    tekton.dev/platforms: linux/amd64,linux/s390x,linux/ppc64le,linux/arm64
+  labels:
+    app.kubernetes.io/version: "0.6"
+    v1.dracon.ocurity.com/component: source
+  name: source-dependency-nancy-purl-project
+spec:
+  description: This source component accepts a purl argument belonging to one of the
+    supported types and generates a dependency file relevant to the type.
+  params:
+  - default: []
+    description: A list of tasks that this task depends on using their anchors.
+    name: anchors
+    type: array
+  results:
+  - description: An anchor to allow other tasks to depend on this task.
+    name: anchor
+  steps:
+  - image: docker.io/busybox:1.35.0
+    name: anchor
+    script: echo "$(context.task.name)" > "$(results.anchor.path)"
+  workspaces:
+  - description: The generated file will be stored onto the volume backing this Workspace.
+    name: source-code-ws
