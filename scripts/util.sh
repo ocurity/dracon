@@ -2,7 +2,7 @@
 # This script contains general helper functions for bash scripting.
 set -Eeuo pipefail
 
-source "./third_party/sh/ansi"
+source ./third_party/sh/ansi.sh
 
 util::debug() {
     set -x; "$@"; set +x;
