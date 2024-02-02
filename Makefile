@@ -24,6 +24,7 @@ TEKTON_NS=tekton-pipelines
 ARANGODB_NS=arangodb
 
 DOCKER=docker
+PROTOC=protoc
 
 export
 
@@ -59,7 +60,10 @@ $(component_kustomizations): bin/cmd/kustomize-component-generator
 
 kustomizations: $(component_kustomizations)
 
-build: components kustomizations
+$(go_protos): %.pb.go: %.proto
+	$(PROTOC) --go_out=. --go_opt=paths=source_relative $<
+
+build: components kustomizations $(go_protos)
 	@echo "done building"
 
 $(component_containers_publish): %/publish: %/docker
