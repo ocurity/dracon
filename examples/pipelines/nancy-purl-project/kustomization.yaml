@@ -1,13 +1,9 @@
 ---
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-
 nameSuffix: -nancy-purl-project
-namespace: dracon
-
 resources:
-  - ../../../components/base
-
+  - ../../../components/base/pipeline.yaml
 components:
   - ../../../components/sources/dependency
   - ../../../components/producers/aggregator
