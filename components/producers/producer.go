@@ -102,10 +102,7 @@ func ParseJSON(in []byte, structure interface{}) error {
 // ParseXML provides a generic method to parse XML input (e.g. the results
 // provided by a tool) into a given struct.
 func ParseXML(in []byte, structure interface{}) error {
-	if err := xml.Unmarshal(in, &structure); err != nil {
-		return err
-	}
-	return nil
+	return xml.Unmarshal(in, &structure)
 }
 
 // ParseMultiJSONMessages provides method to parse tool results in JSON format.

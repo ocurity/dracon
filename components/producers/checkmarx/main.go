@@ -1,3 +1,5 @@
+// Package main of the checkmarx producer parses the XML Output of a Checkmarx scan
+// creates a Dracon scan from it
 package main
 
 import (
@@ -80,8 +82,6 @@ func parseIssues(out *Flaws) ([]*v1.Issue, error) {
 			log.Println("Could not populate Dracon Description from Checkmarx fields, err", err)
 		}
 		target := fmt.Sprintf("%s:%s", r.FileName, r.LineNumber)
-		fmt.Println(target)
-		fmt.Scanf("%s")
 		iss := &v1.Issue{
 			Source:      source,
 			Target:      target,
@@ -102,6 +102,7 @@ func parseIssues(out *Flaws) ([]*v1.Issue, error) {
 	return issues, nil
 }
 
+// DraconDescription allows the user to map Checkmarx optional fields to the Dracon "description" field
 type DraconDescription struct {
 	OriginalIssueDescription                          string `json:"issue description,omitempty"`
 	OriginalRemediationAdvice                         string `json:"remediation advice,omitempty"`
@@ -125,6 +126,8 @@ type DraconDescription struct {
 	OriginalTypeofFixAvailable                        string `json:"type of fix available,omitempty"`
 	OriginalLevelofVerificationthatVulnerabilityExist string `json:"level of verification that vulnerability exists,omitempty"`
 }
+
+// Flaws is the checkmarx output xml
 type Flaws struct {
 	MetaData struct {
 		AppID         string `xml:"appID,attr" json:"appid,omitempty"`
@@ -145,7 +148,7 @@ type Flaws struct {
 		IssueRecommendation                       string `xml:"issueRecommendation"`
 		ComponentName                             string `xml:"componentName"`
 		Module                                    string `xml:"module"`
-		ApiName                                   string `xml:"apiName"`
+		APIName                                   string `xml:"apiName"`
 		VulnerabilityType                         string `xml:"vulnerabilityType"` // Basically CWE
 		Classification                            string `xml:"classification"`
 		Severity                                  string `xml:"severity"`
