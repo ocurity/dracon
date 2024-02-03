@@ -16,24 +16,19 @@ patches:
         workspaces:
           - name: source-code-ws
         tasks:
-          - name: producer-golang-gosec
+          - name: producer-checkmarx
             taskRef:
-              name: producer-golang-gosec
+              name: producer-checkmarx
             workspaces:
               - name: source-code-ws
                 workspace: source-code-ws
             params:
-              - name: producer-golang-gosec-flags
-                value:
-                  - $(params.producer-golang-gosec-flags)
+              - name: producer-checkmarx-output-loc
+                value: $(params.producer-checkmarx-output-loc)
         params:
-          - name: producer-golang-gosec-flags
-            type: array
-            default:
-              - -r
-              - -quiet
-              - -sort
-              - -nosec
+          - name: producer-checkmarx-output-loc
+            type: string
+            default: /scratch/checkmarx.xml
     target:
       kind: Pipeline
   # Add anchors to Task.
@@ -41,7 +36,7 @@ patches:
       apiVersion: tekton.dev/v1beta1
       kind: Task
       metadata:
-        name: producer-golang-gosec
+        name: producer-checkmarx
         labels:
           v1.dracon.ocurity.com/component: producer
       spec:
@@ -59,7 +54,7 @@ patches:
             script: echo "$(context.task.name)" > "$(results.anchor.path)"
     target:
       kind: Task
-      name: producer-golang-gosec
+      name: producer-checkmarx
   # If we have a `source` task in the pipeline (added by a `source` component),
   # depend on the completion of that source by referencing its anchor.
   - patch: |
@@ -69,7 +64,7 @@ patches:
         name: unused
       spec:
         tasks:
-          - name: producer-golang-gosec
+          - name: producer-checkmarx
             params:
               - name: anchors
                 value:
@@ -91,7 +86,7 @@ patches:
             params:
               - name: anchors
                 value:
-                  - $(tasks.producer-golang-gosec.results.anchor)
+                  - $(tasks.producer-checkmarx.results.anchor)
     target:
       kind: Pipeline
       annotationSelector: v1.dracon.ocurity.com/has-producer-aggregator=true
@@ -100,7 +95,7 @@ patches:
       apiVersion: tekton.dev/v1beta1
       kind: Task
       metadata:
-        name: producer-golang-gosec
+        name: producer-checkmarx
         labels:
           v1.dracon.ocurity.com/component: producer
       spec:
@@ -110,15 +105,8 @@ patches:
           - name: dracon_scan_start_time
             type: string
         steps:
-          - name: run-gosec
-            image: docker.io/securego/gosec:2.15.0
-            env:
-              - name: DRACON_SCAN_TIME
-                value: $(params.dracon_scan_start_time)
-              - name: DRACON_SCAN_ID
-                value: $(params.dracon_scan_id)
           - name: produce-issues
-            image: ghcr.io/ocurity/dracon/components/producers/golang-gosec/image:latest
+            image: ghcr.io/ocurity/dracon/components/producers/checkmarx/image:latest
             env:
               - name: DRACON_SCAN_TIME
                 value: $(params.dracon_scan_start_time)
@@ -126,7 +114,7 @@ patches:
                 value: $(params.dracon_scan_id)
     target:
       kind: Task
-      name: producer-golang-gosec
+      name: producer-checkmarx
   - patch: |
       apiVersion: tekton.dev/v1beta1
       kind: Pipeline
@@ -134,7 +122,7 @@ patches:
         name: unused
       spec:
         tasks:
-          - name: producer-golang-gosec
+          - name: producer-checkmarx
             params:
               - name: dracon_scan_id
                 value: $(tasks.base.results.dracon-scan-id)
