@@ -1,0 +1,29 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: producer-checkmarx
+  labels:
+    v1.dracon.ocurity.com/component: producer
+spec:
+  params:
+  - name: producer-checkmarx-output-loc
+    type: string
+    default: "/scratch/checkmarx.xml"
+  volumes:
+    - name: scratch
+      emptyDir: {}
+  workspaces:
+    - name: source-code-ws
+      description: The workspace containing the source-code to scan.
+  steps:
+  - name: produce-issues
+    imagePullPolicy: IfNotPresent
+    image: ghcr.io/ocurity/dracon/components/producers/checkmarx/image:latest
+    command: ["app/components/producers/checkmarx/checkmarx-parser"]
+    args:
+    - "-in=/scratch/checkmarx.xml"
+    - "-out=$(workspaces.source-code-ws.path)/.dracon/producers/checkmarx.pb"
+    volumeMounts:
+    - mountPath: /scratch
+      name: scratch

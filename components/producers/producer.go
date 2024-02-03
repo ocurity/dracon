@@ -6,6 +6,7 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
+	"encoding/xml"
 	"errors"
 	"flag"
 	"fmt"
@@ -89,6 +90,21 @@ func ReadInFile() ([]byte, error) {
 		return nil, fmt.Errorf("could not read from buffer: %w", err)
 	}
 	return buffer.Bytes(), nil
+}
+
+// ParseJSON provides a generic method to parse JSON input (e.g. the results
+// provided by a tool) into a given struct.
+func ParseJSON(in []byte, structure interface{}) error {
+	if err := json.Unmarshal(in, &structure); err != nil {
+		return err
+	}
+	return nil
+}
+
+// ParseXML provides a generic method to parse XML input (e.g. the results
+// provided by a tool) into a given struct.
+func ParseXML(in []byte, structure interface{}) error {
+	return xml.Unmarshal(in, &structure)
 }
 
 // ParseMultiJSONMessages provides method to parse tool results in JSON format.
