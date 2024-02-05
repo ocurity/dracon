@@ -34,7 +34,7 @@ spec:
   - name: produce-issues
     imagePullPolicy: IfNotPresent
     image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/testsslsh/image:{{ default "latest" .Values.dracon_os_component_version }}'
-    command: ["app/components/producers/testsslsh/testsslsh-parser"]
+    command: ["/app/components/producers/testsslsh/testsslsh-parser"]
     args:
     - "-in=/scratch/out.json"
     - "-out=$(workspaces.source-code-ws.path)/.dracon/producers/testsslsh.pb"

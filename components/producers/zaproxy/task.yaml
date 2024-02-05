@@ -54,7 +54,7 @@ spec:
   - name: produce-issues
     imagePullPolicy: IfNotPresent
     image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/zaproxy/image:{{ default "latest" .Values.dracon_os_component_version }}'
-    command: ["app/components/producers/zaproxy/zaproxy-parser"]
+    command: ["/app/components/producers/zaproxy/zaproxy-parser"]
     args:
     - "-in=/scratch/out.json"
     - "-out=$(workspaces.source-code-ws.path)/.dracon/producers/zap.pb"
