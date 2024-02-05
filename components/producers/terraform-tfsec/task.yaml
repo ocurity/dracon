@@ -35,7 +35,7 @@ spec:
   - name: produce-issues
     imagePullPolicy: IfNotPresent
     image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/terraform-tfsec/image:{{ default "latest" .Values.dracon_os_component_version }}'
-    command: ["app/components/producers/terraform-tfsec/tfsec-parser"]
+    command: ["/app/components/producers/terraform-tfsec/tfsec-parser"]
     args:
     - "-in=/scratch/out.json"
     - "-out=$(workspaces.source-code-ws.path)/.dracon/producers/terraform-tfsec.pb"
