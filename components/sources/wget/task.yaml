@@ -39,5 +39,5 @@ spec:
         [
           "$(params.wget-options[*])",
           "$(params.wget-url)",
-          "$(workspaces.source-code-ws.path)/$(params.filename)",
+          "$(workspaces.source-code-ws.path)/$(params.wget-filename)",
         ]
