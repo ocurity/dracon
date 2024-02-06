@@ -4,19 +4,9 @@ import (
 	"log"
 	"strings"
 
-	"github.com/ocurity/dracon/pkg/components/generator/types/kubernetes"
-	kustomize "github.com/ocurity/dracon/pkg/components/generator/types/kustomize.config.k8s.io/v1alpha1"
+	"github.com/ocurity/dracon/pkg/types/kubernetes"
 	"gopkg.in/yaml.v3"
 )
-
-// UnusedValue is a representation of an unused value by Kustomize.
-const UnusedValue = "unused"
-
-// Patch abstracts the different Kustomize Patches that we want to generat.
-type Patch interface {
-	// GeneratePatch returns a Kustomize TargetPatch.
-	GeneratePatch() *kustomize.TargetPatch
-}
 
 func mustYAMLString(in interface{}) string {
 	var sb strings.Builder
