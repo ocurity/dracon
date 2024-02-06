@@ -2,7 +2,7 @@ package kustomize
 
 import (
 	wordwrap "github.com/mitchellh/go-wordwrap"
-	"github.com/ocurity/dracon/pkg/components/generator/types/kubernetes"
+	"github.com/ocurity/dracon/pkg/types/kubernetes"
 	"gopkg.in/yaml.v3"
 )
 
@@ -14,15 +14,15 @@ func NewComponent() Component {
 			Kind:       "Component",
 		},
 		Resources: []string{},
-		Patches:   []*TargetPatch{},
+		Patches:   []TargetPatch{},
 	}
 }
 
 // Component represents a Kustomize Component configuration.
 type Component struct {
 	*kubernetes.GVK `yaml:",inline"`
-	Resources       []string       `yaml:"resources,omitempty"`
-	Patches         []*TargetPatch `yaml:"patches,omitempty"`
+	Resources       []string      `yaml:"resources,omitempty"`
+	Patches         []TargetPatch `yaml:"patches,omitempty"`
 }
 
 // TargetPatch represents a patch multiple targets Patch.
