@@ -1,7 +1,7 @@
 package tekton
 
 import (
-	"github.com/ocurity/dracon/pkg/components/generator/types/kubernetes"
+	"github.com/ocurity/dracon/pkg/types/kubernetes"
 )
 
 // Pipeline represents a Tekton Pipeline configuration.

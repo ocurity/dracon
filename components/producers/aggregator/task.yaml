@@ -21,10 +21,12 @@ spec:
   - name: anchor
     image: docker.io/busybox
     script: echo "$(context.task.name)" > "$(results.anchor.path)"
+    env: []
   - name: aggregate
     image: docker.io/busybox
     command: ["ls"]
     args: ["$(workspaces.source-code-ws.path)"]
+    env: []
   - name: tag
     image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/aggregator/image:{{ default "latest" .Values.dracon_os_component_version }}'
     command: ["/app/components/producers/aggregator/tagger"]

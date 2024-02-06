@@ -9,8 +9,8 @@ import (
 
 	wordwrap "github.com/mitchellh/go-wordwrap"
 	"github.com/ocurity/dracon/pkg/components/generator/patches"
-	kustomize "github.com/ocurity/dracon/pkg/components/generator/types/kustomize.config.k8s.io/v1alpha1"
-	tekton "github.com/ocurity/dracon/pkg/components/generator/types/tekton.dev/v1beta1"
+	kustomizeV1Alpha1 "github.com/ocurity/dracon/pkg/types/kustomize.config.k8s.io/v1alpha1"
+	tektonV1Beta1 "github.com/ocurity/dracon/pkg/types/tekton.dev/v1beta1"
 	"gopkg.in/yaml.v3"
 )
 
@@ -26,17 +26,17 @@ func main() {
 
 	taskBytes, err := os.ReadFile(*taskPath)
 	if err != nil {
-		panic(err)
+		log.Fatalf("could not read file %s: %v", *taskPath, err)
 	}
 
-	task := &tekton.Task{}
+	task := &tektonV1Beta1.Task{}
 	if err := yaml.Unmarshal(taskBytes, task); err != nil {
-		panic(err)
+		log.Fatalf("could not unmarshal contents of file %s: %v", *taskPath, err)
 	}
 
 	component, ok := task.Metadata.Labels["v1.dracon.ocurity.com/component"]
 	if !ok {
-		log.Fatalf("task is missing .metadata.labels[\"v1.dracon.ocurity.com/component\"]")
+		log.Fatalf("Task %s is missing .metadata.labels[\"v1.dracon.ocurity.com/component\"]", task.Metadata.Name)
 	}
 
 	switch component {
@@ -50,37 +50,43 @@ func main() {
 		log.Fatalf("unrecognised component: %s", component)
 	}
 
-	kustomizeComponent := kustomize.NewComponent()
-	kustomizeComponent.Resources = []string{"task.yaml"}
-
-	patchFuncs := []func() *kustomize.TargetPatch{
-		patches.NewAddTaskToPipeline(task).GeneratePatch,
-		patches.NewAddAnchorsToTask(task).GeneratePatch,
-		// patches.NewAddProducerDependencyOnBase(task).GeneratePatch,
-		patches.NewAddProducerDependencyOnSource(task).GeneratePatch,
-		patches.NewAddProducerAggregatorAnchor(task).GeneratePatch,
-		patches.NewAddEnricherDependencyOnProducerAggregator(task).GeneratePatch,
-		patches.NewAddEnricherAggregatorAnchor(task).GeneratePatch,
-		patches.NewAddConsumerDependencyOnEnricherAggregator(task).GeneratePatch,
-		patches.NewAddScanUUIDAndStartTimeToTask(task).GeneratePatch,
-		patches.NewAddScanUUIDAndStartTimeToPipeline(task).GeneratePatch,
+	for _, step := range task.Spec.Steps {
+		if step.Env == nil {
+			log.Fatalf("step %s of Task %s should have an empty list as env instead of nil", step.Name, task.Metadata.Name)
+		}
 	}
 
-	for _, pFunc := range patchFuncs {
-		if p := pFunc(); p != nil {
-			kustomizeComponent.Patches = append(kustomizeComponent.Patches, p)
+	kustomizeComponent := kustomizeV1Alpha1.NewComponent()
+	kustomizeComponent.Resources = []string{"task.yaml"}
+
+	for _, generator := range []patches.Generator{
+		patches.AddTaskToPipeline,
+		// this was commented out already
+		// patches.AddProducerDependencyOnBase,
+		patches.AddProducerDependencyOnSource,
+		patches.AddProducerAggregatorAnchor,
+		patches.AddEnricherDependencyOnProducerAggregator,
+		patches.AddEnricherAggregatorAnchor,
+		patches.AddConsumerDependencyOnEnricherAggregator,
+		patches.AddScanUUIDAndStartTimeToTask,
+		patches.AddScanUUIDAndStartTimeToPipeline,
+	} {
+		if newPatches, err := generator(task); err != nil {
+			log.Fatalf("could not generate kustomize patches for Task %s: %v", task.Metadata.Name, err)
+		} else {
+			kustomizeComponent.Patches = append(kustomizeComponent.Patches, newPatches...)
 		}
 	}
 
 	yamlBytes, err := yaml.Marshal(kustomizeComponent)
 	if err != nil {
-		panic(err)
+		log.Fatalf("could not marshal kustmoize YAML: %v", err)
 	}
 
 	// add Head Comment
 	yamlNode := &yaml.Node{}
 	if err := yaml.Unmarshal(yamlBytes, yamlNode); err != nil {
-		panic(err)
+		log.Fatalf("could not unmarshal geneated kustmoize YAML: %v", err)
 	}
 
 	yamlNode.HeadComment = wordwrap.WrapString(
@@ -92,10 +98,10 @@ func main() {
 	yamlEncoder := yaml.NewEncoder(buf)
 	yamlEncoder.SetIndent(2)
 	if err := yamlEncoder.Encode(yamlNode); err != nil {
-		panic(err)
+		log.Fatalf("could not marshal generated kustmoize YAML: %v", err)
 	}
 
 	if err := os.WriteFile(*outFile, buf.Bytes(), 0o600); err != nil {
-		panic(err)
+		log.Fatalf("could not write kustmoize YAML to file %s: %v", *outFile, err)
 	}
 }
