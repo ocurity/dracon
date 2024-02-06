@@ -1,0 +1,9 @@
+apiVersion: builtin
+kind: PrefixSuffixTransformer
+metadata:
+  name: customPrefixer
+suffix: -golang-project
+fieldSpecs:
+- path: metadata/name
+- kind: Pipeline
+  path: spec/tasks/taskRef/name
