@@ -4,6 +4,7 @@ kind: Kustomization
 nameSuffix: -dast-project
 resources:
   - ../../../components/base/pipeline.yaml
+  - ../../../components/base/task.yaml
 components:
   - ../../../components/producers/aggregator
   # - ../../../components/producers/testsslsh

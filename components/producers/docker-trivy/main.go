@@ -47,7 +47,7 @@ func main() {
 	case "spdx-json":
 		log.Fatal("SPDX is not supported, please use cyclonedx instead")
 	default:
-		log.Fatal(fmt.Errorf("Format %s is not supported, supported formats are %v", Format, supportedFormats))
+		log.Fatal(fmt.Errorf("format %s is not supported, supported formats are %v", Format, supportedFormats))
 	}
 	if err != nil {
 		log.Fatal(err)

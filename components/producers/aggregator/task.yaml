@@ -4,7 +4,7 @@ kind: Task
 metadata:
   name: producer-aggregator
   labels:
-    v1.dracon.ocurity.com/component: producer
+    v1.dracon.ocurity.com/component: producer-aggregator
 spec:
   params:
   - name: producer-aggregator-anchors

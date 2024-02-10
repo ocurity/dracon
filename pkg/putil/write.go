@@ -45,6 +45,7 @@ func WriteResults(
 	outFile string,
 	scanUUID string,
 	scanStartTime string,
+	scanTags map[string]string,
 ) error {
 	if err := os.MkdirAll(filepath.Dir(outFile), os.ModePerm); err != nil {
 		return err
@@ -58,6 +59,7 @@ func WriteResults(
 	scanInfo := v1.ScanInfo{
 		ScanUuid:      scanUUID,
 		ScanStartTime: timestamp,
+		ScanTags:      scanTags,
 	}
 	out := v1.LaunchToolResponse{
 		ScanInfo: &scanInfo,

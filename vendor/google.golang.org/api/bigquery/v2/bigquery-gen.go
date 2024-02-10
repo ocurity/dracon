@@ -1,4 +1,4 @@
-// Copyright 2023 Google LLC.
+// Copyright 2024 Google LLC.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -10,6 +10,17 @@
 //
 // For product documentation, see: https://cloud.google.com/bigquery/
 //
+// # Library status
+//
+// These client libraries are officially supported by Google. However, this
+// library is considered complete and is in maintenance mode. This means
+// that we will address critical bugs and security issues but will not add
+// any new features.
+//
+// When possible, we recommend using our newer
+// [Cloud Client Libraries for Go](https://pkg.go.dev/cloud.google.com/go)
+// that are still actively being worked and iterated on.
+//
 // # Creating a client
 //
 // Usage example:
@@ -19,28 +30,31 @@
 //	ctx := context.Background()
 //	bigqueryService, err := bigquery.NewService(ctx)
 //
-// In this example, Google Application Default Credentials are used for authentication.
-//
-// For information on how to create and obtain Application Default Credentials, see https://developers.google.com/identity/protocols/application-default-credentials.
+// In this example, Google Application Default Credentials are used for
+// authentication. For information on how to create and obtain Application
+// Default Credentials, see https://developers.google.com/identity/protocols/application-default-credentials.
 //
 // # Other authentication options
 //
-// By default, all available scopes (see "Constants") are used to authenticate. To restrict scopes, use option.WithScopes:
+// By default, all available scopes (see "Constants") are used to authenticate.
+// To restrict scopes, use [google.golang.org/api/option.WithScopes]:
 //
 //	bigqueryService, err := bigquery.NewService(ctx, option.WithScopes(bigquery.DevstorageReadWriteScope))
 //
-// To use an API key for authentication (note: some APIs do not support API keys), use option.WithAPIKey:
+// To use an API key for authentication (note: some APIs do not support API
+// keys), use [google.golang.org/api/option.WithAPIKey]:
 //
 //	bigqueryService, err := bigquery.NewService(ctx, option.WithAPIKey("AIza..."))
 //
-// To use an OAuth token (e.g., a user token obtained via a three-legged OAuth flow), use option.WithTokenSource:
+// To use an OAuth token (e.g., a user token obtained via a three-legged OAuth
+// flow, use [google.golang.org/api/option.WithTokenSource]:
 //
 //	config := &oauth2.Config{...}
 //	// ...
 //	token, err := config.Exchange(ctx, ...)
 //	bigqueryService, err := bigquery.NewService(ctx, option.WithTokenSource(config.TokenSource(ctx, token)))
 //
-// See https://godoc.org/google.golang.org/api/option/ for details on options.
+// See [google.golang.org/api/option.ClientOption] for details on options.
 package bigquery // import "google.golang.org/api/bigquery/v2"
 
 import (
@@ -77,12 +91,15 @@ var _ = errors.New
 var _ = strings.Replace
 var _ = context.Canceled
 var _ = internaloption.WithDefaultEndpoint
+var _ = internal.Version
 
 const apiId = "bigquery:v2"
 const apiName = "bigquery"
 const apiVersion = "v2"
 const basePath = "https://bigquery.googleapis.com/bigquery/v2/"
+const basePathTemplate = "https://bigquery.UNIVERSE_DOMAIN/bigquery/v2/"
 const mtlsBasePath = "https://bigquery.mtls.googleapis.com/bigquery/v2/"
+const defaultUniverseDomain = "googleapis.com"
 
 // OAuth2 scopes used by this API.
 const (
@@ -127,7 +144,9 @@ func NewService(ctx context.Context, opts ...option.ClientOption) (*Service, err
 	// NOTE: prepend, so we don't override user-specified scopes.
 	opts = append([]option.ClientOption{scopesOption}, opts...)
 	opts = append(opts, internaloption.WithDefaultEndpoint(basePath))
+	opts = append(opts, internaloption.WithDefaultEndpointTemplate(basePathTemplate))
 	opts = append(opts, internaloption.WithDefaultMTLSEndpoint(mtlsBasePath))
+	opts = append(opts, internaloption.WithDefaultUniverseDomain(defaultUniverseDomain))
 	client, endpoint, err := htransport.NewClient(ctx, opts...)
 	if err != nil {
 		return nil, err
@@ -352,12 +371,51 @@ func (s *AggregateClassificationMetrics) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+// AggregationThresholdPolicy: Represents privacy policy associated with
+// "aggregation threshold" method.
+type AggregationThresholdPolicy struct {
+	// PrivacyUnitColumns: Optional. The privacy unit column(s) associated
+	// with this policy. For now, only one column per data source object
+	// (table, view) is allowed as a privacy unit column. Representing as a
+	// repeated field in metadata for extensibility to multiple columns in
+	// future. Duplicates and Repeated struct fields are not allowed. For
+	// nested fields, use dot notation ("outer.inner")
+	PrivacyUnitColumns []string `json:"privacyUnitColumns,omitempty"`
+
+	// Threshold: Optional. The threshold for the "aggregation threshold"
+	// policy.
+	Threshold int64 `json:"threshold,omitempty,string"`
+
+	// ForceSendFields is a list of field names (e.g. "PrivacyUnitColumns")
+	// to unconditionally include in API requests. By default, fields with
+	// empty or default values are omitted from API requests. However, any
+	// non-pointer, non-interface field appearing in ForceSendFields will be
+	// sent to the server regardless of whether the field is empty or not.
+	// This may be used to include empty fields in Patch requests.
+	ForceSendFields []string `json:"-"`
+
+	// NullFields is a list of field names (e.g. "PrivacyUnitColumns") to
+	// include in API requests with the JSON null value. By default, fields
+	// with empty values are omitted from API requests. However, any field
+	// with an empty value appearing in NullFields will be sent to the
+	// server as null. It is an error if a field in this list has a
+	// non-empty value. This may be used to include null fields in Patch
+	// requests.
+	NullFields []string `json:"-"`
+}
+
+func (s *AggregationThresholdPolicy) MarshalJSON() ([]byte, error) {
+	type NoMethod AggregationThresholdPolicy
+	raw := NoMethod(*s)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
+}
+
 // Argument: Input/output argument of a function or a stored procedure.
 type Argument struct {
 	// ArgumentKind: Optional. Defaults to FIXED_TYPE.
 	//
 	// Possible values:
-	//   "ARGUMENT_KIND_UNSPECIFIED"
+	//   "ARGUMENT_KIND_UNSPECIFIED" - Default value.
 	//   "FIXED_TYPE" - The argument is a variable with fully specified
 	// type, which can be a struct or an array, but not a table.
 	//   "ANY_TYPE" - The argument is any type, including struct or array,
@@ -367,11 +425,18 @@ type Argument struct {
 	// DataType: Required unless argument_kind = ANY_TYPE.
 	DataType *StandardSqlDataType `json:"dataType,omitempty"`
 
+	// IsAggregate: Optional. Whether the argument is an aggregate function
+	// parameter. Must be Unset for routine types other than
+	// AGGREGATE_FUNCTION. For AGGREGATE_FUNCTION, if set to false, it is
+	// equivalent to adding "NOT AGGREGATE" clause in DDL; Otherwise, it is
+	// equivalent to omitting "NOT AGGREGATE" clause in DDL.
+	IsAggregate bool `json:"isAggregate,omitempty"`
+
 	// Mode: Optional. Specifies whether the argument is input or output.
 	// Can be set for procedures only.
 	//
 	// Possible values:
-	//   "MODE_UNSPECIFIED"
+	//   "MODE_UNSPECIFIED" - Default value.
 	//   "IN" - The argument is input-only.
 	//   "OUT" - The argument is output-only.
 	//   "INOUT" - The argument is both an input and an output.
@@ -446,14 +511,24 @@ func (s *ArimaCoefficients) MarshalJSON() ([]byte, error) {
 func (s *ArimaCoefficients) UnmarshalJSON(data []byte) error {
 	type NoMethod ArimaCoefficients
 	var s1 struct {
-		InterceptCoefficient gensupport.JSONFloat64 `json:"interceptCoefficient"`
+		AutoRegressiveCoefficients []gensupport.JSONFloat64 `json:"autoRegressiveCoefficients"`
+		InterceptCoefficient       gensupport.JSONFloat64   `json:"interceptCoefficient"`
+		MovingAverageCoefficients  []gensupport.JSONFloat64 `json:"movingAverageCoefficients"`
 		*NoMethod
 	}
 	s1.NoMethod = (*NoMethod)(s)
 	if err := json.Unmarshal(data, &s1); err != nil {
 		return err
 	}
+	s.AutoRegressiveCoefficients = make([]float64, len(s1.AutoRegressiveCoefficients))
+	for i := range s1.AutoRegressiveCoefficients {
+		s.AutoRegressiveCoefficients[i] = float64(s1.AutoRegressiveCoefficients[i])
+	}
 	s.InterceptCoefficient = float64(s1.InterceptCoefficient)
+	s.MovingAverageCoefficients = make([]float64, len(s1.MovingAverageCoefficients))
+	for i := range s1.MovingAverageCoefficients {
+		s.MovingAverageCoefficients[i] = float64(s1.MovingAverageCoefficients[i])
+	}
 	return nil
 }
 
@@ -996,6 +1071,52 @@ type BiEngineStatistics struct {
 
 func (s *BiEngineStatistics) MarshalJSON() ([]byte, error) {
 	type NoMethod BiEngineStatistics
+	raw := NoMethod(*s)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
+}
+
+type BigLakeConfiguration struct {
+	// ConnectionId: [Required] Required and immutable. Credential reference
+	// for accessing external storage system. Normalized as
+	// project_id.location_id.connection_id.
+	ConnectionId string `json:"connectionId,omitempty"`
+
+	// FileFormat: [Required] Required and immutable. Open source file
+	// format that the table data is stored in. Currently only PARQUET is
+	// supported.
+	FileFormat string `json:"fileFormat,omitempty"`
+
+	// StorageUri: [Required] Required and immutable. Fully qualified
+	// location prefix of the external folder where data is stored.
+	// Normalized to standard format: "gs:////". Starts with "gs://" rather
+	// than "/bigstore/". Ends with "/". Does not contain "*". See also
+	// BigLakeStorageMetadata on how it is used.
+	StorageUri string `json:"storageUri,omitempty"`
+
+	// TableFormat: [Required] Required and immutable. Open source file
+	// format that the table data is stored in. Currently only PARQUET is
+	// supported.
+	TableFormat string `json:"tableFormat,omitempty"`
+
+	// ForceSendFields is a list of field names (e.g. "ConnectionId") to
+	// unconditionally include in API requests. By default, fields with
+	// empty or default values are omitted from API requests. However, any
+	// non-pointer, non-interface field appearing in ForceSendFields will be
+	// sent to the server regardless of whether the field is empty or not.
+	// This may be used to include empty fields in Patch requests.
+	ForceSendFields []string `json:"-"`
+
+	// NullFields is a list of field names (e.g. "ConnectionId") to include
+	// in API requests with the JSON null value. By default, fields with
+	// empty values are omitted from API requests. However, any field with
+	// an empty value appearing in NullFields will be sent to the server as
+	// null. It is an error if a field in this list has a non-empty value.
+	// This may be used to include null fields in Patch requests.
+	NullFields []string `json:"-"`
+}
+
+func (s *BigLakeConfiguration) MarshalJSON() ([]byte, error) {
+	type NoMethod BigLakeConfiguration
 	raw := NoMethod(*s)
 	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
 }
@@ -1958,7 +2079,7 @@ type CsvOptions struct {
 
 	// NullMarker: [Optional] An custom string that will represent a NULL
 	// value in CSV import data.
-	NullMarker string `json:"null_marker,omitempty"`
+	NullMarker string `json:"nullMarker,omitempty"`
 
 	// PreserveAsciiControlCharacters: [Optional] Preserves the embedded
 	// ASCII control characters (the first 32 characters in the ASCII-table,
@@ -2148,6 +2269,11 @@ type Dataset struct {
 
 	// Etag: [Output-only] A hash of the resource.
 	Etag string `json:"etag,omitempty"`
+
+	// ExternalDatasetReference: [Optional] Information about the external
+	// metadata storage where the dataset is defined. Filled out when the
+	// dataset type is EXTERNAL.
+	ExternalDatasetReference *ExternalDatasetReference `json:"externalDatasetReference,omitempty"`
 
 	// FriendlyName: [Optional] A descriptive name for the dataset.
 	FriendlyName string `json:"friendlyName,omitempty"`
@@ -2656,6 +2782,23 @@ func (s *DoubleCandidates) MarshalJSON() ([]byte, error) {
 	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
 }
 
+func (s *DoubleCandidates) UnmarshalJSON(data []byte) error {
+	type NoMethod DoubleCandidates
+	var s1 struct {
+		Candidates []gensupport.JSONFloat64 `json:"candidates"`
+		*NoMethod
+	}
+	s1.NoMethod = (*NoMethod)(s)
+	if err := json.Unmarshal(data, &s1); err != nil {
+		return err
+	}
+	s.Candidates = make([]float64, len(s1.Candidates))
+	for i := range s1.Candidates {
+		s.Candidates[i] = float64(s1.Candidates[i])
+	}
+	return nil
+}
+
 // DoubleHparamSearchSpace: Search space for a double hyperparameter.
 type DoubleHparamSearchSpace struct {
 	// Candidates: Candidates of the double hyperparameter.
@@ -2735,7 +2878,7 @@ func (s *DoubleRange) UnmarshalJSON(data []byte) error {
 }
 
 type EncryptionConfiguration struct {
-	// KmsKeyName: [Optional] Describes the Cloud KMS encryption key that
+	// KmsKeyName: Optional. Describes the Cloud KMS encryption key that
 	// will be used to protect destination BigQuery table. The BigQuery
 	// Service Account associated with your project requires access to this
 	// encryption key.
@@ -3234,6 +3377,12 @@ type ExternalDataConfiguration struct {
 	// formats.
 	DecimalTargetTypes []string `json:"decimalTargetTypes,omitempty"`
 
+	// FileSetSpecType: [Optional] Specifies how source URIs are interpreted
+	// for constructing the file set to load. By default source URIs are
+	// expanded against the underlying storage. Other options include
+	// specifying manifest files. Only applicable to object storage systems.
+	FileSetSpecType string `json:"fileSetSpecType,omitempty"`
+
 	// GoogleSheetsOptions: [Optional] Additional options if sourceFormat is
 	// set to GOOGLE_SHEETS.
 	GoogleSheetsOptions *GoogleSheetsOptions `json:"googleSheetsOptions,omitempty"`
@@ -3253,6 +3402,10 @@ type ExternalDataConfiguration struct {
 	// ignored. Google Cloud Datastore backups: This setting is ignored.
 	// Avro: This setting is ignored.
 	IgnoreUnknownValues bool `json:"ignoreUnknownValues,omitempty"`
+
+	// JsonOptions: Additional properties to set if `sourceFormat` is set to
+	// `NEWLINE_DELIMITED_JSON`.
+	JsonOptions *JsonOptions `json:"jsonOptions,omitempty"`
 
 	// MaxBadRecords: [Optional] The maximum number of bad records that
 	// BigQuery can ignore when reading data. If the number of bad records
@@ -3326,6 +3479,39 @@ type ExternalDataConfiguration struct {
 
 func (s *ExternalDataConfiguration) MarshalJSON() ([]byte, error) {
 	type NoMethod ExternalDataConfiguration
+	raw := NoMethod(*s)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
+}
+
+type ExternalDatasetReference struct {
+	// Connection: [Required] The connection id that is used to access the
+	// external_source. Format:
+	// projects/{project_id}/locations/{location_id}/connections/{connection_
+	// id}
+	Connection string `json:"connection,omitempty"`
+
+	// ExternalSource: [Required] External source that backs this dataset.
+	ExternalSource string `json:"externalSource,omitempty"`
+
+	// ForceSendFields is a list of field names (e.g. "Connection") to
+	// unconditionally include in API requests. By default, fields with
+	// empty or default values are omitted from API requests. However, any
+	// non-pointer, non-interface field appearing in ForceSendFields will be
+	// sent to the server regardless of whether the field is empty or not.
+	// This may be used to include empty fields in Patch requests.
+	ForceSendFields []string `json:"-"`
+
+	// NullFields is a list of field names (e.g. "Connection") to include in
+	// API requests with the JSON null value. By default, fields with empty
+	// values are omitted from API requests. However, any field with an
+	// empty value appearing in NullFields will be sent to the server as
+	// null. It is an error if a field in this list has a non-empty value.
+	// This may be used to include null fields in Patch requests.
+	NullFields []string `json:"-"`
+}
+
+func (s *ExternalDatasetReference) MarshalJSON() ([]byte, error) {
+	type NoMethod ExternalDatasetReference
 	raw := NoMethod(*s)
 	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
 }
@@ -3649,6 +3835,14 @@ func (s *GoogleSheetsOptions) MarshalJSON() ([]byte, error) {
 }
 
 type HivePartitioningOptions struct {
+	// Fields: [Output-only] For permanent external tables, this field is
+	// populated with the hive partition keys in the order they were
+	// inferred. The types of the partition keys can be deduced by checking
+	// the table schema (which will include the partition keys). Not every
+	// API will populate this field in the output. For example, Tables.Get
+	// will populate it, but Tables.List will not contain this field.
+	Fields []string `json:"fields,omitempty"`
+
 	// Mode: [Optional] When set, what mode of hive partitioning to use when
 	// reading data. The following modes are supported. (1) AUTO:
 	// automatically infer partition key name(s) and type(s). (2) STRINGS:
@@ -3680,7 +3874,7 @@ type HivePartitioningOptions struct {
 	// slash does not matter).
 	SourceUriPrefix string `json:"sourceUriPrefix,omitempty"`
 
-	// ForceSendFields is a list of field names (e.g. "Mode") to
+	// ForceSendFields is a list of field names (e.g. "Fields") to
 	// unconditionally include in API requests. By default, fields with
 	// empty or default values are omitted from API requests. However, any
 	// non-pointer, non-interface field appearing in ForceSendFields will be
@@ -3688,7 +3882,7 @@ type HivePartitioningOptions struct {
 	// This may be used to include empty fields in Patch requests.
 	ForceSendFields []string `json:"-"`
 
-	// NullFields is a list of field names (e.g. "Mode") to include in API
+	// NullFields is a list of field names (e.g. "Fields") to include in API
 	// requests with the JSON null value. By default, fields with empty
 	// values are omitted from API requests. However, any field with an
 	// empty value appearing in NullFields will be sent to the server as
@@ -3834,7 +4028,7 @@ type HparamTuningTrial struct {
 	// Status: The status of the trial.
 	//
 	// Possible values:
-	//   "TRIAL_STATUS_UNSPECIFIED"
+	//   "TRIAL_STATUS_UNSPECIFIED" - Default value.
 	//   "NOT_STARTED" - Scheduled but not started.
 	//   "RUNNING" - Running state.
 	//   "SUCCEEDED" - The trial succeeded.
@@ -3891,7 +4085,7 @@ func (s *HparamTuningTrial) UnmarshalJSON(data []byte) error {
 type IndexUnusedReason struct {
 	// BaseTable: [Output-only] Specifies the base table involved in the
 	// reason that no search index was used.
-	BaseTable *TableReference `json:"base_table,omitempty"`
+	BaseTable *TableReference `json:"baseTable,omitempty"`
 
 	// Code: [Output-only] Specifies the high-level reason for the scenario
 	// when no search index was used.
@@ -3899,7 +4093,7 @@ type IndexUnusedReason struct {
 
 	// IndexName: [Output-only] Specifies the name of the unused search
 	// index, if available.
-	IndexName string `json:"index_name,omitempty"`
+	IndexName string `json:"indexName,omitempty"`
 
 	// Message: [Output-only] Free form human-readable reason for the
 	// scenario when no search index was used.
@@ -4141,6 +4335,12 @@ type Job struct {
 
 	// Id: [Output-only] Opaque ID field of the job
 	Id string `json:"id,omitempty"`
+
+	// JobCreationReason: [Output-only] If set, it provides the reason why a
+	// Job was created. If not set, it should be treated as the default:
+	// REQUESTED. This feature is not yet available. Jobs will always be
+	// created.
+	JobCreationReason interface{} `json:"jobCreationReason,omitempty"`
 
 	// JobReference: [Optional] Reference describing the unique-per-user
 	// name of the job.
@@ -4443,6 +4643,12 @@ type JobConfigurationLoad struct {
 	// specify a tab separator. The default value is a comma (',').
 	FieldDelimiter string `json:"fieldDelimiter,omitempty"`
 
+	// FileSetSpecType: [Optional] Specifies how source URIs are interpreted
+	// for constructing the file set to load. By default source URIs are
+	// expanded against the underlying storage. Other options include
+	// specifying manifest files. Only applicable to object storage systems.
+	FileSetSpecType string `json:"fileSetSpecType,omitempty"`
+
 	// HivePartitioningOptions: [Optional] Options to configure hive
 	// partitioning support.
 	HivePartitioningOptions *HivePartitioningOptions `json:"hivePartitioningOptions,omitempty"`
@@ -4630,6 +4836,10 @@ type JobConfigurationQuery struct {
 
 	// ConnectionProperties: Connection properties.
 	ConnectionProperties []*ConnectionProperty `json:"connectionProperties,omitempty"`
+
+	// Continuous: [Optional] Specifies whether the query should be executed
+	// as a continuous query. The default value is false.
+	Continuous bool `json:"continuous,omitempty"`
 
 	// CreateDisposition: [Optional] Specifies whether the job is allowed to
 	// create new tables. The following values are supported:
@@ -4854,6 +5064,55 @@ type JobConfigurationTableCopy struct {
 
 func (s *JobConfigurationTableCopy) MarshalJSON() ([]byte, error) {
 	type NoMethod JobConfigurationTableCopy
+	raw := NoMethod(*s)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
+}
+
+// JobCreationReason: Reason about why a Job was created from a
+// `jobs.query`
+// (https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs/query)
+// method when used with `JOB_CREATION_OPTIONAL` Job creation mode. For
+// `jobs.insert`
+// (https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs/insert)
+// method calls it will always be `REQUESTED`. This feature is not yet
+// available. Jobs will always be created.
+type JobCreationReason struct {
+	// Code: Output only. Specifies the high level reason why a Job was
+	// created.
+	//
+	// Possible values:
+	//   "CODE_UNSPECIFIED" - Reason is not specified.
+	//   "REQUESTED" - Job creation was requested.
+	//   "LONG_RUNNING" - The query request ran beyond a system defined
+	// timeout specified by the [timeoutMs field in the
+	// QueryRequest](https://cloud.google.com/bigquery/docs/reference/rest/v2
+	// /jobs/query#queryrequest). As a result it was considered a long
+	// running operation for which a job was created.
+	//   "LARGE_RESULTS" - The results from the query cannot fit in the
+	// response.
+	//   "OTHER" - BigQuery has determined that the query needs to be
+	// executed as a Job.
+	Code string `json:"code,omitempty"`
+
+	// ForceSendFields is a list of field names (e.g. "Code") to
+	// unconditionally include in API requests. By default, fields with
+	// empty or default values are omitted from API requests. However, any
+	// non-pointer, non-interface field appearing in ForceSendFields will be
+	// sent to the server regardless of whether the field is empty or not.
+	// This may be used to include empty fields in Patch requests.
+	ForceSendFields []string `json:"-"`
+
+	// NullFields is a list of field names (e.g. "Code") to include in API
+	// requests with the JSON null value. By default, fields with empty
+	// values are omitted from API requests. However, any field with an
+	// empty value appearing in NullFields will be sent to the server as
+	// null. It is an error if a field in this list has a non-empty value.
+	// This may be used to include null fields in Patch requests.
+	NullFields []string `json:"-"`
+}
+
+func (s *JobCreationReason) MarshalJSON() ([]byte, error) {
+	type NoMethod JobCreationReason
 	raw := NoMethod(*s)
 	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
 }
@@ -5173,7 +5432,7 @@ type JobStatistics2 struct {
 	DdlOperationPerformed string `json:"ddlOperationPerformed,omitempty"`
 
 	// DdlTargetDataset: [Output only] The DDL target dataset. Present only
-	// for CREATE/ALTER/DROP SCHEMA queries.
+	// for CREATE/ALTER/DROP/UNDROP SCHEMA queries.
 	DdlTargetDataset *DatasetReference `json:"ddlTargetDataset,omitempty"`
 
 	// DdlTargetRoutine: The DDL target routine. Present only for
@@ -5441,11 +5700,11 @@ func (s *JobStatistics4) MarshalJSON() ([]byte, error) {
 type JobStatistics5 struct {
 	// CopiedLogicalBytes: [Output-only] Number of logical bytes copied to
 	// the destination table.
-	CopiedLogicalBytes int64 `json:"copied_logical_bytes,omitempty,string"`
+	CopiedLogicalBytes int64 `json:"copiedLogicalBytes,omitempty,string"`
 
 	// CopiedRows: [Output-only] Number of rows copied to the destination
 	// table.
-	CopiedRows int64 `json:"copied_rows,omitempty,string"`
+	CopiedRows int64 `json:"copiedRows,omitempty,string"`
 
 	// ForceSendFields is a list of field names (e.g. "CopiedLogicalBytes")
 	// to unconditionally include in API requests. By default, fields with
@@ -5508,8 +5767,39 @@ func (s *JobStatus) MarshalJSON() ([]byte, error) {
 	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
 }
 
+type JsonOptions struct {
+	// Encoding: [Optional] The character encoding of the data. The
+	// supported values are UTF-8, UTF-16BE, UTF-16LE, UTF-32BE, and
+	// UTF-32LE. The default value is UTF-8.
+	Encoding string `json:"encoding,omitempty"`
+
+	// ForceSendFields is a list of field names (e.g. "Encoding") to
+	// unconditionally include in API requests. By default, fields with
+	// empty or default values are omitted from API requests. However, any
+	// non-pointer, non-interface field appearing in ForceSendFields will be
+	// sent to the server regardless of whether the field is empty or not.
+	// This may be used to include empty fields in Patch requests.
+	ForceSendFields []string `json:"-"`
+
+	// NullFields is a list of field names (e.g. "Encoding") to include in
+	// API requests with the JSON null value. By default, fields with empty
+	// values are omitted from API requests. However, any field with an
+	// empty value appearing in NullFields will be sent to the server as
+	// null. It is an error if a field in this list has a non-empty value.
+	// This may be used to include null fields in Patch requests.
+	NullFields []string `json:"-"`
+}
+
+func (s *JsonOptions) MarshalJSON() ([]byte, error) {
+	type NoMethod JsonOptions
+	raw := NoMethod(*s)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
+}
+
 type JsonValue interface{}
 
+// ListModelsResponse: Response format for a single page when listing
+// BigQuery ML models.
 type ListModelsResponse struct {
 	// Models: Models in the requested dataset. Only the following fields
 	// are populated: model_reference, model_type, creation_time,
@@ -5546,6 +5836,8 @@ func (s *ListModelsResponse) MarshalJSON() ([]byte, error) {
 	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
 }
 
+// ListRoutinesResponse: Describes the format of a single result page
+// when listing routines.
 type ListRoutinesResponse struct {
 	// NextPageToken: A token to request the next page of results.
 	NextPageToken string `json:"nextPageToken,omitempty"`
@@ -5655,7 +5947,7 @@ func (s *LocationMetadata) MarshalJSON() ([]byte, error) {
 type MaterializedViewDefinition struct {
 	// AllowNonIncrementalDefinition: [Optional] Allow non incremental
 	// materialized view definition. The default value is "false".
-	AllowNonIncrementalDefinition bool `json:"allow_non_incremental_definition,omitempty"`
+	AllowNonIncrementalDefinition bool `json:"allowNonIncrementalDefinition,omitempty"`
 
 	// EnableRefresh: [Optional] [TrustedTester] Enable automatic refresh of
 	// the materialized view when the base table is updated. The default
@@ -5776,8 +6068,9 @@ type Model struct {
 	// models.
 	ExpirationTime int64 `json:"expirationTime,omitempty,string"`
 
-	// FeatureColumns: Output only. Input feature columns that were used to
-	// train this model.
+	// FeatureColumns: Output only. Input feature columns for the model
+	// inference. If the model is trained with TRANSFORM clause, these are
+	// the input of the TRANSFORM clause.
 	FeatureColumns []*StandardSqlField `json:"featureColumns,omitempty"`
 
 	// FriendlyName: Optional. A descriptive name for this model.
@@ -5819,7 +6112,7 @@ type Model struct {
 	// ModelType: Output only. Type of the model resource.
 	//
 	// Possible values:
-	//   "MODEL_TYPE_UNSPECIFIED"
+	//   "MODEL_TYPE_UNSPECIFIED" - Default value.
 	//   "LINEAR_REGRESSION" - Linear regression model.
 	//   "LOGISTIC_REGRESSION" - Logistic regression based classification
 	// model.
@@ -5828,6 +6121,7 @@ type Model struct {
 	//   "DNN_CLASSIFIER" - DNN classifier model.
 	//   "TENSORFLOW" - An imported TensorFlow model.
 	//   "DNN_REGRESSOR" - DNN regressor model.
+	//   "XGBOOST" - An imported XGBoost model.
 	//   "BOOSTED_TREE_REGRESSOR" - Boosted tree regressor model.
 	//   "BOOSTED_TREE_CLASSIFIER" - Boosted tree classifier model.
 	//   "ARIMA" - ARIMA model.
@@ -5838,8 +6132,11 @@ type Model struct {
 	//   "DNN_LINEAR_COMBINED_REGRESSOR" - Wide-and-deep regressor model.
 	//   "AUTOENCODER" - Autoencoder model.
 	//   "ARIMA_PLUS" - New name for the ARIMA model.
-	//   "RANDOM_FOREST_REGRESSOR" - Random Forest regressor model.
-	//   "RANDOM_FOREST_CLASSIFIER" - Random Forest classifier model.
+	//   "ARIMA_PLUS_XREG" - ARIMA with external regressors.
+	//   "RANDOM_FOREST_REGRESSOR" - Random forest regressor model.
+	//   "RANDOM_FOREST_CLASSIFIER" - Random forest classifier model.
+	//   "TENSORFLOW_LITE" - An imported TensorFlow Lite model.
+	//   "ONNX" - An imported ONNX model.
 	ModelType string `json:"modelType,omitempty"`
 
 	// OptimalTrialIds: Output only. For single-objective hyperparameter
@@ -5852,9 +6149,18 @@ type Model struct {
 	// trial_id.
 	OptimalTrialIds googleapi.Int64s `json:"optimalTrialIds,omitempty"`
 
+	// RemoteModelInfo: Output only. Remote model info
+	RemoteModelInfo *RemoteModelInfo `json:"remoteModelInfo,omitempty"`
+
 	// TrainingRuns: Information for all training runs in increasing order
 	// of start_time.
 	TrainingRuns []*TrainingRun `json:"trainingRuns,omitempty"`
+
+	// TransformColumns: Output only. This field will be populated if a
+	// TRANSFORM clause was used to train a model. TRANSFORM clause (if
+	// used) takes feature_columns as input and outputs transform_columns.
+	// transform_columns then are used to train the model.
+	TransformColumns []*TransformColumn `json:"transformColumns,omitempty"`
 
 	// ServerResponse contains the HTTP response code and headers from the
 	// server.
@@ -5954,15 +6260,15 @@ func (s *ModelDefinitionModelOptions) MarshalJSON() ([]byte, error) {
 }
 
 type ModelReference struct {
-	// DatasetId: [Required] The ID of the dataset containing this model.
+	// DatasetId: Required. The ID of the dataset containing this model.
 	DatasetId string `json:"datasetId,omitempty"`
 
-	// ModelId: [Required] The ID of the model. The ID must contain only
+	// ModelId: Required. The ID of the model. The ID must contain only
 	// letters (a-z, A-Z), numbers (0-9), or underscores (_). The maximum
 	// length is 1,024 characters.
 	ModelId string `json:"modelId,omitempty"`
 
-	// ProjectId: [Required] The ID of the project containing this model.
+	// ProjectId: Required. The ID of the project containing this model.
 	ProjectId string `json:"projectId,omitempty"`
 
 	// ForceSendFields is a list of field names (e.g. "DatasetId") to
@@ -6069,7 +6375,7 @@ func (s *ParquetOptions) MarshalJSON() ([]byte, error) {
 // both. To learn which resources support conditions in their IAM
 // policies, see the IAM documentation
 // (https://cloud.google.com/iam/help/conditions/resource-policies).
-// **JSON example:** { "bindings": [ { "role":
+// **JSON example:** ``` { "bindings": [ { "role":
 // "roles/resourcemanager.organizationAdmin", "members": [
 // "user:mike@example.com", "group:admins@example.com",
 // "domain:google.com",
@@ -6078,17 +6384,17 @@ func (s *ParquetOptions) MarshalJSON() ([]byte, error) {
 // "user:eve@example.com" ], "condition": { "title": "expirable access",
 // "description": "Does not grant access after Sep 2020", "expression":
 // "request.time < timestamp('2020-10-01T00:00:00.000Z')", } } ],
-// "etag": "BwWWja0YfJA=", "version": 3 } **YAML example:** bindings: -
-// members: - user:mike@example.com - group:admins@example.com -
-// domain:google.com -
+// "etag": "BwWWja0YfJA=", "version": 3 } ``` **YAML example:** ```
+// bindings: - members: - user:mike@example.com -
+// group:admins@example.com - domain:google.com -
 // serviceAccount:my-project-id@appspot.gserviceaccount.com role:
 // roles/resourcemanager.organizationAdmin - members: -
 // user:eve@example.com role: roles/resourcemanager.organizationViewer
 // condition: title: expirable access description: Does not grant access
 // after Sep 2020 expression: request.time <
 // timestamp('2020-10-01T00:00:00.000Z') etag: BwWWja0YfJA= version: 3
-// For a description of IAM and its features, see the IAM documentation
-// (https://cloud.google.com/iam/docs/).
+// ``` For a description of IAM and its features, see the IAM
+// documentation (https://cloud.google.com/iam/docs/).
 type Policy struct {
 	// AuditConfigs: Specifies cloud audit logging configuration for this
 	// policy.
@@ -6226,6 +6532,39 @@ func (s *PrincipalComponentInfo) UnmarshalJSON(data []byte) error {
 	s.ExplainedVariance = float64(s1.ExplainedVariance)
 	s.ExplainedVarianceRatio = float64(s1.ExplainedVarianceRatio)
 	return nil
+}
+
+// PrivacyPolicy: Represents privacy policy that contains the privacy
+// requirements specified by the data owner. Currently, this is only
+// supported on views.
+type PrivacyPolicy struct {
+	// AggregationThresholdPolicy: Optional. Policy used for aggregation
+	// thresholds.
+	AggregationThresholdPolicy *AggregationThresholdPolicy `json:"aggregationThresholdPolicy,omitempty"`
+
+	// ForceSendFields is a list of field names (e.g.
+	// "AggregationThresholdPolicy") to unconditionally include in API
+	// requests. By default, fields with empty or default values are omitted
+	// from API requests. However, any non-pointer, non-interface field
+	// appearing in ForceSendFields will be sent to the server regardless of
+	// whether the field is empty or not. This may be used to include empty
+	// fields in Patch requests.
+	ForceSendFields []string `json:"-"`
+
+	// NullFields is a list of field names (e.g.
+	// "AggregationThresholdPolicy") to include in API requests with the
+	// JSON null value. By default, fields with empty values are omitted
+	// from API requests. However, any field with an empty value appearing
+	// in NullFields will be sent to the server as null. It is an error if a
+	// field in this list has a non-empty value. This may be used to include
+	// null fields in Patch requests.
+	NullFields []string `json:"-"`
+}
+
+func (s *PrivacyPolicy) MarshalJSON() ([]byte, error) {
+	type NoMethod PrivacyPolicy
+	raw := NoMethod(*s)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
 }
 
 type ProjectList struct {
@@ -6478,6 +6817,10 @@ type QueryRequest struct {
 	// ConnectionProperties: Connection properties.
 	ConnectionProperties []*ConnectionProperty `json:"connectionProperties,omitempty"`
 
+	// Continuous: [Optional] Specifies whether the query should be executed
+	// as a continuous query. The default value is false.
+	Continuous bool `json:"continuous,omitempty"`
+
 	// CreateSession: If true, creates a new session, where session id will
 	// be a server generated random id. If false, runs query with an
 	// existing session_id passed in ConnectionProperty, otherwise runs
@@ -6495,6 +6838,12 @@ type QueryRequest struct {
 	// job such as how many bytes would be processed. If the query is
 	// invalid, an error returns. The default value is false.
 	DryRun bool `json:"dryRun,omitempty"`
+
+	// JobCreationMode: Optional. If not set, jobs are always required. If
+	// set, the query request will follow the behavior described
+	// JobCreationMode. This feature is not yet available. Jobs will always
+	// be created.
+	JobCreationMode string `json:"jobCreationMode,omitempty"`
 
 	// Kind: The resource type of the request.
 	Kind string `json:"kind,omitempty"`
@@ -6635,6 +6984,15 @@ type QueryResponse struct {
 	// totalRows will not be available.
 	JobComplete bool `json:"jobComplete,omitempty"`
 
+	// JobCreationReason: Optional. Only relevant when a job_reference is
+	// present in the response. If job_reference is not present it will
+	// always be unset. When job_reference is present, this field should be
+	// interpreted as follows: If set, it will provide the reason of why a
+	// Job was created. If not set, it should be treated as the default:
+	// REQUESTED. This feature is not yet available. Jobs will always be
+	// created.
+	JobCreationReason interface{} `json:"jobCreationReason,omitempty"`
+
 	// JobReference: Reference to the Job that was created to run the query.
 	// This field will be present even if the original request timed out, in
 	// which case GetQueryResults can be used to read the results once the
@@ -6653,6 +7011,11 @@ type QueryResponse struct {
 
 	// PageToken: A token used for paging results.
 	PageToken string `json:"pageToken,omitempty"`
+
+	// QueryId: Query ID for the completed query. This ID will be
+	// auto-generated. This field is not yet available and it is currently
+	// not guaranteed to be populated.
+	QueryId string `json:"queryId,omitempty"`
 
 	// Rows: An object with as many results as can be contained within the
 	// maximum permitted reply size. To get any additional rows, you can
@@ -7002,6 +7365,79 @@ func (s *RemoteFunctionOptions) MarshalJSON() ([]byte, error) {
 	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
 }
 
+// RemoteModelInfo: Remote Model Info
+type RemoteModelInfo struct {
+	// Connection: Output only. Fully qualified name of the user-provided
+	// connection object of the remote model. Format:
+	// ``"projects/{project_id}/locations/{location_id}/connections/{connect
+	// ion_id}"``
+	Connection string `json:"connection,omitempty"`
+
+	// Endpoint: Output only. The endpoint for remote model.
+	Endpoint string `json:"endpoint,omitempty"`
+
+	// MaxBatchingRows: Output only. Max number of rows in each batch sent
+	// to the remote service. If unset, the number of rows in each batch is
+	// set dynamically.
+	MaxBatchingRows int64 `json:"maxBatchingRows,omitempty,string"`
+
+	// RemoteModelVersion: Output only. The model version for LLM.
+	RemoteModelVersion string `json:"remoteModelVersion,omitempty"`
+
+	// RemoteServiceType: Output only. The remote service type for remote
+	// model.
+	//
+	// Possible values:
+	//   "REMOTE_SERVICE_TYPE_UNSPECIFIED" - Unspecified remote service
+	// type.
+	//   "CLOUD_AI_TRANSLATE_V3" - V3 Cloud AI Translation API. See more
+	// details at [Cloud Translation API]
+	// (https://cloud.google.com/translate/docs/reference/rest).
+	//   "CLOUD_AI_VISION_V1" - V1 Cloud AI Vision API See more details at
+	// [Cloud Vision API]
+	// (https://cloud.google.com/vision/docs/reference/rest).
+	//   "CLOUD_AI_NATURAL_LANGUAGE_V1" - V1 Cloud AI Natural Language API.
+	// See more details at [REST Resource:
+	// documents](https://cloud.google.com/natural-language/docs/reference/re
+	// st/v1/documents).
+	//   "CLOUD_AI_SPEECH_TO_TEXT_V2" - V2 Speech-to-Text API. See more
+	// details at [Google Cloud Speech-to-Text V2
+	// API](https://cloud.google.com/speech-to-text/v2/docs)
+	RemoteServiceType string `json:"remoteServiceType,omitempty"`
+
+	// SpeechRecognizer: Output only. The name of the speech recognizer to
+	// use for speech recognition. The expected format is
+	// `projects/{project}/locations/{location}/recognizers/{recognizer}`.
+	// Customers can specify this field at model creation. If not specified,
+	// a default recognizer `projects/{model
+	// project}/locations/global/recognizers/_` will be used. See more
+	// details at recognizers
+	// (https://cloud.google.com/speech-to-text/v2/docs/reference/rest/v2/projects.locations.recognizers)
+	SpeechRecognizer string `json:"speechRecognizer,omitempty"`
+
+	// ForceSendFields is a list of field names (e.g. "Connection") to
+	// unconditionally include in API requests. By default, fields with
+	// empty or default values are omitted from API requests. However, any
+	// non-pointer, non-interface field appearing in ForceSendFields will be
+	// sent to the server regardless of whether the field is empty or not.
+	// This may be used to include empty fields in Patch requests.
+	ForceSendFields []string `json:"-"`
+
+	// NullFields is a list of field names (e.g. "Connection") to include in
+	// API requests with the JSON null value. By default, fields with empty
+	// values are omitted from API requests. However, any field with an
+	// empty value appearing in NullFields will be sent to the server as
+	// null. It is an error if a field in this list has a non-empty value.
+	// This may be used to include null fields in Patch requests.
+	NullFields []string `json:"-"`
+}
+
+func (s *RemoteModelInfo) MarshalJSON() ([]byte, error) {
+	type NoMethod RemoteModelInfo
+	raw := NoMethod(*s)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
+}
+
 // Routine: A user-defined function or a stored procedure.
 type Routine struct {
 	// Arguments: Optional.
@@ -7010,6 +7446,17 @@ type Routine struct {
 	// CreationTime: Output only. The time when this routine was created, in
 	// milliseconds since the epoch.
 	CreationTime int64 `json:"creationTime,omitempty,string"`
+
+	// DataGovernanceType: Optional. If set to `DATA_MASKING`, the function
+	// is validated and made available as a masking function. For more
+	// information, see Create custom masking routines
+	// (https://cloud.google.com/bigquery/docs/user-defined-functions#custom-mask).
+	//
+	// Possible values:
+	//   "DATA_GOVERNANCE_TYPE_UNSPECIFIED" - The data governance type is
+	// unspecified.
+	//   "DATA_MASKING" - The data governance type is data masking.
+	DataGovernanceType string `json:"dataGovernanceType,omitempty"`
 
 	// DefinitionBody: Required. The body of the routine. For functions,
 	// this is the expression in the AS clause. If language=SQL, it is the
@@ -7050,10 +7497,12 @@ type Routine struct {
 	// field is absent, not set otherwise.
 	//
 	// Possible values:
-	//   "LANGUAGE_UNSPECIFIED"
+	//   "LANGUAGE_UNSPECIFIED" - Default value.
 	//   "SQL" - SQL language.
 	//   "JAVASCRIPT" - JavaScript language.
 	//   "PYTHON" - Python language.
+	//   "JAVA" - Java language.
+	//   "SCALA" - Scala language.
 	Language string `json:"language,omitempty"`
 
 	// LastModifiedTime: Output only. The time when this routine was last
@@ -7095,11 +7544,25 @@ type Routine struct {
 	// RoutineType: Required. The type of routine.
 	//
 	// Possible values:
-	//   "ROUTINE_TYPE_UNSPECIFIED"
-	//   "SCALAR_FUNCTION" - Non-builtin permanent scalar function.
+	//   "ROUTINE_TYPE_UNSPECIFIED" - Default value.
+	//   "SCALAR_FUNCTION" - Non-built-in persistent scalar function.
 	//   "PROCEDURE" - Stored procedure.
-	//   "TABLE_VALUED_FUNCTION" - Non-builtin permanent TVF.
+	//   "TABLE_VALUED_FUNCTION" - Non-built-in persistent TVF.
+	//   "AGGREGATE_FUNCTION" - Non-built-in persistent aggregate function.
 	RoutineType string `json:"routineType,omitempty"`
+
+	// SecurityMode: Optional. The security mode of the routine, if defined.
+	// If not defined, the security mode is automatically determined from
+	// the routine's configuration.
+	//
+	// Possible values:
+	//   "SECURITY_MODE_UNSPECIFIED" - The security mode of the routine is
+	// unspecified.
+	//   "DEFINER" - The routine is to be executed with the privileges of
+	// the user who defines it.
+	//   "INVOKER" - The routine is to be executed with the privileges of
+	// the user who invokes it.
+	SecurityMode string `json:"securityMode,omitempty"`
 
 	// SparkOptions: Optional. Spark specific options.
 	SparkOptions *SparkOptions `json:"sparkOptions,omitempty"`
@@ -7140,13 +7603,13 @@ func (s *Routine) MarshalJSON() ([]byte, error) {
 }
 
 type RoutineReference struct {
-	// DatasetId: [Required] The ID of the dataset containing this routine.
+	// DatasetId: Required. The ID of the dataset containing this routine.
 	DatasetId string `json:"datasetId,omitempty"`
 
-	// ProjectId: [Required] The ID of the project containing this routine.
+	// ProjectId: Required. The ID of the project containing this routine.
 	ProjectId string `json:"projectId,omitempty"`
 
-	// RoutineId: [Required] The ID of the routine. The ID must contain only
+	// RoutineId: Required. The ID of the routine. The ID must contain only
 	// letters (a-z, A-Z), numbers (0-9), or underscores (_). The maximum
 	// length is 256 characters.
 	RoutineId string `json:"routineId,omitempty"`
@@ -7256,20 +7719,20 @@ func (s *RowAccessPolicy) MarshalJSON() ([]byte, error) {
 }
 
 type RowAccessPolicyReference struct {
-	// DatasetId: [Required] The ID of the dataset containing this row
-	// access policy.
+	// DatasetId: Required. The ID of the dataset containing this row access
+	// policy.
 	DatasetId string `json:"datasetId,omitempty"`
 
-	// PolicyId: [Required] The ID of the row access policy. The ID must
+	// PolicyId: Required. The ID of the row access policy. The ID must
 	// contain only letters (a-z, A-Z), numbers (0-9), or underscores (_).
 	// The maximum length is 256 characters.
 	PolicyId string `json:"policyId,omitempty"`
 
-	// ProjectId: [Required] The ID of the project containing this row
-	// access policy.
+	// ProjectId: Required. The ID of the project containing this row access
+	// policy.
 	ProjectId string `json:"projectId,omitempty"`
 
-	// TableId: [Required] The ID of the table containing this row access
+	// TableId: Required. The ID of the table containing this row access
 	// policy.
 	TableId string `json:"tableId,omitempty"`
 
@@ -7405,16 +7868,16 @@ func (s *ScriptStatistics) MarshalJSON() ([]byte, error) {
 }
 
 type SearchStatistics struct {
-	// IndexUnusedReason: When index_usage_mode is UNUSED or PARTIALLY_USED,
-	// this field explains why index was not used in all or part of the
-	// search query. If index_usage_mode is FULLLY_USED, this field is not
-	// populated.
-	IndexUnusedReason []*IndexUnusedReason `json:"indexUnusedReason,omitempty"`
+	// IndexUnusedReasons: When index_usage_mode is UNUSED or
+	// PARTIALLY_USED, this field explains why index was not used in all or
+	// part of the search query. If index_usage_mode is FULLLY_USED, this
+	// field is not populated.
+	IndexUnusedReasons []*IndexUnusedReason `json:"indexUnusedReasons,omitempty"`
 
 	// IndexUsageMode: Specifies index usage mode for the query.
 	IndexUsageMode string `json:"indexUsageMode,omitempty"`
 
-	// ForceSendFields is a list of field names (e.g. "IndexUnusedReason")
+	// ForceSendFields is a list of field names (e.g. "IndexUnusedReasons")
 	// to unconditionally include in API requests. By default, fields with
 	// empty or default values are omitted from API requests. However, any
 	// non-pointer, non-interface field appearing in ForceSendFields will be
@@ -7422,7 +7885,7 @@ type SearchStatistics struct {
 	// This may be used to include empty fields in Patch requests.
 	ForceSendFields []string `json:"-"`
 
-	// NullFields is a list of field names (e.g. "IndexUnusedReason") to
+	// NullFields is a list of field names (e.g. "IndexUnusedReasons") to
 	// include in API requests with the JSON null value. By default, fields
 	// with empty values are omitted from API requests. However, any field
 	// with an empty value appearing in NullFields will be sent to the
@@ -7538,10 +8001,10 @@ func (s *SnapshotDefinition) MarshalJSON() ([]byte, error) {
 
 type SparkLoggingInfo struct {
 	// ProjectId: [Output-only] Project ID used for logging
-	ProjectId string `json:"project_id,omitempty"`
+	ProjectId string `json:"projectId,omitempty"`
 
 	// ResourceType: [Output-only] Resource type used for logging
-	ResourceType string `json:"resource_type,omitempty"`
+	ResourceType string `json:"resourceType,omitempty"`
 
 	// ForceSendFields is a list of field names (e.g. "ProjectId") to
 	// unconditionally include in API requests. By default, fields with
@@ -7592,6 +8055,11 @@ type SparkOptions struct {
 	// (https://spark.apache.org/docs/latest/index.html).
 	JarUris []string `json:"jarUris,omitempty"`
 
+	// MainClass: The fully qualified name of a class in jar_uris, for
+	// example, com.example.wordcount. Exactly one of main_class and
+	// main_jar_uri field should be set for Java/Scala language type.
+	MainClass string `json:"mainClass,omitempty"`
+
 	// MainFileUri: The main file/jar URI of the Spark application. Exactly
 	// one of the definition_body field and the main_file_uri field must be
 	// set for Python. Exactly one of main_class and main_file_uri field
@@ -7601,7 +8069,9 @@ type SparkOptions struct {
 	// Properties: Configuration properties as a set of key/value pairs,
 	// which will be passed on to the Spark application. For more
 	// information, see Apache Spark
-	// (https://spark.apache.org/docs/latest/index.html).
+	// (https://spark.apache.org/docs/latest/index.html) and the procedure
+	// option list
+	// (https://cloud.google.com/bigquery/docs/reference/standard-sql/data-definition-language#procedure_option_list).
 	Properties map[string]string `json:"properties,omitempty"`
 
 	// PyFileUris: Python files to be placed on the PYTHONPATH for PySpark
@@ -7643,15 +8113,15 @@ type SparkStatistics struct {
 
 	// LoggingInfo: [Output-only] Logging info is used to generate a link to
 	// Cloud Logging.
-	LoggingInfo *SparkLoggingInfo `json:"logging_info,omitempty"`
+	LoggingInfo *SparkLoggingInfo `json:"loggingInfo,omitempty"`
 
 	// SparkJobId: [Output-only] Spark job id if a Spark job is created
 	// successfully.
-	SparkJobId string `json:"spark_job_id,omitempty"`
+	SparkJobId string `json:"sparkJobId,omitempty"`
 
 	// SparkJobLocation: [Output-only] Location where the Spark job is
 	// executed.
-	SparkJobLocation string `json:"spark_job_location,omitempty"`
+	SparkJobLocation string `json:"sparkJobLocation,omitempty"`
 
 	// ForceSendFields is a list of field names (e.g. "Endpoints") to
 	// unconditionally include in API requests. By default, fields with
@@ -7688,12 +8158,16 @@ type StandardSqlDataType struct {
 	// "ARRAY".
 	ArrayElementType *StandardSqlDataType `json:"arrayElementType,omitempty"`
 
+	// RangeElementType: The type of the range's elements, if type_kind =
+	// "RANGE".
+	RangeElementType *StandardSqlDataType `json:"rangeElementType,omitempty"`
+
 	// StructType: The fields of this struct, in order, if type_kind =
 	// "STRUCT".
 	StructType *StandardSqlStructType `json:"structType,omitempty"`
 
 	// TypeKind: Required. The top level type of this field. Can be any
-	// standard SQL data type (e.g., "INT64", "DATE", "ARRAY").
+	// GoogleSQL data type (e.g., "INT64", "DATE", "ARRAY").
 	//
 	// Possible values:
 	//   "TYPE_KIND_UNSPECIFIED" - Invalid type.
@@ -7719,6 +8193,8 @@ type StandardSqlDataType struct {
 	//   "STRUCT" - Encoded as a list with fields of type
 	// Type.struct_type[i]. List is used because a JSON object cannot have
 	// duplicate field names.
+	//   "RANGE" - Encoded as a pair with types matching range_element_type.
+	// Pairs must begin with "[", end with ")", and be separated by ", ".
 	TypeKind string `json:"typeKind,omitempty"`
 
 	// ForceSendFields is a list of field names (e.g. "ArrayElementType") to
@@ -7779,7 +8255,9 @@ func (s *StandardSqlField) MarshalJSON() ([]byte, error) {
 	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
 }
 
+// StandardSqlStructType: The representation of a SQL STRUCT type.
 type StandardSqlStructType struct {
+	// Fields: Fields within the struct.
 	Fields []*StandardSqlField `json:"fields,omitempty"`
 
 	// ForceSendFields is a list of field names (e.g. "Fields") to
@@ -7901,6 +8379,10 @@ func (s *StringHparamSearchSpace) MarshalJSON() ([]byte, error) {
 }
 
 type Table struct {
+	// BiglakeConfiguration: [Optional] Specifies the configuration of a
+	// BigLake managed table.
+	BiglakeConfiguration *BigLakeConfiguration `json:"biglakeConfiguration,omitempty"`
+
 	// CloneDefinition: [Output-only] Clone definition.
 	CloneDefinition *CloneDefinition `json:"cloneDefinition,omitempty"`
 
@@ -7986,6 +8468,15 @@ type Table struct {
 	// required to run 'PREDICT' queries.
 	Model *ModelDefinition `json:"model,omitempty"`
 
+	// NumActiveLogicalBytes: [Output-only] Number of logical bytes that are
+	// less than 90 days old.
+	NumActiveLogicalBytes int64 `json:"numActiveLogicalBytes,omitempty,string"`
+
+	// NumActivePhysicalBytes: [Output-only] Number of physical bytes less
+	// than 90 days old. This data is not kept in real time, and might be
+	// delayed by a few seconds to a few minutes.
+	NumActivePhysicalBytes int64 `json:"numActivePhysicalBytes,omitempty,string"`
+
 	// NumBytes: [Output-only] The size of this table in bytes, excluding
 	// any data in the streaming buffer.
 	NumBytes int64 `json:"numBytes,omitempty,string"`
@@ -7993,6 +8484,20 @@ type Table struct {
 	// NumLongTermBytes: [Output-only] The number of bytes in the table that
 	// are considered "long-term storage".
 	NumLongTermBytes int64 `json:"numLongTermBytes,omitempty,string"`
+
+	// NumLongTermLogicalBytes: [Output-only] Number of logical bytes that
+	// are more than 90 days old.
+	NumLongTermLogicalBytes int64 `json:"numLongTermLogicalBytes,omitempty,string"`
+
+	// NumLongTermPhysicalBytes: [Output-only] Number of physical bytes more
+	// than 90 days old. This data is not kept in real time, and might be
+	// delayed by a few seconds to a few minutes.
+	NumLongTermPhysicalBytes int64 `json:"numLongTermPhysicalBytes,omitempty,string"`
+
+	// NumPartitions: [Output-only] The number of partitions present in the
+	// table or materialized view. This data is not kept in real time, and
+	// might be delayed by a few seconds to a few minutes.
+	NumPartitions int64 `json:"numPartitions,omitempty,string"`
 
 	// NumPhysicalBytes: [Output-only] [TrustedTester] The physical size of
 	// this table in bytes, excluding any data in the streaming buffer. This
@@ -8003,44 +8508,21 @@ type Table struct {
 	// excluding any data in the streaming buffer.
 	NumRows uint64 `json:"numRows,omitempty,string"`
 
-	// NumActiveLogicalBytes: [Output-only] Number of logical bytes that are
-	// less than 90 days old.
-	NumActiveLogicalBytes int64 `json:"num_active_logical_bytes,omitempty,string"`
-
-	// NumActivePhysicalBytes: [Output-only] Number of physical bytes less
-	// than 90 days old. This data is not kept in real time, and might be
-	// delayed by a few seconds to a few minutes.
-	NumActivePhysicalBytes int64 `json:"num_active_physical_bytes,omitempty,string"`
-
-	// NumLongTermLogicalBytes: [Output-only] Number of logical bytes that
-	// are more than 90 days old.
-	NumLongTermLogicalBytes int64 `json:"num_long_term_logical_bytes,omitempty,string"`
-
-	// NumLongTermPhysicalBytes: [Output-only] Number of physical bytes more
-	// than 90 days old. This data is not kept in real time, and might be
-	// delayed by a few seconds to a few minutes.
-	NumLongTermPhysicalBytes int64 `json:"num_long_term_physical_bytes,omitempty,string"`
-
-	// NumPartitions: [Output-only] The number of partitions present in the
-	// table or materialized view. This data is not kept in real time, and
-	// might be delayed by a few seconds to a few minutes.
-	NumPartitions int64 `json:"num_partitions,omitempty,string"`
-
 	// NumTimeTravelPhysicalBytes: [Output-only] Number of physical bytes
 	// used by time travel storage (deleted or changed data). This data is
 	// not kept in real time, and might be delayed by a few seconds to a few
 	// minutes.
-	NumTimeTravelPhysicalBytes int64 `json:"num_time_travel_physical_bytes,omitempty,string"`
+	NumTimeTravelPhysicalBytes int64 `json:"numTimeTravelPhysicalBytes,omitempty,string"`
 
 	// NumTotalLogicalBytes: [Output-only] Total number of logical bytes in
 	// the table or materialized view.
-	NumTotalLogicalBytes int64 `json:"num_total_logical_bytes,omitempty,string"`
+	NumTotalLogicalBytes int64 `json:"numTotalLogicalBytes,omitempty,string"`
 
 	// NumTotalPhysicalBytes: [Output-only] The physical size of this table
 	// in bytes. This also includes storage used for time travel. This data
 	// is not kept in real time, and might be delayed by a few seconds to a
 	// few minutes.
-	NumTotalPhysicalBytes int64 `json:"num_total_physical_bytes,omitempty,string"`
+	NumTotalPhysicalBytes int64 `json:"numTotalPhysicalBytes,omitempty,string"`
 
 	// RangePartitioning: [TrustedTester] Range partitioning specification
 	// for this table. Only one of timePartitioning and rangePartitioning
@@ -8051,6 +8533,15 @@ type Table struct {
 	// table require a partition filter that can be used for partition
 	// elimination to be specified.
 	RequirePartitionFilter bool `json:"requirePartitionFilter,omitempty"`
+
+	// ResourceTags: [Optional] The tags associated with this table. Tag
+	// keys are globally unique. See additional information on tags
+	// (https://cloud.google.com/iam/docs/tags-access-control#definitions).
+	// An object containing a list of "key": value pairs. The key is the
+	// namespaced friendly name of the tag key, e.g. "12345/environment"
+	// where 12345 is parent id. The value is the friendly short name of the
+	// tag value, e.g. "production".
+	ResourceTags map[string]string `json:"resourceTags,omitempty"`
 
 	// Schema: [Optional] Describes the schema of this table.
 	Schema *TableSchema `json:"schema,omitempty"`
@@ -8067,6 +8558,9 @@ type Table struct {
 	// absent if the table is not being streamed to or if there is no data
 	// in the streaming buffer.
 	StreamingBuffer *Streamingbuffer `json:"streamingBuffer,omitempty"`
+
+	// TableConstraints: [Optional] The table constraints on the table.
+	TableConstraints *TableConstraints `json:"tableConstraints,omitempty"`
 
 	// TableReference: [Required] Reference describing the ID of this table.
 	TableReference *TableReference `json:"tableReference,omitempty"`
@@ -8092,15 +8586,16 @@ type Table struct {
 	// server.
 	googleapi.ServerResponse `json:"-"`
 
-	// ForceSendFields is a list of field names (e.g. "CloneDefinition") to
-	// unconditionally include in API requests. By default, fields with
-	// empty or default values are omitted from API requests. However, any
-	// non-pointer, non-interface field appearing in ForceSendFields will be
-	// sent to the server regardless of whether the field is empty or not.
-	// This may be used to include empty fields in Patch requests.
+	// ForceSendFields is a list of field names (e.g.
+	// "BiglakeConfiguration") to unconditionally include in API requests.
+	// By default, fields with empty or default values are omitted from API
+	// requests. However, any non-pointer, non-interface field appearing in
+	// ForceSendFields will be sent to the server regardless of whether the
+	// field is empty or not. This may be used to include empty fields in
+	// Patch requests.
 	ForceSendFields []string `json:"-"`
 
-	// NullFields is a list of field names (e.g. "CloneDefinition") to
+	// NullFields is a list of field names (e.g. "BiglakeConfiguration") to
 	// include in API requests with the JSON null value. By default, fields
 	// with empty values are omitted from API requests. However, any field
 	// with an empty value appearing in NullFields will be sent to the
@@ -8138,6 +8633,153 @@ type TableCell struct {
 
 func (s *TableCell) MarshalJSON() ([]byte, error) {
 	type NoMethod TableCell
+	raw := NoMethod(*s)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
+}
+
+type TableConstraints struct {
+	// ForeignKeys: [Optional] The foreign keys of the tables.
+	ForeignKeys []*TableConstraintsForeignKeys `json:"foreignKeys,omitempty"`
+
+	// PrimaryKey: [Optional] The primary key of the table.
+	PrimaryKey *TableConstraintsPrimaryKey `json:"primaryKey,omitempty"`
+
+	// ForceSendFields is a list of field names (e.g. "ForeignKeys") to
+	// unconditionally include in API requests. By default, fields with
+	// empty or default values are omitted from API requests. However, any
+	// non-pointer, non-interface field appearing in ForceSendFields will be
+	// sent to the server regardless of whether the field is empty or not.
+	// This may be used to include empty fields in Patch requests.
+	ForceSendFields []string `json:"-"`
+
+	// NullFields is a list of field names (e.g. "ForeignKeys") to include
+	// in API requests with the JSON null value. By default, fields with
+	// empty values are omitted from API requests. However, any field with
+	// an empty value appearing in NullFields will be sent to the server as
+	// null. It is an error if a field in this list has a non-empty value.
+	// This may be used to include null fields in Patch requests.
+	NullFields []string `json:"-"`
+}
+
+func (s *TableConstraints) MarshalJSON() ([]byte, error) {
+	type NoMethod TableConstraints
+	raw := NoMethod(*s)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
+}
+
+type TableConstraintsForeignKeys struct {
+	ColumnReferences []*TableConstraintsForeignKeysColumnReferences `json:"columnReferences,omitempty"`
+
+	Name string `json:"name,omitempty"`
+
+	ReferencedTable *TableConstraintsForeignKeysReferencedTable `json:"referencedTable,omitempty"`
+
+	// ForceSendFields is a list of field names (e.g. "ColumnReferences") to
+	// unconditionally include in API requests. By default, fields with
+	// empty or default values are omitted from API requests. However, any
+	// non-pointer, non-interface field appearing in ForceSendFields will be
+	// sent to the server regardless of whether the field is empty or not.
+	// This may be used to include empty fields in Patch requests.
+	ForceSendFields []string `json:"-"`
+
+	// NullFields is a list of field names (e.g. "ColumnReferences") to
+	// include in API requests with the JSON null value. By default, fields
+	// with empty values are omitted from API requests. However, any field
+	// with an empty value appearing in NullFields will be sent to the
+	// server as null. It is an error if a field in this list has a
+	// non-empty value. This may be used to include null fields in Patch
+	// requests.
+	NullFields []string `json:"-"`
+}
+
+func (s *TableConstraintsForeignKeys) MarshalJSON() ([]byte, error) {
+	type NoMethod TableConstraintsForeignKeys
+	raw := NoMethod(*s)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
+}
+
+type TableConstraintsForeignKeysColumnReferences struct {
+	ReferencedColumn string `json:"referencedColumn,omitempty"`
+
+	ReferencingColumn string `json:"referencingColumn,omitempty"`
+
+	// ForceSendFields is a list of field names (e.g. "ReferencedColumn") to
+	// unconditionally include in API requests. By default, fields with
+	// empty or default values are omitted from API requests. However, any
+	// non-pointer, non-interface field appearing in ForceSendFields will be
+	// sent to the server regardless of whether the field is empty or not.
+	// This may be used to include empty fields in Patch requests.
+	ForceSendFields []string `json:"-"`
+
+	// NullFields is a list of field names (e.g. "ReferencedColumn") to
+	// include in API requests with the JSON null value. By default, fields
+	// with empty values are omitted from API requests. However, any field
+	// with an empty value appearing in NullFields will be sent to the
+	// server as null. It is an error if a field in this list has a
+	// non-empty value. This may be used to include null fields in Patch
+	// requests.
+	NullFields []string `json:"-"`
+}
+
+func (s *TableConstraintsForeignKeysColumnReferences) MarshalJSON() ([]byte, error) {
+	type NoMethod TableConstraintsForeignKeysColumnReferences
+	raw := NoMethod(*s)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
+}
+
+type TableConstraintsForeignKeysReferencedTable struct {
+	DatasetId string `json:"datasetId,omitempty"`
+
+	ProjectId string `json:"projectId,omitempty"`
+
+	TableId string `json:"tableId,omitempty"`
+
+	// ForceSendFields is a list of field names (e.g. "DatasetId") to
+	// unconditionally include in API requests. By default, fields with
+	// empty or default values are omitted from API requests. However, any
+	// non-pointer, non-interface field appearing in ForceSendFields will be
+	// sent to the server regardless of whether the field is empty or not.
+	// This may be used to include empty fields in Patch requests.
+	ForceSendFields []string `json:"-"`
+
+	// NullFields is a list of field names (e.g. "DatasetId") to include in
+	// API requests with the JSON null value. By default, fields with empty
+	// values are omitted from API requests. However, any field with an
+	// empty value appearing in NullFields will be sent to the server as
+	// null. It is an error if a field in this list has a non-empty value.
+	// This may be used to include null fields in Patch requests.
+	NullFields []string `json:"-"`
+}
+
+func (s *TableConstraintsForeignKeysReferencedTable) MarshalJSON() ([]byte, error) {
+	type NoMethod TableConstraintsForeignKeysReferencedTable
+	raw := NoMethod(*s)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
+}
+
+// TableConstraintsPrimaryKey: [Optional] The primary key of the table.
+type TableConstraintsPrimaryKey struct {
+	Columns []string `json:"columns,omitempty"`
+
+	// ForceSendFields is a list of field names (e.g. "Columns") to
+	// unconditionally include in API requests. By default, fields with
+	// empty or default values are omitted from API requests. However, any
+	// non-pointer, non-interface field appearing in ForceSendFields will be
+	// sent to the server regardless of whether the field is empty or not.
+	// This may be used to include empty fields in Patch requests.
+	ForceSendFields []string `json:"-"`
+
+	// NullFields is a list of field names (e.g. "Columns") to include in
+	// API requests with the JSON null value. By default, fields with empty
+	// values are omitted from API requests. However, any field with an
+	// empty value appearing in NullFields will be sent to the server as
+	// null. It is an error if a field in this list has a non-empty value.
+	// This may be used to include null fields in Patch requests.
+	NullFields []string `json:"-"`
+}
+
+func (s *TableConstraintsPrimaryKey) MarshalJSON() ([]byte, error) {
+	type NoMethod TableConstraintsPrimaryKey
 	raw := NoMethod(*s)
 	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
 }
@@ -8404,6 +9046,12 @@ type TableFieldSchema struct {
 	// it is invalid.
 	Precision int64 `json:"precision,omitempty,string"`
 
+	// RangeElementType: Optional. The subtype of the RANGE, if the type of
+	// this field is RANGE. If the type is RANGE, this field is required.
+	// Possible values for the field element type of a RANGE include: - DATE
+	// - DATETIME - TIMESTAMP
+	RangeElementType *TableFieldSchemaRangeElementType `json:"rangeElementType,omitempty"`
+
 	// RoundingMode: Optional. Rounding Mode specification of the field. It
 	// only can be set on NUMERIC or BIGNUMERIC type fields.
 	RoundingMode string `json:"roundingMode,omitempty"`
@@ -8498,6 +9146,37 @@ type TableFieldSchemaPolicyTags struct {
 
 func (s *TableFieldSchemaPolicyTags) MarshalJSON() ([]byte, error) {
 	type NoMethod TableFieldSchemaPolicyTags
+	raw := NoMethod(*s)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
+}
+
+// TableFieldSchemaRangeElementType: Optional. The subtype of the RANGE,
+// if the type of this field is RANGE. If the type is RANGE, this field
+// is required. Possible values for the field element type of a RANGE
+// include: - DATE - DATETIME - TIMESTAMP
+type TableFieldSchemaRangeElementType struct {
+	// Type: The field element type of a RANGE
+	Type string `json:"type,omitempty"`
+
+	// ForceSendFields is a list of field names (e.g. "Type") to
+	// unconditionally include in API requests. By default, fields with
+	// empty or default values are omitted from API requests. However, any
+	// non-pointer, non-interface field appearing in ForceSendFields will be
+	// sent to the server regardless of whether the field is empty or not.
+	// This may be used to include empty fields in Patch requests.
+	ForceSendFields []string `json:"-"`
+
+	// NullFields is a list of field names (e.g. "Type") to include in API
+	// requests with the JSON null value. By default, fields with empty
+	// values are omitted from API requests. However, any field with an
+	// empty value appearing in NullFields will be sent to the server as
+	// null. It is an error if a field in this list has a non-empty value.
+	// This may be used to include null fields in Patch requests.
+	NullFields []string `json:"-"`
+}
+
+func (s *TableFieldSchemaRangeElementType) MarshalJSON() ([]byte, error) {
+	type NoMethod TableFieldSchemaRangeElementType
 	raw := NoMethod(*s)
 	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
 }
@@ -8845,15 +9524,29 @@ func (s *TimePartitioning) MarshalJSON() ([]byte, error) {
 
 // TrainingOptions: Options used in model training.
 type TrainingOptions struct {
+	// ActivationFn: Activation function of the neural nets.
+	ActivationFn string `json:"activationFn,omitempty"`
+
 	// AdjustStepChanges: If true, detect step changes and make data
 	// adjustment in the input time series.
 	AdjustStepChanges bool `json:"adjustStepChanges,omitempty"`
 
+	// ApproxGlobalFeatureContrib: Whether to use approximate feature
+	// contribution method in XGBoost model explanation for global explain.
+	ApproxGlobalFeatureContrib bool `json:"approxGlobalFeatureContrib,omitempty"`
+
 	// AutoArima: Whether to enable auto ARIMA or not.
 	AutoArima bool `json:"autoArima,omitempty"`
 
-	// AutoArimaMaxOrder: The max value of non-seasonal p and q.
+	// AutoArimaMaxOrder: The max value of the sum of non-seasonal p and q.
 	AutoArimaMaxOrder int64 `json:"autoArimaMaxOrder,omitempty,string"`
+
+	// AutoArimaMinOrder: The min value of the sum of non-seasonal p and q.
+	AutoArimaMinOrder int64 `json:"autoArimaMinOrder,omitempty,string"`
+
+	// AutoClassWeights: Whether to calculate class weights automatically
+	// based on the popularity of each label.
+	AutoClassWeights bool `json:"autoClassWeights,omitempty"`
 
 	// BatchSize: Batch size for dnn models.
 	BatchSize int64 `json:"batchSize,omitempty,string"`
@@ -8866,9 +9559,21 @@ type TrainingOptions struct {
 	//   "DART" - Dart booster.
 	BoosterType string `json:"boosterType,omitempty"`
 
+	// BudgetHours: Budget in hours for AutoML training.
+	BudgetHours float64 `json:"budgetHours,omitempty"`
+
 	// CalculatePValues: Whether or not p-value test should be computed for
 	// this model. Only available for linear and logistic regression models.
 	CalculatePValues bool `json:"calculatePValues,omitempty"`
+
+	// CategoryEncodingMethod: Categorical feature encoding method.
+	//
+	// Possible values:
+	//   "ENCODING_METHOD_UNSPECIFIED" - Unspecified encoding method.
+	//   "ONE_HOT_ENCODING" - Applies one-hot encoding.
+	//   "LABEL_ENCODING" - Applies label encoding.
+	//   "DUMMY_ENCODING" - Applies dummy encoding.
+	CategoryEncodingMethod string `json:"categoryEncodingMethod,omitempty"`
 
 	// CleanSpikesAndDips: If true, clean spikes and dips in the input time
 	// series.
@@ -8912,7 +9617,7 @@ type TrainingOptions struct {
 	// DataFrequency: The data frequency of a time series.
 	//
 	// Possible values:
-	//   "DATA_FREQUENCY_UNSPECIFIED"
+	//   "DATA_FREQUENCY_UNSPECIFIED" - Default value.
 	//   "AUTO_FREQUENCY" - Automatically inferred from timestamps.
 	//   "YEARLY" - Yearly data.
 	//   "QUARTERLY" - Quarterly data.
@@ -8944,7 +9649,7 @@ type TrainingOptions struct {
 	// e.g. RANDOM.
 	//
 	// Possible values:
-	//   "DATA_SPLIT_METHOD_UNSPECIFIED"
+	//   "DATA_SPLIT_METHOD_UNSPECIFIED" - Default value.
 	//   "RANDOM" - Splits data randomly.
 	//   "CUSTOM" - Splits data with the user provided tags.
 	//   "SEQUENTIAL" - Splits data sequentially.
@@ -8960,7 +9665,7 @@ type TrainingOptions struct {
 	// DistanceType: Distance type for clustering models.
 	//
 	// Possible values:
-	//   "DISTANCE_TYPE_UNSPECIFIED"
+	//   "DISTANCE_TYPE_UNSPECIFIED" - Default value.
 	//   "EUCLIDEAN" - Eculidean distance.
 	//   "COSINE" - Cosine distance.
 	DistanceType string `json:"distanceType,omitempty"`
@@ -8981,10 +9686,14 @@ type TrainingOptions struct {
 	// matrix factorization.
 	//
 	// Possible values:
-	//   "FEEDBACK_TYPE_UNSPECIFIED"
+	//   "FEEDBACK_TYPE_UNSPECIFIED" - Default value.
 	//   "IMPLICIT" - Use weighted-als for implicit feedback problems.
 	//   "EXPLICIT" - Use nonweighted-als for explicit feedback problems.
 	FeedbackType string `json:"feedbackType,omitempty"`
+
+	// FitIntercept: Whether the model should include intercept during model
+	// training.
+	FitIntercept bool `json:"fitIntercept,omitempty"`
 
 	// HiddenUnits: Hidden units for dnn models.
 	HiddenUnits googleapi.Int64s `json:"hiddenUnits,omitempty"`
@@ -9066,6 +9775,82 @@ type TrainingOptions struct {
 	//   "ZA" - South Africa
 	HolidayRegion string `json:"holidayRegion,omitempty"`
 
+	// HolidayRegions: A list of geographical regions that are used for time
+	// series modeling.
+	//
+	// Possible values:
+	//   "HOLIDAY_REGION_UNSPECIFIED" - Holiday region unspecified.
+	//   "GLOBAL" - Global.
+	//   "NA" - North America.
+	//   "JAPAC" - Japan and Asia Pacific: Korea, Greater China, India,
+	// Australia, and New Zealand.
+	//   "EMEA" - Europe, the Middle East and Africa.
+	//   "LAC" - Latin America and the Caribbean.
+	//   "AE" - United Arab Emirates
+	//   "AR" - Argentina
+	//   "AT" - Austria
+	//   "AU" - Australia
+	//   "BE" - Belgium
+	//   "BR" - Brazil
+	//   "CA" - Canada
+	//   "CH" - Switzerland
+	//   "CL" - Chile
+	//   "CN" - China
+	//   "CO" - Colombia
+	//   "CS" - Czechoslovakia
+	//   "CZ" - Czech Republic
+	//   "DE" - Germany
+	//   "DK" - Denmark
+	//   "DZ" - Algeria
+	//   "EC" - Ecuador
+	//   "EE" - Estonia
+	//   "EG" - Egypt
+	//   "ES" - Spain
+	//   "FI" - Finland
+	//   "FR" - France
+	//   "GB" - Great Britain (United Kingdom)
+	//   "GR" - Greece
+	//   "HK" - Hong Kong
+	//   "HU" - Hungary
+	//   "ID" - Indonesia
+	//   "IE" - Ireland
+	//   "IL" - Israel
+	//   "IN" - India
+	//   "IR" - Iran
+	//   "IT" - Italy
+	//   "JP" - Japan
+	//   "KR" - Korea (South)
+	//   "LV" - Latvia
+	//   "MA" - Morocco
+	//   "MX" - Mexico
+	//   "MY" - Malaysia
+	//   "NG" - Nigeria
+	//   "NL" - Netherlands
+	//   "NO" - Norway
+	//   "NZ" - New Zealand
+	//   "PE" - Peru
+	//   "PH" - Philippines
+	//   "PK" - Pakistan
+	//   "PL" - Poland
+	//   "PT" - Portugal
+	//   "RO" - Romania
+	//   "RS" - Serbia
+	//   "RU" - Russian Federation
+	//   "SA" - Saudi Arabia
+	//   "SE" - Sweden
+	//   "SG" - Singapore
+	//   "SI" - Slovenia
+	//   "SK" - Slovakia
+	//   "TH" - Thailand
+	//   "TR" - Turkey
+	//   "TW" - Taiwan
+	//   "UA" - Ukraine
+	//   "US" - United States
+	//   "VE" - Venezuela
+	//   "VN" - Viet Nam
+	//   "ZA" - South Africa
+	HolidayRegions []string `json:"holidayRegions,omitempty"`
+
 	// Horizon: The number of periods ahead that need to be forecasted.
 	Horizon int64 `json:"horizon,omitempty,string"`
 
@@ -9122,6 +9907,10 @@ type TrainingOptions struct {
 	// InputLabelColumns: Name of input label columns in training data.
 	InputLabelColumns []string `json:"inputLabelColumns,omitempty"`
 
+	// InstanceWeightColumn: Name of the instance weight column for training
+	// data. This column isn't be used as a feature.
+	InstanceWeightColumn string `json:"instanceWeightColumn,omitempty"`
+
 	// IntegratedGradientsNumSteps: Number of integral steps for the
 	// integrated gradients explain method.
 	IntegratedGradientsNumSteps int64 `json:"integratedGradientsNumSteps,omitempty,string"`
@@ -9146,6 +9935,9 @@ type TrainingOptions struct {
 	//   "KMEANS_PLUS_PLUS" - Initializes with kmeans++.
 	KmeansInitializationMethod string `json:"kmeansInitializationMethod,omitempty"`
 
+	// L1RegActivation: L1 regularization coefficient to activations.
+	L1RegActivation float64 `json:"l1RegActivation,omitempty"`
+
 	// L1Regularization: L1 regularization coefficient.
 	L1Regularization float64 `json:"l1Regularization,omitempty"`
 
@@ -9165,7 +9957,7 @@ type TrainingOptions struct {
 	// current iteration.
 	//
 	// Possible values:
-	//   "LEARN_RATE_STRATEGY_UNSPECIFIED"
+	//   "LEARN_RATE_STRATEGY_UNSPECIFIED" - Default value.
 	//   "LINE_SEARCH" - Use line search to determine learning rate.
 	//   "CONSTANT" - Use a constant learning rate.
 	LearnRateStrategy string `json:"learnRateStrategy,omitempty"`
@@ -9173,7 +9965,7 @@ type TrainingOptions struct {
 	// LossType: Type of loss function used during training run.
 	//
 	// Possible values:
-	//   "LOSS_TYPE_UNSPECIFIED"
+	//   "LOSS_TYPE_UNSPECIFIED" - Default value.
 	//   "MEAN_SQUARED_LOSS" - Mean squared loss, used for linear
 	// regression.
 	//   "MEAN_LOG_LOSS" - Mean log loss, used for logistic regression.
@@ -9186,9 +9978,10 @@ type TrainingOptions struct {
 	// MaxParallelTrials: Maximum number of trials to run in parallel.
 	MaxParallelTrials int64 `json:"maxParallelTrials,omitempty,string"`
 
-	// MaxTimeSeriesLength: Get truncated length by last n points in time
-	// series. Use separately from time_series_length_fraction and
-	// min_time_series_length.
+	// MaxTimeSeriesLength: The maximum number of time points in a time
+	// series that can be used in modeling the trend component of the time
+	// series. Don't use this option with the `timeSeriesLengthFraction` or
+	// `minTimeSeriesLength` options.
 	MaxTimeSeriesLength int64 `json:"maxTimeSeriesLength,omitempty,string"`
 
 	// MaxTreeDepth: Maximum depth of a tree for boosted tree models.
@@ -9202,13 +9995,28 @@ type TrainingOptions struct {
 	// MinSplitLoss: Minimum split loss for boosted tree models.
 	MinSplitLoss float64 `json:"minSplitLoss,omitempty"`
 
-	// MinTimeSeriesLength: Set fast trend ARIMA_PLUS model minimum training
-	// length. Use in pair with time_series_length_fraction.
+	// MinTimeSeriesLength: The minimum number of time points in a time
+	// series that are used in modeling the trend component of the time
+	// series. If you use this option you must also set the
+	// `timeSeriesLengthFraction` option. This training option ensures that
+	// enough time points are available when you use
+	// `timeSeriesLengthFraction` in trend modeling. This is particularly
+	// important when forecasting multiple time series in a single query
+	// using `timeSeriesIdColumn`. If the total number of time points is
+	// less than the `minTimeSeriesLength` value, then the query uses all
+	// available time points.
 	MinTimeSeriesLength int64 `json:"minTimeSeriesLength,omitempty,string"`
 
 	// MinTreeChildWeight: Minimum sum of instance weight needed in a child
 	// for boosted tree models.
 	MinTreeChildWeight int64 `json:"minTreeChildWeight,omitempty,string"`
+
+	// ModelRegistry: The model registry.
+	//
+	// Possible values:
+	//   "MODEL_REGISTRY_UNSPECIFIED" - Default value.
+	//   "VERTEX_AI" - Vertex AI.
+	ModelRegistry string `json:"modelRegistry,omitempty"`
 
 	// ModelUri: Google Cloud Storage URI from which the model was imported.
 	// Only applicable for imported models.
@@ -9229,6 +10037,10 @@ type TrainingOptions struct {
 	// iteration for boosted tree models.
 	NumParallelTree int64 `json:"numParallelTree,omitempty,string"`
 
+	// NumPrincipalComponents: Number of principal components to keep in the
+	// PCA model. Must be <= the number of features.
+	NumPrincipalComponents int64 `json:"numPrincipalComponents,omitempty,string"`
+
 	// NumTrials: Number of trials to run this hyperparameter tuning job.
 	NumTrials int64 `json:"numTrials,omitempty,string"`
 
@@ -9236,26 +10048,48 @@ type TrainingOptions struct {
 	// regression models.
 	//
 	// Possible values:
-	//   "OPTIMIZATION_STRATEGY_UNSPECIFIED"
+	//   "OPTIMIZATION_STRATEGY_UNSPECIFIED" - Default value.
 	//   "BATCH_GRADIENT_DESCENT" - Uses an iterative batch gradient descent
 	// algorithm.
 	//   "NORMAL_EQUATION" - Uses a normal equation to solve linear
 	// regression problem.
 	OptimizationStrategy string `json:"optimizationStrategy,omitempty"`
 
-	// PreserveInputStructs: Whether to preserve the input structs in output
-	// feature names. Suppose there is a struct A with field b. When false
-	// (default), the output feature name is A_b. When true, the output
-	// feature name is A.b.
-	PreserveInputStructs bool `json:"preserveInputStructs,omitempty"`
+	// Optimizer: Optimizer used for training the neural nets.
+	Optimizer string `json:"optimizer,omitempty"`
+
+	// PcaExplainedVarianceRatio: The minimum ratio of cumulative explained
+	// variance that needs to be given by the PCA model.
+	PcaExplainedVarianceRatio float64 `json:"pcaExplainedVarianceRatio,omitempty"`
+
+	// PcaSolver: The solver for PCA.
+	//
+	// Possible values:
+	//   "UNSPECIFIED" - Default value.
+	//   "FULL" - Full eigen-decoposition.
+	//   "RANDOMIZED" - Randomized SVD.
+	//   "AUTO" - Auto.
+	PcaSolver string `json:"pcaSolver,omitempty"`
 
 	// SampledShapleyNumPaths: Number of paths for the sampled Shapley
 	// explain method.
 	SampledShapleyNumPaths int64 `json:"sampledShapleyNumPaths,omitempty,string"`
 
+	// ScaleFeatures: If true, scale the feature values by dividing the
+	// feature standard deviation. Currently only apply to PCA.
+	ScaleFeatures bool `json:"scaleFeatures,omitempty"`
+
+	// StandardizeFeatures: Whether to standardize numerical features.
+	// Default to true.
+	StandardizeFeatures bool `json:"standardizeFeatures,omitempty"`
+
 	// Subsample: Subsample fraction of the training data to grow tree to
 	// prevent overfitting for boosted tree models.
 	Subsample float64 `json:"subsample,omitempty"`
+
+	// TfVersion: Based on the selected TF version, the corresponding docker
+	// image is used to train external models.
+	TfVersion string `json:"tfVersion,omitempty"`
 
 	// TimeSeriesDataColumn: Column to be designated as time series data for
 	// ARIMA model.
@@ -9269,8 +10103,13 @@ type TrainingOptions struct {
 	// ARIMA model training.
 	TimeSeriesIdColumns []string `json:"timeSeriesIdColumns,omitempty"`
 
-	// TimeSeriesLengthFraction: Get truncated length by fraction in time
-	// series.
+	// TimeSeriesLengthFraction: The fraction of the interpolated length of
+	// the time series that's used to model the time series trend component.
+	// All of the time points of the time series are used to model the
+	// non-trend component. This training option accelerates modeling
+	// training without sacrificing much forecasting accuracy. You can use
+	// this option with `minTimeSeriesLength` but not with
+	// `maxTimeSeriesLength`.
 	TimeSeriesLengthFraction float64 `json:"timeSeriesLengthFraction,omitempty"`
 
 	// TimeSeriesTimestampColumn: Column to be designated as time series
@@ -9288,12 +10127,21 @@ type TrainingOptions struct {
 	//   "HIST" - Fast histogram optimized approximate greedy algorithm.
 	TreeMethod string `json:"treeMethod,omitempty"`
 
-	// TrendSmoothingWindowSize: The smoothing window size for the trend
-	// component of the time series.
+	// TrendSmoothingWindowSize: Smoothing window size for the trend
+	// component. When a positive value is specified, a center moving
+	// average smoothing is applied on the history trend. When the smoothing
+	// window is out of the boundary at the beginning or the end of the
+	// trend, the first element or the last element is padded to fill the
+	// smoothing window before the average is applied.
 	TrendSmoothingWindowSize int64 `json:"trendSmoothingWindowSize,omitempty,string"`
 
 	// UserColumn: User column specified for matrix factorization models.
 	UserColumn string `json:"userColumn,omitempty"`
+
+	// VertexAiModelVersionAliases: The version aliases to apply in Vertex
+	// AI model registry. Always overwrite if the version aliases exists in
+	// a existing model.
+	VertexAiModelVersionAliases []string `json:"vertexAiModelVersionAliases,omitempty"`
 
 	// WalsAlpha: Hyperparameter for matrix factoration when implicit
 	// feedback type is specified.
@@ -9302,21 +10150,24 @@ type TrainingOptions struct {
 	// WarmStart: Whether to train a model from the last checkpoint.
 	WarmStart bool `json:"warmStart,omitempty"`
 
-	// ForceSendFields is a list of field names (e.g. "AdjustStepChanges")
-	// to unconditionally include in API requests. By default, fields with
+	// XgboostVersion: User-selected XGBoost versions for training of
+	// XGBoost models.
+	XgboostVersion string `json:"xgboostVersion,omitempty"`
+
+	// ForceSendFields is a list of field names (e.g. "ActivationFn") to
+	// unconditionally include in API requests. By default, fields with
 	// empty or default values are omitted from API requests. However, any
 	// non-pointer, non-interface field appearing in ForceSendFields will be
 	// sent to the server regardless of whether the field is empty or not.
 	// This may be used to include empty fields in Patch requests.
 	ForceSendFields []string `json:"-"`
 
-	// NullFields is a list of field names (e.g. "AdjustStepChanges") to
-	// include in API requests with the JSON null value. By default, fields
-	// with empty values are omitted from API requests. However, any field
-	// with an empty value appearing in NullFields will be sent to the
-	// server as null. It is an error if a field in this list has a
-	// non-empty value. This may be used to include null fields in Patch
-	// requests.
+	// NullFields is a list of field names (e.g. "ActivationFn") to include
+	// in API requests with the JSON null value. By default, fields with
+	// empty values are omitted from API requests. However, any field with
+	// an empty value appearing in NullFields will be sent to the server as
+	// null. It is an error if a field in this list has a non-empty value.
+	// This may be used to include null fields in Patch requests.
 	NullFields []string `json:"-"`
 }
 
@@ -9329,37 +10180,43 @@ func (s *TrainingOptions) MarshalJSON() ([]byte, error) {
 func (s *TrainingOptions) UnmarshalJSON(data []byte) error {
 	type NoMethod TrainingOptions
 	var s1 struct {
-		ColsampleBylevel         gensupport.JSONFloat64 `json:"colsampleBylevel"`
-		ColsampleBynode          gensupport.JSONFloat64 `json:"colsampleBynode"`
-		ColsampleBytree          gensupport.JSONFloat64 `json:"colsampleBytree"`
-		DataSplitEvalFraction    gensupport.JSONFloat64 `json:"dataSplitEvalFraction"`
-		Dropout                  gensupport.JSONFloat64 `json:"dropout"`
-		InitialLearnRate         gensupport.JSONFloat64 `json:"initialLearnRate"`
-		L1Regularization         gensupport.JSONFloat64 `json:"l1Regularization"`
-		L2Regularization         gensupport.JSONFloat64 `json:"l2Regularization"`
-		LearnRate                gensupport.JSONFloat64 `json:"learnRate"`
-		MinRelativeProgress      gensupport.JSONFloat64 `json:"minRelativeProgress"`
-		MinSplitLoss             gensupport.JSONFloat64 `json:"minSplitLoss"`
-		Subsample                gensupport.JSONFloat64 `json:"subsample"`
-		TimeSeriesLengthFraction gensupport.JSONFloat64 `json:"timeSeriesLengthFraction"`
-		WalsAlpha                gensupport.JSONFloat64 `json:"walsAlpha"`
+		BudgetHours               gensupport.JSONFloat64 `json:"budgetHours"`
+		ColsampleBylevel          gensupport.JSONFloat64 `json:"colsampleBylevel"`
+		ColsampleBynode           gensupport.JSONFloat64 `json:"colsampleBynode"`
+		ColsampleBytree           gensupport.JSONFloat64 `json:"colsampleBytree"`
+		DataSplitEvalFraction     gensupport.JSONFloat64 `json:"dataSplitEvalFraction"`
+		Dropout                   gensupport.JSONFloat64 `json:"dropout"`
+		InitialLearnRate          gensupport.JSONFloat64 `json:"initialLearnRate"`
+		L1RegActivation           gensupport.JSONFloat64 `json:"l1RegActivation"`
+		L1Regularization          gensupport.JSONFloat64 `json:"l1Regularization"`
+		L2Regularization          gensupport.JSONFloat64 `json:"l2Regularization"`
+		LearnRate                 gensupport.JSONFloat64 `json:"learnRate"`
+		MinRelativeProgress       gensupport.JSONFloat64 `json:"minRelativeProgress"`
+		MinSplitLoss              gensupport.JSONFloat64 `json:"minSplitLoss"`
+		PcaExplainedVarianceRatio gensupport.JSONFloat64 `json:"pcaExplainedVarianceRatio"`
+		Subsample                 gensupport.JSONFloat64 `json:"subsample"`
+		TimeSeriesLengthFraction  gensupport.JSONFloat64 `json:"timeSeriesLengthFraction"`
+		WalsAlpha                 gensupport.JSONFloat64 `json:"walsAlpha"`
 		*NoMethod
 	}
 	s1.NoMethod = (*NoMethod)(s)
 	if err := json.Unmarshal(data, &s1); err != nil {
 		return err
 	}
+	s.BudgetHours = float64(s1.BudgetHours)
 	s.ColsampleBylevel = float64(s1.ColsampleBylevel)
 	s.ColsampleBynode = float64(s1.ColsampleBynode)
 	s.ColsampleBytree = float64(s1.ColsampleBytree)
 	s.DataSplitEvalFraction = float64(s1.DataSplitEvalFraction)
 	s.Dropout = float64(s1.Dropout)
 	s.InitialLearnRate = float64(s1.InitialLearnRate)
+	s.L1RegActivation = float64(s1.L1RegActivation)
 	s.L1Regularization = float64(s1.L1Regularization)
 	s.L2Regularization = float64(s1.L2Regularization)
 	s.LearnRate = float64(s1.LearnRate)
 	s.MinRelativeProgress = float64(s1.MinRelativeProgress)
 	s.MinSplitLoss = float64(s1.MinSplitLoss)
+	s.PcaExplainedVarianceRatio = float64(s1.PcaExplainedVarianceRatio)
 	s.Subsample = float64(s1.Subsample)
 	s.TimeSeriesLengthFraction = float64(s1.TimeSeriesLengthFraction)
 	s.WalsAlpha = float64(s1.WalsAlpha)
@@ -9466,6 +10323,41 @@ func (s *TransactionInfo) MarshalJSON() ([]byte, error) {
 	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
 }
 
+// TransformColumn: Information about a single transform column.
+type TransformColumn struct {
+	// Name: Output only. Name of the column.
+	Name string `json:"name,omitempty"`
+
+	// TransformSql: Output only. The SQL expression used in the column
+	// transform.
+	TransformSql string `json:"transformSql,omitempty"`
+
+	// Type: Output only. Data type of the column after the transform.
+	Type *StandardSqlDataType `json:"type,omitempty"`
+
+	// ForceSendFields is a list of field names (e.g. "Name") to
+	// unconditionally include in API requests. By default, fields with
+	// empty or default values are omitted from API requests. However, any
+	// non-pointer, non-interface field appearing in ForceSendFields will be
+	// sent to the server regardless of whether the field is empty or not.
+	// This may be used to include empty fields in Patch requests.
+	ForceSendFields []string `json:"-"`
+
+	// NullFields is a list of field names (e.g. "Name") to include in API
+	// requests with the JSON null value. By default, fields with empty
+	// values are omitted from API requests. However, any field with an
+	// empty value appearing in NullFields will be sent to the server as
+	// null. It is an error if a field in this list has a non-empty value.
+	// This may be used to include null fields in Patch requests.
+	NullFields []string `json:"-"`
+}
+
+func (s *TransformColumn) MarshalJSON() ([]byte, error) {
+	type NoMethod TransformColumn
+	raw := NoMethod(*s)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
+}
+
 // UserDefinedFunctionResource: This is used for defining User Defined
 // Function (UDF) resources only when using legacy SQL. Users of
 // Standard SQL should leverage either DDL (e.g. CREATE [TEMPORARY]
@@ -9501,6 +10393,54 @@ type UserDefinedFunctionResource struct {
 
 func (s *UserDefinedFunctionResource) MarshalJSON() ([]byte, error) {
 	type NoMethod UserDefinedFunctionResource
+	raw := NoMethod(*s)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
+}
+
+// VectorSearchStatistics: Statistics for a vector search query.
+// Populated as part of JobStatistics2.
+type VectorSearchStatistics struct {
+	// IndexUnusedReasons: When `indexUsageMode` is `UNUSED` or
+	// `PARTIALLY_USED`, this field explains why indexes were not used in
+	// all or part of the vector search query. If `indexUsageMode` is
+	// `FULLY_USED`, this field is not populated.
+	IndexUnusedReasons []*IndexUnusedReason `json:"indexUnusedReasons,omitempty"`
+
+	// IndexUsageMode: Specifies the index usage mode for the query.
+	//
+	// Possible values:
+	//   "INDEX_USAGE_MODE_UNSPECIFIED" - Index usage mode not specified.
+	//   "UNUSED" - No vector indexes were used in the vector search query.
+	// See [`indexUnusedReasons`]
+	// (/bigquery/docs/reference/rest/v2/Job#IndexUnusedReason) for detailed
+	// reasons.
+	//   "PARTIALLY_USED" - Part of the vector search query used vector
+	// indexes. See [`indexUnusedReasons`]
+	// (/bigquery/docs/reference/rest/v2/Job#IndexUnusedReason) for why
+	// other parts of the query did not use vector indexes.
+	//   "FULLY_USED" - The entire vector search query used vector indexes.
+	IndexUsageMode string `json:"indexUsageMode,omitempty"`
+
+	// ForceSendFields is a list of field names (e.g. "IndexUnusedReasons")
+	// to unconditionally include in API requests. By default, fields with
+	// empty or default values are omitted from API requests. However, any
+	// non-pointer, non-interface field appearing in ForceSendFields will be
+	// sent to the server regardless of whether the field is empty or not.
+	// This may be used to include empty fields in Patch requests.
+	ForceSendFields []string `json:"-"`
+
+	// NullFields is a list of field names (e.g. "IndexUnusedReasons") to
+	// include in API requests with the JSON null value. By default, fields
+	// with empty values are omitted from API requests. However, any field
+	// with an empty value appearing in NullFields will be sent to the
+	// server as null. It is an error if a field in this list has a
+	// non-empty value. This may be used to include null fields in Patch
+	// requests.
+	NullFields []string `json:"-"`
+}
+
+func (s *VectorSearchStatistics) MarshalJSON() ([]byte, error) {
+	type NoMethod VectorSearchStatistics
 	raw := NoMethod(*s)
 	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
 }
@@ -9703,6 +10643,15 @@ func (r *DatasetsService) Get(projectId string, datasetId string) *DatasetsGetCa
 	return c
 }
 
+// DatasetView sets the optional parameter "datasetView": Specifies the
+// view that determines which dataset information is returned. By
+// default, metadata and ACL information are returned. Allowed values:
+// METADATA, ACL, FULL.
+func (c *DatasetsGetCall) DatasetView(datasetView string) *DatasetsGetCall {
+	c.urlParams_.Set("datasetView", datasetView)
+	return c
+}
+
 // Fields allows partial responses to be retrieved. See
 // https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
 // for more information.
@@ -9815,6 +10764,11 @@ func (c *DatasetsGetCall) Do(opts ...googleapi.CallOption) (*Dataset, error) {
 	//       "description": "Dataset ID of the requested dataset",
 	//       "location": "path",
 	//       "required": true,
+	//       "type": "string"
+	//     },
+	//     "datasetView": {
+	//       "description": "Specifies the view that determines which dataset information is returned. By default, metadata and ACL information are returned. Allowed values: METADATA, ACL, FULL.",
+	//       "location": "query",
 	//       "type": "string"
 	//     },
 	//     "projectId": {
@@ -13390,9 +14344,9 @@ func (r *RoutinesService) List(projectId string, datasetId string) *RoutinesList
 }
 
 // Filter sets the optional parameter "filter": If set, then only the
-// Routines matching this filter are returned. The current supported
-// form is either "routine_type:" or "routineType:", where is a
-// RoutineType enum. Example: "routineType:SCALAR_FUNCTION".
+// Routines matching this filter are returned. The supported format is
+// `routineType:{RoutineType}`, where `{RoutineType}` is a RoutineType
+// enum. For example: `routineType:SCALAR_FUNCTION`.
 func (c *RoutinesListCall) Filter(filter string) *RoutinesListCall {
 	c.urlParams_.Set("filter", filter)
 	return c
@@ -13541,7 +14495,7 @@ func (c *RoutinesListCall) Do(opts ...googleapi.CallOption) (*ListRoutinesRespon
 	//       "type": "string"
 	//     },
 	//     "filter": {
-	//       "description": "If set, then only the Routines matching this filter are returned. The current supported form is either \"routine_type:\" or \"routineType:\", where is a RoutineType enum. Example: \"routineType:SCALAR_FUNCTION\".",
+	//       "description": "If set, then only the Routines matching this filter are returned. The supported format is `routineType:{RoutineType}`, where `{RoutineType}` is a RoutineType enum. For example: `routineType:SCALAR_FUNCTION`.",
 	//       "location": "query",
 	//       "type": "string"
 	//     },
@@ -14138,154 +15092,6 @@ func (c *RowAccessPoliciesListCall) Pages(ctx context.Context, f func(*ListRowAc
 		}
 		c.PageToken(x.NextPageToken)
 	}
-}
-
-// method id "bigquery.rowAccessPolicies.setIamPolicy":
-
-type RowAccessPoliciesSetIamPolicyCall struct {
-	s                   *Service
-	resource            string
-	setiampolicyrequest *SetIamPolicyRequest
-	urlParams_          gensupport.URLParams
-	ctx_                context.Context
-	header_             http.Header
-}
-
-// SetIamPolicy: Sets the access control policy on the specified
-// resource. Replaces any existing policy. Can return `NOT_FOUND`,
-// `INVALID_ARGUMENT`, and `PERMISSION_DENIED` errors.
-//
-//   - resource: REQUIRED: The resource for which the policy is being
-//     specified. See Resource names
-//     (https://cloud.google.com/apis/design/resource_names) for the
-//     appropriate value for this field.
-func (r *RowAccessPoliciesService) SetIamPolicy(resource string, setiampolicyrequest *SetIamPolicyRequest) *RowAccessPoliciesSetIamPolicyCall {
-	c := &RowAccessPoliciesSetIamPolicyCall{s: r.s, urlParams_: make(gensupport.URLParams)}
-	c.resource = resource
-	c.setiampolicyrequest = setiampolicyrequest
-	return c
-}
-
-// Fields allows partial responses to be retrieved. See
-// https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
-// for more information.
-func (c *RowAccessPoliciesSetIamPolicyCall) Fields(s ...googleapi.Field) *RowAccessPoliciesSetIamPolicyCall {
-	c.urlParams_.Set("fields", googleapi.CombineFields(s))
-	return c
-}
-
-// Context sets the context to be used in this call's Do method. Any
-// pending HTTP request will be aborted if the provided context is
-// canceled.
-func (c *RowAccessPoliciesSetIamPolicyCall) Context(ctx context.Context) *RowAccessPoliciesSetIamPolicyCall {
-	c.ctx_ = ctx
-	return c
-}
-
-// Header returns an http.Header that can be modified by the caller to
-// add HTTP headers to the request.
-func (c *RowAccessPoliciesSetIamPolicyCall) Header() http.Header {
-	if c.header_ == nil {
-		c.header_ = make(http.Header)
-	}
-	return c.header_
-}
-
-func (c *RowAccessPoliciesSetIamPolicyCall) doRequest(alt string) (*http.Response, error) {
-	reqHeaders := make(http.Header)
-	reqHeaders.Set("x-goog-api-client", "gl-go/"+gensupport.GoVersion()+" gdcl/"+internal.Version)
-	for k, v := range c.header_ {
-		reqHeaders[k] = v
-	}
-	reqHeaders.Set("User-Agent", c.s.userAgent())
-	var body io.Reader = nil
-	body, err := googleapi.WithoutDataWrapper.JSONReader(c.setiampolicyrequest)
-	if err != nil {
-		return nil, err
-	}
-	reqHeaders.Set("Content-Type", "application/json")
-	c.urlParams_.Set("alt", alt)
-	c.urlParams_.Set("prettyPrint", "false")
-	urls := googleapi.ResolveRelative(c.s.BasePath, "{+resource}:setIamPolicy")
-	urls += "?" + c.urlParams_.Encode()
-	req, err := http.NewRequest("POST", urls, body)
-	if err != nil {
-		return nil, err
-	}
-	req.Header = reqHeaders
-	googleapi.Expand(req.URL, map[string]string{
-		"resource": c.resource,
-	})
-	return gensupport.SendRequest(c.ctx_, c.s.client, req)
-}
-
-// Do executes the "bigquery.rowAccessPolicies.setIamPolicy" call.
-// Exactly one of *Policy or error will be non-nil. Any non-2xx status
-// code is an error. Response headers are in either
-// *Policy.ServerResponse.Header or (if a response was returned at all)
-// in error.(*googleapi.Error).Header. Use googleapi.IsNotModified to
-// check whether the returned error was because http.StatusNotModified
-// was returned.
-func (c *RowAccessPoliciesSetIamPolicyCall) Do(opts ...googleapi.CallOption) (*Policy, error) {
-	gensupport.SetOptions(c.urlParams_, opts...)
-	res, err := c.doRequest("json")
-	if res != nil && res.StatusCode == http.StatusNotModified {
-		if res.Body != nil {
-			res.Body.Close()
-		}
-		return nil, gensupport.WrapError(&googleapi.Error{
-			Code:   res.StatusCode,
-			Header: res.Header,
-		})
-	}
-	if err != nil {
-		return nil, err
-	}
-	defer googleapi.CloseBody(res)
-	if err := googleapi.CheckResponse(res); err != nil {
-		return nil, gensupport.WrapError(err)
-	}
-	ret := &Policy{
-		ServerResponse: googleapi.ServerResponse{
-			Header:         res.Header,
-			HTTPStatusCode: res.StatusCode,
-		},
-	}
-	target := &ret
-	if err := gensupport.DecodeResponse(target, res); err != nil {
-		return nil, err
-	}
-	return ret, nil
-	// {
-	//   "description": "Sets the access control policy on the specified resource. Replaces any existing policy. Can return `NOT_FOUND`, `INVALID_ARGUMENT`, and `PERMISSION_DENIED` errors.",
-	//   "flatPath": "projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}/rowAccessPolicies/{rowAccessPoliciesId}:setIamPolicy",
-	//   "httpMethod": "POST",
-	//   "id": "bigquery.rowAccessPolicies.setIamPolicy",
-	//   "parameterOrder": [
-	//     "resource"
-	//   ],
-	//   "parameters": {
-	//     "resource": {
-	//       "description": "REQUIRED: The resource for which the policy is being specified. See [Resource names](https://cloud.google.com/apis/design/resource_names) for the appropriate value for this field.",
-	//       "location": "path",
-	//       "pattern": "^projects/[^/]+/datasets/[^/]+/tables/[^/]+/rowAccessPolicies/[^/]+$",
-	//       "required": true,
-	//       "type": "string"
-	//     }
-	//   },
-	//   "path": "{+resource}:setIamPolicy",
-	//   "request": {
-	//     "$ref": "SetIamPolicyRequest"
-	//   },
-	//   "response": {
-	//     "$ref": "Policy"
-	//   },
-	//   "scopes": [
-	//     "https://www.googleapis.com/auth/bigquery",
-	//     "https://www.googleapis.com/auth/cloud-platform"
-	//   ]
-	// }
-
 }
 
 // method id "bigquery.rowAccessPolicies.testIamPermissions":
