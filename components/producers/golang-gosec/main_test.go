@@ -9,7 +9,6 @@ import (
 	v1 "github.com/ocurity/dracon/api/proto/v1"
 	"github.com/ocurity/dracon/pkg/testutil"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -50,19 +49,23 @@ var gosecout = `
 
 func TestParseIssues(t *testing.T) {
 	f, err := testutil.CreateFile("gosec_tests_vuln_code", code)
-	if err != nil {
-		t.Error(err)
-	}
-	defer os.Remove(f.Name())
-	exampleOutput := fmt.Sprintf(gosecout, f.Name())
+	require.NoError(t, err)
+	tempFileName := f.Name()
+
+	defer func() {
+		require.NoError(t, os.Remove(tempFileName))
+	}()
+
+	exampleOutput := fmt.Sprintf(gosecout, tempFileName)
 	var results GoSecOut
 	err = json.Unmarshal([]byte(exampleOutput), &results)
 	require.NoError(t, err)
 
 	issues, err := parseIssues(&results)
 	require.NoError(t, err)
+
 	expectedIssue := &v1.Issue{
-		Target:         fmt.Sprintf("%s:2", f.Name()),
+		Target:         fmt.Sprintf("%s:2", tempFileName),
 		Type:           "G304",
 		Title:          "Potential file inclusion via variable",
 		Severity:       v1.Severity_SEVERITY_MEDIUM,
@@ -72,5 +75,5 @@ func TestParseIssues(t *testing.T) {
 		ContextSegment: &code,
 	}
 
-	assert.Equal(t, []*v1.Issue{expectedIssue}, issues)
+	require.Equal(t, []*v1.Issue{expectedIssue}, issues)
 }

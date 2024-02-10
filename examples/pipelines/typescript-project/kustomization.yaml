@@ -4,6 +4,7 @@ kind: Kustomization
 nameSuffix: -typescript-project
 resources:
   - ../../../components/base/pipeline.yaml
+  - ../../../components/base/task.yaml
 components:
   - ../../../components/sources/git
   - ../../../components/producers/aggregator

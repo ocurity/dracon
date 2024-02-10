@@ -4,6 +4,7 @@ kind: Kustomization
 nameSuffix: -nancy-purl-project
 resources:
   - ../../../components/base/pipeline.yaml
+  - ../../../components/base/task.yaml
 components:
   - ../../../components/sources/dependency
   - ../../../components/producers/aggregator

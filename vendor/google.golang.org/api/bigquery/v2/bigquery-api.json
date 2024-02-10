@@ -139,6 +139,11 @@
               "required": true,
               "type": "string"
             },
+            "datasetView": {
+              "description": "Specifies the view that determines which dataset information is returned. By default, metadata and ACL information are returned. Allowed values: METADATA, ACL, FULL.",
+              "location": "query",
+              "type": "string"
+            },
             "projectId": {
               "description": "Project ID of the requested dataset",
               "location": "path",
@@ -1011,7 +1016,7 @@
               "type": "string"
             },
             "filter": {
-              "description": "If set, then only the Routines matching this filter are returned. The current supported form is either \"routine_type:\" or \"routineType:\", where is a RoutineType enum. Example: \"routineType:SCALAR_FUNCTION\".",
+              "description": "If set, then only the Routines matching this filter are returned. The supported format is `routineType:{RoutineType}`, where `{RoutineType}` is a RoutineType enum. For example: `routineType:SCALAR_FUNCTION`.",
               "location": "query",
               "type": "string"
             },
@@ -1181,35 +1186,6 @@
             "https://www.googleapis.com/auth/bigquery",
             "https://www.googleapis.com/auth/cloud-platform",
             "https://www.googleapis.com/auth/cloud-platform.read-only"
-          ]
-        },
-        "setIamPolicy": {
-          "description": "Sets the access control policy on the specified resource. Replaces any existing policy. Can return `NOT_FOUND`, `INVALID_ARGUMENT`, and `PERMISSION_DENIED` errors.",
-          "flatPath": "projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}/rowAccessPolicies/{rowAccessPoliciesId}:setIamPolicy",
-          "httpMethod": "POST",
-          "id": "bigquery.rowAccessPolicies.setIamPolicy",
-          "parameterOrder": [
-            "resource"
-          ],
-          "parameters": {
-            "resource": {
-              "description": "REQUIRED: The resource for which the policy is being specified. See [Resource names](https://cloud.google.com/apis/design/resource_names) for the appropriate value for this field.",
-              "location": "path",
-              "pattern": "^projects/[^/]+/datasets/[^/]+/tables/[^/]+/rowAccessPolicies/[^/]+$",
-              "required": true,
-              "type": "string"
-            }
-          },
-          "path": "{+resource}:setIamPolicy",
-          "request": {
-            "$ref": "SetIamPolicyRequest"
-          },
-          "response": {
-            "$ref": "Policy"
-          },
-          "scopes": [
-            "https://www.googleapis.com/auth/bigquery",
-            "https://www.googleapis.com/auth/cloud-platform"
           ]
         },
         "testIamPermissions": {
@@ -1710,7 +1686,7 @@
       }
     }
   },
-  "revision": "20230218",
+  "revision": "20231202",
   "rootUrl": "https://bigquery.googleapis.com/",
   "schemas": {
     "AggregateClassificationMetrics": {
@@ -1755,6 +1731,25 @@
       },
       "type": "object"
     },
+    "AggregationThresholdPolicy": {
+      "description": "Represents privacy policy associated with \"aggregation threshold\" method.",
+      "id": "AggregationThresholdPolicy",
+      "properties": {
+        "privacyUnitColumns": {
+          "description": "Optional. The privacy unit column(s) associated with this policy. For now, only one column per data source object (table, view) is allowed as a privacy unit column. Representing as a repeated field in metadata for extensibility to multiple columns in future. Duplicates and Repeated struct fields are not allowed. For nested fields, use dot notation (\"outer.inner\")",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "threshold": {
+          "description": "Optional. The threshold for the \"aggregation threshold\" policy.",
+          "format": "int64",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
     "Argument": {
       "description": "Input/output argument of a function or a stored procedure.",
       "id": "Argument",
@@ -1767,7 +1762,7 @@
             "ANY_TYPE"
           ],
           "enumDescriptions": [
-            "",
+            "Default value.",
             "The argument is a variable with fully specified type, which can be a struct or an array, but not a table.",
             "The argument is any type, including struct or array, but not a table. To be added: FIXED_TABLE, ANY_TABLE"
           ],
@@ -1776,6 +1771,10 @@
         "dataType": {
           "$ref": "StandardSqlDataType",
           "description": "Required unless argument_kind = ANY_TYPE."
+        },
+        "isAggregate": {
+          "description": "Optional. Whether the argument is an aggregate function parameter. Must be Unset for routine types other than AGGREGATE_FUNCTION. For AGGREGATE_FUNCTION, if set to false, it is equivalent to adding \"NOT AGGREGATE\" clause in DDL; Otherwise, it is equivalent to omitting \"NOT AGGREGATE\" clause in DDL.",
+          "type": "boolean"
         },
         "mode": {
           "description": "Optional. Specifies whether the argument is input or output. Can be set for procedures only.",
@@ -1786,7 +1785,7 @@
             "INOUT"
           ],
           "enumDescriptions": [
-            "",
+            "Default value.",
             "The argument is input-only.",
             "The argument is output-only.",
             "The argument is both an input and an output."
@@ -1855,6 +1854,7 @@
       "id": "ArimaForecastingMetrics",
       "properties": {
         "arimaFittingMetrics": {
+          "deprecated": true,
           "description": "Arima model fitting metrics.",
           "items": {
             "$ref": "ArimaFittingMetrics"
@@ -1869,6 +1869,7 @@
           "type": "array"
         },
         "hasDrift": {
+          "deprecated": true,
           "description": "Whether Arima model fitted with drift or not. It is always false when d is not 1.",
           "items": {
             "type": "boolean"
@@ -1876,6 +1877,7 @@
           "type": "array"
         },
         "nonSeasonalOrder": {
+          "deprecated": true,
           "description": "Non-seasonal order.",
           "items": {
             "$ref": "ArimaOrder"
@@ -1883,6 +1885,7 @@
           "type": "array"
         },
         "seasonalPeriods": {
+          "deprecated": true,
           "description": "Seasonal periods. Repeated because multiple periods are supported for one time series.",
           "items": {
             "enum": [
@@ -1908,6 +1911,7 @@
           "type": "array"
         },
         "timeSeriesId": {
+          "deprecated": true,
           "description": "Id to differentiate different time series for the large-scale case.",
           "items": {
             "type": "string"
@@ -2209,6 +2213,28 @@
             "$ref": "BiEngineReason"
           },
           "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "BigLakeConfiguration": {
+      "id": "BigLakeConfiguration",
+      "properties": {
+        "connectionId": {
+          "description": "[Required] Required and immutable. Credential reference for accessing external storage system. Normalized as project_id.location_id.connection_id.",
+          "type": "string"
+        },
+        "fileFormat": {
+          "description": "[Required] Required and immutable. Open source file format that the table data is stored in. Currently only PARQUET is supported.",
+          "type": "string"
+        },
+        "storageUri": {
+          "description": "[Required] Required and immutable. Fully qualified location prefix of the external folder where data is stored. Normalized to standard format: \"gs:////\". Starts with \"gs://\" rather than \"/bigstore/\". Ends with \"/\". Does not contain \"*\". See also BigLakeStorageMetadata on how it is used.",
+          "type": "string"
+        },
+        "tableFormat": {
+          "description": "[Required] Required and immutable. Open source file format that the table data is stored in. Currently only PARQUET is supported.",
+          "type": "string"
         }
       },
       "type": "object"
@@ -2681,7 +2707,7 @@
           "description": "[Optional] The separator for fields in a CSV file. BigQuery converts the string to ISO-8859-1 encoding, and then uses the first byte of the encoded string to split the data in its raw, binary state. BigQuery also supports the escape sequence \"\\t\" to specify a tab separator. The default value is a comma (',').",
           "type": "string"
         },
-        "null_marker": {
+        "nullMarker": {
           "description": "[Optional] An custom string that will represent a NULL value in CSV import data.",
           "type": "string"
         },
@@ -2818,6 +2844,10 @@
         "etag": {
           "description": "[Output-only] A hash of the resource.",
           "type": "string"
+        },
+        "externalDatasetReference": {
+          "$ref": "ExternalDatasetReference",
+          "description": "[Optional] Information about the external metadata storage where the dataset is defined. Filled out when the dataset type is EXTERNAL."
         },
         "friendlyName": {
           "description": "[Optional] A descriptive name for the dataset.",
@@ -3105,7 +3135,7 @@
       "id": "EncryptionConfiguration",
       "properties": {
         "kmsKeyName": {
-          "description": "[Optional] Describes the Cloud KMS encryption key that will be used to protect destination BigQuery table. The BigQuery Service Account associated with your project requires access to this encryption key.",
+          "description": "Optional. Describes the Cloud KMS encryption key that will be used to protect destination BigQuery table. The BigQuery Service Account associated with your project requires access to this encryption key.",
           "type": "string"
         }
       },
@@ -3433,6 +3463,10 @@
           },
           "type": "array"
         },
+        "fileSetSpecType": {
+          "description": "[Optional] Specifies how source URIs are interpreted for constructing the file set to load. By default source URIs are expanded against the underlying storage. Other options include specifying manifest files. Only applicable to object storage systems.",
+          "type": "string"
+        },
         "googleSheetsOptions": {
           "$ref": "GoogleSheetsOptions",
           "description": "[Optional] Additional options if sourceFormat is set to GOOGLE_SHEETS."
@@ -3444,6 +3478,10 @@
         "ignoreUnknownValues": {
           "description": "[Optional] Indicates if BigQuery should allow extra values that are not represented in the table schema. If true, the extra values are ignored. If false, records with extra columns are treated as bad records, and if there are too many bad records, an invalid error is returned in the job result. The default value is false. The sourceFormat property determines what BigQuery treats as an extra value: CSV: Trailing columns JSON: Named values that don't match any column names Google Cloud Bigtable: This setting is ignored. Google Cloud Datastore backups: This setting is ignored. Avro: This setting is ignored.",
           "type": "boolean"
+        },
+        "jsonOptions": {
+          "$ref": "JsonOptions",
+          "description": "Additional properties to set if `sourceFormat` is set to `NEWLINE_DELIMITED_JSON`."
         },
         "maxBadRecords": {
           "description": "[Optional] The maximum number of bad records that BigQuery can ignore when reading data. If the number of bad records exceeds this value, an invalid error is returned in the job result. This is only valid for CSV, JSON, and Google Sheets. The default value is 0, which requires that all records are valid. This setting is ignored for Google Cloud Bigtable, Google Cloud Datastore backups and Avro formats.",
@@ -3480,6 +3518,20 @@
             "type": "string"
           },
           "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "ExternalDatasetReference": {
+      "id": "ExternalDatasetReference",
+      "properties": {
+        "connection": {
+          "description": "[Required] The connection id that is used to access the external_source. Format: projects/{project_id}/locations/{location_id}/connections/{connection_id}",
+          "type": "string"
+        },
+        "externalSource": {
+          "description": "[Required] External source that backs this dataset.",
+          "type": "string"
         }
       },
       "type": "object"
@@ -3642,6 +3694,13 @@
     "HivePartitioningOptions": {
       "id": "HivePartitioningOptions",
       "properties": {
+        "fields": {
+          "description": "[Output-only] For permanent external tables, this field is populated with the hive partition keys in the order they were inferred. The types of the partition keys can be deduced by checking the table schema (which will include the partition keys). Not every API will populate this field in the output. For example, Tables.Get will populate it, but Tables.List will not contain this field.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
         "mode": {
           "description": "[Optional] When set, what mode of hive partitioning to use when reading data. The following modes are supported. (1) AUTO: automatically infer partition key name(s) and type(s). (2) STRINGS: automatically infer partition key name(s). All types are interpreted as strings. (3) CUSTOM: partition key schema is encoded in the source URI prefix. Not all storage formats support hive partitioning. Requesting hive partitioning on an unsupported format will lead to an error. Currently supported types include: AVRO, CSV, JSON, ORC and Parquet.",
           "type": "string"
@@ -3799,7 +3858,7 @@
             "STOPPED_EARLY"
           ],
           "enumDescriptions": [
-            "",
+            "Default value.",
             "Scheduled but not started.",
             "Running state.",
             "The trial succeeded.",
@@ -3825,7 +3884,7 @@
     "IndexUnusedReason": {
       "id": "IndexUnusedReason",
       "properties": {
-        "base_table": {
+        "baseTable": {
           "$ref": "TableReference",
           "description": "[Output-only] Specifies the base table involved in the reason that no search index was used."
         },
@@ -3834,7 +3893,7 @@
           "description": "[Output-only] Specifies the high-level reason for the scenario when no search index was used.",
           "type": "string"
         },
-        "index_name": {
+        "indexName": {
           "default": "$(reason.index_name)",
           "description": "[Output-only] Specifies the name of the unused search index, if available.",
           "type": "string"
@@ -3968,6 +4027,10 @@
         "id": {
           "description": "[Output-only] Opaque ID field of the job",
           "type": "string"
+        },
+        "jobCreationReason": {
+          "description": "[Output-only] If set, it provides the reason why a Job was created. If not set, it should be treated as the default: REQUESTED. This feature is not yet available. Jobs will always be created.",
+          "type": "any"
         },
         "jobReference": {
           "$ref": "JobReference",
@@ -4161,6 +4224,10 @@
           "description": "[Optional] The separator for fields in a CSV file. The separator can be any ISO-8859-1 single-byte character. To use a character in the range 128-255, you must encode the character as UTF8. BigQuery converts the string to ISO-8859-1 encoding, and then uses the first byte of the encoded string to split the data in its raw, binary state. BigQuery also supports the escape sequence \"\\t\" to specify a tab separator. The default value is a comma (',').",
           "type": "string"
         },
+        "fileSetSpecType": {
+          "description": "[Optional] Specifies how source URIs are interpreted for constructing the file set to load. By default source URIs are expanded against the underlying storage. Other options include specifying manifest files. Only applicable to object storage systems.",
+          "type": "string"
+        },
         "hivePartitioningOptions": {
           "$ref": "HivePartitioningOptions",
           "description": "[Optional] Options to configure hive partitioning support."
@@ -4279,6 +4346,10 @@
             "$ref": "ConnectionProperty"
           },
           "type": "array"
+        },
+        "continuous": {
+          "description": "[Optional] Specifies whether the query should be executed as a continuous query. The default value is false.",
+          "type": "boolean"
         },
         "createDisposition": {
           "description": "[Optional] Specifies whether the job is allowed to create new tables. The following values are supported: CREATE_IF_NEEDED: If the table does not exist, BigQuery creates the table. CREATE_NEVER: The table must already exist. If it does not, a 'notFound' error is returned in the job result. The default value is CREATE_IF_NEEDED. Creation, truncation and append actions occur as one atomic update upon job completion.",
@@ -4421,6 +4492,32 @@
         },
         "writeDisposition": {
           "description": "[Optional] Specifies the action that occurs if the destination table already exists. The following values are supported: WRITE_TRUNCATE: If the table already exists, BigQuery overwrites the table data. WRITE_APPEND: If the table already exists, BigQuery appends the data to the table. WRITE_EMPTY: If the table already exists and contains data, a 'duplicate' error is returned in the job result. The default value is WRITE_EMPTY. Each action is atomic and only occurs if BigQuery is able to complete the job successfully. Creation, truncation and append actions occur as one atomic update upon job completion.",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "JobCreationReason": {
+      "description": "Reason about why a Job was created from a [`jobs.query`](https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs/query) method when used with `JOB_CREATION_OPTIONAL` Job creation mode. For [`jobs.insert`](https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs/insert) method calls it will always be `REQUESTED`. This feature is not yet available. Jobs will always be created.",
+      "id": "JobCreationReason",
+      "properties": {
+        "code": {
+          "description": "Output only. Specifies the high level reason why a Job was created.",
+          "enum": [
+            "CODE_UNSPECIFIED",
+            "REQUESTED",
+            "LONG_RUNNING",
+            "LARGE_RESULTS",
+            "OTHER"
+          ],
+          "enumDescriptions": [
+            "Reason is not specified.",
+            "Job creation was requested.",
+            "The query request ran beyond a system defined timeout specified by the [timeoutMs field in the QueryRequest](https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs/query#queryrequest). As a result it was considered a long running operation for which a job was created.",
+            "The results from the query cannot fit in the response.",
+            "BigQuery has determined that the query needs to be executed as a Job."
+          ],
+          "readOnly": true,
           "type": "string"
         }
       },
@@ -4660,7 +4757,7 @@
         },
         "ddlTargetDataset": {
           "$ref": "DatasetReference",
-          "description": "[Output only] The DDL target dataset. Present only for CREATE/ALTER/DROP SCHEMA queries."
+          "description": "[Output only] The DDL target dataset. Present only for CREATE/ALTER/DROP/UNDROP SCHEMA queries."
         },
         "ddlTargetRoutine": {
           "$ref": "RoutineReference",
@@ -4860,12 +4957,12 @@
     "JobStatistics5": {
       "id": "JobStatistics5",
       "properties": {
-        "copied_logical_bytes": {
+        "copiedLogicalBytes": {
           "description": "[Output-only] Number of logical bytes copied to the destination table.",
           "format": "int64",
           "type": "string"
         },
-        "copied_rows": {
+        "copiedRows": {
           "description": "[Output-only] Number of rows copied to the destination table.",
           "format": "int64",
           "type": "string"
@@ -4902,11 +4999,22 @@
       "id": "JsonObject",
       "type": "object"
     },
+    "JsonOptions": {
+      "id": "JsonOptions",
+      "properties": {
+        "encoding": {
+          "description": "[Optional] The character encoding of the data. The supported values are UTF-8, UTF-16BE, UTF-16LE, UTF-32BE, and UTF-32LE. The default value is UTF-8.",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
     "JsonValue": {
       "id": "JsonValue",
       "type": "any"
     },
     "ListModelsResponse": {
+      "description": "Response format for a single page when listing BigQuery ML models.",
       "id": "ListModelsResponse",
       "properties": {
         "models": {
@@ -4924,6 +5032,7 @@
       "type": "object"
     },
     "ListRoutinesResponse": {
+      "description": "Describes the format of a single result page when listing routines.",
       "id": "ListRoutinesResponse",
       "properties": {
         "nextPageToken": {
@@ -4972,7 +5081,7 @@
     "MaterializedViewDefinition": {
       "id": "MaterializedViewDefinition",
       "properties": {
-        "allow_non_incremental_definition": {
+        "allowNonIncrementalDefinition": {
           "description": "[Optional] Allow non incremental materialized view definition. The default value is \"false\".",
           "type": "boolean"
         },
@@ -5024,6 +5133,7 @@
       "id": "Model",
       "properties": {
         "bestTrialId": {
+          "deprecated": true,
           "description": "The best trial_id across all training runs.",
           "format": "int64",
           "type": "string"
@@ -5059,7 +5169,7 @@
           "type": "string"
         },
         "featureColumns": {
-          "description": "Output only. Input feature columns that were used to train this model.",
+          "description": "Output only. Input feature columns for the model inference. If the model is trained with TRANSFORM clause, these are the input of the TRANSFORM clause.",
           "items": {
             "$ref": "StandardSqlField"
           },
@@ -5124,6 +5234,7 @@
             "DNN_CLASSIFIER",
             "TENSORFLOW",
             "DNN_REGRESSOR",
+            "XGBOOST",
             "BOOSTED_TREE_REGRESSOR",
             "BOOSTED_TREE_CLASSIFIER",
             "ARIMA",
@@ -5134,11 +5245,14 @@
             "DNN_LINEAR_COMBINED_REGRESSOR",
             "AUTOENCODER",
             "ARIMA_PLUS",
+            "ARIMA_PLUS_XREG",
             "RANDOM_FOREST_REGRESSOR",
-            "RANDOM_FOREST_CLASSIFIER"
+            "RANDOM_FOREST_CLASSIFIER",
+            "TENSORFLOW_LITE",
+            "ONNX"
           ],
           "enumDescriptions": [
-            "",
+            "Default value.",
             "Linear regression model.",
             "Logistic regression based classification model.",
             "K-means clustering model.",
@@ -5146,6 +5260,7 @@
             "DNN classifier model.",
             "An imported TensorFlow model.",
             "DNN regressor model.",
+            "An imported XGBoost model.",
             "Boosted tree regressor model.",
             "Boosted tree classifier model.",
             "ARIMA model.",
@@ -5156,8 +5271,11 @@
             "Wide-and-deep regressor model.",
             "Autoencoder model.",
             "New name for the ARIMA model.",
-            "Random Forest regressor model.",
-            "Random Forest classifier model."
+            "ARIMA with external regressors.",
+            "Random forest regressor model.",
+            "Random forest classifier model.",
+            "An imported TensorFlow Lite model.",
+            "An imported ONNX model."
           ],
           "readOnly": true,
           "type": "string"
@@ -5171,11 +5289,24 @@
           "readOnly": true,
           "type": "array"
         },
+        "remoteModelInfo": {
+          "$ref": "RemoteModelInfo",
+          "description": "Output only. Remote model info",
+          "readOnly": true
+        },
         "trainingRuns": {
           "description": "Information for all training runs in increasing order of start_time.",
           "items": {
             "$ref": "TrainingRun"
           },
+          "type": "array"
+        },
+        "transformColumns": {
+          "description": "Output only. This field will be populated if a TRANSFORM clause was used to train a model. TRANSFORM clause (if used) takes feature_columns as input and outputs transform_columns. transform_columns then are used to train the model.",
+          "items": {
+            "$ref": "TransformColumn"
+          },
+          "readOnly": true,
           "type": "array"
         }
       },
@@ -5216,15 +5347,15 @@
       "id": "ModelReference",
       "properties": {
         "datasetId": {
-          "description": "[Required] The ID of the dataset containing this model.",
+          "description": "Required. The ID of the dataset containing this model.",
           "type": "string"
         },
         "modelId": {
-          "description": "[Required] The ID of the model. The ID must contain only letters (a-z, A-Z), numbers (0-9), or underscores (_). The maximum length is 1,024 characters.",
+          "description": "Required. The ID of the model. The ID must contain only letters (a-z, A-Z), numbers (0-9), or underscores (_). The maximum length is 1,024 characters.",
           "type": "string"
         },
         "projectId": {
-          "description": "[Required] The ID of the project containing this model.",
+          "description": "Required. The ID of the project containing this model.",
           "type": "string"
         }
       },
@@ -5263,7 +5394,7 @@
       "type": "object"
     },
     "Policy": {
-      "description": "An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A `Policy` is a collection of `bindings`. A `binding` binds one or more `members`, or principals, to a single `role`. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A `role` is a named list of permissions; each `role` can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a `binding` can also specify a `condition`, which is a logical expression that allows access to a resource only if the expression evaluates to `true`. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:** { \"bindings\": [ { \"role\": \"roles/resourcemanager.organizationAdmin\", \"members\": [ \"user:mike@example.com\", \"group:admins@example.com\", \"domain:google.com\", \"serviceAccount:my-project-id@appspot.gserviceaccount.com\" ] }, { \"role\": \"roles/resourcemanager.organizationViewer\", \"members\": [ \"user:eve@example.com\" ], \"condition\": { \"title\": \"expirable access\", \"description\": \"Does not grant access after Sep 2020\", \"expression\": \"request.time \u003c timestamp('2020-10-01T00:00:00.000Z')\", } } ], \"etag\": \"BwWWja0YfJA=\", \"version\": 3 } **YAML example:** bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time \u003c timestamp('2020-10-01T00:00:00.000Z') etag: BwWWja0YfJA= version: 3 For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).",
+      "description": "An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A `Policy` is a collection of `bindings`. A `binding` binds one or more `members`, or principals, to a single `role`. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A `role` is a named list of permissions; each `role` can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a `binding` can also specify a `condition`, which is a logical expression that allows access to a resource only if the expression evaluates to `true`. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:** ``` { \"bindings\": [ { \"role\": \"roles/resourcemanager.organizationAdmin\", \"members\": [ \"user:mike@example.com\", \"group:admins@example.com\", \"domain:google.com\", \"serviceAccount:my-project-id@appspot.gserviceaccount.com\" ] }, { \"role\": \"roles/resourcemanager.organizationViewer\", \"members\": [ \"user:eve@example.com\" ], \"condition\": { \"title\": \"expirable access\", \"description\": \"Does not grant access after Sep 2020\", \"expression\": \"request.time \u003c timestamp('2020-10-01T00:00:00.000Z')\", } } ], \"etag\": \"BwWWja0YfJA=\", \"version\": 3 } ``` **YAML example:** ``` bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time \u003c timestamp('2020-10-01T00:00:00.000Z') etag: BwWWja0YfJA= version: 3 ``` For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).",
       "id": "Policy",
       "properties": {
         "auditConfigs": {
@@ -5316,6 +5447,17 @@
           "description": "Id of the principal component.",
           "format": "int64",
           "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "PrivacyPolicy": {
+      "description": "Represents privacy policy that contains the privacy requirements specified by the data owner. Currently, this is only supported on views.",
+      "id": "PrivacyPolicy",
+      "properties": {
+        "aggregationThresholdPolicy": {
+          "$ref": "AggregationThresholdPolicy",
+          "description": "Optional. Policy used for aggregation thresholds."
         }
       },
       "type": "object"
@@ -5472,6 +5614,10 @@
           },
           "type": "array"
         },
+        "continuous": {
+          "description": "[Optional] Specifies whether the query should be executed as a continuous query. The default value is false.",
+          "type": "boolean"
+        },
         "createSession": {
           "description": "If true, creates a new session, where session id will be a server generated random id. If false, runs query with an existing session_id passed in ConnectionProperty, otherwise runs query in non-session mode.",
           "type": "boolean"
@@ -5483,6 +5629,10 @@
         "dryRun": {
           "description": "[Optional] If set to true, BigQuery doesn't run the job. Instead, if the query is valid, BigQuery returns statistics about the job such as how many bytes would be processed. If the query is invalid, an error returns. The default value is false.",
           "type": "boolean"
+        },
+        "jobCreationMode": {
+          "description": "Optional. If not set, jobs are always required. If set, the query request will follow the behavior described JobCreationMode. This feature is not yet available. Jobs will always be created.",
+          "type": "string"
         },
         "kind": {
           "default": "bigquery#queryRequest",
@@ -5578,6 +5728,10 @@
           "description": "Whether the query has completed or not. If rows or totalRows are present, this will always be true. If this is false, totalRows will not be available.",
           "type": "boolean"
         },
+        "jobCreationReason": {
+          "description": "Optional. Only relevant when a job_reference is present in the response. If job_reference is not present it will always be unset. When job_reference is present, this field should be interpreted as follows: If set, it will provide the reason of why a Job was created. If not set, it should be treated as the default: REQUESTED. This feature is not yet available. Jobs will always be created.",
+          "type": "any"
+        },
         "jobReference": {
           "$ref": "JobReference",
           "description": "Reference to the Job that was created to run the query. This field will be present even if the original request timed out, in which case GetQueryResults can be used to read the results once the query has completed. Since this API only returns the first page of results, subsequent pages can be fetched via the same mechanism (GetQueryResults)."
@@ -5594,6 +5748,10 @@
         },
         "pageToken": {
           "description": "A token used for paging results.",
+          "type": "string"
+        },
+        "queryId": {
+          "description": "Query ID for the completed query. This ID will be auto-generated. This field is not yet available and it is currently not guaranteed to be populated.",
           "type": "string"
         },
         "rows": {
@@ -5777,6 +5935,58 @@
       },
       "type": "object"
     },
+    "RemoteModelInfo": {
+      "description": "Remote Model Info",
+      "id": "RemoteModelInfo",
+      "properties": {
+        "connection": {
+          "description": "Output only. Fully qualified name of the user-provided connection object of the remote model. Format: ```\"projects/{project_id}/locations/{location_id}/connections/{connection_id}\"```",
+          "readOnly": true,
+          "type": "string"
+        },
+        "endpoint": {
+          "description": "Output only. The endpoint for remote model.",
+          "readOnly": true,
+          "type": "string"
+        },
+        "maxBatchingRows": {
+          "description": "Output only. Max number of rows in each batch sent to the remote service. If unset, the number of rows in each batch is set dynamically.",
+          "format": "int64",
+          "readOnly": true,
+          "type": "string"
+        },
+        "remoteModelVersion": {
+          "description": "Output only. The model version for LLM.",
+          "readOnly": true,
+          "type": "string"
+        },
+        "remoteServiceType": {
+          "description": "Output only. The remote service type for remote model.",
+          "enum": [
+            "REMOTE_SERVICE_TYPE_UNSPECIFIED",
+            "CLOUD_AI_TRANSLATE_V3",
+            "CLOUD_AI_VISION_V1",
+            "CLOUD_AI_NATURAL_LANGUAGE_V1",
+            "CLOUD_AI_SPEECH_TO_TEXT_V2"
+          ],
+          "enumDescriptions": [
+            "Unspecified remote service type.",
+            "V3 Cloud AI Translation API. See more details at [Cloud Translation API] (https://cloud.google.com/translate/docs/reference/rest).",
+            "V1 Cloud AI Vision API See more details at [Cloud Vision API] (https://cloud.google.com/vision/docs/reference/rest).",
+            "V1 Cloud AI Natural Language API. See more details at [REST Resource: documents](https://cloud.google.com/natural-language/docs/reference/rest/v1/documents).",
+            "V2 Speech-to-Text API. See more details at [Google Cloud Speech-to-Text V2 API](https://cloud.google.com/speech-to-text/v2/docs)"
+          ],
+          "readOnly": true,
+          "type": "string"
+        },
+        "speechRecognizer": {
+          "description": "Output only. The name of the speech recognizer to use for speech recognition. The expected format is `projects/{project}/locations/{location}/recognizers/{recognizer}`. Customers can specify this field at model creation. If not specified, a default recognizer `projects/{model project}/locations/global/recognizers/_` will be used. See more details at [recognizers](https://cloud.google.com/speech-to-text/v2/docs/reference/rest/v2/projects.locations.recognizers)",
+          "readOnly": true,
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
     "Routine": {
       "description": "A user-defined function or a stored procedure.",
       "id": "Routine",
@@ -5792,6 +6002,18 @@
           "description": "Output only. The time when this routine was created, in milliseconds since the epoch.",
           "format": "int64",
           "readOnly": true,
+          "type": "string"
+        },
+        "dataGovernanceType": {
+          "description": "Optional. If set to `DATA_MASKING`, the function is validated and made available as a masking function. For more information, see [Create custom masking routines](https://cloud.google.com/bigquery/docs/user-defined-functions#custom-mask).",
+          "enum": [
+            "DATA_GOVERNANCE_TYPE_UNSPECIFIED",
+            "DATA_MASKING"
+          ],
+          "enumDescriptions": [
+            "The data governance type is unspecified.",
+            "The data governance type is data masking."
+          ],
           "type": "string"
         },
         "definitionBody": {
@@ -5834,13 +6056,17 @@
             "LANGUAGE_UNSPECIFIED",
             "SQL",
             "JAVASCRIPT",
-            "PYTHON"
+            "PYTHON",
+            "JAVA",
+            "SCALA"
           ],
           "enumDescriptions": [
-            "",
+            "Default value.",
             "SQL language.",
             "JavaScript language.",
-            "Python language."
+            "Python language.",
+            "Java language.",
+            "Scala language."
           ],
           "type": "string"
         },
@@ -5872,13 +6098,29 @@
             "ROUTINE_TYPE_UNSPECIFIED",
             "SCALAR_FUNCTION",
             "PROCEDURE",
-            "TABLE_VALUED_FUNCTION"
+            "TABLE_VALUED_FUNCTION",
+            "AGGREGATE_FUNCTION"
           ],
           "enumDescriptions": [
-            "",
-            "Non-builtin permanent scalar function.",
+            "Default value.",
+            "Non-built-in persistent scalar function.",
             "Stored procedure.",
-            "Non-builtin permanent TVF."
+            "Non-built-in persistent TVF.",
+            "Non-built-in persistent aggregate function."
+          ],
+          "type": "string"
+        },
+        "securityMode": {
+          "description": "Optional. The security mode of the routine, if defined. If not defined, the security mode is automatically determined from the routine's configuration.",
+          "enum": [
+            "SECURITY_MODE_UNSPECIFIED",
+            "DEFINER",
+            "INVOKER"
+          ],
+          "enumDescriptions": [
+            "The security mode of the routine is unspecified.",
+            "The routine is to be executed with the privileges of the user who defines it.",
+            "The routine is to be executed with the privileges of the user who invokes it."
           ],
           "type": "string"
         },
@@ -5897,15 +6139,15 @@
       "id": "RoutineReference",
       "properties": {
         "datasetId": {
-          "description": "[Required] The ID of the dataset containing this routine.",
+          "description": "Required. The ID of the dataset containing this routine.",
           "type": "string"
         },
         "projectId": {
-          "description": "[Required] The ID of the project containing this routine.",
+          "description": "Required. The ID of the project containing this routine.",
           "type": "string"
         },
         "routineId": {
-          "description": "[Required] The ID of the routine. The ID must contain only letters (a-z, A-Z), numbers (0-9), or underscores (_). The maximum length is 256 characters.",
+          "description": "Required. The ID of the routine. The ID must contain only letters (a-z, A-Z), numbers (0-9), or underscores (_). The maximum length is 256 characters.",
           "type": "string"
         }
       },
@@ -5965,19 +6207,19 @@
       "id": "RowAccessPolicyReference",
       "properties": {
         "datasetId": {
-          "description": "[Required] The ID of the dataset containing this row access policy.",
+          "description": "Required. The ID of the dataset containing this row access policy.",
           "type": "string"
         },
         "policyId": {
-          "description": "[Required] The ID of the row access policy. The ID must contain only letters (a-z, A-Z), numbers (0-9), or underscores (_). The maximum length is 256 characters.",
+          "description": "Required. The ID of the row access policy. The ID must contain only letters (a-z, A-Z), numbers (0-9), or underscores (_). The maximum length is 256 characters.",
           "type": "string"
         },
         "projectId": {
-          "description": "[Required] The ID of the project containing this row access policy.",
+          "description": "Required. The ID of the project containing this row access policy.",
           "type": "string"
         },
         "tableId": {
-          "description": "[Required] The ID of the table containing this row access policy.",
+          "description": "Required. The ID of the table containing this row access policy.",
           "type": "string"
         }
       },
@@ -6047,7 +6289,7 @@
     "SearchStatistics": {
       "id": "SearchStatistics",
       "properties": {
-        "indexUnusedReason": {
+        "indexUnusedReasons": {
           "description": "When index_usage_mode is UNUSED or PARTIALLY_USED, this field explains why index was not used in all or part of the search query. If index_usage_mode is FULLLY_USED, this field is not populated.",
           "items": {
             "$ref": "IndexUnusedReason"
@@ -6105,11 +6347,11 @@
     "SparkLoggingInfo": {
       "id": "SparkLoggingInfo",
       "properties": {
-        "project_id": {
+        "projectId": {
           "description": "[Output-only] Project ID used for logging",
           "type": "string"
         },
-        "resource_type": {
+        "resourceType": {
           "description": "[Output-only] Resource type used for logging",
           "type": "string"
         }
@@ -6149,6 +6391,10 @@
           },
           "type": "array"
         },
+        "mainClass": {
+          "description": "The fully qualified name of a class in jar_uris, for example, com.example.wordcount. Exactly one of main_class and main_jar_uri field should be set for Java/Scala language type.",
+          "type": "string"
+        },
         "mainFileUri": {
           "description": "The main file/jar URI of the Spark application. Exactly one of the definition_body field and the main_file_uri field must be set for Python. Exactly one of main_class and main_file_uri field should be set for Java/Scala language type.",
           "type": "string"
@@ -6157,7 +6403,7 @@
           "additionalProperties": {
             "type": "string"
           },
-          "description": "Configuration properties as a set of key/value pairs, which will be passed on to the Spark application. For more information, see [Apache Spark](https://spark.apache.org/docs/latest/index.html).",
+          "description": "Configuration properties as a set of key/value pairs, which will be passed on to the Spark application. For more information, see [Apache Spark](https://spark.apache.org/docs/latest/index.html) and the [procedure option list](https://cloud.google.com/bigquery/docs/reference/standard-sql/data-definition-language#procedure_option_list).",
           "type": "object"
         },
         "pyFileUris": {
@@ -6184,15 +6430,15 @@
           "description": "[Output-only] Endpoints generated for the Spark job.",
           "type": "object"
         },
-        "logging_info": {
+        "loggingInfo": {
           "$ref": "SparkLoggingInfo",
           "description": "[Output-only] Logging info is used to generate a link to Cloud Logging."
         },
-        "spark_job_id": {
+        "sparkJobId": {
           "description": "[Output-only] Spark job id if a Spark job is created successfully.",
           "type": "string"
         },
-        "spark_job_location": {
+        "sparkJobLocation": {
           "description": "[Output-only] Location where the Spark job is executed.",
           "type": "string"
         }
@@ -6207,12 +6453,16 @@
           "$ref": "StandardSqlDataType",
           "description": "The type of the array's elements, if type_kind = \"ARRAY\"."
         },
+        "rangeElementType": {
+          "$ref": "StandardSqlDataType",
+          "description": "The type of the range's elements, if type_kind = \"RANGE\"."
+        },
         "structType": {
           "$ref": "StandardSqlStructType",
           "description": "The fields of this struct, in order, if type_kind = \"STRUCT\"."
         },
         "typeKind": {
-          "description": "Required. The top level type of this field. Can be any standard SQL data type (e.g., \"INT64\", \"DATE\", \"ARRAY\").",
+          "description": "Required. The top level type of this field. Can be any GoogleSQL data type (e.g., \"INT64\", \"DATE\", \"ARRAY\").",
           "enum": [
             "TYPE_KIND_UNSPECIFIED",
             "INT64",
@@ -6230,7 +6480,8 @@
             "BIGNUMERIC",
             "JSON",
             "ARRAY",
-            "STRUCT"
+            "STRUCT",
+            "RANGE"
           ],
           "enumDescriptions": [
             "Invalid type.",
@@ -6249,7 +6500,8 @@
             "Encoded as a decimal string.",
             "Encoded as a string.",
             "Encoded as a list with types matching Type.array_type.",
-            "Encoded as a list with fields of type Type.struct_type[i]. List is used because a JSON object cannot have duplicate field names."
+            "Encoded as a list with fields of type Type.struct_type[i]. List is used because a JSON object cannot have duplicate field names.",
+            "Encoded as a pair with types matching range_element_type. Pairs must begin with \"[\", end with \")\", and be separated by \", \"."
           ],
           "type": "string"
         }
@@ -6272,9 +6524,11 @@
       "type": "object"
     },
     "StandardSqlStructType": {
+      "description": "The representation of a SQL STRUCT type.",
       "id": "StandardSqlStructType",
       "properties": {
         "fields": {
+          "description": "Fields within the struct.",
           "items": {
             "$ref": "StandardSqlField"
           },
@@ -6335,6 +6589,10 @@
     "Table": {
       "id": "Table",
       "properties": {
+        "biglakeConfiguration": {
+          "$ref": "BigLakeConfiguration",
+          "description": "[Optional] Specifies the configuration of a BigLake managed table."
+        },
         "cloneDefinition": {
           "$ref": "CloneDefinition",
           "description": "[Output-only] Clone definition."
@@ -6419,6 +6677,16 @@
           "$ref": "ModelDefinition",
           "description": "[Output-only, Beta] Present iff this table represents a ML model. Describes the training information for the model, and it is required to run 'PREDICT' queries."
         },
+        "numActiveLogicalBytes": {
+          "description": "[Output-only] Number of logical bytes that are less than 90 days old.",
+          "format": "int64",
+          "type": "string"
+        },
+        "numActivePhysicalBytes": {
+          "description": "[Output-only] Number of physical bytes less than 90 days old. This data is not kept in real time, and might be delayed by a few seconds to a few minutes.",
+          "format": "int64",
+          "type": "string"
+        },
         "numBytes": {
           "description": "[Output-only] The size of this table in bytes, excluding any data in the streaming buffer.",
           "format": "int64",
@@ -6426,6 +6694,21 @@
         },
         "numLongTermBytes": {
           "description": "[Output-only] The number of bytes in the table that are considered \"long-term storage\".",
+          "format": "int64",
+          "type": "string"
+        },
+        "numLongTermLogicalBytes": {
+          "description": "[Output-only] Number of logical bytes that are more than 90 days old.",
+          "format": "int64",
+          "type": "string"
+        },
+        "numLongTermPhysicalBytes": {
+          "description": "[Output-only] Number of physical bytes more than 90 days old. This data is not kept in real time, and might be delayed by a few seconds to a few minutes.",
+          "format": "int64",
+          "type": "string"
+        },
+        "numPartitions": {
+          "description": "[Output-only] The number of partitions present in the table or materialized view. This data is not kept in real time, and might be delayed by a few seconds to a few minutes.",
           "format": "int64",
           "type": "string"
         },
@@ -6439,42 +6722,17 @@
           "format": "uint64",
           "type": "string"
         },
-        "num_active_logical_bytes": {
-          "description": "[Output-only] Number of logical bytes that are less than 90 days old.",
-          "format": "int64",
-          "type": "string"
-        },
-        "num_active_physical_bytes": {
-          "description": "[Output-only] Number of physical bytes less than 90 days old. This data is not kept in real time, and might be delayed by a few seconds to a few minutes.",
-          "format": "int64",
-          "type": "string"
-        },
-        "num_long_term_logical_bytes": {
-          "description": "[Output-only] Number of logical bytes that are more than 90 days old.",
-          "format": "int64",
-          "type": "string"
-        },
-        "num_long_term_physical_bytes": {
-          "description": "[Output-only] Number of physical bytes more than 90 days old. This data is not kept in real time, and might be delayed by a few seconds to a few minutes.",
-          "format": "int64",
-          "type": "string"
-        },
-        "num_partitions": {
-          "description": "[Output-only] The number of partitions present in the table or materialized view. This data is not kept in real time, and might be delayed by a few seconds to a few minutes.",
-          "format": "int64",
-          "type": "string"
-        },
-        "num_time_travel_physical_bytes": {
+        "numTimeTravelPhysicalBytes": {
           "description": "[Output-only] Number of physical bytes used by time travel storage (deleted or changed data). This data is not kept in real time, and might be delayed by a few seconds to a few minutes.",
           "format": "int64",
           "type": "string"
         },
-        "num_total_logical_bytes": {
+        "numTotalLogicalBytes": {
           "description": "[Output-only] Total number of logical bytes in the table or materialized view.",
           "format": "int64",
           "type": "string"
         },
-        "num_total_physical_bytes": {
+        "numTotalPhysicalBytes": {
           "description": "[Output-only] The physical size of this table in bytes. This also includes storage used for time travel. This data is not kept in real time, and might be delayed by a few seconds to a few minutes.",
           "format": "int64",
           "type": "string"
@@ -6487,6 +6745,13 @@
           "default": "false",
           "description": "[Optional] If set to true, queries over this table require a partition filter that can be used for partition elimination to be specified.",
           "type": "boolean"
+        },
+        "resourceTags": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "[Optional] The tags associated with this table. Tag keys are globally unique. See additional information on [tags](https://cloud.google.com/iam/docs/tags-access-control#definitions). An object containing a list of \"key\": value pairs. The key is the namespaced friendly name of the tag key, e.g. \"12345/environment\" where 12345 is parent id. The value is the friendly short name of the tag value, e.g. \"production\".",
+          "type": "object"
         },
         "schema": {
           "$ref": "TableSchema",
@@ -6503,6 +6768,10 @@
         "streamingBuffer": {
           "$ref": "Streamingbuffer",
           "description": "[Output-only] Contains information regarding this table's streaming buffer, if one is present. This field will be absent if the table is not being streamed to or if there is no data in the streaming buffer."
+        },
+        "tableConstraints": {
+          "$ref": "TableConstraints",
+          "description": "[Optional] The table constraints on the table."
         },
         "tableReference": {
           "$ref": "TableReference",
@@ -6528,6 +6797,64 @@
       "properties": {
         "v": {
           "type": "any"
+        }
+      },
+      "type": "object"
+    },
+    "TableConstraints": {
+      "id": "TableConstraints",
+      "properties": {
+        "foreignKeys": {
+          "description": "[Optional] The foreign keys of the tables.",
+          "items": {
+            "properties": {
+              "columnReferences": {
+                "items": {
+                  "properties": {
+                    "referencedColumn": {
+                      "type": "string"
+                    },
+                    "referencingColumn": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "name": {
+                "type": "string"
+              },
+              "referencedTable": {
+                "properties": {
+                  "datasetId": {
+                    "type": "string"
+                  },
+                  "projectId": {
+                    "type": "string"
+                  },
+                  "tableId": {
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            },
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "primaryKey": {
+          "description": "[Optional] The primary key of the table.",
+          "properties": {
+            "columns": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          "type": "object"
         }
       },
       "type": "object"
@@ -6699,6 +7026,16 @@
           "description": "[Optional] Precision (maximum number of total digits in base 10) and scale (maximum number of digits in the fractional part in base 10) constraints for values of this field for NUMERIC or BIGNUMERIC. It is invalid to set precision or scale if type ≠ \"NUMERIC\" and ≠ \"BIGNUMERIC\". If precision and scale are not specified, no value range constraint is imposed on this field insofar as values are permitted by the type. Values of this NUMERIC or BIGNUMERIC field must be in this range when: - Precision (P) and scale (S) are specified: [-10P-S + 10-S, 10P-S - 10-S] - Precision (P) is specified but not scale (and thus scale is interpreted to be equal to zero): [-10P + 1, 10P - 1]. Acceptable values for precision and scale if both are specified: - If type = \"NUMERIC\": 1 ≤ precision - scale ≤ 29 and 0 ≤ scale ≤ 9. - If type = \"BIGNUMERIC\": 1 ≤ precision - scale ≤ 38 and 0 ≤ scale ≤ 38. Acceptable values for precision if only precision is specified but not scale (and thus scale is interpreted to be equal to zero): - If type = \"NUMERIC\": 1 ≤ precision ≤ 29. - If type = \"BIGNUMERIC\": 1 ≤ precision ≤ 38. If scale is specified but not precision, then it is invalid.",
           "format": "int64",
           "type": "string"
+        },
+        "rangeElementType": {
+          "description": "Optional. The subtype of the RANGE, if the type of this field is RANGE. If the type is RANGE, this field is required. Possible values for the field element type of a RANGE include: - DATE - DATETIME - TIMESTAMP",
+          "properties": {
+            "type": {
+              "description": "The field element type of a RANGE",
+              "type": "string"
+            }
+          },
+          "type": "object"
         },
         "roundingMode": {
           "description": "Optional. Rounding Mode specification of the field. It only can be set on NUMERIC or BIGNUMERIC type fields.",
@@ -6922,8 +7259,16 @@
       "description": "Options used in model training.",
       "id": "TrainingOptions",
       "properties": {
+        "activationFn": {
+          "description": "Activation function of the neural nets.",
+          "type": "string"
+        },
         "adjustStepChanges": {
           "description": "If true, detect step changes and make data adjustment in the input time series.",
+          "type": "boolean"
+        },
+        "approxGlobalFeatureContrib": {
+          "description": "Whether to use approximate feature contribution method in XGBoost model explanation for global explain.",
           "type": "boolean"
         },
         "autoArima": {
@@ -6931,9 +7276,18 @@
           "type": "boolean"
         },
         "autoArimaMaxOrder": {
-          "description": "The max value of non-seasonal p and q.",
+          "description": "The max value of the sum of non-seasonal p and q.",
           "format": "int64",
           "type": "string"
+        },
+        "autoArimaMinOrder": {
+          "description": "The min value of the sum of non-seasonal p and q.",
+          "format": "int64",
+          "type": "string"
+        },
+        "autoClassWeights": {
+          "description": "Whether to calculate class weights automatically based on the popularity of each label.",
+          "type": "boolean"
         },
         "batchSize": {
           "description": "Batch size for dnn models.",
@@ -6954,9 +7308,30 @@
           ],
           "type": "string"
         },
+        "budgetHours": {
+          "description": "Budget in hours for AutoML training.",
+          "format": "double",
+          "type": "number"
+        },
         "calculatePValues": {
           "description": "Whether or not p-value test should be computed for this model. Only available for linear and logistic regression models.",
           "type": "boolean"
+        },
+        "categoryEncodingMethod": {
+          "description": "Categorical feature encoding method.",
+          "enum": [
+            "ENCODING_METHOD_UNSPECIFIED",
+            "ONE_HOT_ENCODING",
+            "LABEL_ENCODING",
+            "DUMMY_ENCODING"
+          ],
+          "enumDescriptions": [
+            "Unspecified encoding method.",
+            "Applies one-hot encoding.",
+            "Applies label encoding.",
+            "Applies dummy encoding."
+          ],
+          "type": "string"
         },
         "cleanSpikesAndDips": {
           "description": "If true, clean spikes and dips in the input time series.",
@@ -7025,7 +7400,7 @@
             "PER_MINUTE"
           ],
           "enumDescriptions": [
-            "",
+            "Default value.",
             "Automatically inferred from timestamps.",
             "Yearly data.",
             "Quarterly data.",
@@ -7057,7 +7432,7 @@
             "AUTO_SPLIT"
           ],
           "enumDescriptions": [
-            "",
+            "Default value.",
             "Splits data randomly.",
             "Splits data with the user provided tags.",
             "Splits data sequentially.",
@@ -7078,7 +7453,7 @@
             "COSINE"
           ],
           "enumDescriptions": [
-            "",
+            "Default value.",
             "Eculidean distance.",
             "Cosine distance."
           ],
@@ -7105,11 +7480,15 @@
             "EXPLICIT"
           ],
           "enumDescriptions": [
-            "",
+            "Default value.",
             "Use weighted-als for implicit feedback problems.",
             "Use nonweighted-als for explicit feedback problems."
           ],
           "type": "string"
+        },
+        "fitIntercept": {
+          "description": "Whether the model should include intercept during model training.",
+          "type": "boolean"
         },
         "hiddenUnits": {
           "description": "Hidden units for dnn models.",
@@ -7265,6 +7644,155 @@
           ],
           "type": "string"
         },
+        "holidayRegions": {
+          "description": "A list of geographical regions that are used for time series modeling.",
+          "items": {
+            "enum": [
+              "HOLIDAY_REGION_UNSPECIFIED",
+              "GLOBAL",
+              "NA",
+              "JAPAC",
+              "EMEA",
+              "LAC",
+              "AE",
+              "AR",
+              "AT",
+              "AU",
+              "BE",
+              "BR",
+              "CA",
+              "CH",
+              "CL",
+              "CN",
+              "CO",
+              "CS",
+              "CZ",
+              "DE",
+              "DK",
+              "DZ",
+              "EC",
+              "EE",
+              "EG",
+              "ES",
+              "FI",
+              "FR",
+              "GB",
+              "GR",
+              "HK",
+              "HU",
+              "ID",
+              "IE",
+              "IL",
+              "IN",
+              "IR",
+              "IT",
+              "JP",
+              "KR",
+              "LV",
+              "MA",
+              "MX",
+              "MY",
+              "NG",
+              "NL",
+              "NO",
+              "NZ",
+              "PE",
+              "PH",
+              "PK",
+              "PL",
+              "PT",
+              "RO",
+              "RS",
+              "RU",
+              "SA",
+              "SE",
+              "SG",
+              "SI",
+              "SK",
+              "TH",
+              "TR",
+              "TW",
+              "UA",
+              "US",
+              "VE",
+              "VN",
+              "ZA"
+            ],
+            "enumDescriptions": [
+              "Holiday region unspecified.",
+              "Global.",
+              "North America.",
+              "Japan and Asia Pacific: Korea, Greater China, India, Australia, and New Zealand.",
+              "Europe, the Middle East and Africa.",
+              "Latin America and the Caribbean.",
+              "United Arab Emirates",
+              "Argentina",
+              "Austria",
+              "Australia",
+              "Belgium",
+              "Brazil",
+              "Canada",
+              "Switzerland",
+              "Chile",
+              "China",
+              "Colombia",
+              "Czechoslovakia",
+              "Czech Republic",
+              "Germany",
+              "Denmark",
+              "Algeria",
+              "Ecuador",
+              "Estonia",
+              "Egypt",
+              "Spain",
+              "Finland",
+              "France",
+              "Great Britain (United Kingdom)",
+              "Greece",
+              "Hong Kong",
+              "Hungary",
+              "Indonesia",
+              "Ireland",
+              "Israel",
+              "India",
+              "Iran",
+              "Italy",
+              "Japan",
+              "Korea (South)",
+              "Latvia",
+              "Morocco",
+              "Mexico",
+              "Malaysia",
+              "Nigeria",
+              "Netherlands",
+              "Norway",
+              "New Zealand",
+              "Peru",
+              "Philippines",
+              "Pakistan",
+              "Poland",
+              "Portugal",
+              "Romania",
+              "Serbia",
+              "Russian Federation",
+              "Saudi Arabia",
+              "Sweden",
+              "Singapore",
+              "Slovenia",
+              "Slovakia",
+              "Thailand",
+              "Turkey",
+              "Taiwan",
+              "Ukraine",
+              "United States",
+              "Venezuela",
+              "Viet Nam",
+              "South Africa"
+            ],
+            "type": "string"
+          },
+          "type": "array"
+        },
         "horizon": {
           "description": "The number of periods ahead that need to be forecasted.",
           "format": "int64",
@@ -7331,6 +7859,10 @@
           },
           "type": "array"
         },
+        "instanceWeightColumn": {
+          "description": "Name of the instance weight column for training data. This column isn't be used as a feature.",
+          "type": "string"
+        },
         "integratedGradientsNumSteps": {
           "description": "Number of integral steps for the integrated gradients explain method.",
           "format": "int64",
@@ -7359,6 +7891,11 @@
             "Initializes with kmeans++."
           ],
           "type": "string"
+        },
+        "l1RegActivation": {
+          "description": "L1 regularization coefficient to activations.",
+          "format": "double",
+          "type": "number"
         },
         "l1Regularization": {
           "description": "L1 regularization coefficient.",
@@ -7391,7 +7928,7 @@
             "CONSTANT"
           ],
           "enumDescriptions": [
-            "",
+            "Default value.",
             "Use line search to determine learning rate.",
             "Use a constant learning rate."
           ],
@@ -7405,7 +7942,7 @@
             "MEAN_LOG_LOSS"
           ],
           "enumDescriptions": [
-            "",
+            "Default value.",
             "Mean squared loss, used for linear regression.",
             "Mean log loss, used for logistic regression."
           ],
@@ -7422,7 +7959,7 @@
           "type": "string"
         },
         "maxTimeSeriesLength": {
-          "description": "Get truncated length by last n points in time series. Use separately from time_series_length_fraction and min_time_series_length.",
+          "description": "The maximum number of time points in a time series that can be used in modeling the trend component of the time series. Don't use this option with the `timeSeriesLengthFraction` or `minTimeSeriesLength` options.",
           "format": "int64",
           "type": "string"
         },
@@ -7442,13 +7979,25 @@
           "type": "number"
         },
         "minTimeSeriesLength": {
-          "description": "Set fast trend ARIMA_PLUS model minimum training length. Use in pair with time_series_length_fraction.",
+          "description": "The minimum number of time points in a time series that are used in modeling the trend component of the time series. If you use this option you must also set the `timeSeriesLengthFraction` option. This training option ensures that enough time points are available when you use `timeSeriesLengthFraction` in trend modeling. This is particularly important when forecasting multiple time series in a single query using `timeSeriesIdColumn`. If the total number of time points is less than the `minTimeSeriesLength` value, then the query uses all available time points.",
           "format": "int64",
           "type": "string"
         },
         "minTreeChildWeight": {
           "description": "Minimum sum of instance weight needed in a child for boosted tree models.",
           "format": "int64",
+          "type": "string"
+        },
+        "modelRegistry": {
+          "description": "The model registry.",
+          "enum": [
+            "MODEL_REGISTRY_UNSPECIFIED",
+            "VERTEX_AI"
+          ],
+          "enumDescriptions": [
+            "Default value.",
+            "Vertex AI."
+          ],
           "type": "string"
         },
         "modelUri": {
@@ -7474,6 +8023,11 @@
           "format": "int64",
           "type": "string"
         },
+        "numPrincipalComponents": {
+          "description": "Number of principal components to keep in the PCA model. Must be \u003c= the number of features.",
+          "format": "int64",
+          "type": "string"
+        },
         "numTrials": {
           "description": "Number of trials to run this hyperparameter tuning job.",
           "format": "int64",
@@ -7487,25 +8041,58 @@
             "NORMAL_EQUATION"
           ],
           "enumDescriptions": [
-            "",
+            "Default value.",
             "Uses an iterative batch gradient descent algorithm.",
             "Uses a normal equation to solve linear regression problem."
           ],
           "type": "string"
         },
-        "preserveInputStructs": {
-          "description": "Whether to preserve the input structs in output feature names. Suppose there is a struct A with field b. When false (default), the output feature name is A_b. When true, the output feature name is A.b.",
-          "type": "boolean"
+        "optimizer": {
+          "description": "Optimizer used for training the neural nets.",
+          "type": "string"
+        },
+        "pcaExplainedVarianceRatio": {
+          "description": "The minimum ratio of cumulative explained variance that needs to be given by the PCA model.",
+          "format": "double",
+          "type": "number"
+        },
+        "pcaSolver": {
+          "description": "The solver for PCA.",
+          "enum": [
+            "UNSPECIFIED",
+            "FULL",
+            "RANDOMIZED",
+            "AUTO"
+          ],
+          "enumDescriptions": [
+            "Default value.",
+            "Full eigen-decoposition.",
+            "Randomized SVD.",
+            "Auto."
+          ],
+          "type": "string"
         },
         "sampledShapleyNumPaths": {
           "description": "Number of paths for the sampled Shapley explain method.",
           "format": "int64",
           "type": "string"
         },
+        "scaleFeatures": {
+          "description": "If true, scale the feature values by dividing the feature standard deviation. Currently only apply to PCA.",
+          "type": "boolean"
+        },
+        "standardizeFeatures": {
+          "description": "Whether to standardize numerical features. Default to true.",
+          "type": "boolean"
+        },
         "subsample": {
           "description": "Subsample fraction of the training data to grow tree to prevent overfitting for boosted tree models.",
           "format": "double",
           "type": "number"
+        },
+        "tfVersion": {
+          "description": "Based on the selected TF version, the corresponding docker image is used to train external models.",
+          "type": "string"
         },
         "timeSeriesDataColumn": {
           "description": "Column to be designated as time series data for ARIMA model.",
@@ -7523,7 +8110,7 @@
           "type": "array"
         },
         "timeSeriesLengthFraction": {
-          "description": "Get truncated length by fraction in time series.",
+          "description": "The fraction of the interpolated length of the time series that's used to model the time series trend component. All of the time points of the time series are used to model the non-trend component. This training option accelerates modeling training without sacrificing much forecasting accuracy. You can use this option with `minTimeSeriesLength` but not with `maxTimeSeriesLength`.",
           "format": "double",
           "type": "number"
         },
@@ -7550,13 +8137,20 @@
           "type": "string"
         },
         "trendSmoothingWindowSize": {
-          "description": "The smoothing window size for the trend component of the time series.",
+          "description": "Smoothing window size for the trend component. When a positive value is specified, a center moving average smoothing is applied on the history trend. When the smoothing window is out of the boundary at the beginning or the end of the trend, the first element or the last element is padded to fill the smoothing window before the average is applied.",
           "format": "int64",
           "type": "string"
         },
         "userColumn": {
           "description": "User column specified for matrix factorization models.",
           "type": "string"
+        },
+        "vertexAiModelVersionAliases": {
+          "description": "The version aliases to apply in Vertex AI model registry. Always overwrite if the version aliases exists in a existing model.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
         },
         "walsAlpha": {
           "description": "Hyperparameter for matrix factoration when implicit feedback type is specified.",
@@ -7566,6 +8160,10 @@
         "warmStart": {
           "description": "Whether to train a model from the last checkpoint.",
           "type": "boolean"
+        },
+        "xgboostVersion": {
+          "description": "User-selected XGBoost versions for training of XGBoost models.",
+          "type": "string"
         }
       },
       "type": "object"
@@ -7617,6 +8215,7 @@
           "readOnly": true
         },
         "trainingStartTime": {
+          "deprecated": true,
           "description": "Output only. The start time of this training run, in milliseconds since epoch.",
           "format": "int64",
           "readOnly": true,
@@ -7644,6 +8243,28 @@
       },
       "type": "object"
     },
+    "TransformColumn": {
+      "description": "Information about a single transform column.",
+      "id": "TransformColumn",
+      "properties": {
+        "name": {
+          "description": "Output only. Name of the column.",
+          "readOnly": true,
+          "type": "string"
+        },
+        "transformSql": {
+          "description": "Output only. The SQL expression used in the column transform.",
+          "readOnly": true,
+          "type": "string"
+        },
+        "type": {
+          "$ref": "StandardSqlDataType",
+          "description": "Output only. Data type of the column after the transform.",
+          "readOnly": true
+        }
+      },
+      "type": "object"
+    },
     "UserDefinedFunctionResource": {
       "description": "This is used for defining User Defined Function (UDF) resources only when using legacy SQL. Users of Standard SQL should leverage either DDL (e.g. CREATE [TEMPORARY] FUNCTION ... ) or the Routines API to define UDF resources. For additional information on migrating, see: https://cloud.google.com/bigquery/docs/reference/standard-sql/migrating-from-legacy-sql#differences_in_user-defined_javascript_functions",
       "id": "UserDefinedFunctionResource",
@@ -7654,6 +8275,36 @@
         },
         "resourceUri": {
           "description": "[Pick one] A code resource to load from a Google Cloud Storage URI (gs://bucket/path).",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "VectorSearchStatistics": {
+      "description": "Statistics for a vector search query. Populated as part of JobStatistics2.",
+      "id": "VectorSearchStatistics",
+      "properties": {
+        "indexUnusedReasons": {
+          "description": "When `indexUsageMode` is `UNUSED` or `PARTIALLY_USED`, this field explains why indexes were not used in all or part of the vector search query. If `indexUsageMode` is `FULLY_USED`, this field is not populated.",
+          "items": {
+            "$ref": "IndexUnusedReason"
+          },
+          "type": "array"
+        },
+        "indexUsageMode": {
+          "description": "Specifies the index usage mode for the query.",
+          "enum": [
+            "INDEX_USAGE_MODE_UNSPECIFIED",
+            "UNUSED",
+            "PARTIALLY_USED",
+            "FULLY_USED"
+          ],
+          "enumDescriptions": [
+            "Index usage mode not specified.",
+            "No vector indexes were used in the vector search query. See [`indexUnusedReasons`] (/bigquery/docs/reference/rest/v2/Job#IndexUnusedReason) for detailed reasons.",
+            "Part of the vector search query used vector indexes. See [`indexUnusedReasons`] (/bigquery/docs/reference/rest/v2/Job#IndexUnusedReason) for why other parts of the query did not use vector indexes.",
+            "The entire vector search query used vector indexes."
+          ],
           "type": "string"
         }
       },

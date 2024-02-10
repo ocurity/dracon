@@ -4,20 +4,13 @@ kind: Task
 metadata:
   name: enricher-aggregator
   labels:
-    v1.dracon.ocurity.com/component: enricher
+    v1.dracon.ocurity.com/component: enricher-aggregator
 spec:
   params:
-  - name: enricher-aggregator-anchors
-    description: A list of tasks that this task depends on.
-    type: array
-    default: []
   - name: enricher-aggregator-b64-signature-key
     description: An optional key to sign each aggregated result with
     type: string
     default: ""
-  results:
-  - name: anchor
-    description: An anchor to allow other tasks to depend on this task.
   workspaces:
     - name: source-code-ws
       description: The workspace containing the source-code to scan.
