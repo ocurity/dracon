@@ -25,14 +25,13 @@ var code = `q += ' LIMIT + %(limit)s '
 
 func TestParseIssues(t *testing.T) {
 	f, err := testutil.CreateFile("bandit_tests_vuln_code", code)
-	if err != nil {
-		t.Error(err)
-	}
-	defer os.Remove(f.Name())
-	exampleOutput := fmt.Sprintf(sampleOut, f.Name(), f.Name())
-	var results BanditOut
-	err = json.Unmarshal([]byte(exampleOutput), &results)
 	require.NoError(t, err)
+	defer func() { require.NoError(t, os.Remove(f.Name())) }()
+
+	exampleOutput := fmt.Sprintf(sampleOut, f.Name(), f.Name())
+
+	var results BanditOut
+	require.NoError(t, json.Unmarshal([]byte(exampleOutput), &results))
 
 	issues := []*v1.Issue{}
 	for _, res := range results.Results {
@@ -69,7 +68,7 @@ func TestParseIssues(t *testing.T) {
 		},
 	}
 
-	assert.Equal(t, expectedIssues, issues)
+	require.Equal(t, expectedIssues, issues)
 }
 
 var sampleOut = `{

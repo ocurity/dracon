@@ -21,12 +21,12 @@ type testJ struct {
 func TestWriteDraconOut(t *testing.T) {
 	tmpFile, err := os.CreateTemp("", "dracon-test")
 	require.NoError(t, err)
-	defer os.Remove(tmpFile.Name())
+	defer require.NoError(t, os.Remove(tmpFile.Name()))
 
 	baseTime := time.Now().UTC()
 	timestamp := baseTime.Format(time.RFC3339)
-	os.Setenv(EnvDraconStartTime, timestamp)
-	os.Setenv(EnvDraconScanID, "ab3d3290-cd9f-482c-97dc-ec48bdfcc4de")
+	require.NoError(t, os.Setenv(EnvDraconStartTime, timestamp))
+	require.NoError(t, os.Setenv(EnvDraconScanID, "ab3d3290-cd9f-482c-97dc-ec48bdfcc4de"))
 
 	OutFile = tmpFile.Name()
 	Append = false
@@ -62,12 +62,12 @@ func TestWriteDraconOut(t *testing.T) {
 func TestWriteDraconOutAppend(t *testing.T) {
 	tmpFile, err := os.CreateTemp("", "dracon-test")
 	require.NoError(t, err)
-	defer os.Remove(tmpFile.Name())
+	defer require.NoError(t, os.Remove(tmpFile.Name()))
 
 	baseTime := time.Now().UTC()
 	timestamp := baseTime.Format(time.RFC3339)
-	os.Setenv(EnvDraconStartTime, timestamp)
-	os.Setenv(EnvDraconScanID, "ab3d3290-cd9f-482c-97dc-ec48bdfcc4de")
+	require.NoError(t, os.Setenv(EnvDraconStartTime, timestamp))
+	require.NoError(t, os.Setenv(EnvDraconScanID, "ab3d3290-cd9f-482c-97dc-ec48bdfcc4de"))
 
 	OutFile = tmpFile.Name()
 	Append = true

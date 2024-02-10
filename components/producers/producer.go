@@ -37,6 +37,8 @@ const (
 	EnvDraconStartTime = "DRACON_SCAN_TIME"
 	// EnvDraconScanID the ID of the dracon scan.
 	EnvDraconScanID = "DRACON_SCAN_ID"
+	// EnvDraconScanTags the tags of the dracon scan.
+	EnvDraconScanTags = "DRACON_SCAN_TAGS"
 )
 
 // ParseFlags will parse the input flags for the producer and perform simple validation.
@@ -56,25 +58,25 @@ func ParseFlags() error {
 }
 
 // ReadLines returns the lines of the contents of the file given by InResults.
-func ReadLines() ([][]byte, error) {
-	file, err := os.Open(InResults)
+func ReadLines() (result [][]byte, err error) {
+	var file *os.File
+
+	file, err = os.Open(InResults)
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
+	defer func() { err = errors.Join(err, file.Close()) }()
 
 	scanner := bufio.NewScanner(file)
-
-	var result [][]byte
-
 	for scanner.Scan() {
 		result = append(result, scanner.Bytes())
 	}
 
-	return result, nil
+	return result, err
 }
 
 // ReadInFile returns the contents of the file given by InResults.
+// TODO: replace with os.ReadFile
 func ReadInFile() ([]byte, error) {
 	file, err := os.Open(InResults)
 	if err != nil {
@@ -128,12 +130,18 @@ func WriteDraconOut(
 		scanStartTime = time.Now().UTC().Format(time.RFC3339)
 	}
 	scanUUUID := strings.TrimSpace(os.Getenv(EnvDraconScanID))
+	scanTagsStr := strings.TrimSpace(os.Getenv(EnvDraconScanTags))
+	scanTags := map[string]string{}
+	err := json.Unmarshal([]byte(scanTagsStr), &scanTags)
+	if err != nil {
+		log.Println("scan with uuid", scanUUUID, "does not have any tags, err: '", err, "'")
+	}
 
 	stat, err := os.Stat(OutFile)
 	if Append && err == nil && stat.Size() > 0 {
 		return putil.AppendResults(cleanIssues, OutFile)
 	}
-	return putil.WriteResults(toolName, cleanIssues, OutFile, scanUUUID, scanStartTime)
+	return putil.WriteResults(toolName, cleanIssues, OutFile, scanUUUID, scanStartTime, scanTags)
 }
 
 func getSource() string {

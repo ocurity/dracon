@@ -132,7 +132,7 @@ func getSchemaSearchPathFromURL(connURL *url.URL) (string, error) {
 	} else if len(path) == 1 {
 		return path[0], nil
 	}
-	return "", errors.New("Multiple search_paths defined in database connection DSN")
+	return "", errors.New("multiple search_paths defined in database connection DSN")
 }
 
 // getSchemaSearchPathFromKV extracts the schema search path component from a
@@ -145,7 +145,7 @@ func getSchemaSearchPathFromKV(kvStr string) (string, error) {
 		elems := strings.SplitN(pair, "=", 2)
 		if elems[0] == "search_path" {
 			if path != "" {
-				return "", errors.New("Multiple search_paths defined in database connection DSN")
+				return "", errors.New("multiple search_paths defined in database connection DSN")
 			}
 
 			path = elems[1]
