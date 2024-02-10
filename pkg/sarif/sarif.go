@@ -120,7 +120,7 @@ func draconIssueToSarif(issue *v1.Issue, rule *sarif.ReportingDescriptor) (*sari
 	artifactLocation := sarif.ArtifactLocation{}
 	_, err := url.ParseRequestURI(removeDraconInternalPath(issue.Target))
 	if err != nil {
-		return &sarif.Result{}, fmt.Errorf("Issue titled '%s' targets '%s' which is not a valid URI, skipping", issue.Title, issue.Target)
+		return &sarif.Result{}, fmt.Errorf("issue titled '%s' targets '%s' which is not a valid URI, skipping", issue.Title, issue.Target)
 	}
 	artifactLocation.WithUri(removeDraconInternalPath(issue.Target))
 	physicalLocation.WithArtifactLocation(&artifactLocation)

@@ -116,10 +116,11 @@ spec:
       description: The precise URL that was fetched by this Task.
   steps:
     - name: clone
-      image: "$(params.gitInitImage)"
+      image: "$(params.git-clone-gitInitImage)"
       env:
-      - name: HOME
-        value: "$(params.userHome)"
+      # not sure if this is needed any more
+      # - name: HOME
+      #   value: "$(params.git-clone-userHome)"
       - name: PARAM_URL
         value: $(params.git-clone-url)
       - name: PARAM_REVISION
@@ -139,7 +140,7 @@ spec:
       - name: PARAM_HTTP_PROXY
         value: $(params.git-clone-httpProxy)
       - name: PARAM_HTTPS_PROXY
-        value: $(params.httpsProxy)
+        value: $(params.git-clone-httpsProxy)
       - name: PARAM_NO_PROXY
         value: $(params.git-clone-noProxy)
       - name: PARAM_VERBOSE

@@ -64,6 +64,7 @@ var rootCmd = &cobra.Command{
 					filepath.Join(writePath, fmt.Sprintf("%s.raw.pb", r.GetToolName())),
 					r.GetScanInfo().GetScanUuid(),
 					scanStartTime.Format(time.RFC3339),
+					r.GetScanInfo().GetScanTags(),
 				); err != nil {
 					log.Fatalf("could not write results: %s", err)
 				}

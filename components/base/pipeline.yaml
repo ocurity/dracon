@@ -3,19 +3,6 @@ apiVersion: tekton.dev/v1beta1
 kind: Pipeline
 metadata:
   name: dracon
-  annotations:
-    # v1.dracon.ocurity.com/has-get-source: "false"
-    # v1.dracon.ocurity.com/has-producer-aggregator: "true"
-    # v1.dracon.ocurity.com/has-enricher-aggregator: "true"
 spec:
   workspaces: []
-  tasks:
-    - name: base
-      taskRef:
-        name: base
-  # - name: producer-aggregator
-  #   taskRef:
-  #     name: producer-aggregator
-  # - name: enricher-aggregator
-  #   taskRef:
-  #     name: enricher-aggregator
+  tasks: []
