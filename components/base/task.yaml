@@ -6,14 +6,22 @@ metadata:
   labels:
     v1.dracon.ocurity.com/component: base
 spec:
+  params:
+  - name: dracon-base-scan-tags
+    description: |
+     serialized map[string]string of tags for this scan
+    default: ""
   results:
     - name: dracon-scan-start-time
       description: The scan start time
     - name: dracon-scan-id
       description: The scan unique id
+    - name: dracon-scan-tags
+      description: The optional tags for this scan
   steps:
   - name: generate-scan-id-start-time
     image: docker.io/busybox:1.35.0
     script: |
       cat /proc/sys/kernel/random/uuid | tee $(results.dracon-scan-id.path)
       date +"%Y-%m-%dT%H:%M:%SZ" | tee $(results.dracon-scan-start-time.path)
+      echo "$(params.dracon-base-scan-tags)" | tee $(results.dracon-scan-tags)

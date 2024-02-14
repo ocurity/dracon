@@ -31,6 +31,11 @@ var (
 	Append bool
 )
 
+// migrate from flags to viper
+//  use viper to autoenv
+// if tags env var exists, automap to viper scanTags
+// make sure no producers touch scan results and if they do, overwrite with tags
+
 const (
 	sourceDir = "/workspace/source-code-ws"
 
@@ -38,6 +43,8 @@ const (
 	EnvDraconStartTime = "DRACON_SCAN_TIME"
 	// EnvDraconScanID the ID of the dracon scan.
 	EnvDraconScanID = "DRACON_SCAN_ID"
+	// EnvDraconScanTags the tags of the dracon scan.
+	EnvDraconScanTags = "DRACON_SCAN_TAGS"
 )
 
 // ParseFlags will parse the input flags for the producer and perform simple validation.
@@ -46,7 +53,6 @@ func ParseFlags() error {
 	flag.StringVar(&OutFile, "out", "", "")
 	flag.BoolVar(&Append, "append", false, "Append to output file instead of overwriting it")
 
-	flag.Parse()
 	if InResults == "" {
 		return fmt.Errorf("in is undefined")
 	}
@@ -138,12 +144,17 @@ func WriteDraconOut(
 		scanStartTime = time.Now().UTC().Format(time.RFC3339)
 	}
 	scanUUUID := strings.TrimSpace(os.Getenv(EnvDraconScanID))
-
+	scanTagsStr := strings.TrimSpace(os.Getenv(EnvDraconScanTags))
+	scanTags := map[string]string{}
+	err := json.Unmarshal([]byte(scanTagsStr), &scanTags)
+	if err != nil {
+		log.Println("scan with uuid", scanUUUID, "does not have any tags, err: '", err, "'")
+	}
 	stat, err := os.Stat(OutFile)
 	if Append && err == nil && stat.Size() > 0 {
 		return putil.AppendResults(cleanIssues, OutFile)
 	}
-	return putil.WriteResults(toolName, cleanIssues, OutFile, scanUUUID, scanStartTime)
+	return putil.WriteResults(toolName, cleanIssues, OutFile, scanUUUID, scanStartTime, scanTags)
 }
 
 func getSource() string {

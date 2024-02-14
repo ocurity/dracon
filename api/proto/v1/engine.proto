@@ -17,6 +17,10 @@ message ScanInfo {
   string scan_uuid = 1;
   // timestamp of when the scan was triggered (passed to LaunchToolResponse)
   google.protobuf.Timestamp scan_start_time = 2;
+  
+  // [Optional] scan tags is a user defined list of tags for this scan
+  map<string, string> scan_tags = 3;
+  
 }
 
 /* LaunchToolReponse consists of a response built by a producer,

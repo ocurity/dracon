@@ -40,6 +40,10 @@ func (p *AddScanUUIDAndStartTimeToPipeline) GeneratePatch() *kustomize.TargetPat
 					Name:  "dracon_scan_start_time",
 					Value: "$(tasks.base.results.dracon-scan-start-time)",
 				},
+				{
+					Name:  "dracon_scan_tags",
+					Value: "$(tasks.base.results.dracon-scan-tags)",
+				},
 			},
 		},
 	)

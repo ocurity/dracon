@@ -109,6 +109,8 @@ patches:
             type: string
           - name: dracon_scan_start_time
             type: string
+          - name: dracon_scan_tags
+            type: string
         steps:
           - name: get-jar
             image: busybox:latest
@@ -119,6 +121,8 @@ patches:
                 value: $(params.dracon_scan_start_time)
               - name: DRACON_SCAN_ID
                 value: $(params.dracon_scan_id)
+              - name: DRACON_SCAN_TAGS
+                value: $(params.dracon_scan_tags)
           - name: run-findsecbugs
             image: docker.io/captainfoobar/findsecbugs:1.12.0.3
             env:
@@ -126,6 +130,8 @@ patches:
                 value: $(params.dracon_scan_start_time)
               - name: DRACON_SCAN_ID
                 value: $(params.dracon_scan_id)
+              - name: DRACON_SCAN_TAGS
+                value: $(params.dracon_scan_tags)
           - name: debug
             image: busybox:latest
             script: |
@@ -135,6 +141,8 @@ patches:
                 value: $(params.dracon_scan_start_time)
               - name: DRACON_SCAN_ID
                 value: $(params.dracon_scan_id)
+              - name: DRACON_SCAN_TAGS
+                value: $(params.dracon_scan_tags)
           - name: produce-issues
             image: ghcr.io/ocurity/dracon/components/producers/java-findsecbugs/image:latest
             env:
@@ -142,6 +150,8 @@ patches:
                 value: $(params.dracon_scan_start_time)
               - name: DRACON_SCAN_ID
                 value: $(params.dracon_scan_id)
+              - name: DRACON_SCAN_TAGS
+                value: $(params.dracon_scan_tags)
     target:
       kind: Task
       name: producer-java-findsecbugs
@@ -158,5 +168,7 @@ patches:
                 value: $(tasks.base.results.dracon-scan-id)
               - name: dracon_scan_start_time
                 value: $(tasks.base.results.dracon-scan-start-time)
+              - name: dracon_scan_tags
+                value: $(tasks.base.results.dracon-scan-tags)
     target:
       kind: Pipeline

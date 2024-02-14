@@ -36,6 +36,10 @@ func (p *AddScanUUIDAndStartTimeToTask) GeneratePatch() *kustomize.TargetPatch {
 					Name: "dracon_scan_start_time",
 					Type: "string",
 				},
+				{
+					Name: "dracon_scan_tags",
+					Type: "string",
+				},
 			},
 		},
 	}
@@ -47,6 +51,10 @@ func (p *AddScanUUIDAndStartTimeToTask) GeneratePatch() *kustomize.TargetPatch {
 		{
 			Name:  "DRACON_SCAN_ID",
 			Value: "$(params.dracon_scan_id)",
+		},
+		{
+			Name:  "DRACON_SCAN_TAGS",
+			Value: "$(params.dracon_scan_tags)",
 		},
 	}
 	var steps []*tekton.TaskSpecStep

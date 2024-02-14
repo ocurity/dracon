@@ -110,6 +110,8 @@ patches:
             type: string
           - name: dracon_scan_start_time
             type: string
+          - name: dracon_scan_tags
+            type: string
         steps:
           - name: run-testsslsh
             image: docker.io/drwetter/testssl.sh:3.0
@@ -118,6 +120,8 @@ patches:
                 value: $(params.dracon_scan_start_time)
               - name: DRACON_SCAN_ID
                 value: $(params.dracon_scan_id)
+              - name: DRACON_SCAN_TAGS
+                value: $(params.dracon_scan_tags)
           - name: produce-issues
             image: ghcr.io/ocurity/dracon/components/producers/testsslsh/image:latest
             env:
@@ -125,6 +129,8 @@ patches:
                 value: $(params.dracon_scan_start_time)
               - name: DRACON_SCAN_ID
                 value: $(params.dracon_scan_id)
+              - name: DRACON_SCAN_TAGS
+                value: $(params.dracon_scan_tags)
     target:
       kind: Task
       name: producer-testsslsh
@@ -141,5 +147,7 @@ patches:
                 value: $(tasks.base.results.dracon-scan-id)
               - name: dracon_scan_start_time
                 value: $(tasks.base.results.dracon-scan-start-time)
+              - name: dracon_scan_tags
+                value: $(tasks.base.results.dracon-scan-tags)
     target:
       kind: Pipeline

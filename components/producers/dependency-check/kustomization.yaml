@@ -97,6 +97,8 @@ patches:
             type: string
           - name: dracon_scan_start_time
             type: string
+          - name: dracon_scan_tags
+            type: string
         steps:
           - name: run-dependency-check
             image: docker.io/owasp/dependency-check:7.4.4
@@ -105,6 +107,8 @@ patches:
                 value: $(params.dracon_scan_start_time)
               - name: DRACON_SCAN_ID
                 value: $(params.dracon_scan_id)
+              - name: DRACON_SCAN_TAGS
+                value: $(params.dracon_scan_tags)
           - name: produce-issues
             image: ghcr.io/ocurity/dracon/components/producers/dependency-check/image:latest
             env:
@@ -112,6 +116,8 @@ patches:
                 value: $(params.dracon_scan_start_time)
               - name: DRACON_SCAN_ID
                 value: $(params.dracon_scan_id)
+              - name: DRACON_SCAN_TAGS
+                value: $(params.dracon_scan_tags)
     target:
       kind: Task
       name: producer-dependency-check
@@ -128,5 +134,7 @@ patches:
                 value: $(tasks.base.results.dracon-scan-id)
               - name: dracon_scan_start_time
                 value: $(tasks.base.results.dracon-scan-start-time)
+              - name: dracon_scan_tags
+                value: $(tasks.base.results.dracon-scan-tags)
     target:
       kind: Pipeline

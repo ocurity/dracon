@@ -8,19 +8,21 @@ spec:
   pipelineRef:
     name: dracon-golang-project
   params:
-  - name: repository_url
-    value: https://github.com/ocurity/e2e-monorepo.git
-  - name: b64-signature-key
-  # THIS IS AN EXAMPLE, PLEASE USE A PROPERLY SECURED SECRET KEY IN PRODUCTION
-  # Corresponding public key for verification is MOt7TFuLyGB9yRN5mcIeAPa6jKoFglkwEwGBTOVLeXI=
-    value: Lvbo+wAsW8Y4ENBA+lAikOwGTYAIXCQ49eRMEwClv94w63tMW4vIYH3JE3mZwh4A9rqMqgWCWTATAYFM5Ut5cg==
+    - name: dracon-base-scan-tags
+      value: '{"tagFoo":"foo","tagBar":"bar"}'
+    - name: repository_url
+      value: https://github.com/ocurity/e2e-monorepo.git
+    - name: b64-signature-key
+      # THIS IS AN EXAMPLE, PLEASE USE A PROPERLY SECURED SECRET KEY IN PRODUCTION
+      # Corresponding public key for verification is MOt7TFuLyGB9yRN5mcIeAPa6jKoFglkwEwGBTOVLeXI=
+      value: Lvbo+wAsW8Y4ENBA+lAikOwGTYAIXCQ49eRMEwClv94w63tMW4vIYH3JE3mZwh4A9rqMqgWCWTATAYFM5Ut5cg==
   workspaces:
-  - name: source-code-ws
-    subPath: source-code
-    volumeClaimTemplate:
-      spec:
-        accessModes:
-          - ReadWriteOnce
-        resources:
-          requests:
-            storage: 1Gi
+    - name: source-code-ws
+      subPath: source-code
+      volumeClaimTemplate:
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 1Gi
