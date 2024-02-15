@@ -70,7 +70,6 @@ func handleRawResults(product int, dojoClient *client.Client, responses []*v1.La
 				dojoClient.UserID,
 				false,
 				false,
-				true,
 				iss.GetCvss())
 			if err != nil {
 				log.Fatalf("Could not create raw finding error: %v\n", err)
@@ -129,7 +128,6 @@ func handleEnrichedResults(product int, dojoClient *client.Client, responses []*
 				test.ID, 0, 0, dojoClient.UserID,
 				iss.GetFalsePositive(),
 				duplicate,
-				true,
 				rawIss.GetCvss())
 			if err != nil {
 				log.Fatalf("Could not create enriched finding error: %v\n", err)
