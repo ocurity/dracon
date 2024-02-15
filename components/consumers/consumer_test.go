@@ -2,7 +2,6 @@ package consumers
 
 import (
 	"encoding/json"
-	v1 "github.com/ocurity/dracon/api/proto/v1"
 	"io/ioutil"
 	"log"
 	"os"
