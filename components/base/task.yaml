@@ -19,4 +19,4 @@ spec:
     script: |
       cat /proc/sys/kernel/random/uuid | tee $(results.dracon-scan-id.path)
       date +"%Y-%m-%dT%H:%M:%SZ" | tee $(results.dracon-scan-start-time.path)
-      echo "$(params.dracon-base-scan-tags)" | tee $(results.dracon-scan-tags)
+      echo "$(params.dracon-base-scan-tags)" | tee $(results.dracon-scan-tags.path)
