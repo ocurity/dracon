@@ -6,6 +6,10 @@ metadata:
   labels:
     v1.dracon.ocurity.com/component: base
 spec:
+  params:
+  - name: base-scan-tags
+    type: string
+    default: ""
   results:
     - name: dracon-scan-start-time
       description: The scan start time
@@ -19,4 +23,4 @@ spec:
     script: |
       cat /proc/sys/kernel/random/uuid | tee $(results.dracon-scan-id.path)
       date +"%Y-%m-%dT%H:%M:%SZ" | tee $(results.dracon-scan-start-time.path)
-      echo "$(params.dracon-base-scan-tags)" | tee $(results.dracon-scan-tags.path)
+      echo "$(params.base-scan-tags)" | tee $(results.dracon-scan-tags.path)
