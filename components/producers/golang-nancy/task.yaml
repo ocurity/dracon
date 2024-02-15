@@ -14,7 +14,7 @@ spec:
       description: The workspace containing the source-code to scan.
   steps:
   - name: go-deps
-    image: docker.io/golang:1.18
+    image: docker.io/golang:1.22
     script: | # necessary because sonatypecommunity/nancy does not include go
      #!/bin/bash -xe
      echo $(workspaces.source-code-ws.path)

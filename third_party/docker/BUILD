@@ -2,9 +2,9 @@ subinclude("//build/defs:buildkit")
 
 buildkit_image_mirror(
     name = "golang",
-    digest = "sha256:740324e52de766f230ad7113fac9028399d6e03af34883de625dc2230ef7927e",
+    digest = "sha256:7b297d9abee021bab9046e492506b3c2da8a3722cbf301653186545ecc1e00bb",
     repo = "docker.io/golang",
-    tags = ["1.18"],
+    tags = ["1.22"],
 )
 
 buildkit_image_mirror(

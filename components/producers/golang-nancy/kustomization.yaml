@@ -99,7 +99,7 @@ patches:
             type: string
         steps:
           - name: go-deps
-            image: docker.io/golang:1.18
+            image: docker.io/golang:1.22
             script: |
               #!/bin/bash -xe
               echo $(workspaces.source-code-ws.path)
