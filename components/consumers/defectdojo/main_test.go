@@ -61,6 +61,9 @@ func createObjects(product int, scanType string) ([]*v1.LaunchToolResponse, []*t
 		var issues []*v1.Issue
 		var enrichedIssues []*v1.EnrichedIssue
 		for j := 0; j <= 3%(i+1); j++ {
+			duplicateTimes, _ := time.Parse(time.RFC3339, "2000-01-19T18:09:06.370037788Z")
+			duplicateTimestamp := timestamppb.New(duplicateTimes)
+
 			x := v1.Issue{
 				Target:     fmt.Sprintf("myTarget %d-%d", i, j),
 				Type:       fmt.Sprintf("type %d-%d", i, j),
@@ -71,7 +74,7 @@ func createObjects(product int, scanType string) ([]*v1.LaunchToolResponse, []*t
 			y := v1.EnrichedIssue{
 				RawIssue:      &x,
 				FirstSeen:     response.ScanInfo.ScanStartTime,
-				Count:         uint64(i),
+				Count:         1,
 				FalsePositive: false,
 				UpdatedAt:     response.ScanInfo.ScanStartTime,
 				Hash:          "d41d8cd98f00b204e9800998ecf8427e",
@@ -79,6 +82,10 @@ func createObjects(product int, scanType string) ([]*v1.LaunchToolResponse, []*t
 					"Foo":                  fmt.Sprintf("Bar %d", i),
 					"Policy.Blah.Decision": "failed",
 				},
+			}
+			if j%2 == 0 {
+				y.FirstSeen = duplicateTimestamp
+				y.Count = uint64(j)
 			}
 			issues = append(issues, &x)
 			enrichedIssues = append(enrichedIssues, &y)
@@ -97,7 +104,7 @@ func createObjects(product int, scanType string) ([]*v1.LaunchToolResponse, []*t
 				}
 				d = desc
 			}
-			findingsRequests = append(findingsRequests, &types.FindingCreateRequest{
+			findingsReq := &types.FindingCreateRequest{
 				Tags:              []string{"DraconScan", scanType + "Finding", scanID, toolName},
 				Title:             x.Title,
 				Date:              times.Format(DojoTimeFormat),
@@ -107,7 +114,13 @@ func createObjects(product int, scanType string) ([]*v1.LaunchToolResponse, []*t
 				FoundBy:           []int32{1},
 				Description:       *d,
 				Active:            true,
-			})
+				Duplicate:         false,
+			}
+			if j%2 == 0 && scanType != "Raw" {
+				findingsReq.Active = false
+				findingsReq.Duplicate = true
+			}
+			findingsRequests = append(findingsRequests, findingsReq)
 		}
 		response.Issues = issues
 		enrichedResponse.OriginalResults = response // duplication here is important since we use this enrichedResponse in getEnrichedIssues above
@@ -258,7 +271,8 @@ func TestHandleEnrichedResults(t *testing.T) {
 
 		case "/findings":
 			findingRequest := &types.FindingCreateRequest{}
-			json.Unmarshal(body, &findingRequest)
+			err := json.Unmarshal(body, &findingRequest)
+			assert.Nil(t, err)
 			assert.Contains(t, findingsRequests, findingRequest)
 			assert.Contains(t, string(body), "Policy.Blah.Decision")
 			foundFindings = append(foundFindings, findingRequest) // ensure each finding is only registered once

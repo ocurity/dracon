@@ -62,17 +62,21 @@ func (client *Client) CreateFinding(
 	title, description, severity, target, date, numericalSeverity string,
 	tags []string,
 	testID, line, cwe, foundBy int32,
-	falseP, duplicate, active bool,
+	falseP, duplicate bool,
 	cvssScore float64,
 ) (types.FindingCreateResponse, error) {
 	url := fmt.Sprintf("%s/findings", client.host)
+	active := true
+	if duplicate {
+		active = false
+	}
 	body := types.FindingCreateRequest{
 		Tags:              tags,
 		Date:              date,
 		Cwe:               cwe,
 		Line:              line,
 		FilePath:          target,
-		Duplicate:         false,
+		Duplicate:         duplicate,
 		FalseP:            falseP,
 		Active:            active,
 		Verified:          false,

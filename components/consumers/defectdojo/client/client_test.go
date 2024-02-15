@@ -44,7 +44,7 @@ func TestCreateFinding(t *testing.T) {
 			FalseP:            false,
 			Severity:          "High",
 			Description:       "description",
-			Active:            false,
+			Active:            true,
 			Verified:          false,
 			Line:              1,
 			NumericalSeverity: "C:I",
@@ -66,7 +66,7 @@ func TestCreateFinding(t *testing.T) {
 		[]string{"tests"},
 		1,
 		1,
-		0, 0, false, false, false, 3.9)
+		0, 0, false, false, 3.9)
 	assert.Nil(t, err)
 	assert.True(t, called)
 }
