@@ -1,115 +1,267 @@
 apiVersion: tekton.dev/v1beta1
 kind: Pipeline
 metadata:
+  creationTimestamp: null
   name: dracon-cdxgen-project
 spec:
   params:
+  - default: ""
+    name: base-scan-tags
+    type: string
+  - description: Repository URL to clone from.
+    name: git-clone-url
+    type: string
+  - default: ""
+    description: Revision to checkout. (branch, tag, sha, ref, etc...)
+    name: git-clone-revision
+    type: string
+  - default: ""
+    description: Refspec to fetch before checking out revision.
+    name: git-clone-refspec
+    type: string
+  - default: "true"
+    description: Initialize and fetch git submodules.
+    name: git-clone-submodules
+    type: string
+  - default: "1"
+    description: Perform a shallow clone, fetching only the most recent N commits.
+    name: git-clone-depth
+    type: string
+  - default: "true"
+    description: Set the `http.sslVerify` global git config. Setting this to `false`
+      is not advised unless you are sure that you trust your git remote.
+    name: git-clone-sslVerify
+    type: string
+  - default: ca-bundle.crt
+    description: file name of mounted crt using ssl-ca-directory workspace. default
+      value is ca-bundle.crt.
+    name: git-clone-crtFileName
+    type: string
+  - default: ""
+    description: Subdirectory inside the `output` Workspace to clone the repo into.
+    name: git-clone-subdirectory
+    type: string
+  - default: ""
+    description: Define the directory patterns to match or exclude when performing
+      a sparse checkout.
+    name: git-clone-sparseCheckoutDirectories
+    type: string
+  - default: "true"
+    description: Clean out the contents of the destination directory if it already
+      exists before cloning.
+    name: git-clone-deleteExisting
+    type: string
+  - default: ""
+    description: HTTP proxy server for non-SSL requests.
+    name: git-clone-httpProxy
+    type: string
+  - default: ""
+    description: HTTPS proxy server for SSL requests.
+    name: git-clone-httpsProxy
+    type: string
+  - default: ""
+    description: Opt out of proxying HTTP/HTTPS requests.
+    name: git-clone-noProxy
+    type: string
+  - default: "true"
+    description: Log the commands that are executed during `git-clone`'s operation.
+    name: git-clone-verbose
+    type: string
+  - default: gcr.io/tekton-releases/github.com/tektoncd/pipeline/cmd/git-init:v0.40.2
+    description: The image providing the git-init binary that this Task runs.
+    name: git-clone-gitInitImage
+    type: string
+  - default: /home/git
+    description: |
+      Absolute path to the user's home directory.
+    name: git-clone-userHome
+    type: string
+  - default: []
+    name: producer-cdxgen-flags
+    type: array
+  - default: "false"
+    name: producer-cdxgen-fetch-license
+    type: string
+  - default: ""
+    name: producer-cdxgen-github-token
+    type: string
+  - default: ""
+    name: producer-cdxgen-astgen-ignore-file-pattern
+    type: string
+  - default: ""
+    name: producer-cdxgen-astgen-ignore-dirs
+    type: string
   - default: cGFja2FnZSBleGFtcGxlLmdvc2VjCgpkZWZhdWx0IGFsbG93IDo9IGZhbHNlCgphbGxvdyA9dHJ1ZSB7CiAgICBwcmludChpbnB1dCkKICAgIGNoZWNrX3NldmVyaXR5Cn0KCmNoZWNrX3NldmVyaXR5IHsKICAgIGlucHV0LnNldmVyaXR5ID09ICJTRVZFUklUWV9ISUdIIgp9CmNoZWNrX3NldmVyaXR5IHsKICAgIGlucHV0LnNldmVyaXR5ID09ICJTRVZFUklUWV9NRURJVU0iCn0KY2hlY2tfc2V2ZXJpdHkgewogICAgaW5wdXQuc2V2ZXJpdHkgPT0gIlNFVkVSSVRZX0xPVyIKfQ==
     name: enricher-policy-base64-policy
     type: string
   - default: ""
     name: enricher-policy-annotation
     type: string
+  - default: ""
+    description: An optional key to sign each aggregated result with
+    name: enricher-aggregator-b64-signature-key
+    type: string
   tasks:
+  - name: base
+    params:
+    - name: base-scan-tags
+      value: $(params.base-scan-tags)
+    taskRef:
+      name: base
+  - name: git-clone
+    params:
+    - name: git-clone-url
+      value: $(params.git-clone-url)
+    - name: git-clone-revision
+      value: $(params.git-clone-revision)
+    - name: git-clone-refspec
+      value: $(params.git-clone-refspec)
+    - name: git-clone-submodules
+      value: $(params.git-clone-submodules)
+    - name: git-clone-depth
+      value: $(params.git-clone-depth)
+    - name: git-clone-sslVerify
+      value: $(params.git-clone-sslVerify)
+    - name: git-clone-crtFileName
+      value: $(params.git-clone-crtFileName)
+    - name: git-clone-subdirectory
+      value: $(params.git-clone-subdirectory)
+    - name: git-clone-sparseCheckoutDirectories
+      value: $(params.git-clone-sparseCheckoutDirectories)
+    - name: git-clone-deleteExisting
+      value: $(params.git-clone-deleteExisting)
+    - name: git-clone-httpProxy
+      value: $(params.git-clone-httpProxy)
+    - name: git-clone-httpsProxy
+      value: $(params.git-clone-httpsProxy)
+    - name: git-clone-noProxy
+      value: $(params.git-clone-noProxy)
+    - name: git-clone-verbose
+      value: $(params.git-clone-verbose)
+    - name: git-clone-gitInitImage
+      value: $(params.git-clone-gitInitImage)
+    - name: git-clone-userHome
+      value: $(params.git-clone-userHome)
+    taskRef:
+      name: git-clone
+    workspaces:
+    - name: output
+      workspace: output
+    - name: ssh-directory
+      workspace: ssh-directory
+    - name: basic-auth
+      workspace: basic-auth
+    - name: ssl-ca-directory
+      workspace: ssl-ca-directory
+  - name: producer-cdxgen
+    params:
+    - name: producer-cdxgen-flags
+      value:
+      - $(params.producer-cdxgen-flags)
+    - name: producer-cdxgen-fetch-license
+      value: $(params.producer-cdxgen-fetch-license)
+    - name: producer-cdxgen-github-token
+      value: $(params.producer-cdxgen-github-token)
+    - name: producer-cdxgen-astgen-ignore-file-pattern
+      value: $(params.producer-cdxgen-astgen-ignore-file-pattern)
+    - name: producer-cdxgen-astgen-ignore-dirs
+      value: $(params.producer-cdxgen-astgen-ignore-dirs)
+    - name: anchors
+      value:
+      - $(tasks.git-clone.results.anchor)
+    - name: dracon_scan_id
+      value: $(tasks.base.results.dracon-scan-id)
+    - name: dracon_scan_start_time
+      value: $(tasks.base.results.dracon-scan-start-time)
+    - name: dracon_scan_tags
+      value: $(tasks.base.results.dracon-scan-tags)
+    taskRef:
+      name: producer-cdxgen
+    workspaces:
+    - name: output
+      workspace: output
+  - name: producer-aggregator
+    params:
+    - name: anchors
+      value:
+      - $(tasks.producer-cdxgen.results.anchor)
+    taskRef:
+      name: producer-aggregator
+    workspaces:
+    - name: output
+      workspace: output
+  - name: enricher-policy
+    params:
+    - name: enricher-policy-base64-policy
+      value: $(params.enricher-policy-base64-policy)
+    - name: enricher-policy-annotation
+      value: $(params.enricher-policy-annotation)
+    - name: anchors
+      value:
+      - $(tasks.producer-aggregator.results.anchor)
+    taskRef:
+      name: enricher-policy
+    workspaces:
+    - name: output
+      workspace: output
+  - name: enricher-aggregator
+    params:
+    - name: enricher-aggregator-b64-signature-key
+      value: $(params.enricher-aggregator-b64-signature-key)
+    - name: anchors
+      value:
+      - $(tasks.enricher-policy.results.anchor)
+    taskRef:
+      name: enricher-aggregator
+    workspaces:
+    - name: output
+      workspace: output
   - name: consumer-stdout-json
+    params:
+    - name: anchors
+      value:
+      - $(tasks.enricher-aggregator.results.anchor)
     taskRef:
       name: consumer-stdout-json
     workspaces:
-    - name: source-code-ws
-      workspace: source-code-ws
+    - name: output
+      workspace: output
   workspaces:
-  - name: source-code-ws
+  - name: output
+  - name: ssh-directory
+    optional: true
+  - name: basic-auth
+    optional: true
+  - name: ssl-ca-directory
+    optional: true
 ---
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
+  creationTimestamp: null
   labels:
-    v1.dracon.ocurity.com/component: consumer
-  name: consumer-stdout-json-cdxgen-project
+    v1.dracon.ocurity.com/component: base
+  name: base
 spec:
   params:
-  - default: []
-    description: A list of tasks that this task depends on using their anchors.
-    name: anchors
-    type: array
+  - default: ""
+    name: base-scan-tags
+    type: string
   results:
-  - description: An anchor to allow other tasks to depend on this task.
-    name: anchor
+  - description: The scan start time
+    name: dracon-scan-start-time
+  - description: The scan unique id
+    name: dracon-scan-id
+  - description: serialized map[string]string of tags for this scan
+    name: dracon-scan-tags
   steps:
   - image: docker.io/busybox:1.35.0
-    name: anchor
-    script: echo "$(context.task.name)" > "$(results.anchor.path)"
-  workspaces:
-  - description: The workspace containing the source-code to scan.
-    name: source-code-ws
----
-apiVersion: tekton.dev/v1beta1
-kind: Task
-metadata:
-  labels:
-    v1.dracon.ocurity.com/component: enricher
-  name: enricher-aggregator-cdxgen-project
-spec:
-  params:
-  - default: []
-    description: A list of tasks that this task depends on using their anchors.
-    name: anchors
-    type: array
-  results:
-  - description: An anchor to allow other tasks to depend on this task.
-    name: anchor
-  steps:
-  - image: docker.io/busybox:1.35.0
-    name: anchor
-    script: echo "$(context.task.name)" > "$(results.anchor.path)"
-  workspaces:
-  - description: The workspace containing the source-code to scan.
-    name: source-code-ws
----
-apiVersion: tekton.dev/v1beta1
-kind: Task
-metadata:
-  labels:
-    v1.dracon.ocurity.com/component: enricher
-  name: enricher-policy-cdxgen-project
-spec:
-  params:
-  - default: []
-    description: A list of tasks that this task depends on using their anchors.
-    name: anchors
-    type: array
-  results:
-  - description: An anchor to allow other tasks to depend on this task.
-    name: anchor
-  sidecars:
-  - args:
-    - run
-    - --server
-    - --addr
-    - 0.0.0.0:8181
-    - --log-level
-    - debug
-    command:
-    - /opa
-    image: docker.io/openpolicyagent/opa:0.44.0-rootless
-    name: open-policy-agent
-    resources:
-      limits:
-        cpu: 1
-        memory: 5Gi
-      requests:
-        cpu: 0.5
-        memory: 512Mi
-    securityContext:
-      runAsGroup: 70
-      runAsUser: 70
-  steps:
-  - image: docker.io/busybox:1.35.0
-    name: anchor
-    script: echo "$(context.task.name)" > "$(results.anchor.path)"
-  workspaces:
-  - description: The workspace containing the source-code to scan.
-    name: source-code-ws
+    name: generate-scan-id-start-time
+    resources: {}
+    script: |
+      cat /proc/sys/kernel/random/uuid | tee $(results.dracon-scan-id.path)
+      date +"%Y-%m-%dT%H:%M:%SZ" | tee $(results.dracon-scan-start-time.path)
+      echo "$(params.base-scan-tags)" | tee $(results.dracon-scan-tags.path)
 ---
 apiVersion: tekton.dev/v1beta1
 kind: Task
@@ -117,28 +269,231 @@ metadata:
   annotations:
     tekton.dev/categories: Git
     tekton.dev/displayName: git clone
-    tekton.dev/pipelines.minVersion: 0.29.0
+    tekton.dev/pipelines.minVersion: 0.38.0
     tekton.dev/platforms: linux/amd64,linux/s390x,linux/ppc64le,linux/arm64
     tekton.dev/tags: git
+  creationTimestamp: null
   labels:
-    app.kubernetes.io/version: "0.6"
+    app.kubernetes.io/version: "0.9"
     v1.dracon.ocurity.com/component: source
-  name: git-clone-cdxgen-project
+  name: git-clone
 spec:
   description: |-
     These Tasks are Git tasks to work with repositories used by other tasks in your Pipeline.
     The git-clone Task will clone a repo from the provided url into the output Workspace. By default the repo will be cloned into the root of your Workspace. You can clone into a subdirectory by setting this Task's subdirectory param. This Task also supports sparse checkouts. To perform a sparse checkout, pass a list of comma separated directory patterns to this Task's sparseCheckoutDirectories param.
   params:
-  - default: []
-    description: A list of tasks that this task depends on using their anchors.
-    name: anchors
-    type: array
+  - description: Repository URL to clone from.
+    name: git-clone-url
+    type: string
+  - default: ""
+    description: Revision to checkout. (branch, tag, sha, ref, etc...)
+    name: git-clone-revision
+    type: string
+  - default: ""
+    description: Refspec to fetch before checking out revision.
+    name: git-clone-refspec
+    type: string
+  - default: "true"
+    description: Initialize and fetch git submodules.
+    name: git-clone-submodules
+    type: string
+  - default: "1"
+    description: Perform a shallow clone, fetching only the most recent N commits.
+    name: git-clone-depth
+    type: string
+  - default: "true"
+    description: Set the `http.sslVerify` global git config. Setting this to `false`
+      is not advised unless you are sure that you trust your git remote.
+    name: git-clone-sslVerify
+    type: string
+  - default: ca-bundle.crt
+    description: file name of mounted crt using ssl-ca-directory workspace. default
+      value is ca-bundle.crt.
+    name: git-clone-crtFileName
+    type: string
+  - default: ""
+    description: Subdirectory inside the `output` Workspace to clone the repo into.
+    name: git-clone-subdirectory
+    type: string
+  - default: ""
+    description: Define the directory patterns to match or exclude when performing
+      a sparse checkout.
+    name: git-clone-sparseCheckoutDirectories
+    type: string
+  - default: "true"
+    description: Clean out the contents of the destination directory if it already
+      exists before cloning.
+    name: git-clone-deleteExisting
+    type: string
+  - default: ""
+    description: HTTP proxy server for non-SSL requests.
+    name: git-clone-httpProxy
+    type: string
+  - default: ""
+    description: HTTPS proxy server for SSL requests.
+    name: git-clone-httpsProxy
+    type: string
+  - default: ""
+    description: Opt out of proxying HTTP/HTTPS requests.
+    name: git-clone-noProxy
+    type: string
+  - default: "true"
+    description: Log the commands that are executed during `git-clone`'s operation.
+    name: git-clone-verbose
+    type: string
+  - default: gcr.io/tekton-releases/github.com/tektoncd/pipeline/cmd/git-init:v0.40.2
+    description: The image providing the git-init binary that this Task runs.
+    name: git-clone-gitInitImage
+    type: string
+  - default: /home/git
+    description: |
+      Absolute path to the user's home directory.
+    name: git-clone-userHome
+    type: string
   results:
+  - description: The precise commit SHA that was fetched by this Task.
+    name: commit
+  - description: The precise URL that was fetched by this Task.
+    name: url
+  - description: The epoch timestamp of the commit that was fetched by this Task.
+    name: committer-date
+  - description: An anchor to allow other tasks to depend on this task.
+    name: anchor
   - description: An anchor to allow other tasks to depend on this task.
     name: anchor
   steps:
-  - image: docker.io/busybox:1.35.0
+  - env:
+    - name: HOME
+      value: $(params.git-clone-userHome)
+    - name: PARAM_URL
+      value: $(params.git-clone-url)
+    - name: PARAM_REVISION
+      value: $(params.git-clone-revision)
+    - name: PARAM_REFSPEC
+      value: $(params.git-clone-refspec)
+    - name: PARAM_SUBMODULES
+      value: $(params.git-clone-submodules)
+    - name: PARAM_DEPTH
+      value: $(params.git-clone-depth)
+    - name: PARAM_SSL_VERIFY
+      value: $(params.git-clone-sslVerify)
+    - name: PARAM_CRT_FILENAME
+      value: $(params.git-clone-crtFileName)
+    - name: PARAM_SUBDIRECTORY
+      value: $(params.git-clone-subdirectory)
+    - name: PARAM_DELETE_EXISTING
+      value: $(params.git-clone-deleteExisting)
+    - name: PARAM_HTTP_PROXY
+      value: $(params.git-clone-httpProxy)
+    - name: PARAM_HTTPS_PROXY
+      value: $(params.git-clone-httpsProxy)
+    - name: PARAM_NO_PROXY
+      value: $(params.git-clone-noProxy)
+    - name: PARAM_VERBOSE
+      value: $(params.git-clone-verbose)
+    - name: PARAM_SPARSE_CHECKOUT_DIRECTORIES
+      value: $(params.git-clone-sparseCheckoutDirectories)
+    - name: PARAM_USER_HOME
+      value: $(params.git-clone-userHome)
+    - name: WORKSPACE_OUTPUT_PATH
+      value: $(workspaces.output.path)
+    - name: WORKSPACE_SSH_DIRECTORY_BOUND
+      value: $(workspaces.ssh-directory.bound)
+    - name: WORKSPACE_SSH_DIRECTORY_PATH
+      value: $(workspaces.ssh-directory.path)
+    - name: WORKSPACE_BASIC_AUTH_DIRECTORY_BOUND
+      value: $(workspaces.basic-auth.bound)
+    - name: WORKSPACE_BASIC_AUTH_DIRECTORY_PATH
+      value: $(workspaces.basic-auth.path)
+    - name: WORKSPACE_SSL_CA_DIRECTORY_BOUND
+      value: $(workspaces.ssl-ca-directory.bound)
+    - name: WORKSPACE_SSL_CA_DIRECTORY_PATH
+      value: $(workspaces.ssl-ca-directory.path)
+    image: $(params.git-clone-gitInitImage)
+    name: clone
+    resources: {}
+    script: |
+      #!/usr/bin/env sh
+      set -eu
+
+      if [ "${PARAM_VERBOSE}" = "true" ] ; then
+        set -x
+      fi
+
+      if [ "${WORKSPACE_BASIC_AUTH_DIRECTORY_BOUND}" = "true" ] ; then
+        cp "${WORKSPACE_BASIC_AUTH_DIRECTORY_PATH}/.git-credentials" "${PARAM_USER_HOME}/.git-credentials"
+        cp "${WORKSPACE_BASIC_AUTH_DIRECTORY_PATH}/.gitconfig" "${PARAM_USER_HOME}/.gitconfig"
+        chmod 400 "${PARAM_USER_HOME}/.git-credentials"
+        chmod 400 "${PARAM_USER_HOME}/.gitconfig"
+      fi
+
+      if [ "${WORKSPACE_SSH_DIRECTORY_BOUND}" = "true" ] ; then
+        cp -R "${WORKSPACE_SSH_DIRECTORY_PATH}" "${PARAM_USER_HOME}"/.ssh
+        chmod 700 "${PARAM_USER_HOME}"/.ssh
+        chmod -R 400 "${PARAM_USER_HOME}"/.ssh/*
+      fi
+
+      if [ "${WORKSPACE_SSL_CA_DIRECTORY_BOUND}" = "true" ] ; then
+         export GIT_SSL_CAPATH="${WORKSPACE_SSL_CA_DIRECTORY_PATH}"
+         if [ "${PARAM_CRT_FILENAME}" != "" ] ; then
+            export GIT_SSL_CAINFO="${WORKSPACE_SSL_CA_DIRECTORY_PATH}/${PARAM_CRT_FILENAME}"
+         fi
+      fi
+      CHECKOUT_DIR="${WORKSPACE_OUTPUT_PATH}/${PARAM_SUBDIRECTORY}"
+
+      cleandir() {
+        # Delete any existing contents of the repo directory if it exists.
+        #
+        # We don't just "rm -rf ${CHECKOUT_DIR}" because ${CHECKOUT_DIR} might be "/"
+        # or the root of a mounted volume.
+        if [ -d "${CHECKOUT_DIR}" ] ; then
+          # Delete non-hidden files and directories
+          rm -rf "${CHECKOUT_DIR:?}"/*
+          # Delete files and directories starting with . but excluding ..
+          rm -rf "${CHECKOUT_DIR}"/.[!.]*
+          # Delete files and directories starting with .. plus any other character
+          rm -rf "${CHECKOUT_DIR}"/..?*
+        fi
+      }
+
+      if [ "${PARAM_DELETE_EXISTING}" = "true" ] ; then
+        cleandir || true
+      fi
+
+      test -z "${PARAM_HTTP_PROXY}" || export HTTP_PROXY="${PARAM_HTTP_PROXY}"
+      test -z "${PARAM_HTTPS_PROXY}" || export HTTPS_PROXY="${PARAM_HTTPS_PROXY}"
+      test -z "${PARAM_NO_PROXY}" || export NO_PROXY="${PARAM_NO_PROXY}"
+
+      git config --global --add safe.directory "${WORKSPACE_OUTPUT_PATH}"
+      /ko-app/git-init \
+        -url="${PARAM_URL}" \
+        -revision="${PARAM_REVISION}" \
+        -refspec="${PARAM_REFSPEC}" \
+        -path="${CHECKOUT_DIR}" \
+        -sslVerify="${PARAM_SSL_VERIFY}" \
+        -submodules="${PARAM_SUBMODULES}" \
+        -depth="${PARAM_DEPTH}" \
+        -sparseCheckoutDirectories="${PARAM_SPARSE_CHECKOUT_DIRECTORIES}"
+      cd "${CHECKOUT_DIR}"
+      RESULT_SHA="$(git rev-parse HEAD)"
+      EXIT_CODE="$?"
+      if [ "${EXIT_CODE}" != 0 ] ; then
+        exit "${EXIT_CODE}"
+      fi
+      RESULT_COMMITTER_DATE="$(git log -1 --pretty=%ct)"
+      printf "%s" "${RESULT_COMMITTER_DATE}" > "$(results.committer-date.path)"
+      printf "%s" "${RESULT_SHA}" > "$(results.commit.path)"
+      printf "%s" "${PARAM_URL}" > "$(results.url.path)"
+    securityContext:
+      runAsNonRoot: true
+      runAsUser: 65532
+  - image: $(params.git-clone-gitInitImage)
+    name: add-anchor
+    resources: {}
+    script: echo "git-clone" > "$(results.anchor.path)"
+  - image: docker.io/busybox
     name: anchor
+    resources: {}
     script: echo "$(context.task.name)" > "$(results.anchor.path)"
   workspaces:
   - description: The git repo will be cloned onto the volume backing this Workspace.
@@ -167,61 +522,36 @@ spec:
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
+  creationTimestamp: null
   labels:
     v1.dracon.ocurity.com/component: producer
-  name: producer-aggregator-cdxgen-project
+  name: producer-cdxgen
 spec:
   params:
+  - default: []
+    name: producer-cdxgen-flags
+    type: array
+  - default: "false"
+    name: producer-cdxgen-fetch-license
+    type: string
+  - default: ""
+    name: producer-cdxgen-github-token
+    type: string
+  - default: ""
+    name: producer-cdxgen-astgen-ignore-file-pattern
+    type: string
+  - default: ""
+    name: producer-cdxgen-astgen-ignore-dirs
+    type: string
+  - default: null
+    description: A list of tasks that this task depends on
+    name: anchors
+    type: array
   - name: dracon_scan_id
     type: string
   - name: dracon_scan_start_time
     type: string
-  results:
-  - description: An anchor to allow other tasks to depend on this task.
-    name: anchor
-  steps:
-  - env:
-    - name: DRACON_SCAN_TIME
-      value: $(params.dracon_scan_start_time)
-    - name: DRACON_SCAN_ID
-      value: $(params.dracon_scan_id)
-    image: docker.io/busybox
-    name: anchor
-    script: echo "$(context.task.name)" > "$(results.anchor.path)"
-  - env:
-    - name: DRACON_SCAN_TIME
-      value: $(params.dracon_scan_start_time)
-    - name: DRACON_SCAN_ID
-      value: $(params.dracon_scan_id)
-    image: docker.io/busybox
-    name: aggregate
-  - env:
-    - name: READ_PATH
-      value: $(workspaces.source-code-ws.path)/.dracon/producers
-    - name: WRITE_PATH
-      value: $(workspaces.source-code-ws.path)/.dracon/producers
-    - name: DRACON_SCAN_TIME
-      value: $(params.dracon_scan_start_time)
-    - name: DRACON_SCAN_ID
-      value: $(params.dracon_scan_id)
-    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/aggregator/image:{{
-      default "latest" .Values.dracon_os_component_version }}'
-    name: tag
-  workspaces:
-  - description: The workspace containing the source-code to scan.
-    name: source-code-ws
----
-apiVersion: tekton.dev/v1beta1
-kind: Task
-metadata:
-  labels:
-    v1.dracon.ocurity.com/component: producer
-  name: producer-cdxgen-cdxgen-project
-spec:
-  params:
-  - name: dracon_scan_id
-    type: string
-  - name: dracon_scan_start_time
+  - name: dracon_scan_tags
     type: string
   results:
   - description: An anchor to allow other tasks to depend on this task.
@@ -240,21 +570,242 @@ spec:
       value: $(params.dracon_scan_start_time)
     - name: DRACON_SCAN_ID
       value: $(params.dracon_scan_id)
+    - name: DRACON_SCAN_TAGS
+      value: $(params.dracon_scan_tags)
     image: ghcr.io/cyclonedx/cdxgen:v9.8.10
     name: run-cdxgen
-    script: node /opt/cdxgen/bin/cdxgen.js -r -p -o /scratch/out.json $(workspaces.source-code-ws.path)/
+    resources: {}
+    script: node /opt/cdxgen/bin/cdxgen.js -r -p -o /scratch/out.json $(workspaces.output.path)/
       --spec-version 1.4
+    volumeMounts:
+    - mountPath: /scratch
+      name: scratch
+  - args:
+    - -in=/scratch/out.json
+    - -out=$(workspaces.output.path)/.dracon/producers/cdxgen.pb
+    command:
+    - /app/components/producers/cdxgen/cdxgen-parser
+    env:
+    - name: DRACON_SCAN_TIME
+      value: $(params.dracon_scan_start_time)
+    - name: DRACON_SCAN_ID
+      value: $(params.dracon_scan_id)
+    - name: DRACON_SCAN_TAGS
+      value: $(params.dracon_scan_tags)
+    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/cdxgen:{{
+      default "latest" .Values.dracon_os_component_version }}'
+    imagePullPolicy: IfNotPresent
+    name: produce-issues
+    resources: {}
+    volumeMounts:
+    - mountPath: /scratch
+      name: scratch
   - env:
     - name: DRACON_SCAN_TIME
       value: $(params.dracon_scan_start_time)
     - name: DRACON_SCAN_ID
       value: $(params.dracon_scan_id)
-    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/cdxgen/image:{{
-      default "latest" .Values.dracon_os_component_version }}'
-    name: produce-issues
+    - name: DRACON_SCAN_TAGS
+      value: $(params.dracon_scan_tags)
+    image: docker.io/busybox
+    name: anchor
+    resources: {}
+    script: echo "$(context.task.name)" > "$(results.anchor.path)"
   volumes:
   - emptyDir: {}
     name: scratch
   workspaces:
   - description: The workspace containing the source-code to scan.
-    name: source-code-ws
+    name: output
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  creationTimestamp: null
+  labels:
+    v1.dracon.ocurity.com/component: producer-aggregator
+  name: producer-aggregator
+spec:
+  params:
+  - default: null
+    description: A list of tasks that this task depends on
+    name: anchors
+    type: array
+  results:
+  - description: An anchor to allow other tasks to depend on this task.
+    name: anchor
+  steps:
+  - args:
+    - $(workspaces.output.path)
+    command:
+    - ls
+    image: docker.io/busybox
+    name: aggregate
+    resources: {}
+  - command:
+    - /app/components/producers/aggregator/tagger
+    env:
+    - name: READ_PATH
+      value: $(workspaces.output.path)/.dracon/producers
+    - name: WRITE_PATH
+      value: $(workspaces.output.path)/.dracon/producers
+    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/tagger:{{
+      default "latest" .Values.dracon_os_component_version }}'
+    name: tag
+    resources: {}
+  - image: docker.io/busybox
+    name: anchor
+    resources: {}
+    script: echo "$(context.task.name)" > "$(results.anchor.path)"
+  workspaces:
+  - description: The workspace containing the source-code to scan.
+    name: output
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  creationTimestamp: null
+  labels:
+    v1.dracon.ocurity.com/component: enricher
+  name: enricher-policy
+spec:
+  params:
+  - default: cGFja2FnZSBleGFtcGxlLmdvc2VjCgpkZWZhdWx0IGFsbG93IDo9IGZhbHNlCgphbGxvdyA9dHJ1ZSB7CiAgICBwcmludChpbnB1dCkKICAgIGNoZWNrX3NldmVyaXR5Cn0KCmNoZWNrX3NldmVyaXR5IHsKICAgIGlucHV0LnNldmVyaXR5ID09ICJTRVZFUklUWV9ISUdIIgp9CmNoZWNrX3NldmVyaXR5IHsKICAgIGlucHV0LnNldmVyaXR5ID09ICJTRVZFUklUWV9NRURJVU0iCn0KY2hlY2tfc2V2ZXJpdHkgewogICAgaW5wdXQuc2V2ZXJpdHkgPT0gIlNFVkVSSVRZX0xPVyIKfQ==
+    name: enricher-policy-base64-policy
+    type: string
+  - default: ""
+    name: enricher-policy-annotation
+    type: string
+  - default: null
+    description: A list of tasks that this task depends on
+    name: anchors
+    type: array
+  results:
+  - description: An anchor to allow other tasks to depend on this task.
+    name: anchor
+  sidecars:
+  - args:
+    - run
+    - --server
+    - --addr
+    - 0.0.0.0:8181
+    - --log-level
+    - debug
+    command:
+    - /opa
+    image: docker.io/openpolicyagent/opa:0.44.0-rootless
+    name: open-policy-agent
+    resources:
+      limits:
+        cpu: "1"
+        memory: 5Gi
+      requests:
+        cpu: 500m
+        memory: 512Mi
+    securityContext:
+      runAsGroup: 70
+      runAsUser: 70
+  steps:
+  - command:
+    - /app/components/enrichers/policy/policy
+    env:
+    - name: READ_PATH
+      value: $(workspaces.output.path)/.dracon/producers
+    - name: WRITE_PATH
+      value: $(workspaces.output.path)/.dracon/enrichers/policy
+    - name: POLICY
+      value: $(params.enricher-policy-base64-policy)
+    - name: OPA_SERVER
+      value: http://localhost:8181
+    - name: ANNOTATION
+      value: $(params.enricher-policy-annotation)
+    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/enrichers/policy:{{
+      default "latest" .Values.dracon_os_component_version }}'
+    imagePullPolicy: IfNotPresent
+    name: run-enricher
+    resources: {}
+  - image: docker.io/busybox
+    name: anchor
+    resources: {}
+    script: echo "$(context.task.name)" > "$(results.anchor.path)"
+  workspaces:
+  - description: The workspace containing the source-code to scan.
+    name: output
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  creationTimestamp: null
+  labels:
+    v1.dracon.ocurity.com/component: enricher-aggregator
+  name: enricher-aggregator
+spec:
+  params:
+  - default: ""
+    description: An optional key to sign each aggregated result with
+    name: enricher-aggregator-b64-signature-key
+    type: string
+  - default: null
+    description: A list of tasks that this task depends on
+    name: anchors
+    type: array
+  results:
+  - description: An anchor to allow other tasks to depend on this task.
+    name: anchor
+  steps:
+  - args:
+    - $(workspaces.output.path)
+    command:
+    - ls
+    - -lah
+    image: docker.io/busybox:1.35.0
+    name: aggregate
+    resources: {}
+  - command:
+    - /app/components/enrichers/aggregator/aggregator
+    env:
+    - name: READ_PATH
+      value: $(workspaces.output.path)/.dracon/enrichers
+    - name: WRITE_PATH
+      value: $(workspaces.output.path)/.dracon/enrichers
+    - name: B64_SIGNATURE_KEY
+      value: $(params.enricher-aggregator-b64-signature-key)
+    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/enrichers/aggregator:{{
+      default "latest" .Values.dracon_os_component_version }}'
+    name: aggregate-tagged-issues
+    resources: {}
+  - image: docker.io/busybox
+    name: anchor
+    resources: {}
+    script: echo "$(context.task.name)" > "$(results.anchor.path)"
+  workspaces:
+  - description: The workspace containing the source-code to scan.
+    name: output
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  creationTimestamp: null
+  labels:
+    v1.dracon.ocurity.com/component: consumer
+  name: consumer-stdout-json
+spec:
+  params:
+  - default: null
+    description: A list of tasks that this task depends on
+    name: anchors
+    type: array
+  steps:
+  - args:
+    - -in
+    - $(workspaces.output.path)/.dracon/enrichers/
+    command:
+    - /app/components/consumers/stdout-json/stdout-json
+    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/consumers/stdout-json:{{
+      default "latest" .Values.dracon_os_component_version }}'
+    imagePullPolicy: IfNotPresent
+    name: run-consumer
+    resources: {}
+  workspaces:
+  - description: The workspace containing the source-code to scan.
+    name: output

@@ -7,7 +7,7 @@ spec:
   pipelineRef:
     name: dracon-golang-project
   params:
-  - name: repository_url
+  - name: git-clone-url
     value: https://github.com/ocurity/e2e-monorepo.git
   - name: git-clone-subdirectory
     value: source-code
