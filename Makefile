@@ -53,9 +53,6 @@ bin/cmd/draconctl:
 third_party/tektoncd/swagger-v$(TEKTON_VERSION).json:
 	@wget "https://raw.githubusercontent.com/tektoncd/pipeline/v$(TEKTON_VERSION)/pkg/apis/pipeline/v1beta1/swagger.json" -O $@
 
-api/openapi/tekton/openapi_schema.json: third_party/tektoncd/swagger-v$(TEKTON_VERSION).json
-	./scripts/generate_openapi_schema.sh $< $@
-
 components/base/openapi_schema.json: third_party/tektoncd/swagger-v$(TEKTON_VERSION).json
 	@cp $< $@
 
