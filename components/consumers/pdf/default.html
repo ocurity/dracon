@@ -151,6 +151,13 @@
             <div class="scan-details">
                 <div><strong>Start Time:</strong> {{.OriginalResults.ScanInfo.ScanStartTime}}</div>
             </div>
+            <div class="scan-tags">
+                <div><strong>Scan Tags:</strong>
+                    {{ range $key,$element := .OriginalResults.ScanInfo.ScanTags }}
+                    <p><b>{{$key}}</b>:{{$element}}</p>
+                    {{end}}
+                </div>
+            </div>
             {{range .Issues}}
             <div class="finding">
                 <div class="finding-title">{{.RawIssue.Title}}</div>
@@ -169,7 +176,9 @@
                     {{ range $key,$element := .Annotations }}
                     <p><b>{{$key}}</b>:{{$element}}</p>
                     {{end}}
-                    <div>SBOM<pre>{{.RawIssue.CycloneDXSBOM}}</pre></div>
+                    <div>SBOM
+                        <pre>{{.RawIssue.CycloneDXSBOM}}</pre>
+                    </div>
                 </div>
             </div>
             {{end}}

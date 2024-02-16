@@ -57,6 +57,7 @@ func getRawIssue(scanStartTime time.Time, res *v1.LaunchToolResponse, iss *v1.Is
 	jBytes, err := json.Marshal(&draconDocument{
 		ScanStartTime: scanStartTime,
 		ScanID:        res.GetScanInfo().GetScanUuid(),
+		ScanTags:      res.GetScanInfo().GetScanTags(),
 		ToolName:      res.GetToolName(),
 		Source:        iss.GetSource(),
 		Title:         iss.GetTitle(),
@@ -89,6 +90,7 @@ func getEnrichedIssue(scanStartTime time.Time, res *v1.EnrichedLaunchToolRespons
 	jBytes, err := json.Marshal(&draconDocument{
 		ScanStartTime:  scanStartTime,
 		ScanID:         res.GetOriginalResults().GetScanInfo().GetScanUuid(),
+		ScanTags:       res.OriginalResults.ScanInfo.GetScanTags(),
 		ToolName:       res.GetOriginalResults().GetToolName(),
 		Source:         iss.GetRawIssue().GetSource(),
 		Title:          iss.GetRawIssue().GetTitle(),
@@ -116,6 +118,7 @@ func getEnrichedIssue(scanStartTime time.Time, res *v1.EnrichedLaunchToolRespons
 type draconDocument struct {
 	ScanStartTime  time.Time              `json:"scan_start_time"`
 	ScanID         string                 `json:"scan_id"`
+	ScanTags       map[string]string      `json:"scan_tags"`
 	ToolName       string                 `json:"tool_name"`
 	Source         string                 `json:"source"`
 	Target         string                 `json:"target"`

@@ -131,6 +131,7 @@ func TestUploadBomsFromEnrichedWithOwners(t *testing.T) {
 			{Name: "foo:bar"},
 			{Name: "Owner:foo"},
 			{Name: "Owner:bar"},
+			{Name: "Tag1:Tag1Val"},
 		},
 	}
 
@@ -151,7 +152,7 @@ func TestUploadBomsFromEnrichedWithOwners(t *testing.T) {
 				UUID: projUUID,
 				Name: "fooProj",
 				PURL: "pkg://npm/xyz/asdf@v1.2.2",
-				Tags: []dtrack.Tag{{Name: "foo:bar"}, {Name: "Owner:foo"}},
+				Tags: []dtrack.Tag{{Name: "foo:bar"}, {Name: "Owner:foo"}, {Name: "Owner:bar"}, {Name: "Tag1:Tag1Val"}},
 			}
 			res, err := json.Marshal(project)
 			require.NoError(t, err)
@@ -187,7 +188,10 @@ func TestUploadBomsFromEnrichedWithOwners(t *testing.T) {
 
 	ltr := v1.LaunchToolResponse{
 		ToolName: "SAT",
-		Issues:   issues,
+		ScanInfo: &v1.ScanInfo{
+			ScanTags: map[string]string{"Tag1": "Tag1Val"},
+		},
+		Issues: issues,
 	}
 	eltr := v1.EnrichedLaunchToolResponse{
 		OriginalResults: &ltr,

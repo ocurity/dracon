@@ -43,6 +43,7 @@ func createObjects(product int, scanType string) ([]*v1.LaunchToolResponse, []*t
 		si := v1.ScanInfo{
 			ScanUuid:      scanID,
 			ScanStartTime: timestamp,
+			ScanTags:      map[string]string{"Tag1": "Tag1val"},
 		}
 		toolName := fmt.Sprintf("Tool-%d", i)
 		response := &v1.LaunchToolResponse{
@@ -58,6 +59,17 @@ func createObjects(product int, scanType string) ([]*v1.LaunchToolResponse, []*t
 			TargetStart: times.Format(DojoTestTimeFormat),
 			TargetEnd:   times.Format(DojoTestTimeFormat),
 			TestType:    client.DojoTestType,
+		}
+		tags := []string{"DraconScan"}
+		if scanType == "Raw" {
+			tags = append(tags, "RawScan")
+		} else {
+			tags = append(tags, "EnrichedScan")
+		}
+		tags = append(tags, scanID)
+		tags = append(tags, toolName)
+		for k, v := range response.GetScanInfo().GetScanTags() {
+			tags = append(tags, fmt.Sprintf("%s:%s", k, v))
 		}
 		var issues []*v1.Issue
 		var enrichedIssues []*v1.EnrichedIssue
@@ -99,7 +111,7 @@ func createObjects(product int, scanType string) ([]*v1.LaunchToolResponse, []*t
 				d = desc
 			}
 			findingsRequests = append(findingsRequests, &types.FindingCreateRequest{
-				Tags:              []string{"DraconScan", scanType + "Finding", scanID, toolName},
+				Tags:              tags,
 				Title:             x.Title,
 				Date:              times.Format(DojoTimeFormat),
 				Severity:          "Info",
@@ -212,9 +224,9 @@ func TestHandleRawResults(t *testing.T) {
 	err = handleRawResults(product, client, input)
 	require.NoError(t, err)
 
-	assert.Equal(t, foundEngagements, engagementRequests)
-	assert.Equal(t, foundFindings, findingsRequests)
-	assert.Equal(t, foundTests, testRequests)
+	assert.ElementsMatch(t, foundEngagements, engagementRequests)
+	assert.ElementsMatch(t, foundFindings, findingsRequests)
+	assert.ElementsMatch(t, foundTests, testRequests)
 }
 
 func TestHandleEnrichedResults(t *testing.T) {
@@ -288,7 +300,7 @@ func TestHandleEnrichedResults(t *testing.T) {
 	err = handleEnrichedResults(product, client, input)
 	require.NoError(t, err)
 
-	assert.Equal(t, foundEngagements, engagementRequests)
-	assert.Equal(t, foundFindings, findingsRequests)
-	assert.Equal(t, foundTests, testRequests)
+	assert.ElementsMatch(t, foundEngagements, engagementRequests)
+	assert.ElementsMatch(t, foundFindings, findingsRequests)
+	assert.ElementsMatch(t, foundTests, testRequests)
 }

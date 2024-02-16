@@ -105,6 +105,9 @@ func uploadBOMSFromEnriched(responses []*v1.EnrichedLaunchToolResponse) ([]strin
 			if err := addOwnersTags(owners); err != nil {
 				log.Println("could not tag owners, err:", err)
 			}
+			if err := addScanTags(res.GetOriginalResults().GetScanInfo().GetScanTags()); err != nil {
+				log.Println("could not add scan tags, err:", err)
+			}
 		}
 	}
 	return tokens, nil
@@ -133,6 +136,9 @@ func uploadBOMsFromRaw(responses []*v1.LaunchToolResponse) ([]string, error) {
 		}
 		log.Println("upload token is", token)
 		tokens = append(tokens, token)
+		if err := addScanTags(res.GetScanInfo().GetScanTags()); err != nil {
+			log.Println("could not add scan tags, err:", err)
+		}
 	}
 	return tokens, nil
 }
@@ -140,6 +146,9 @@ func uploadBOMsFromRaw(responses []*v1.LaunchToolResponse) ([]string, error) {
 func addOwnersTags(owners []string) error {
 	// addOwnersTags expects a map of <ownerAnnotation>-<number>:<username> tagging owners
 	// it then adds to the projectUUID the owners in the following tag format: Owner:<username>
+	if len(owners) == 0 {
+		return nil
+	}
 	uuid := uuid.MustParse(projectUUID)
 	project, err := client.Project.Get(context.Background(), uuid)
 	if err != nil {
@@ -162,6 +171,33 @@ func addOwnersTags(owners []string) error {
 	return err
 }
 
+func addScanTags(tags map[string]string) error {
+	// addScanTags expects a map of <scanTagKey>:<scanTagValue>
+	// it then adds them to the project
+	if len(tags) == 0 {
+		return nil
+	}
+	uuid := uuid.MustParse(projectUUID)
+	project, err := client.Project.Get(context.Background(), uuid)
+	if err != nil {
+		log.Println("could not add project tags error getting project by uuid, err:", err)
+		return err
+	}
+	for key, tag := range tags {
+		found := false
+		for _, t := range project.Tags {
+			if t.Name == fmt.Sprintf("%s:%s", key, tag) {
+				found = true
+				break
+			}
+		}
+		if !found {
+			project.Tags = append(project.Tags, dtrack.Tag{Name: fmt.Sprintf("%s:%s", key, tag)})
+		}
+	}
+	_, err = client.Project.Update(context.Background(), project)
+	return err
+}
 func uploadBOM(bom string, projectVersion string) (string, error) {
 	if projectVersion == "" {
 		projectVersion = "Unknown"

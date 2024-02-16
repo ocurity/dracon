@@ -122,6 +122,11 @@ func run(ctx context.Context) error {
 			return fmt.Errorf("could not load enriched results, file malformed: %w", err)
 		}
 		for _, res := range responses {
+			var scanTags []*bqScanTags
+			for k, v := range res.GetOriginalResults().GetScanInfo().GetScanTags() {
+				scanTags = append(scanTags, &bqScanTags{Key: k, Value: v})
+			}
+
 			for _, iss := range res.GetIssues() {
 				var annotations []*bqDraconAnnotations
 				for k, v := range iss.GetAnnotations() {
@@ -144,6 +149,7 @@ func run(ctx context.Context) error {
 					Target:         iss.GetRawIssue().GetTarget(),
 					Title:          iss.GetRawIssue().GetTitle(),
 					ToolName:       res.GetOriginalResults().GetToolName(),
+					ScanTags:       scanTags,
 				}, iss.GetRawIssue().GetUuid()); err != nil {
 					return err
 				}
@@ -171,6 +177,10 @@ type bqDraconAnnotations struct {
 	Key   string `bigquery:"key"`
 	Value string `bigquery:"value"`
 }
+type bqScanTags struct {
+	Key   string `bigquery:"key"`
+	Value string `bigquery:"value"`
+}
 
 type bqDraconIssue struct {
 	Annotations    []*bqDraconAnnotations `bigquery:"annotations"`
@@ -185,6 +195,7 @@ type bqDraconIssue struct {
 	PreviousCounts int                    `bigquery:"previousCounts"`
 	ScanID         string                 `bigquery:"scanID"`
 	ScanStartTime  time.Time              `bigquery:"scanStartTime"`
+	ScanTags       []*bqScanTags          `bigquery:"scanTags"`
 	Severity       string                 `bigquery:"severity"`
 	Source         string                 `bigquery:"source"`
 	Target         string                 `bigquery:"target"`

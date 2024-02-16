@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"strconv"
 
@@ -52,6 +53,11 @@ func handleRawResults(product int, dojoClient *client.Client, responses []*v1.La
 			return err
 		}
 		for _, iss := range res.GetIssues() {
+			tags := tags // reset is important here as otherwise we just concatenate duplicate tags and all the tags from all the issues
+			tags = append(tags, res.GetToolName())
+			for k, v := range res.GetScanInfo().GetScanTags() {
+				tags = append(tags, fmt.Sprintf("%s:%s", k, v))
+			}
 			description, err := templating.TemplateStringRaw(issueTemplate, iss)
 			if err != nil {
 				log.Fatal("Could not template raw issue ", err)
@@ -63,7 +69,7 @@ func handleRawResults(product int, dojoClient *client.Client, responses []*v1.La
 				iss.GetTarget(),
 				startTime.Format(DojoTimeFormat),
 				severityToDojoSeverity(iss.Severity),
-				[]string{"DraconScan", "RawFinding", scanUUID, res.GetToolName()},
+				tags,
 				test.ID,
 				0,
 				0,
@@ -91,6 +97,7 @@ func handleEnrichedResults(product int, dojoClient *client.Client, responses []*
 	if scanUUID == "" {
 		log.Fatalln("Non-uuid scan", responses)
 	}
+
 	tags := []string{"DraconScan", "EnrichedScan", scanUUID}
 	engagement, err := dojoClient.CreateEngagement( // with current architecture, all responses should have the same scaninfo
 		scanUUID,
@@ -107,6 +114,11 @@ func handleEnrichedResults(product int, dojoClient *client.Client, responses []*
 		if err != nil {
 			log.Println("could not create test in defectdojo, err:", err)
 			return err
+		}
+		tags := tags // reset is important here as otherwise we just concatenate duplicate tags and all the tags from all the issues
+		tags = append(tags, res.GetOriginalResults().GetToolName())
+		for k, v := range res.GetOriginalResults().GetScanInfo().GetScanTags() {
+			tags = append(tags, fmt.Sprintf("%s:%s", k, v))
 		}
 		for _, iss := range res.GetIssues() {
 			description, err := templating.TemplateStringEnriched(issueTemplate, iss)
@@ -125,7 +137,7 @@ func handleEnrichedResults(product int, dojoClient *client.Client, responses []*
 				rawIss.GetTarget(),
 				scanStartTime.Format(DojoTimeFormat),
 				severityToDojoSeverity(rawIss.Severity),
-				[]string{"DraconScan", "EnrichedFinding", scanUUID, res.GetOriginalResults().GetToolName()},
+				tags,
 				test.ID, 0, 0, dojoClient.UserID,
 				iss.GetFalsePositive(),
 				duplicate,
@@ -142,10 +154,6 @@ func handleEnrichedResults(product int, dojoClient *client.Client, responses []*
 }
 
 func main() {
-	// envUser := os.Getenv(EnvDojoUser)
-	// envToken := os.Getenv(EnvDojoToken)
-	// envURL := os.Getenv(EnvDojoURL)
-
 	flag.StringVar(&authUser, "dojoUser", "", "defect dojo user")
 	flag.StringVar(&authToken, "dojoToken", "", "defect dojo api token")
 	flag.StringVar(&authURL, "dojoURL", "", "defect dojo api base url")
