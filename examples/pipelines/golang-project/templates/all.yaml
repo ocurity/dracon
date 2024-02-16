@@ -10,12 +10,12 @@ spec:
         - name: ssl-ca-directory
         - name: source-code-ws
     tasks:
-        - name: base-golang-project
+        - name: base
           taskRef:
-            name: base-golang-project
-        - name: git-clone-golang-project
+            name: base
+        - name: git-clone
           taskRef:
-            name: git-clone-golang-project
+            name: git-clone
           workspaces:
             - name: output
               workspace: output
@@ -26,248 +26,248 @@ spec:
             - name: ssl-ca-directory
               workspace: ssl-ca-directory
           params:
-            - name: git-clone-golang-project-url
-              value: $(params.git-clone-golang-project-url)
-            - name: git-clone-golang-project-revision
-              value: $(params.git-clone-golang-project-revision)
-            - name: git-clone-golang-project-refspec
-              value: $(params.git-clone-golang-project-refspec)
-            - name: git-clone-golang-project-submodules
-              value: $(params.git-clone-golang-project-submodules)
-            - name: git-clone-golang-project-depth
-              value: $(params.git-clone-golang-project-depth)
-            - name: git-clone-golang-project-sslVerify
-              value: $(params.git-clone-golang-project-sslVerify)
-            - name: git-clone-golang-project-subdirectory
-              value: $(params.git-clone-golang-project-subdirectory)
-            - name: git-clone-golang-project-sparseCheckoutDirectories
-              value: $(params.git-clone-golang-project-sparseCheckoutDirectories)
-            - name: git-clone-golang-project-deleteExisting
-              value: $(params.git-clone-golang-project-deleteExisting)
-            - name: git-clone-golang-project-httpProxy
-              value: $(params.git-clone-golang-project-httpProxy)
-            - name: git-clone-golang-project-httpsProxy
-              value: $(params.git-clone-golang-project-httpsProxy)
-            - name: git-clone-golang-project-noProxy
-              value: $(params.git-clone-golang-project-noProxy)
-            - name: git-clone-golang-project-verbose
-              value: $(params.git-clone-golang-project-verbose)
-            - name: git-clone-golang-project-gitInitImage
-              value: $(params.git-clone-golang-project-gitInitImage)
-            - name: git-clone-golang-project-userHome
-              value: $(params.git-clone-golang-project-userHome)
-        - name: producer-golang-gosec-golang-project
+            - name: git-clone-url
+              value: $(params.git-clone-url)
+            - name: git-clone-revision
+              value: $(params.git-clone-revision)
+            - name: git-clone-refspec
+              value: $(params.git-clone-refspec)
+            - name: git-clone-submodules
+              value: $(params.git-clone-submodules)
+            - name: git-clone-depth
+              value: $(params.git-clone-depth)
+            - name: git-clone-sslVerify
+              value: $(params.git-clone-sslVerify)
+            - name: git-clone-subdirectory
+              value: $(params.git-clone-subdirectory)
+            - name: git-clone-sparseCheckoutDirectories
+              value: $(params.git-clone-sparseCheckoutDirectories)
+            - name: git-clone-deleteExisting
+              value: $(params.git-clone-deleteExisting)
+            - name: git-clone-httpProxy
+              value: $(params.git-clone-httpProxy)
+            - name: git-clone-httpsProxy
+              value: $(params.git-clone-httpsProxy)
+            - name: git-clone-noProxy
+              value: $(params.git-clone-noProxy)
+            - name: git-clone-verbose
+              value: $(params.git-clone-verbose)
+            - name: git-clone-gitInitImage
+              value: $(params.git-clone-gitInitImage)
+            - name: git-clone-userHome
+              value: $(params.git-clone-userHome)
+        - name: producer-golang-gosec
           taskRef:
-            name: producer-golang-gosec-golang-project
+            name: producer-golang-gosec
           workspaces:
             - name: source-code-ws
               workspace: source-code-ws
           params:
-            - name: producer-golang-gosec-golang-project-flags
+            - name: producer-golang-gosec-flags
               value:
-                - $(params.producer-golang-gosec-golang-project-flags)
+                - $(params.producer-golang-gosec-flags)
             - name: anchors
               value:
-                - $(tasks.git-clone-golang-project.results.anchor)
+                - $(tasks.git-clone.results.anchor)
             - name: dracon_scan_id
-              value: $(tasks.base-golang-project.results.dracon-scan-id)
+              value: $(tasks.base.results.dracon-scan-id)
             - name: dracon_scan_start_time
-              value: $(tasks.base-golang-project.results.dracon-scan-start-time)
+              value: $(tasks.base.results.dracon-scan-start-time)
             - name: dracon_scan_tags
-              value: $(tasks.base-golang-project.results.dracon-scan-tags)
-        - name: producer-golang-nancy-golang-project
+              value: $(tasks.base.results.dracon-scan-tags)
+        - name: producer-golang-nancy
           taskRef:
-            name: producer-golang-nancy-golang-project
+            name: producer-golang-nancy
           workspaces:
             - name: source-code-ws
               workspace: source-code-ws
           params:
             - name: anchors
               value:
-                - $(tasks.git-clone-golang-project.results.anchor)
+                - $(tasks.git-clone.results.anchor)
             - name: dracon_scan_id
-              value: $(tasks.base-golang-project.results.dracon-scan-id)
+              value: $(tasks.base.results.dracon-scan-id)
             - name: dracon_scan_start_time
-              value: $(tasks.base-golang-project.results.dracon-scan-start-time)
+              value: $(tasks.base.results.dracon-scan-start-time)
             - name: dracon_scan_tags
-              value: $(tasks.base-golang-project.results.dracon-scan-tags)
-        - name: producer-aggregator-golang-project
+              value: $(tasks.base.results.dracon-scan-tags)
+        - name: producer-aggregator
           taskRef:
-            name: producer-aggregator-golang-project
+            name: producer-aggregator
           workspaces:
             - name: source-code-ws
               workspace: source-code-ws
           params:
-            - name: producer-aggregator-golang-project-anchors
+            - name: producer-aggregator-anchors
               value:
-                - $(params.producer-aggregator-golang-project-anchors)
+                - $(params.producer-aggregator-anchors)
             - name: anchors
               value:
-                - $(tasks.producer-golang-gosec-golang-project.results.anchor)
-                - $(tasks.producer-golang-nancy-golang-project.results.anchor)
-        - name: enricher-policy-golang-project
+                - $(tasks.producer-golang-gosec.results.anchor)
+                - $(tasks.producer-golang-nancy.results.anchor)
+        - name: enricher-policy
           taskRef:
-            name: enricher-policy-golang-project
+            name: enricher-policy
           workspaces:
             - name: source-code-ws
               workspace: source-code-ws
           params:
-            - name: enricher-policy-golang-project-base64-policy
-              value: $(params.enricher-policy-golang-project-base64-policy)
-            - name: enricher-policy-golang-project-annotation
-              value: $(params.enricher-policy-golang-project-annotation)
+            - name: enricher-policy-base64-policy
+              value: $(params.enricher-policy-base64-policy)
+            - name: enricher-policy-annotation
+              value: $(params.enricher-policy-annotation)
             - name: anchors
               value:
-                - $(tasks.producer-aggregator-golang-project.results.anchor)
-        - name: enricher-deduplication-golang-project
+                - $(tasks.producer-aggregator.results.anchor)
+        - name: enricher-deduplication
           taskRef:
-            name: enricher-deduplication-golang-project
+            name: enricher-deduplication
           workspaces:
             - name: source-code-ws
               workspace: source-code-ws
           params:
             - name: anchors
               value:
-                - $(tasks.producer-aggregator-golang-project.results.anchor)
-        - name: enricher-aggregator-golang-project
+                - $(tasks.producer-aggregator.results.anchor)
+        - name: enricher-aggregator
           taskRef:
-            name: enricher-aggregator-golang-project
+            name: enricher-aggregator
           workspaces:
             - name: source-code-ws
               workspace: source-code-ws
           params:
-            - name: enricher-aggregator-golang-project-b64-signature-key
-              value: $(params.enricher-aggregator-golang-project-b64-signature-key)
+            - name: enricher-aggregator-b64-signature-key
+              value: $(params.enricher-aggregator-b64-signature-key)
             - name: anchors
               value:
-                - $(tasks.enricher-policy-golang-project.results.anchor)
-                - $(tasks.enricher-deduplication-golang-project.results.anchor)
-        - name: consumer-mongodb-golang-project
+                - $(tasks.enricher-policy.results.anchor)
+                - $(tasks.enricher-deduplication.results.anchor)
+        - name: consumer-mongodb
           taskRef:
-            name: consumer-mongodb-golang-project
+            name: consumer-mongodb
           workspaces:
             - name: source-code-ws
               workspace: source-code-ws
           params:
-            - name: consumer-mongodb-golang-project-db-uri
-              value: $(params.consumer-mongodb-golang-project-db-uri)
-            - name: consumer-mongodb-golang-project-db-name
-              value: $(params.consumer-mongodb-golang-project-db-name)
-            - name: consumer-mongodb-golang-project-collection-name
-              value: $(params.consumer-mongodb-golang-project-collection-name)
+            - name: consumer-mongodb-db-uri
+              value: $(params.consumer-mongodb-db-uri)
+            - name: consumer-mongodb-db-name
+              value: $(params.consumer-mongodb-db-name)
+            - name: consumer-mongodb-collection-name
+              value: $(params.consumer-mongodb-collection-name)
             - name: anchors
               value:
-                - $(tasks.enricher-aggregator-golang-project.results.anchor)
-        - name: consumer-elasticsearch-golang-project
+                - $(tasks.enricher-aggregator.results.anchor)
+        - name: consumer-elasticsearch
           taskRef:
-            name: consumer-elasticsearch-golang-project
+            name: consumer-elasticsearch
           workspaces:
             - name: source-code-ws
               workspace: source-code-ws
           params:
-            - name: consumer-elasticsearch-golang-project-url
-              value: $(params.consumer-elasticsearch-golang-project-url)
-            - name: consumer-elasticsearch-golang-project-description-template
-              value: $(params.consumer-elasticsearch-golang-project-description-template)
+            - name: consumer-elasticsearch-url
+              value: $(params.consumer-elasticsearch-url)
+            - name: consumer-elasticsearch-description-template
+              value: $(params.consumer-elasticsearch-description-template)
             - name: anchors
               value:
-                - $(tasks.enricher-aggregator-golang-project.results.anchor)
+                - $(tasks.enricher-aggregator.results.anchor)
     params:
-        - name: git-clone-golang-project-url
+        - name: git-clone-url
           description: Repository URL to clone from.
           type: string
-        - name: git-clone-golang-project-revision
+        - name: git-clone-revision
           description: Revision to checkout. (branch, tag, sha, ref, etc...)
           type: string
           default: ""
-        - name: git-clone-golang-project-refspec
+        - name: git-clone-refspec
           description: Refspec to fetch before checking out revision.
           type: string
           default: ""
-        - name: git-clone-golang-project-submodules
+        - name: git-clone-submodules
           description: Initialize and fetch git submodules.
           type: string
           default: "true"
-        - name: git-clone-golang-project-depth
+        - name: git-clone-depth
           description: Perform a shallow clone, fetching only the most recent N commits.
           type: string
           default: "1"
-        - name: git-clone-golang-project-sslVerify
+        - name: git-clone-sslVerify
           description: Set the `http.sslVerify` global git config. Setting this to `false` is not advised unless you are sure that you trust your git remote.
           type: string
           default: "true"
-        - name: git-clone-golang-project-subdirectory
+        - name: git-clone-subdirectory
           description: Subdirectory inside the `output` Workspace to clone the repo into.
           type: string
           default: ""
-        - name: git-clone-golang-project-sparseCheckoutDirectories
+        - name: git-clone-sparseCheckoutDirectories
           description: Define the directory patterns to match or exclude when performing a sparse checkout.
           type: string
           default: ""
-        - name: git-clone-golang-project-deleteExisting
+        - name: git-clone-deleteExisting
           description: Clean out the contents of the destination directory if it already exists before cloning.
           type: string
           default: "true"
-        - name: git-clone-golang-project-httpProxy
+        - name: git-clone-httpProxy
           description: HTTP proxy server for non-SSL requests.
           type: string
           default: ""
-        - name: git-clone-golang-project-httpsProxy
+        - name: git-clone-httpsProxy
           description: HTTPS proxy server for SSL requests.
           type: string
           default: ""
-        - name: git-clone-golang-project-noProxy
+        - name: git-clone-noProxy
           description: Opt out of proxying HTTP/HTTPS requests.
           type: string
           default: ""
-        - name: git-clone-golang-project-verbose
+        - name: git-clone-verbose
           description: Log the commands that are executed during `git-clone`'s operation.
           type: string
           default: "true"
-        - name: git-clone-golang-project-gitInitImage
+        - name: git-clone-gitInitImage
           description: The image providing the git-init binary that this Task runs.
           type: string
           default: gcr.io/tekton-releases/github.com/tektoncd/pipeline/cmd/git-init:v0.29.0
-        - name: git-clone-golang-project-userHome
+        - name: git-clone-userHome
           description: |
             Absolute path to the user's home directory. Set this explicitly if you are running the image as a non-root user or have overridden
             the gitInitImage param with an image containing custom user configuration.
           type: string
           default: /tekton/home
-        - name: producer-golang-gosec-golang-project-flags
+        - name: producer-golang-gosec-flags
           type: array
           default:
             - -r
             - -quiet
             - -sort
             - -nosec
-        - name: producer-aggregator-golang-project-anchors
+        - name: producer-aggregator-anchors
           description: A list of tasks that this task depends on.
           type: array
           default: []
-        - name: enricher-policy-golang-project-base64-policy
+        - name: enricher-policy-base64-policy
           type: string
           default: cGFja2FnZSBleGFtcGxlLmdvc2VjCgpkZWZhdWx0IGFsbG93IDo9IGZhbHNlCgphbGxvdyA9dHJ1ZSB7CiAgICBwcmludChpbnB1dCkKICAgIGNoZWNrX3NldmVyaXR5Cn0KCmNoZWNrX3NldmVyaXR5IHsKICAgIGlucHV0LnNldmVyaXR5ID09ICJTRVZFUklUWV9ISUdIIgp9CmNoZWNrX3NldmVyaXR5IHsKICAgIGlucHV0LnNldmVyaXR5ID09ICJTRVZFUklUWV9NRURJVU0iCn0KY2hlY2tfc2V2ZXJpdHkgewogICAgaW5wdXQuc2V2ZXJpdHkgPT0gIlNFVkVSSVRZX0xPVyIKfQ==
-        - name: enricher-policy-golang-project-annotation
+        - name: enricher-policy-annotation
           type: string
           default: ""
-        - name: enricher-aggregator-golang-project-b64-signature-key
+        - name: enricher-aggregator-b64-signature-key
           description: An optional key to sign each aggregated result with
           type: string
           default: ""
-        - name: consumer-mongodb-golang-project-db-uri
+        - name: consumer-mongodb-db-uri
           type: string
           default: mongodb://consumer-mongodb:consumer-mongodb@consumer-mongodb.$(context.taskRun.namespace).svc:27017/consumer-mongodb
-        - name: consumer-mongodb-golang-project-db-name
+        - name: consumer-mongodb-db-name
           type: string
           default: consumer-mongodb
-        - name: consumer-mongodb-golang-project-collection-name
+        - name: consumer-mongodb-collection-name
           type: string
           default: consumer-mongodb
-        - name: consumer-elasticsearch-golang-project-url
+        - name: consumer-elasticsearch-url
           type: string
           default: http://dracon-es-http.dracon.svc:9200
-        - name: consumer-elasticsearch-golang-project-description-template
+        - name: consumer-elasticsearch-description-template
           type: string
           default: ""
         - name: dracon_scan_id
@@ -281,11 +281,14 @@ spec:
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
-    name: base-golang-project
+    name: base
     labels:
         v1.dracon.ocurity.com/component: base
 spec:
     params:
+        - name: base-scan-tags
+          type: string
+          default: ""
         - name: anchors
           type: array
           description: A list of tasks that this task depends on
@@ -304,12 +307,12 @@ spec:
           script: |
             cat /proc/sys/kernel/random/uuid | tee $(results.dracon-scan-id.path)
             date +"%Y-%m-%dT%H:%M:%SZ" | tee $(results.dracon-scan-start-time.path)
-            echo "$(params.dracon-scan-tags)" | tee $(results.dracon-scan-tags.path)
+            echo "$(params.base-scan-tags)" | tee $(results.dracon-scan-tags.path)
 ---
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
-    name: git-clone-golang-project
+    name: git-clone
     labels:
         app.kubernetes.io/version: "0.6"
         v1.dracon.ocurity.com/component: source
@@ -335,62 +338,62 @@ spec:
             A workspace containing CA certificates, this will be used by Git to
             verify the peer with when fetching or pushing over HTTPS.
     params:
-        - name: git-clone-golang-project-url
+        - name: git-clone-url
           type: string
           description: Repository URL to clone from.
-        - name: git-clone-golang-project-revision
+        - name: git-clone-revision
           type: string
           description: Revision to checkout. (branch, tag, sha, ref, etc...)
           default: ""
-        - name: git-clone-golang-project-refspec
+        - name: git-clone-refspec
           type: string
           description: Refspec to fetch before checking out revision.
           default: ""
-        - name: git-clone-golang-project-submodules
+        - name: git-clone-submodules
           type: string
           description: Initialize and fetch git submodules.
           default: "true"
-        - name: git-clone-golang-project-depth
+        - name: git-clone-depth
           type: string
           description: Perform a shallow clone, fetching only the most recent N commits.
           default: "1"
-        - name: git-clone-golang-project-sslVerify
+        - name: git-clone-sslVerify
           type: string
           description: Set the `http.sslVerify` global git config. Setting this to `false` is not advised unless you are sure that you trust your git remote.
           default: "true"
-        - name: git-clone-golang-project-subdirectory
+        - name: git-clone-subdirectory
           type: string
           description: Subdirectory inside the `output` Workspace to clone the repo into.
           default: ""
-        - name: git-clone-golang-project-sparseCheckoutDirectories
+        - name: git-clone-sparseCheckoutDirectories
           type: string
           description: Define the directory patterns to match or exclude when performing a sparse checkout.
           default: ""
-        - name: git-clone-golang-project-deleteExisting
+        - name: git-clone-deleteExisting
           type: string
           description: Clean out the contents of the destination directory if it already exists before cloning.
           default: "true"
-        - name: git-clone-golang-project-httpProxy
+        - name: git-clone-httpProxy
           type: string
           description: HTTP proxy server for non-SSL requests.
           default: ""
-        - name: git-clone-golang-project-httpsProxy
+        - name: git-clone-httpsProxy
           type: string
           description: HTTPS proxy server for SSL requests.
           default: ""
-        - name: git-clone-golang-project-noProxy
+        - name: git-clone-noProxy
           type: string
           description: Opt out of proxying HTTP/HTTPS requests.
           default: ""
-        - name: git-clone-golang-project-verbose
+        - name: git-clone-verbose
           type: string
           description: Log the commands that are executed during `git-clone`'s operation.
           default: "true"
-        - name: git-clone-golang-project-gitInitImage
+        - name: git-clone-gitInitImage
           type: string
           description: The image providing the git-init binary that this Task runs.
           default: gcr.io/tekton-releases/github.com/tektoncd/pipeline/cmd/git-init:v0.29.0
-        - name: git-clone-golang-project-userHome
+        - name: git-clone-userHome
           type: string
           description: |
             Absolute path to the user's home directory. Set this explicitly if you are running the image as a non-root user or have overridden
@@ -405,7 +408,7 @@ spec:
           description: An anchor to allow other tasks to depend on this task.
     steps:
         - name: clone
-          image: $(params.git-clone-golang-project-gitInitImage)
+          image: $(params.git-clone-gitInitImage)
           script: |
             #!/usr/bin/env sh
             set -eu
@@ -475,33 +478,33 @@ spec:
             printf "%s" "${PARAM_URL}" > "$(results.url.path)"
           env:
             - name: PARAM_URL
-              value: $(params.git-clone-golang-project-url)
+              value: $(params.git-clone-url)
             - name: PARAM_REVISION
-              value: $(params.git-clone-golang-project-revision)
+              value: $(params.git-clone-revision)
             - name: PARAM_REFSPEC
-              value: $(params.git-clone-golang-project-refspec)
+              value: $(params.git-clone-refspec)
             - name: PARAM_SUBMODULES
-              value: $(params.git-clone-golang-project-submodules)
+              value: $(params.git-clone-submodules)
             - name: PARAM_DEPTH
-              value: $(params.git-clone-golang-project-depth)
+              value: $(params.git-clone-depth)
             - name: PARAM_SSL_VERIFY
-              value: $(params.git-clone-golang-project-sslVerify)
+              value: $(params.git-clone-sslVerify)
             - name: PARAM_SUBDIRECTORY
-              value: $(params.git-clone-golang-project-subdirectory)
+              value: $(params.git-clone-subdirectory)
             - name: PARAM_DELETE_EXISTING
-              value: $(params.git-clone-golang-project-deleteExisting)
+              value: $(params.git-clone-deleteExisting)
             - name: PARAM_HTTP_PROXY
-              value: $(params.git-clone-golang-project-httpProxy)
+              value: $(params.git-clone-httpProxy)
             - name: PARAM_HTTPS_PROXY
-              value: $(params.git-clone-golang-project-httpsProxy)
+              value: $(params.git-clone-httpsProxy)
             - name: PARAM_NO_PROXY
-              value: $(params.git-clone-golang-project-noProxy)
+              value: $(params.git-clone-noProxy)
             - name: PARAM_VERBOSE
-              value: $(params.git-clone-golang-project-verbose)
+              value: $(params.git-clone-verbose)
             - name: PARAM_SPARSE_CHECKOUT_DIRECTORIES
-              value: $(params.git-clone-golang-project-sparseCheckoutDirectories)
+              value: $(params.git-clone-sparseCheckoutDirectories)
             - name: PARAM_USER_HOME
-              value: $(params.git-clone-golang-project-userHome)
+              value: $(params.git-clone-userHome)
             - name: WORKSPACE_OUTPUT_PATH
               value: $(workspaces.output.path)
             - name: WORKSPACE_SSH_DIRECTORY_BOUND
@@ -520,7 +523,7 @@ spec:
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
-    name: producer-golang-gosec-golang-project
+    name: producer-golang-gosec
     labels:
         v1.dracon.ocurity.com/component: producer
 spec:
@@ -528,7 +531,7 @@ spec:
         - name: source-code-ws
           description: The workspace containing the source-code to scan.
     params:
-        - name: producer-golang-gosec-golang-project-flags
+        - name: producer-golang-gosec-flags
           type: array
           default:
             - -r
@@ -570,7 +573,7 @@ spec:
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
-    name: producer-golang-nancy-golang-project
+    name: producer-golang-nancy
     labels:
         v1.dracon.ocurity.com/component: producer
 spec:
@@ -638,7 +641,7 @@ spec:
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
-    name: producer-aggregator-golang-project
+    name: producer-aggregator
     labels:
         v1.dracon.ocurity.com/component: producer-aggregator
 spec:
@@ -646,7 +649,7 @@ spec:
         - name: source-code-ws
           description: The workspace containing the source-code to scan.
     params:
-        - name: producer-aggregator-golang-project-anchors
+        - name: producer-aggregator-anchors
           type: array
           description: A list of tasks that this task depends on.
           default: []
@@ -673,7 +676,7 @@ spec:
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
-    name: enricher-policy-golang-project
+    name: enricher-policy
     labels:
         v1.dracon.ocurity.com/component: enricher
 spec:
@@ -681,10 +684,10 @@ spec:
         - name: source-code-ws
           description: The workspace containing the source-code to scan.
     params:
-        - name: enricher-policy-golang-project-base64-policy
+        - name: enricher-policy-base64-policy
           type: string
           default: cGFja2FnZSBleGFtcGxlLmdvc2VjCgpkZWZhdWx0IGFsbG93IDo9IGZhbHNlCgphbGxvdyA9dHJ1ZSB7CiAgICBwcmludChpbnB1dCkKICAgIGNoZWNrX3NldmVyaXR5Cn0KCmNoZWNrX3NldmVyaXR5IHsKICAgIGlucHV0LnNldmVyaXR5ID09ICJTRVZFUklUWV9ISUdIIgp9CmNoZWNrX3NldmVyaXR5IHsKICAgIGlucHV0LnNldmVyaXR5ID09ICJTRVZFUklUWV9NRURJVU0iCn0KY2hlY2tfc2V2ZXJpdHkgewogICAgaW5wdXQuc2V2ZXJpdHkgPT0gIlNFVkVSSVRZX0xPVyIKfQ==
-        - name: enricher-policy-golang-project-annotation
+        - name: enricher-policy-annotation
           type: string
           default: ""
         - name: anchors
@@ -702,16 +705,16 @@ spec:
             - name: WRITE_PATH
               value: $(workspaces.source-code-ws.path)/.dracon/enrichers/policy
             - name: POLICY
-              value: $(params.enricher-policy-golang-project-base64-policy)
+              value: $(params.enricher-policy-base64-policy)
             - name: OPA_SERVER
               value: http://localhost:8181
             - name: ANNOTATION
-              value: $(params.enricher-policy-golang-project-annotation)
+              value: $(params.enricher-policy-annotation)
 ---
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
-    name: enricher-deduplication-golang-project
+    name: enricher-deduplication
     labels:
         v1.dracon.ocurity.com/component: enricher
 spec:
@@ -739,7 +742,7 @@ spec:
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
-    name: enricher-aggregator-golang-project
+    name: enricher-aggregator
     labels:
         v1.dracon.ocurity.com/component: enricher-aggregator
 spec:
@@ -747,7 +750,7 @@ spec:
         - name: source-code-ws
           description: The workspace containing the source-code to scan.
     params:
-        - name: enricher-aggregator-golang-project-b64-signature-key
+        - name: enricher-aggregator-b64-signature-key
           type: string
           description: An optional key to sign each aggregated result with
           default: ""
@@ -771,12 +774,12 @@ spec:
             - name: WRITE_PATH
               value: $(workspaces.source-code-ws.path)/.dracon/enrichers
             - name: B64_SIGNATURE_KEY
-              value: $(params.enricher-aggregator-golang-project-b64-signature-key)
+              value: $(params.enricher-aggregator-b64-signature-key)
 ---
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
-    name: consumer-mongodb-golang-project
+    name: consumer-mongodb
     labels:
         v1.dracon.ocurity.com/component: consumer
 spec:
@@ -784,13 +787,13 @@ spec:
         - name: source-code-ws
           description: The workspace containing the source-code to scan.
     params:
-        - name: consumer-mongodb-golang-project-db-uri
+        - name: consumer-mongodb-db-uri
           type: string
           default: mongodb://consumer-mongodb:consumer-mongodb@consumer-mongodb.$(context.taskRun.namespace).svc:27017/consumer-mongodb
-        - name: consumer-mongodb-golang-project-db-name
+        - name: consumer-mongodb-db-name
           type: string
           default: consumer-mongodb
-        - name: consumer-mongodb-golang-project-collection-name
+        - name: consumer-mongodb-collection-name
           type: string
           default: consumer-mongodb
         - name: anchors
@@ -803,7 +806,7 @@ spec:
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
-    name: consumer-elasticsearch-golang-project
+    name: consumer-elasticsearch
     labels:
         v1.dracon.ocurity.com/component: consumer
 spec:
@@ -811,10 +814,10 @@ spec:
         - name: source-code-ws
           description: The workspace containing the source-code to scan.
     params:
-        - name: consumer-elasticsearch-golang-project-url
+        - name: consumer-elasticsearch-url
           type: string
           default: http://dracon-es-http.dracon.svc:9200
-        - name: consumer-elasticsearch-golang-project-description-template
+        - name: consumer-elasticsearch-description-template
           type: string
           default: ""
         - name: anchors
@@ -825,5 +828,5 @@ spec:
           image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/consumers/elasticsearch/image:{{ default "latest" .Values.dracon_os_component_version }}'
           env:
             - name: ELASTICSEARCH_URL
-              value: $(params.consumer-elasticsearch-golang-project-url)
+              value: $(params.consumer-elasticsearch-url)
 ---
