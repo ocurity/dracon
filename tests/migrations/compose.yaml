@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_PASSWORD: password
+    networks:
+      - test-migrations
+    healthcheck:
+      test: "pg_isready --username=postgres && psql --username=postgres --list"
+      start_period: 3s
+      interval: 2s
+      timeout: 2s
+      retries: 20
+
+  tester:
+    build:
+      context: ../..
+      dockerfile: containers/Dockerfile.draconctl
+      args:
+        - BASE_MIGRATION_IMAGE=ubuntu:latest
+    depends_on:
+      postgres:
+        condition: service_healthy  
+    networks:
+      - test-migrations
+    entrypoint: /bin/bash
+    command:
+    - -c
+    - |
+      apt-get update && apt-get install -y jq &&
+      echo "------------------------------ Starting tests ------------------------------" &&
+      /bin/draconctl migrations inspect --url postgres://postgres:password@postgres:5432?sslmode=disable --json /etc/dracon/migrations/enrichment | tee | jq -eM '. | select(.Version == 0)' &&
+      echo "------------------------------ Applying migrations ------------------------------" &&
+      /bin/draconctl migrations apply --url postgres://postgres:password@postgres:5432?sslmode=disable /etc/dracon/migrations/enrichment &&
+      /bin/draconctl migrations inspect --url postgres://postgres:password@postgres:5432?sslmode=disable --json /etc/dracon/migrations/enrichment | tee | jq -eM '. | select(.Version > 0)' &&
+      echo "------------------------------ Reverting migrations ------------------------------" &&
+      /bin/draconctl migrations revert --url postgres://postgres:password@postgres:5432?sslmode=disable /etc/dracon/migrations/enrichment &&
+      /bin/draconctl migrations inspect --url postgres://postgres:password@postgres:5432?sslmode=disable --json /etc/dracon/migrations/enrichment | tee | jq -eM '. | select(.Version == 0)'
+
+networks:
+  test-migrations:
