@@ -103,7 +103,8 @@ install-lint-tools:
 	@go install github.com/bufbuild/buf/cmd/buf@v1.28.1
 
 go-tests:
-	@go test -race -json $(GO_TEST_PACKAGES)
+	@mkdir -p tests/output
+	@go test -race -json -coverprofile tests/output/cover.out $(GO_TEST_PACKAGES)
 
 migration-tests: bin/cmd/draconctl
 	cd tests/migrations/ && docker compose up --abort-on-container-exit --build --exit-code-from tester
