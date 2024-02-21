@@ -11,9 +11,8 @@ import (
 	"strings"
 
 	v1 "github.com/ocurity/dracon/api/proto/v1"
+	"github.com/ocurity/dracon/pkg/db"
 	"google.golang.org/protobuf/types/known/timestamppb"
-
-	"github.com/ocurity/dracon/pkg/enrichment/db"
 )
 
 // GetHash returns the hash of an issue.
@@ -73,15 +72,15 @@ func UpdateEnrichedIssue(i *v1.EnrichedIssue) *v1.EnrichedIssue {
 }
 
 // EnrichIssue enriches a given issue, returning an enriched issue once processed.
-func EnrichIssue(db *db.DB, i *v1.Issue) (*v1.EnrichedIssue, error) {
+func EnrichIssue(conn *db.DB, i *v1.Issue) (*v1.EnrichedIssue, error) {
 	hash := GetHash(i)
 	enrichedIssue := NewEnrichedIssue(i)
-	dBIssue, err := db.GetIssueByHash(hash)
+	dBIssue, err := GetIssueByHash(conn, hash)
 	if errors.Is(err, sql.ErrNoRows) {
 		log.Printf("Issue %s is new, enriching \n", i.Uuid)
 		// create issue
 		enrichedIssue = NewEnrichedIssue(i)
-		err := db.CreateIssue(context.Background(), enrichedIssue)
+		err := CreateIssue(context.Background(), conn, enrichedIssue)
 		if err != nil {
 			log.Println(err)
 			return nil, err
@@ -97,7 +96,7 @@ func EnrichIssue(db *db.DB, i *v1.Issue) (*v1.EnrichedIssue, error) {
 	enrichedIssue.UpdatedAt = dBIssue.UpdatedAt
 	// update issue
 	enrichedIssue = UpdateEnrichedIssue(enrichedIssue)
-	if err := db.UpdateIssue(context.Background(), enrichedIssue); err != nil {
+	if err := UpdateIssue(context.Background(), conn, enrichedIssue); err != nil {
 		return nil, err
 	}
 	return enrichedIssue, nil

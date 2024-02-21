@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 
+	"github.com/ocurity/dracon/cmd/draconctl/migrations"
 	"github.com/ocurity/dracon/cmd/draconctl/pipelines"
 	"github.com/spf13/cobra"
 )
@@ -19,6 +20,7 @@ func main() {
 	})
 
 	pipelines.RegisterPipelinesSubcommands(rootCmd)
+	migrations.RegisterMigrationsSubcommands(rootCmd)
 
 	err := rootCmd.Execute()
 	if err != nil {

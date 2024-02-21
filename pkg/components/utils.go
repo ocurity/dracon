@@ -8,13 +8,13 @@ import (
 )
 
 func ValidateTask(task *tektonV1Beta1.Task) error {
-	componentType, exists := task.Metadata.Labels[LabelKey]
+	componentType, exists := task.Labels[LabelKey]
 	if !exists {
-		return fmt.Errorf("%s: task does not have a component type label", task.Metadata.Name)
+		return fmt.Errorf("%s: task does not have a component type label", task.Name)
 	}
 
 	if _, err := ToComponentType(componentType); err != nil {
-		return fmt.Errorf("%s: task has wrong component type: %w", task.Metadata.Name, err)
+		return fmt.Errorf("%s: task has wrong component type: %w", task.Name, err)
 	}
 
 	for _, param := range task.Spec.Params {
@@ -25,7 +25,7 @@ func ValidateTask(task *tektonV1Beta1.Task) error {
 		}
 		if param.Type != "string" && param.Type != "array" {
 			return fmt.Errorf("unsupported parameter type '%s' from parameter '%s' in Task %s",
-				param.Type, param.Name, task.Metadata.Name)
+				param.Type, param.Name, task.Name)
 		}
 	}
 	return nil

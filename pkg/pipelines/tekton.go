@@ -129,8 +129,8 @@ func (tb *tektonV1Beta1Backend) Generate() (*tektonV1Beta1.Pipeline, error) {
 	anchors := map[string][]string{}
 
 	for _, task := range tb.tasks {
-		componentType := task.Metadata.Labels[components.LabelKey]
-		anchors[componentType] = append(anchors[componentType], task.Metadata.Name)
+		componentType := task.Labels[components.LabelKey]
+		anchors[componentType] = append(anchors[componentType], task.Name)
 
 		// add task to pipeline tasks
 		pipelineTask := tektonV1Beta1.PipelineTask{

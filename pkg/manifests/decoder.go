@@ -2,6 +2,7 @@ package manifests
 
 import (
 	tektonV1Beta1 "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1beta1"
+	batchv1 "k8s.io/api/batch/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	jsonSerializer "k8s.io/apimachinery/pkg/runtime/serializer/json"
@@ -11,6 +12,7 @@ import (
 var K8sObjDecoder runtime.Decoder
 var CodecFactory serializer.CodecFactory
 var TektonV1Beta1ObjEncoder runtime.Encoder
+var BatchV1ObjEncoder runtime.Encoder
 
 func init() {
 	sch := runtime.NewScheme()
@@ -24,4 +26,5 @@ func init() {
 	K8sObjDecoder = CodecFactory.UniversalDeserializer()
 	serializer := jsonSerializer.NewYAMLSerializer(jsonSerializer.DefaultMetaFactory, scheme.Scheme, scheme.Scheme)
 	TektonV1Beta1ObjEncoder = CodecFactory.EncoderForVersion(serializer, tektonV1Beta1.SchemeGroupVersion)
+	BatchV1ObjEncoder = CodecFactory.EncoderForVersion(serializer, batchv1.SchemeGroupVersion)
 }
