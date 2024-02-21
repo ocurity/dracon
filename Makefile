@@ -79,12 +79,15 @@ example-pipelines-helm-manifests: $(example_pipeline_kustomizations)
 clean-protos:
 	@find . -not -path './vendor/*' -name '*.pb.go' -delete
 
-clean: clean-protos
+clean-migrations-compose:
+	cd tests/migrations/ && docker compose rm --force
+
+clean: clean-protos clean-migrations-compose
 
 ########################################
 ######### CODE QUALITY TARGETS #########
 ########################################
-.PHONY: lint install-lint-tools tests go-tests fmt fmt-proto fmt-go
+.PHONY: lint install-lint-tools tests go-tests fmt fmt-proto fmt-go migration-tests
 
 lint:
 	@reviewdog -fail-on-error $$([ "${CI}" = "true" ] && echo "-reporter=github-pr-review") -diff="git diff origin/main" -tee
@@ -102,7 +105,10 @@ install-lint-tools:
 go-tests:
 	@go test -race -json $(GO_TEST_PACKAGES)
 
-test: go-tests
+migration-tests: bin/cmd/draconctl
+	cd tests/migrations/ && docker compose up --abort-on-container-exit --build --exit-code-from tester
+
+test: go-tests migration-tests
 
 fmt-proto:
 	@echo "Tidying up Proto files"
