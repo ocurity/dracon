@@ -1,0 +1,11 @@
+version: 3.7
+
+services:
+  postgres:
+    image: postgres:latest
+    env:
+      POSTGRES_PASSWORD: password
+
+  migrations:
+    image: ./Dockerfile
+    command: command

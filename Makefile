@@ -84,7 +84,7 @@ clean: clean-protos
 ########################################
 ######### CODE QUALITY TARGETS #########
 ########################################
-.PHONY: lint install-lint-tools tests go-tests fmt fmt-proto fmt-go
+.PHONY: lint install-lint-tools tests go-tests fmt fmt-proto fmt-go migration-tests
 
 lint:
 	@reviewdog -fail-on-error $$([ "${CI}" = "true" ] && echo "-reporter=github-pr-review") -diff="git diff origin/main" -tee
@@ -101,6 +101,9 @@ install-lint-tools:
 
 go-tests:
 	@go test -race -json $(GO_TEST_PACKAGES)
+
+migration-tests: bin/cmd/draconctl
+	@(DOCKER_COMPOSE) run 
 
 test: go-tests
 
