@@ -8,8 +8,8 @@ import (
 
 	v1 "github.com/ocurity/dracon/api/proto/v1"
 
+	"github.com/ocurity/dracon/pkg/db"
 	"github.com/ocurity/dracon/pkg/enrichment"
-	"github.com/ocurity/dracon/pkg/enrichment/db"
 	"github.com/ocurity/dracon/pkg/putil"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -27,21 +27,28 @@ var rootCmd = &cobra.Command{
 	Long:  "tool to enrich issues against a database",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		connStr = viper.GetString("db_connection")
-		db, err := db.NewDB(connStr)
+		dbUrl, err := db.ParseConnectionStr(connStr)
 		if err != nil {
 			return err
 		}
+
+		conn, err := dbUrl.Connect()
+		if err != nil {
+			return err
+		}
+
 		readPath = viper.GetString("read_path")
 		res, err := putil.LoadTaggedToolResponse(readPath)
 		if err != nil {
 			log.Fatal(err)
 		}
+
 		log.Printf("Loaded %d tagged tool responses\n", len(res))
 		writePath = viper.GetString("write_path")
 		for _, r := range res {
 			enrichedIssues := []*v1.EnrichedIssue{}
 			for _, i := range r.GetIssues() {
-				eI, err := enrichment.EnrichIssue(db, i)
+				eI, err := enrichment.EnrichIssue(conn, i)
 				if err != nil {
 					log.Printf("error enriching issue %s, err: %#v\n", i.Uuid, err)
 					continue
