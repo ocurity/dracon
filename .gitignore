@@ -4,3 +4,4 @@ __pycache__
 **/node_modules/
 bin
 .custom_image
+tests/output
