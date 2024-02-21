@@ -54,7 +54,7 @@ type tektonBackend struct {
 // addAnchorResult adds an `anchor` entry to the results section of a Task. This helps reduce the
 // amount of boilerplate needed to be written by a user to introduce a component.
 func addAnchorResult(task tektonV1Beta1.Task) {
-	if task.Metadata.Labels[components.LabelKey] == components.Consumer.String() {
+	if task.Labels[components.LabelKey] == components.Consumer.String() {
 		return
 	}
 
@@ -73,7 +73,7 @@ func addAnchorResult(task tektonV1Beta1.Task) {
 // addAnchorParameter adds an `anchors` entry to the parameters of a Task. This entry will then be
 // filled in the pipeline with the anchors of the tasks that this task depends on.
 func addAnchorParameter(task tektonV1Beta1.Task) {
-	if task.Metadata.Labels[components.LabelKey] == components.Source.String() {
+	if task.Labels[components.LabelKey] == components.Source.String() {
 		return
 	}
 
@@ -107,8 +107,8 @@ func NewTektonBackend(basePipeline *tektonV1Beta1.Pipeline, tasks []tektonV1Beta
 
 	// Sort tasks based on their component type
 	slices.SortFunc(tektonBackend.tasks, func(a tektonV1Beta1.Task, b tektonV1Beta1.Task) int {
-		componentTypeA := components.MustGetComponentType(a.Metadata.Labels[components.LabelKey])
-		componentTypeB := components.MustGetComponentType(b.Metadata.Labels[components.LabelKey])
+		componentTypeA := components.MustGetComponentType(a.Labels[components.LabelKey])
+		componentTypeB := components.MustGetComponentType(b.Labels[components.LabelKey])
 		return int(componentTypeA) - int(componentTypeB)
 	})
 
@@ -116,19 +116,19 @@ func NewTektonBackend(basePipeline *tektonV1Beta1.Pipeline, tasks []tektonV1Beta
 }
 
 func (tb *tektonBackend) Generate() (*tektonV1Beta1.Pipeline, error) {
-	tb.pipeline.Metadata.Name = tb.prefix + tb.pipeline.Metadata.Name + tb.suffix
+	tb.pipeline.Name = tb.prefix + tb.pipeline.Name + tb.suffix
 	pipelineWorkspaces := map[string]struct{}{}
 	anchors := map[string][]string{}
 
 	for _, task := range tb.tasks {
-		componentType := task.Metadata.Labels[components.LabelKey]
-		anchors[componentType] = append(anchors[componentType], task.Metadata.Name)
+		componentType := task.Labels[components.LabelKey]
+		anchors[componentType] = append(anchors[componentType], task.Name)
 
 		// add task to pipeline tasks
 		pipelineTask := &tektonV1Beta1.PipelineSpecTask{
-			Name: task.Metadata.Name,
+			Name: task.Name,
 			TaskRef: &tektonV1Beta1.PipelineSpecTaskTaskRef{
-				Name: task.Metadata.Name,
+				Name: task.Name,
 			},
 		}
 
@@ -194,7 +194,7 @@ func (tb *tektonBackend) Generate() (*tektonV1Beta1.Pipeline, error) {
 		}
 
 		// add scan ID and scan time to all  producers
-		if task.Metadata.Labels[components.LabelKey] != components.Producer.String() {
+		if task.Labels[components.LabelKey] != components.Producer.String() {
 			continue
 		}
 

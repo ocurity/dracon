@@ -1,24 +1,24 @@
 package tekton
 
 import (
-	"github.com/ocurity/dracon/pkg/types/kubernetes"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // Pipeline represents a Tekton Pipeline configuration.
 type Pipeline struct {
-	*kubernetes.GVK `yaml:",inline"`
-	Metadata        *kubernetes.Metadata `yaml:"metadata,omitempty"`
-	Spec            *PipelineSpec        `yaml:"spec,omitempty"`
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+	Spec              *PipelineSpec `yaml:"spec,omitempty"`
 }
 
 // NewPipeline returns a Tekton Pipeline configuration with the GVK set.
 func NewPipeline() *Pipeline {
 	return &Pipeline{
-		GVK: &kubernetes.GVK{
-			APIVersion: "tekton.dev/v1beta1",
+		TypeMeta: metav1.TypeMeta{
 			Kind:       "Pipeline",
+			APIVersion: "tekton.dev/v1beta1",
 		},
-		Metadata: &kubernetes.Metadata{},
+		ObjectMeta: metav1.ObjectMeta{},
 		Spec: &PipelineSpec{
 			Tasks:      []*PipelineSpecTask{},
 			Workspaces: []*PipelineSpecWorkspace{},

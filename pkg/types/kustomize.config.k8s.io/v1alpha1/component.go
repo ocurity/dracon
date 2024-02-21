@@ -2,16 +2,17 @@ package kustomize
 
 import (
 	wordwrap "github.com/mitchellh/go-wordwrap"
-	"github.com/ocurity/dracon/pkg/types/kubernetes"
 	"gopkg.in/yaml.v3"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // NewComponent returns a new representation of a component with the GVK set.
 func NewComponent() Component {
 	return Component{
-		GVK: &kubernetes.GVK{
-			APIVersion: "kustomize.config.k8s.io/v1alpha1",
-			Kind:       "Component",
+		GroupVersionKind: &metav1.GroupVersionKind{
+			Group:   "kustomize.config.k8s.io",
+			Version: "v1alpha1",
+			Kind:    "Component",
 		},
 		Resources: []string{},
 		Patches:   []TargetPatch{},
@@ -20,9 +21,9 @@ func NewComponent() Component {
 
 // Component represents a Kustomize Component configuration.
 type Component struct {
-	*kubernetes.GVK `yaml:",inline"`
-	Resources       []string      `yaml:"resources,omitempty"`
-	Patches         []TargetPatch `yaml:"patches,omitempty"`
+	*metav1.GroupVersionKind `yaml:",inline"`
+	Resources                []string      `yaml:"resources,omitempty"`
+	Patches                  []TargetPatch `yaml:"patches,omitempty"`
 }
 
 // TargetPatch represents a patch multiple targets Patch.

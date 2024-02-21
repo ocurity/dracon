@@ -1,16 +1,14 @@
 package tekton
 
 import (
-	"github.com/ocurity/dracon/pkg/types/kubernetes"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // Task represents a Tekton Task configuration.
 type Task struct {
-	*kubernetes.GVK `yaml:",inline"`
-
-	Metadata *kubernetes.Metadata `yaml:"metadata,omitempty"`
-
-	Spec *TaskSpec `yaml:"spec,omitempty"`
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+	Spec              *TaskSpec `yaml:"spec,omitempty"`
 }
 
 // TaskSpec represents the spec configuration of a Task.
