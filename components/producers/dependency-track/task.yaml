@@ -1,0 +1,25 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: producer-dependency-track
+  labels:
+    v1.dracon.ocurity.com/component: producer
+spec:
+  volumes:
+    - name: scratch
+      emptyDir: {}
+  workspaces:
+    - name: source-code-ws
+      description: The workspace containing the dependency track results.
+  steps:
+  - name: produce-issues
+    imagePullPolicy: IfNotPresent
+    image: ghcr.io/ocurity/dracon/components/producers/dependency-track/image:latest
+    command: ["app/components/producers/dependency-track/dependency-track-parser"]
+    args:
+    - "-in=/scratch/out.json"
+    - "-out=$(workspaces.source-code-ws.path)/.dracon/producers/dependency-track.pb"
+    volumeMounts:
+    - mountPath: /scratch
+      name: scratch
