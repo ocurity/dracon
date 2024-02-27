@@ -2,6 +2,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 
@@ -43,16 +44,47 @@ func parseIssues(out *DependencyTrackOut) ([]*v1.Issue, error) {
 		iss := v1.Issue{}
 		target := element.Component.Purl
 		iss.Target = target
-		cwe := fmt.Sprintf("%d", element.Vulnerability.CweID)
+		cwe := []int32{}
+		for _, c := range element.Vulnerability.Cwes {
+			cwe = append(cwe, int32(c.CweID))
+		}
 		iss.Type = element.Vulnerability.VulnID
 		iss.Title = element.Vulnerability.Title
-		iss.Cvss = element.Vulnerability.CvssV3BaseScore
-		iss.Severity = v1.Severity(v1.Severity_value[fmt.Sprintf("SEVERITY_%s", element.Vulnerability.Severity)])
-		iss.Cwe = &cwe
+		if element.Vulnerability.CvssV3BaseScore != 0 {
+			iss.Cvss = element.Vulnerability.CvssV3BaseScore
+		}
+		switch element.Vulnerability.Severity {
+		case "CRITICAL":
+			iss.Severity = v1.Severity_SEVERITY_CRITICAL
+		case "HIGH":
+			iss.Severity = v1.Severity_SEVERITY_HIGH
+
+		case "MEDIUM":
+			iss.Severity = v1.Severity_SEVERITY_MEDIUM
+		case "LOW":
+			iss.Severity = v1.Severity_SEVERITY_LOW
+		case "INFO":
+			iss.Severity = v1.Severity_SEVERITY_INFO
+		case "UNASSIGNED":
+			iss.Severity = v1.Severity_SEVERITY_UNSPECIFIED
+
+		}
+		iss.Cwe = cwe
 		if len(element.Vulnerability.Aliases) > 0 {
 			iss.Cve = element.Vulnerability.Aliases[0].CveID
 		}
 		iss.Description = fmt.Sprintf("%s\n%s", element.Vulnerability.Description, element.Vulnerability.Recommendation)
+		if len(element.Vulnerability.Aliases) > 0 {
+			iss.Description = fmt.Sprintf("%s\nVulnerability Aliases:", iss.Description)
+			for _, alias := range element.Vulnerability.Aliases {
+				serialised, err := json.Marshal(alias)
+				if err != nil {
+					log.Println("Error serialising vulnerability alias", alias, "skipping")
+					continue
+				}
+				iss.Description = fmt.Sprintf("%s\n%s", iss.Description, string(serialised))
+			}
+		}
 		issues = append(issues, &iss)
 	}
 

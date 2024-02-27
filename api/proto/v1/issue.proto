@@ -66,8 +66,8 @@ message Issue {
   // optional string that allows producers to communicate relevant code/request segments
   optional string context_segment = 12;
 
-  // optionally the related CWE
-  optional string cwe = 13;
+  // optionally the related CWEs
+  repeated int32 cwe = 13;
 }
 
 /* Represents an issue that has been enriched with metadata from the enrichment service */
