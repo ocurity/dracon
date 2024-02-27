@@ -10,7 +10,6 @@ import (
 )
 
 func TestParseIssues(t *testing.T) {
-
 	var results DependencyTrackOut
 	err := json.Unmarshal([]byte(dtOut), &results)
 	assert.Nil(t, err)
