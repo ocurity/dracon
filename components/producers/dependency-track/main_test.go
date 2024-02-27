@@ -37,7 +37,8 @@ func TestParseIssues(t *testing.T) {
 			Source:      "",
 			Cve:         "CVE-2024-22243",
 			Uuid:        "",
-			Cwe:         &cwe1},
+			Cwe:         &cwe1,
+		},
 	}
 	assert.Equal(t, expectedIssue, issues)
 }
