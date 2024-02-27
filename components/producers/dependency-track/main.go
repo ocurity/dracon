@@ -1,3 +1,4 @@
+// Package main of the dependency track producer reads a dependency track export and translates it to dracon format
 package main
 
 import (
@@ -58,10 +59,13 @@ func parseIssues(out *DependencyTrackOut) ([]*v1.Issue, error) {
 	return issues, nil
 }
 
+// Aliases is DTs vulnerability aliases struct
 type Aliases []struct {
 	CveID  string `json:"cveId"`
 	SnykID string `json:"snykId"`
 }
+
+// Component is a DT component
 type Component struct {
 	UUID          string `json:"uuid"`
 	Name          string `json:"name"`
@@ -71,6 +75,8 @@ type Component struct {
 	Project       string `json:"project"`
 	LatestVersion string `json:"latestVersion"`
 }
+
+// Vulnerability is a DT Vulnerability for a single component
 type Vulnerability struct {
 	UUID            string  `json:"uuid"`
 	Source          string  `json:"source"`
@@ -89,6 +95,8 @@ type Vulnerability struct {
 	Description    string  `json:"description"`
 	Recommendation string  `json:"recommendation"`
 }
+
+// DependencyTrackOut is an export from DT
 type DependencyTrackOut []struct {
 	Component     Component     `json:"component"`
 	Vulnerability Vulnerability `json:"vulnerability"`
