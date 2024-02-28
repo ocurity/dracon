@@ -93,6 +93,33 @@ have their own Makefiles. In those cases you can place a `.custom_image` file in
 with the base image you wish to use and that will be picked up by the Makefile and build the
 container.
 
+## Applying migrations
+
+There some migrations that should be applied to the postgres instance so that the enrichment
+components can store and retrieve data from it. In order to apply the migrations you need to run
+the following command (the container with the `draconctl` binary and the migration scripts was
+built and pushed in the previous step):
+
+```bash
+$ kubectl apply -n dracon -f deploy/dracon/serviceaccount.yaml
+$ kubectl apply -n dracon -f deploy/dracon/role.yaml
+$ kubectl apply -n dracon -f deploy/dracon/rolebinding.yaml
+$ bin/cmd/draconctl migrations apply \
+  --namespace dracon \
+  --as-k8s-job \
+  --image "kind-registry:5000/ocurity/dracon/draconctl:..." \
+  --url "postgresql://dracon:dracon@dracon-enrichment-db.dracon.svc.cluster.local?sslmode=disable" \
+  /etc/dracon/migrations/enrichment
+```
+
+\* Notice that the repo we are using over here is slightly different than the one we pushed the
+images in the previous step. That's because with local registries the registry is exposed on a port
+in localhost, however inside the KiND cluster, that's not the case. Instead the registry's host is
+`kind-registry:5000`. This is also going to be important later when we will deploy the pipelines
+and their image repositories will also have to be set to this value.
+
+\**Make sure that you use the draconctl image that you pushed in the repository
+
 ## Running one of the example pipelines
 
 You can easily check Dracon in action if you run one of the example pipelines included in the repo.
@@ -101,8 +128,8 @@ Running the `golang-project` is as simple as running:
 ```bash
 helm upgrade golang-project-pipeline ./examples/pipelines/golang-project \
   --install \
-  --namespace dracon \
-  --create-namespace
+  --namespace dracon
+  --set "container_registry=kind-registry:5000/ocurity/dracon"
 ```
 
 If you want to use a custom container registry, add the following flag:
@@ -115,7 +142,7 @@ This will deploy the pipeline object, which describes which components and in wh
 exexute. In order to execute an instance of the pipeline you need to deploy the following manifest.
 
 ```bash
-$ kubectl apply -n dracon -f ./examples/pipelines/golang-project/pipelinerun/pipelinerun.yaml
+$ kubectl create -n dracon -f ./examples/pipelines/golang-project/pipelinerun/pipelinerun.yaml
 ```
 
 You can also run a pipeline using the Tekton Dashboard.
