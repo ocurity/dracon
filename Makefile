@@ -35,7 +35,7 @@ export
 ########################################
 ############# BUILD TARGETS ############
 ########################################
-.PHONY: components component-binaries protos build publish-component-containers clean-protos clean
+.PHONY: components component-binaries protos build publish-component-containers publish-containers draconctl-image draconctl-image-publish clean-protos clean
 
 $(component_binariess):
 	./scripts/build_component_binary.sh $@
@@ -49,6 +49,12 @@ components: $(component_containers)
 
 bin/cmd/draconctl:
 	@go build -o bin/cmd/draconctl cmd/draconctl/main.go
+
+draconctl-image: bin/cmd/draconctl
+	$(DOCKER) build -t "${CONTAINER_REPO}/draconctl:${DRACON_VERSION}" -f containers/Dockerfile.draconctl .
+
+draconctl-image-publish: draconctl-image
+	$(DOCKER) push "${CONTAINER_REPO}/draconctl:${DRACON_VERSION}"
 
 third_party/tektoncd/swagger-v$(TEKTON_VERSION).json:
 	@wget "https://raw.githubusercontent.com/tektoncd/pipeline/v$(TEKTON_VERSION)/pkg/apis/pipeline/v1beta1/swagger.json" -O $@
@@ -68,6 +74,8 @@ $(component_containers_publish): %/publish: %/docker
 	./scripts/publish_component_container.sh $@
 
 publish-component-containers: $(component_containers_publish)
+
+publish-containers: publish-component-containers draconctl-image-publish
 
 $(example_pipeline_kustomizations): bin/cmd/draconctl
 	@echo "Generating templates for $$(dirname $@)"

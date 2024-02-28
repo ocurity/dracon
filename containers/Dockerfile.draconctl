@@ -1,0 +1,6 @@
+FROM scratch
+
+COPY ./bin/cmd/draconctl /bin/draconctl
+COPY ./pkg/enrichment/migrations /etc/dracon/migrations/enrichment
+
+ENTRYPOINT [ "/bin/draconctl" ]
