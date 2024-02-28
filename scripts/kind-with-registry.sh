@@ -5,7 +5,7 @@
 set -o errexit
 
 reg_name='kind-registry'
-reg_port='5001'
+reg_port='5000'
 cluster_name='dracon-demo'
 
 source ./scripts/util.sh
@@ -26,7 +26,7 @@ then
   util::info "Spinning up container with Docker registry"
   docker run --detach \
             --restart=always \
-            --publish "127.0.0.1:${reg_port}:5000" \
+            --publish "127.0.0.1:${reg_port}:${reg_port}" \
             --network bridge \
             --name "${reg_name}" \
             registry:2
@@ -41,19 +41,18 @@ apiVersion: kind.x-k8s.io/v1alpha4
 containerdConfigPatches:
 - |-
   [plugins."io.containerd.grpc.v1.cri".registry]
-    config_path = "/etc/containerd/certs.d"
+    config_path = ""
+  [plugins."io.containerd.grpc.v1.cri".registry.auths]
+  [plugins."io.containerd.grpc.v1.cri".registry.configs]
+    [plugins."io.containerd.grpc.v1.cri".registry.configs."${reg_name}:${reg_port}".tls]
+      insecure_skip_verify = true
+  [plugins."io.containerd.grpc.v1.cri".registry.headers]
+  [plugins."io.containerd.grpc.v1.cri".registry.mirrors]
+    [plugins."io.containerd.grpc.v1.cri".registry.mirrors."${reg_name}:${reg_port}"]
+      endpoint = ["http://${reg_name}:${reg_port}"]
 EOF
 
-  # 3. Add the registry config to the nodes
-  REGISTRY_DIR="/etc/containerd/certs.d/localhost:${reg_port}"
-  for node in $(kind get nodes --name "${cluster_name}"); do
-    docker exec "${node}" mkdir -p "${REGISTRY_DIR}"
-    cat <<EOF | docker exec -i "${node}" cp /dev/stdin "${REGISTRY_DIR}/hosts.toml"
-[host."http://${reg_name}:5000"]
-EOF
-  done
-
-  # 4. Connect the registry to the cluster network if not already connected
+  # 3. Connect the registry to the cluster network if not already connected
   # This allows kind to bootstrap the network but ensures they're on the same network
   if [ "$(docker inspect -f='{{json .NetworkSettings.Networks.kind}}' "${reg_name}")" = 'null' ]
   then
@@ -72,6 +71,6 @@ metadata:
   namespace: kube-public
 data:
   localRegistryHosting.v1: |
-    host: "localhost:${reg_port}"
+    host: "${reg_name}:${reg_port}"
     help: "https://kind.sigs.k8s.io/docs/user/local-registry/"
 EOF

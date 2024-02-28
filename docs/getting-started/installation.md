@@ -78,7 +78,7 @@ make sure that you replace the URL with the registry URL that you are using, if 
 something else:
 
 ```bash
-$ make publish-component-containers CONTAINER_REPO=localhost:5001/ocurity/dracon
+$ make publish-containers CONTAINER_REPO=localhost:5000/ocurity/dracon
 ```
 
 ## Using a different base image for your images
@@ -106,7 +106,7 @@ helm upgrade golang-project-pipeline ./examples/pipelines/golang-project \
 ```
 
 If you want to use a custom container registry, add the following flag:
-`--set "container_registry=localhost:5001/ocurity/dracon"`.
+`--set "container_registry=kind-registry:5000/ocurity/dracon"`.
 
 If you wish to use a specific version of Dracon components then add the following flag:
 `--set "dracon_os_component_version=v0.4.0"`.
