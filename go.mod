@@ -17,7 +17,7 @@ require (
 	github.com/lib/pq v1.10.5
 	github.com/olekukonko/tablewriter v0.0.0-20170122224234-a0225b3f23b5
 	github.com/owenrumney/go-sarif/v2 v2.1.2
-	github.com/package-url/packageurl-go v0.1.0
+	github.com/package-url/packageurl-go v0.1.2
 	github.com/playwright-community/playwright-go v0.3900.1
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/viper v1.11.0
