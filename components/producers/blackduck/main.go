@@ -55,8 +55,49 @@ func cweIdsToInt(ids []string) []int32 {
 }
 
 func BDTargetToPurl(originName, originID string) string {
+	switch originName {
+	case "anaconda":
+		originName = "conda"
+	case "centos":
+		originName = "rpm"
+	case "debian":
+		originName = "deb"
+	case "fedora":
+		originName = "rpm"
+	case "gradle":
+		originName = "maven"
+	case "npmjs":
+		originName = "npm"
+	case "opensuse":
+		originName = "rpm"
+	case "packagist":
+		originName = "composer"
+	case "redhat":
+		originName = "rpm"
+	}
+	found := false
+	for knownType := range packageurl.KnownTypes {
+		if originName == knownType {
+			found = true
+		}
+	}
+	for knownType := range packageurl.CandidateTypes {
+		if originName == knownType {
+			found = true
+		}
+	}
+	if !found {
+		log.Println("Cannot create package URL from package of type", originName, originID)
+	}
 	splitOrigin := strings.Split(originID, ":")
-	return packageurl.NewPackageURL(originName, splitOrigin[0], splitOrigin[1], splitOrigin[2], packageurl.Qualifiers{}, "").ToString()
+	if len(splitOrigin) == 2 { // no namespace e.g. npm/reactjs
+		return packageurl.NewPackageURL(originName, splitOrigin[0], "", splitOrigin[1], packageurl.Qualifiers{}, "").ToString()
+	} else if len(splitOrigin) == 3 {
+		return packageurl.NewPackageURL(originName, splitOrigin[0], splitOrigin[1], splitOrigin[2], packageurl.Qualifiers{}, "").ToString()
+	} else {
+		log.Println("originID was split into", len(splitOrigin), "parts, this looks like a bug, for reference, original originID was", originID)
+	}
+	return originName + "/" + originID
 }
 
 func parseIssues(out *BlackduckOut) ([]*v1.Issue, error) {
