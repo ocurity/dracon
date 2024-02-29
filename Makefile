@@ -38,7 +38,7 @@ export
 .PHONY: components component-binaries protos build publish-component-containers publish-containers draconctl-image draconctl-image-publish clean-protos clean
 
 $(component_binariess):
-	./scripts/build_component_binary.sh $@
+	CGO_ENABLED=0 ./scripts/build_component_binary.sh $@
 
 component-binaries: $(component_binariess)
 
@@ -48,7 +48,7 @@ $(component_containers): %/docker: %/bin
 components: $(component_containers)
 
 bin/cmd/draconctl:
-	@go build -o bin/cmd/draconctl cmd/draconctl/main.go
+	CGO_ENABLED=0 go build -o bin/cmd/draconctl cmd/draconctl/main.go
 
 draconctl-image: bin/cmd/draconctl
 	$(DOCKER) build -t "${CONTAINER_REPO}/draconctl:${DRACON_VERSION}" -f containers/Dockerfile.draconctl .
