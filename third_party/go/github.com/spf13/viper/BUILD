@@ -5,8 +5,7 @@ go_module(
     module = "github.com/spf13/viper",
     version = "v1.7.1",
     visibility = [
-        "//components/enrichers/deduplication:all",
-        "//components/producers/jira_producer:all",
+        "//components/...",
     ],
     deps = [
         "//third_party/go/github.com/fsnotify/fsnotify",

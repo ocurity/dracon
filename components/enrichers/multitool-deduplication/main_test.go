@@ -55,6 +55,7 @@ func genScanCWE(toolName string, targets []string, cwes []int32) *v1.LaunchToolR
 	}
 	return &scan
 }
+
 func TestHandlePurl(t *testing.T) {
 	cve := []string{}
 	targets := []string{}
