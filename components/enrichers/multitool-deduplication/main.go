@@ -7,10 +7,10 @@ import (
 	"log"
 	"path/filepath"
 	"regexp"
-	"strings"
 	"time"
 
 	v1 "github.com/ocurity/dracon/api/proto/v1"
+	"github.com/package-url/packageurl-go"
 
 	"github.com/ocurity/dracon/pkg/putil"
 	"github.com/spf13/cobra"
@@ -135,7 +135,8 @@ func handlePurl(issue *v1.Issue, issueTool string) string {
 
 func enrichIssue(issue *v1.Issue, foundTool string) v1.EnrichedIssue {
 	matchFilesystem := regexp.MustCompile(filesystemTargetReg)
-	if strings.HasPrefix(issue.Target, "pkg") {
+	_, err := packageurl.FromString(issue.Target)
+	if err == nil {
 		if tool := handlePurl(issue, foundTool); tool != "" {
 			if foundTool != tool {
 				return v1.EnrichedIssue{

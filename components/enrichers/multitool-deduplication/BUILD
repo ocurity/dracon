@@ -16,6 +16,7 @@ go_binary(
         "//pkg/enrichment/db",
         "//pkg/putil",
         "//third_party/go/github.com/spf13/cobra",
+        "//third_party/go/github.com/package-url/packageurl-go",
         "//third_party/go/github.com/spf13/viper",
     ],
 )
@@ -34,6 +35,7 @@ go_test(
         "//third_party/go/github.com/google/uuid",
         "//third_party/go/github.com/spf13/cobra",
         "//third_party/go/github.com/spf13/viper",
+        "//third_party/go/github.com/package-url/packageurl-go",
         "//third_party/go/github.com/stretchr/testify",
         "//third_party/go/google.golang.org/protobuf",
     ],
