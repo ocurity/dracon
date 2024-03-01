@@ -34,7 +34,7 @@ func main() {
 		log.Fatal(err)
 	}
 	if err := producers.WriteDraconOut(
-		"gosec",
+		"blackduck",
 		issues,
 	); err != nil {
 		log.Fatal(err)
