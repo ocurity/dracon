@@ -26,6 +26,7 @@ DRACON_NS=dracon
 TEKTON_NS=tekton-pipelines
 ARANGODB_NS=arangodb
 BASE_IMAGE=scratch
+RUNNERS=
 
 DOCKER=docker
 PROTOC=protoc
@@ -95,7 +96,7 @@ clean: clean-protos
 .PHONY: lint install-lint-tools tests go-tests fmt fmt-proto fmt-go migration-tests
 
 lint:
-	@reviewdog -fail-on-error $$([ "${CI}" = "true" ] && echo "-reporter=github-pr-review") -diff="git diff origin/main" -tee
+	@reviewdog -fail-on-error $$([ "${CI}" = "true" ] && echo "-reporter=github-pr-review") -runners=$(RUNNERS) -diff="git diff origin/main" -filter-mode=added -tee
 
 install-lint-tools:
 	@go install honnef.co/go/tools/cmd/staticcheck@latest
