@@ -149,6 +149,11 @@ func enrichIssue(issue *v1.Issue, foundTool string) v1.EnrichedIssue {
 					RawIssue: issue,
 				}
 			}
+		} else {
+			fmt.Println("registered new purl", issue.Target)
+			return v1.EnrichedIssue{
+				RawIssue: issue,
+			}
 		}
 	} else if matchFilesystem.Match([]byte(issue.Target)) {
 		return v1.EnrichedIssue{

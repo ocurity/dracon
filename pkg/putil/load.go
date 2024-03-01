@@ -18,7 +18,7 @@ func LoadToolResponse(inPath string) ([]*v1.LaunchToolResponse, error) {
 	responses := []*v1.LaunchToolResponse{}
 	if err := filepath.Walk(inPath, func(path string, f os.FileInfo, err error) error {
 		if f == nil {
-			return fmt.Errorf("Path %s doesn't exist", path)
+			return fmt.Errorf("path %s doesn't exist for tool response", path)
 		}
 		if !f.IsDir() && (strings.HasSuffix(f.Name(), ".pb")) {
 			pbBytes, err := ioutil.ReadFile(path)
@@ -44,7 +44,7 @@ func LoadTaggedToolResponse(inPath string) ([]*v1.LaunchToolResponse, error) {
 	responses := []*v1.LaunchToolResponse{}
 	if err := filepath.Walk(inPath, func(path string, f os.FileInfo, err error) error {
 		if f == nil {
-			return fmt.Errorf("Path %s doesn't exist", path)
+			return fmt.Errorf("path %s doesn't exist for tagged tool response", path)
 		}
 		if !f.IsDir() && (strings.HasSuffix(f.Name(), ".tagged.pb")) {
 			pbBytes, err := ioutil.ReadFile(path)
@@ -70,7 +70,7 @@ func LoadEnrichedToolResponse(inPath string) ([]*v1.EnrichedLaunchToolResponse, 
 	responses := []*v1.EnrichedLaunchToolResponse{}
 	if err := filepath.Walk(inPath, func(path string, f os.FileInfo, err error) error {
 		if f == nil {
-			return fmt.Errorf("Path %s doesn't exist", path)
+			return fmt.Errorf("path %s doesn't exist for enriched tool response", path)
 		}
 		if !f.IsDir() && (strings.HasSuffix(f.Name(), ".enriched.aggregated.pb")) {
 			pbBytes, err := ioutil.ReadFile(path)
@@ -96,7 +96,7 @@ func LoadEnrichedNonAggregatedToolResponse(inPath string) ([]*v1.EnrichedLaunchT
 	responses := []*v1.EnrichedLaunchToolResponse{}
 	if err := filepath.Walk(inPath, func(path string, f os.FileInfo, err error) error {
 		if f == nil {
-			return fmt.Errorf("Path %s doesn't exist", path)
+			return fmt.Errorf("path %s doesn't exist for enriched but not aggregated tool response", path)
 		}
 		if !f.IsDir() && (strings.HasSuffix(f.Name(), ".enriched.pb")) {
 			pbBytes, err := ioutil.ReadFile(path)
