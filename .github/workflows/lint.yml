@@ -1,19 +1,22 @@
 ---
 name: Lint
 on:
-  pull_request:
+  pull_request_target:
+    types:
+    - opened
+    - synchronize
+    - reopened
     branches:
     - main
 
 permissions:
   # Grant the ability to checkout the repository
   contents: read
-
-  # Allow reviewdog to comment on PRs
+  # Grant the ability to write comments on a pull request
   pull-requests: write
 
 jobs:
-  build:
+  lint:
     name: Lint
     runs-on: ubuntu-latest
     concurrency:
@@ -28,7 +31,13 @@ jobs:
       with:
         go-version: 1.21.6
 
+    - name: Setup reviewdog
+      run: go install github.com/reviewdog/reviewdog/cmd/reviewdog@latest
+
+    - name: Install linters
+      run: make install-lint-tools
+
     - name: Lint
       env:
-        REVIEWDOG_GITHUB_API_TOKEN: "${{ github.token }}"
-      run: go install github.com/reviewdog/reviewdog/cmd/reviewdog@latest && make install-lint-tools lint
+        REVIEWDOG_GITHUB_API_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+      run: make lint
