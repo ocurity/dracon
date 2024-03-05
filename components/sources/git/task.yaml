@@ -19,13 +19,13 @@ spec:
     in your Pipeline.
 
     The git-clone Task will clone a repo from the provided url into the
-    output Workspace. By default the repo will be cloned into the root of
+    source-code-ws Workspace. By default the repo will be cloned into the root of
     your Workspace. You can clone into a subdirectory by setting this Task's
     subdirectory param. This Task also supports sparse checkouts. To perform
     a sparse checkout, pass a list of comma separated directory patterns to
     this Task's sparseCheckoutDirectories param.
   workspaces:
-    - name: output
+    - name: source-code-ws
       description: The git repo will be cloned onto the volume backing this Workspace.
     - name: ssh-directory
       optional: true
@@ -72,7 +72,7 @@ spec:
       type: string
       default: "true"
     - name: git-clone-subdirectory
-      description: Subdirectory inside the `output` Workspace to clone the repo into.
+      description: Subdirectory inside the `source-code-ws` Workspace to clone the repo into.
       type: string
       default: ""
     - name: git-clone-sparseCheckoutDirectories
@@ -118,9 +118,8 @@ spec:
     - name: clone
       image: "$(params.git-clone-gitInitImage)"
       env:
-      # not sure if this is needed any more
-      # - name: HOME
-      #   value: "$(params.git-clone-userHome)"
+      - name: HOME
+        value: "$(params.git-clone-userHome)"
       - name: PARAM_URL
         value: $(params.git-clone-url)
       - name: PARAM_REVISION
@@ -150,7 +149,7 @@ spec:
       - name: PARAM_USER_HOME
         value: $(params.git-clone-userHome)
       - name: WORKSPACE_OUTPUT_PATH
-        value: $(workspaces.output.path)
+        value: $(workspaces.source-code-ws.path)
       - name: WORKSPACE_SSH_DIRECTORY_BOUND
         value: $(workspaces.ssh-directory.bound)
       - name: WORKSPACE_SSH_DIRECTORY_PATH
