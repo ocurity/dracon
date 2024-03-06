@@ -1,14 +1,12 @@
----
-# https://hub.tekton.dev/tekton/Task/git-clone/0.6
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
   name: git-clone
   labels:
-    app.kubernetes.io/version: "0.6"
     v1.dracon.ocurity.com/component: source
+    app.kubernetes.io/version: "0.9"
   annotations:
-    tekton.dev/pipelines.minVersion: "0.29.0"
+    tekton.dev/pipelines.minVersion: "0.38.0"
     tekton.dev/categories: Git
     tekton.dev/tags: git
     tekton.dev/displayName: "git clone"
@@ -19,7 +17,7 @@ spec:
     in your Pipeline.
 
     The git-clone Task will clone a repo from the provided url into the
-    source-code-ws Workspace. By default the repo will be cloned into the root of
+    output Workspace. By default the repo will be cloned into the root of
     your Workspace. You can clone into a subdirectory by setting this Task's
     subdirectory param. This Task also supports sparse checkouts. To perform
     a sparse checkout, pass a list of comma separated directory patterns to
@@ -57,8 +55,8 @@ spec:
       default: ""
     - name: git-clone-refspec
       description: Refspec to fetch before checking out revision.
-      type: string
       default: ""
+      type: string
     - name: git-clone-submodules
       description: Initialize and fetch git submodules.
       type: string
@@ -71,8 +69,12 @@ spec:
       description: Set the `http.sslVerify` global git config. Setting this to `false` is not advised unless you are sure that you trust your git remote.
       type: string
       default: "true"
+    - name: git-clone-crtFileName
+      description: file name of mounted crt using ssl-ca-directory workspace. default value is ca-bundle.crt.
+      type: string
+      default: "ca-bundle.crt"
     - name: git-clone-subdirectory
-      description: Subdirectory inside the `source-code-ws` Workspace to clone the repo into.
+      description: Subdirectory inside the `output` Workspace to clone the repo into.
       type: string
       default: ""
     - name: git-clone-sparseCheckoutDirectories
@@ -102,18 +104,21 @@ spec:
     - name: git-clone-gitInitImage
       description: The image providing the git-init binary that this Task runs.
       type: string
-      default: "gcr.io/tekton-releases/github.com/tektoncd/pipeline/cmd/git-init:v0.29.0"
+      default: "gcr.io/tekton-releases/github.com/tektoncd/pipeline/cmd/git-init:v0.40.2"
     - name: git-clone-userHome
       description: |
-        Absolute path to the user's home directory. Set this explicitly if you are running the image as a non-root user or have overridden
-        the gitInitImage param with an image containing custom user configuration.
+        Absolute path to the user's home directory.
       type: string
-      default: "/tekton/home"
+      default: "/home/git"
   results:
     - name: commit
       description: The precise commit SHA that was fetched by this Task.
     - name: url
       description: The precise URL that was fetched by this Task.
+    - name: committer-date
+      description: The epoch timestamp of the commit that was fetched by this Task.
+    - name: anchor
+      description: An anchor to allow other tasks to depend on this task.
   steps:
     - name: clone
       image: "$(params.git-clone-gitInitImage)"
@@ -132,6 +137,8 @@ spec:
         value: $(params.git-clone-depth)
       - name: PARAM_SSL_VERIFY
         value: $(params.git-clone-sslVerify)
+      - name: PARAM_CRT_FILENAME
+        value: $(params.git-clone-crtFileName)
       - name: PARAM_SUBDIRECTORY
         value: $(params.git-clone-subdirectory)
       - name: PARAM_DELETE_EXISTING
@@ -162,6 +169,9 @@ spec:
         value: $(workspaces.ssl-ca-directory.bound)
       - name: WORKSPACE_SSL_CA_DIRECTORY_PATH
         value: $(workspaces.ssl-ca-directory.path)
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
       script: |
         #!/usr/bin/env sh
         set -eu
@@ -169,7 +179,6 @@ spec:
         if [ "${PARAM_VERBOSE}" = "true" ] ; then
           set -x
         fi
-
 
         if [ "${WORKSPACE_BASIC_AUTH_DIRECTORY_BOUND}" = "true" ] ; then
           cp "${WORKSPACE_BASIC_AUTH_DIRECTORY_PATH}/.git-credentials" "${PARAM_USER_HOME}/.git-credentials"
@@ -186,6 +195,9 @@ spec:
 
         if [ "${WORKSPACE_SSL_CA_DIRECTORY_BOUND}" = "true" ] ; then
            export GIT_SSL_CAPATH="${WORKSPACE_SSL_CA_DIRECTORY_PATH}"
+           if [ "${PARAM_CRT_FILENAME}" != "" ] ; then
+              export GIT_SSL_CAINFO="${WORKSPACE_SSL_CA_DIRECTORY_PATH}/${PARAM_CRT_FILENAME}"
+           fi
         fi
         CHECKOUT_DIR="${WORKSPACE_OUTPUT_PATH}/${PARAM_SUBDIRECTORY}"
 
@@ -205,13 +217,14 @@ spec:
         }
 
         if [ "${PARAM_DELETE_EXISTING}" = "true" ] ; then
-          cleandir
+          cleandir || true
         fi
 
         test -z "${PARAM_HTTP_PROXY}" || export HTTP_PROXY="${PARAM_HTTP_PROXY}"
         test -z "${PARAM_HTTPS_PROXY}" || export HTTPS_PROXY="${PARAM_HTTPS_PROXY}"
         test -z "${PARAM_NO_PROXY}" || export NO_PROXY="${PARAM_NO_PROXY}"
 
+        git config --global --add safe.directory "${WORKSPACE_OUTPUT_PATH}"
         /ko-app/git-init \
           -url="${PARAM_URL}" \
           -revision="${PARAM_REVISION}" \
@@ -227,5 +240,10 @@ spec:
         if [ "${EXIT_CODE}" != 0 ] ; then
           exit "${EXIT_CODE}"
         fi
+        RESULT_COMMITTER_DATE="$(git log -1 --pretty=%ct)"
+        printf "%s" "${RESULT_COMMITTER_DATE}" > "$(results.committer-date.path)"
         printf "%s" "${RESULT_SHA}" > "$(results.commit.path)"
         printf "%s" "${PARAM_URL}" > "$(results.url.path)"
+    - name: add-anchor
+      image: "$(params.git-clone-gitInitImage)"
+      script: echo "git-clone" > "$(results.anchor.path)"
