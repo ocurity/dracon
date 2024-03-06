@@ -190,7 +190,10 @@ deploy-mongodb:
 	@helm upgrade consumer-mongodb https://charts.bitnami.com/bitnami/mongodb-$(MONGODB_VERSION).tgz \
 		--install \
 		--namespace $(DRACON_NS) \
-		--create-namespace
+		--create-namespace \
+		--set "auth.usernames[0]=consumer-mongodb" \
+		--set "auth.passwords[0]=consumer-mongodb" \
+		--set "auth.databases[0]=consumer-mongodb"
 
 deploy-pg:
 	@helm upgrade pg https://charts.bitnami.com/bitnami/postgresql-$(PG_VERSION).tgz \
