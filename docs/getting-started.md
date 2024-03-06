@@ -14,7 +14,7 @@ KinD is is a tool for running local Kubernetes clusters using Docker container â
 [official documentation](https://kind.sigs.k8s.io/docs/user/quick-start/#creating-a-cluster):
 
 ```bash
-$ ./scripts/kind-with-registry.sh
+./scripts/kind-with-registry.sh
 ```
 
 > :warning: **Warning 1:** make sure that all pods are up an running before proceeding
@@ -27,7 +27,7 @@ $ ./scripts/kind-with-registry.sh
    the correct context and then run the following:
 
 ```bash
-$ make dev-deploy
+make dev-deploy
 ```
 
 The `dev-deploy` make target will deploy the following components:
@@ -45,17 +45,17 @@ h. TektonCD and TektonCD Dashboard
 2. Expose the TektonCD Dashboard
 
 ```bash
-$ kubectl -n tekton-pipelines port-forward svc/tekton-dashboard 9097:9097
+kubectl -n tekton-pipelines port-forward svc/tekton-dashboard 9097:9097
 ```
 
 3. Expose the Kibana Dashboard.
 
 ```bash
 # Use `kubectl port-forward ...` to access the Kibana UI:
-$ kubectl -n dracon port-forward svc/dracon-kb-kibana-kb-http 5601:5601
+kubectl -n dracon port-forward svc/dracon-kb-kibana-kb-http 5601:5601
 # You can obtain the password by examining the `dracon-es-elasticsearch-es-elastic-user` secret:
 # The username is `elastic`.
-$ kubectl -n dracon get secret dracon-es-elasticsearch-es-elastic-user \
+kubectl -n dracon get secret dracon-es-elasticsearch-es-elastic-user \
           -o=jsonpath='{.data.elastic}' | \
           base64 -d && echo
 ```
@@ -64,7 +64,7 @@ $ kubectl -n dracon get secret dracon-es-elasticsearch-es-elastic-user \
 
 ```bash
 # Use `kubectl port-forward ...` to access the Kibana UI:
-$ kubectl -n dracon port-forward svc/dracon-kb-kibana-kb-http 5601:5601
+kubectl -n dracon port-forward svc/dracon-kb-kibana-kb-http 5601:5601
 ```
 
 The username/password is the same as Kibana
@@ -78,7 +78,7 @@ make sure that you replace the URL with the registry URL that you are using, if 
 something else:
 
 ```bash
-$ make publish-containers CONTAINER_REPO=localhost:5000/ocurity/dracon
+make publish-containers CONTAINER_REPO=localhost:5000/ocurity/dracon
 ```
 
 ## Using a different base image for your images
@@ -101,10 +101,10 @@ the following command (the container with the `draconctl` binary and the migrati
 built and pushed in the previous step):
 
 ```bash
-$ kubectl apply -n dracon -f deploy/dracon/serviceaccount.yaml
-$ kubectl apply -n dracon -f deploy/dracon/role.yaml
-$ kubectl apply -n dracon -f deploy/dracon/rolebinding.yaml
-$ bin/cmd/draconctl migrations apply \
+kubectl apply -n dracon -f deploy/dracon/serviceaccount.yaml
+kubectl apply -n dracon -f deploy/dracon/role.yaml
+kubectl apply -n dracon -f deploy/dracon/rolebinding.yaml
+bin/cmd/draconctl migrations apply \
   --namespace dracon \
   --as-k8s-job \
   --image "kind-registry:5000/ocurity/dracon/draconctl:..." \
@@ -142,7 +142,7 @@ This will deploy the pipeline object, which describes which components and in wh
 exexute. In order to execute an instance of the pipeline you need to deploy the following manifest.
 
 ```bash
-$ kubectl create -n dracon -f ./examples/pipelines/golang-project/pipelinerun/pipelinerun.yaml
+kubectl create -n dracon -f ./examples/pipelines/golang-project/pipelinerun/pipelinerun.yaml
 ```
 
 You can also run a pipeline using the Tekton Dashboard.
