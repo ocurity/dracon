@@ -131,6 +131,13 @@ fmt-go:
 fmt: fmt-go fmt-proto
 
 ########################################
+########## DEBUGGING TARGETS ###########
+########################################
+
+print-%:
+	@echo $($*)
+
+########################################
 ########## DEPLOYMENT TARGETS ##########
 ########################################
 .PHONY: deploy-arangodb-crds deploy-arangodb dev-deploy deploy-elasticsearch deploy-mongodb deploy-pg deploy-tektoncd-pipeline tektoncd-pipeline-helm tektoncd-dashboard-helm
