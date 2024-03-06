@@ -9,7 +9,7 @@ spec:
   params:
     - name: consumer-mongodb-db-uri
       type: string
-      default: "mongodb://consumer-mongodb:consumer-mongodb@consumer-mongodb.$(context.taskRun.namespace).svc:27017/consumer-mongodb"
+      default: "mongodb://consumer-mongodb:consumer-mongodb@consumer-mongodb:27017/consumer-mongodb"
     - name: consumer-mongodb-db-name
       type: string
       default: "consumer-mongodb"
