@@ -11,7 +11,7 @@ spec:
   - name: source-dependency-purl
     value: pkg://golang/golang.org/x/text@v0.3.7
   workspaces:
-  - name: source-code-ws
+  - name: output
     subPath: source-code
     volumeClaimTemplate:
       spec:
