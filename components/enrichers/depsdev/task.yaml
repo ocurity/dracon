@@ -18,7 +18,7 @@ spec:
     default: ""
 
   workspaces:
-    - name: source-code-ws
+    - name: output
       description: The workspace containing the source-code to scan.
   steps:
   - name: run-enricher
@@ -27,9 +27,9 @@ spec:
     command: ["/app/components/enrichers/depsdev/depsdev"]
     env:
     - name: READ_PATH
-      value: $(workspaces.source-code-ws.path)/.dracon/producers
+      value: $(workspaces.output.path)/.dracon/producers
     - name: WRITE_PATH
-      value: "$(workspaces.source-code-ws.path)/.dracon/enrichers/depsdev"
+      value: "$(workspaces.output.path)/.dracon/enrichers/depsdev"
     - name: LICENSES_IN_EVIDENCE
       value: "$(params.enricher-depsdev-licenses-in-evidence)"
     - name: ANNOTATION

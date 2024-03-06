@@ -14,14 +14,14 @@ patches:
         name: unused
       spec:
         workspaces:
-          - name: source-code-ws
+          - name: output
         tasks:
           - name: producer-zaproxy
             taskRef:
               name: producer-zaproxy
             workspaces:
-              - name: source-code-ws
-                workspace: source-code-ws
+              - name: output
+                workspace: output
             params:
               - name: producer-zaproxy-target
                 value: $(params.producer-zaproxy-target)

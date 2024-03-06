@@ -20,18 +20,18 @@ spec:
       type: string
       default: ""
   workspaces:
-    - name: source-code-ws
+    - name: output
       description: The workspace containing the source-code to scan.
   steps:
   - name: store-config # TODO(spyros): this needs to be a configmap
     imagePullPolicy: IfNotPresent
     image: docker.io/busybox:1.35.0
     script: |
-      mkdir -p $(workspaces.source-code-ws.path)/.dracon/consumers/jira
-      cat <<'EOF' > $(workspaces.source-code-ws.path)/.dracon/consumers/jira/config.json
+      mkdir -p $(workspaces.output.path)/.dracon/consumers/jira
+      cat <<'EOF' > $(workspaces.output.path)/.dracon/consumers/jira/config.json
       $(params.consumer-jira-config)
       EOF
-      cat $(workspaces.source-code-ws.path)/.dracon/consumers/jira/config.json
+      cat $(workspaces.output.path)/.dracon/consumers/jira/config.json
   - name: run-consumer
     imagePullPolicy: IfNotPresent
     image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/consumers/jira:{{ default "latest" .Values.dracon_os_component_version }}'
@@ -44,11 +44,11 @@ spec:
     - name: DRACON_JIRA_URL
       value: $(params.consumer-jira-url)
     - name: DRACON_JIRA_CONFIG_PATH
-      value: $(workspaces.source-code-ws.path)/.dracon/consumers/jira/config.json
+      value: $(workspaces.output.path)/.dracon/consumers/jira/config.json
 
     args: [
       "-in",
-      "$(workspaces.source-code-ws.path)/.dracon/enrichers/",
+      "$(workspaces.output.path)/.dracon/enrichers/",
       "-severity-threshold",
        "0"
     ]

@@ -12,7 +12,7 @@ patches:
       - path: /spec/workspaces/-
         op: add
         value:
-          name: source-code-ws
+          name: output
       - path: /spec/params/-
         op: add
         value:
@@ -27,8 +27,8 @@ patches:
           taskRef:
             name: producer-aggregator
           workspaces:
-            - name: source-code-ws
-              workspace: source-code-ws
+            - name: output
+              workspace: output
           params:
             - name: producer-aggregator-anchors
               value:

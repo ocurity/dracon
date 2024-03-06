@@ -13,7 +13,7 @@ spec:
       type: string
       default: 'Dracon scan <scanID>, started at <scanStartTime>, completed with <numResults> findings, out of which, <newResults> new'
   workspaces:
-    - name: source-code-ws
+    - name: output
       description: The workspace containing the source-code to scan.
   steps:
   - name: run-consumer
@@ -21,7 +21,7 @@ spec:
     image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/consumers/slack:{{ default "latest" .Values.dracon_os_component_version }}'
     command: ["/app/components/consumers/slack/slack"]
     args: [
-      "-in", "$(workspaces.source-code-ws.path)/.dracon/enrichers/",
+      "-in", "$(workspaces.output.path)/.dracon/enrichers/",
       "-webhook", "$(params.consumer-slack-webhook)",
       "-template", "$(params.consumer-slack-message-template)",
     ]

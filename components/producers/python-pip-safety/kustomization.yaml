@@ -14,14 +14,14 @@ patches:
         name: unused
       spec:
         workspaces:
-          - name: source-code-ws
+          - name: output
         tasks:
           - name: producer-python-pip-safety
             taskRef:
               name: producer-python-pip-safety
             workspaces:
-              - name: source-code-ws
-                workspace: source-code-ws
+              - name: output
+                workspace: output
             params:
               - name: producer-python-pip-safety-input-dependency-file
                 value: $(params.producer-python-pip-safety-input-dependency-file)
@@ -109,7 +109,7 @@ patches:
             image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/python-pip-safety/tool:{{ default "latest" .Values.dracon_os_component_version }}'
             script: |
               set -x
-              cd $(workspaces.source-code-ws.path)
+              cd $(workspaces.output.path)
               touch "uber-reqs.txt"
               for file in $(find . -iname "requirements.txt"); do
                 cat $file >> "uber-reqs.txt"

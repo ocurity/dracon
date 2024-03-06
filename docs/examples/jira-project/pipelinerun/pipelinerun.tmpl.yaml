@@ -20,7 +20,7 @@ spec:
   - name: repository_url
     value:  https://github.com/trufflesecurity/test_keys
   workspaces:
-  - name: source-code-ws
+  - name: output
     subPath: source-code
     volumeClaimTemplate:
       spec:

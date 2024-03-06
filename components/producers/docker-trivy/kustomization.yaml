@@ -14,14 +14,14 @@ patches:
         name: unused
       spec:
         workspaces:
-          - name: source-code-ws
+          - name: output
         tasks:
           - name: producer-docker-trivy
             taskRef:
               name: producer-docker-trivy
             workspaces:
-              - name: source-code-ws
-                workspace: source-code-ws
+              - name: output
+                workspace: output
             params:
               - name: producer-docker-trivy-flags
                 value:
@@ -38,7 +38,7 @@ patches:
             default: []
           - name: producer-docker-trivy-target
             type: string
-            default: $(workspaces.source-code-ws.path)
+            default: $(workspaces.output.path)
           - name: producer-docker-trivy-format
             type: string
           - name: producer-docker-trivy-command

@@ -14,14 +14,14 @@ patches:
         name: unused
       spec:
         workspaces:
-          - name: source-code-ws
+          - name: output
         tasks:
           - name: consumer-defectdojo
             taskRef:
               name: consumer-defectdojo
             workspaces:
-              - name: source-code-ws
-                workspace: source-code-ws
+              - name: output
+                workspace: output
             params:
               - name: consumer-defectdojo-api-url
                 value: $(params.consumer-defectdojo-api-url)

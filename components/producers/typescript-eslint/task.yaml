@@ -14,7 +14,7 @@ spec:
   - name: scratch
     emptyDir: {}
   workspaces:
-    - name: source-code-ws
+    - name: output
       description: The workspace containing the source-code to scan.
   steps:
   - name: run-eslint
@@ -22,7 +22,7 @@ spec:
     command: ["/home/node/workspace/eslint-wrapper"]
     args:
      - -t
-     - $(workspaces.source-code-ws.path)
+     - $(workspaces.output.path)
      - -c
      - "$(params.producer-typescript-eslint-config-js)"
     volumeMounts:
@@ -33,7 +33,7 @@ spec:
     command: ["/app/components/producers/typescript-eslint/typescript-eslint-parser"]
     args:
     - "-in=/scratch/out.json"
-    - "-out=$(workspaces.source-code-ws.path)/.dracon/producers/typescript-eslint.pb"
+    - "-out=$(workspaces.output.path)/.dracon/producers/typescript-eslint.pb"
     volumeMounts:
     - mountPath: /scratch
       name: scratch

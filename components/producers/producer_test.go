@@ -35,9 +35,9 @@ func TestWriteDraconOut(t *testing.T) {
 		"dracon-test",
 		[]*v1.Issue{
 			{
-				Target:      "/workspace/source-code-ws/foobar",
-				Title:       "/workspace/source-code-ws/barfoo",
-				Description: "/workspace/source-code-ws/example.yaml",
+				Target:      "/workspace/output/foobar",
+				Title:       "/workspace/output/barfoo",
+				Description: "/workspace/output/example.yaml",
 				Cve:         "123-321",
 			},
 		},

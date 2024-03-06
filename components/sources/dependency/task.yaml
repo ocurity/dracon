@@ -14,7 +14,7 @@ spec:
   description: >-
     This source component accepts a purl argument belonging to one of the supported types and generates a dependency file relevant to the type.
   workspaces:
-    - name: source-code-ws
+    - name: output
       description: The generated file will be stored onto the volume backing this Workspace.
   params:
     - name: source-dependency-purl
@@ -28,4 +28,4 @@ spec:
       - "-purl"
       - "$(params.source-dependency-purl)"
       - "-outDir"
-      - "$(workspaces.source-code-ws.path)"
+      - "$(workspaces.output.path)"

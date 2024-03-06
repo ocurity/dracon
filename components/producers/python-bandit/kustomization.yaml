@@ -14,14 +14,14 @@ patches:
         name: unused
       spec:
         workspaces:
-          - name: source-code-ws
+          - name: output
         tasks:
           - name: producer-python-bandit
             taskRef:
               name: producer-python-bandit
             workspaces:
-              - name: source-code-ws
-                workspace: source-code-ws
+              - name: output
+                workspace: output
     target:
       kind: Pipeline
   # Add anchors to Task.
@@ -103,7 +103,7 @@ patches:
             script: |
               bandit \
                 --recursive \
-                $(workspaces.source-code-ws.path) \
+                $(workspaces.output.path) \
                 --format json \
                 --output /scratch/out.json \
                 || true

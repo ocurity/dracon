@@ -14,14 +14,14 @@ patches:
         name: unused
       spec:
         workspaces:
-          - name: source-code-ws
+          - name: output
         tasks:
           - name: producer-java-findsecbugs
             taskRef:
               name: producer-java-findsecbugs
             workspaces:
-              - name: source-code-ws
-                workspace: source-code-ws
+              - name: output
+                workspace: output
             params:
               - name: producer-java-findsecbugs-extra-flags
                 value:
@@ -113,7 +113,7 @@ patches:
           - name: get-jar
             image: busybox:latest
             script: |
-              wget "$(params.producer-java-findsecbugs-jar-url)" -O "$(workspaces.source-code-ws.path)/main.jar"
+              wget "$(params.producer-java-findsecbugs-jar-url)" -O "$(workspaces.output.path)/main.jar"
             env:
               - name: DRACON_SCAN_TIME
                 value: $(params.dracon_scan_start_time)

@@ -18,7 +18,7 @@ spec:
     - name: consumer-bigquery-token
       type: string
   workspaces:
-    - name: source-code-ws
+    - name: output
       description: The workspace containing the source-code to scan.
   steps:
     - name: run-consumer
@@ -28,7 +28,7 @@ spec:
       args:
         [
           "-in",
-          "$(workspaces.source-code-ws.path)/.dracon/enrichers/",
+          "$(workspaces.output.path)/.dracon/enrichers/",
           "-project-id",
           "$(params.consumer-bigquery-project-id)",
           "-dataset",

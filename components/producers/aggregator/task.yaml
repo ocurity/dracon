@@ -11,7 +11,7 @@ spec:
   - name: anchor
     description: An anchor to allow other tasks to depend on this task.
   workspaces:
-    - name: source-code-ws
+    - name: output
       description: The workspace containing the source-code to scan.
   steps:
   - name: anchor
@@ -21,13 +21,13 @@ spec:
   - name: aggregate
     image: docker.io/busybox
     command: ["ls"]
-    args: ["$(workspaces.source-code-ws.path)"]
+    args: ["$(workspaces.output.path)"]
     env: []
   - name: tag
     image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/tagger:{{ default "latest" .Values.dracon_os_component_version }}'
     command: ["/app/components/producers/aggregator/tagger"]
     env:
     - name: READ_PATH
-      value: $(workspaces.source-code-ws.path)/.dracon/producers
+      value: $(workspaces.output.path)/.dracon/producers
     - name: WRITE_PATH
-      value: "$(workspaces.source-code-ws.path)/.dracon/producers"
+      value: "$(workspaces.output.path)/.dracon/producers"

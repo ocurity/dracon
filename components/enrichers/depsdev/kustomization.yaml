@@ -14,14 +14,14 @@ patches:
         name: unused
       spec:
         workspaces:
-          - name: source-code-ws
+          - name: output
         tasks:
           - name: enricher-depsdev
             taskRef:
               name: enricher-depsdev
             workspaces:
-              - name: source-code-ws
-                workspace: source-code-ws
+              - name: output
+                workspace: output
             params:
               - name: enricher-depsdev-licenses-in-evidence
                 value: $(params.enricher-depsdev-licenses-in-evidence)

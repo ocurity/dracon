@@ -14,14 +14,14 @@ patches:
         name: unused
       spec:
         workspaces:
-          - name: source-code-ws
+          - name: output
         tasks:
           - name: consumer-elasticsearch
             taskRef:
               name: consumer-elasticsearch
             workspaces:
-              - name: source-code-ws
-                workspace: source-code-ws
+              - name: output
+                workspace: output
             params:
               - name: consumer-elasticsearch-url
                 value: $(params.consumer-elasticsearch-url)

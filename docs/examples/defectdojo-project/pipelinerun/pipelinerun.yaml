@@ -21,7 +21,7 @@ spec:
   - name: consumer-defectdojo-description-template
     value: "Dracon found '{{.RawIssue.Title}}' at '{{.RawIssue.Target}}', severity '{{.RawIssue.Severity}}', rule id: '{{.RawIssue.Type}}', CVSS '{{.RawIssue.Cvss}}' Confidence '{{.RawIssue.Confidence}}' Original Description: {{.RawIssue.Description}}, Cve {{.RawIssue.Cve}},\n{{ range $key,$element := .Annotations }}{{$key}}:{{$element}}\n{{end}}"
   workspaces:
-  - name: source-code-ws
+  - name: output
     subPath: source-code
     volumeClaimTemplate:
       spec:

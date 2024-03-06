@@ -201,7 +201,7 @@ spec:
     - name: consumer-elasticsearch-url
       value: http://quickstart-es-http.default.svc:9200
   workspaces:
-    - name: source-code-ws
+    - name: output
       subPath: source-code
       volumeClaimTemplate:
         spec:

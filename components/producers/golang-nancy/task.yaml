@@ -10,25 +10,24 @@ spec:
   - name: scratch
     emptyDir: {}
   workspaces:
-    - name: source-code-ws
+    - name: output
       description: The workspace containing the source-code to scan.
   steps:
   - name: go-deps
     image: docker.io/golang:1.18
     script: | # necessary because sonatypecommunity/nancy does not include go
      #!/bin/bash -xe
-     echo $(workspaces.source-code-ws.path)
-     ls -lah $(workspaces.source-code-ws.path)
-     if [[ ! -f "$(workspaces.source-code-ws.path)/Gopkg.lock" ]]; then
-        paths=$(find $(workspaces.source-code-ws.path) -iname "go.mod")
+     echo $(workspaces.output.path)
+     ls -lah $(workspaces.output.path)
+     if [[ ! -f "$(workspaces.output.path)/source-code/Gopkg.lock" ]]; then
+        go_mod_paths=$(find $(workspaces.output.path)/source-code -iname "go.mod")
         touch /scratch/golist.json
-        for path in $paths; do
-          cd $path && go list -json -deps ./... >> /scratch/golist.json
-          cd $(workspaces.source-code-ws.path)
+        for go_mod_path in $go_mod_paths; do
+          cd $(dirname $go_mod_path) && go list -json -deps ./... >> /scratch/golist.json
         done
         cat /scratch/golist.json
       else
-        cat $(workspaces.source-code-ws.path)/Gopkg.lock
+        cat $(workspaces.output.path)/source-code/Gopkg.lock
       fi
       ls -lah /scratch
     volumeMounts:
@@ -38,18 +37,16 @@ spec:
   - name: run-nancy
     imagePullPolicy: IfNotPresent
     image: docker.io/sonatypecommunity/nancy:v1.0.42-alpine
-    command:
-      - /bin/sh
-      - -c
-      - | 
-        if [[ ! -f "$(workspaces.source-code-ws.path)/Gopkg.lock" ]]; then
-          echo "Running nancy with golist"
-          cat /scratch/golist.json | nancy sleuth -o json > /scratch/out.json || true
-        else
-          echo "Running nancy in dep mode"
-          nancy sleuth -p "$(workspaces.source-code-ws.path)/Gopkg.lock" -o json > /scratch/out.json || true
-        fi
-        cat /scratch/out.json
+    script: |
+      #!/bin/sh
+      if [[ ! -f "$(workspaces.output.path)/source-code/Gopkg.lock" ]]; then
+        echo "Running nancy with golist"
+        cat /scratch/golist.json | nancy sleuth -o json > /scratch/out.json || true
+      else
+        echo "Running nancy in dep mode"
+        nancy sleuth -p "$(workspaces.output.path)/source-code/Gopkg.lock" -o json > /scratch/out.json || true
+      fi
+      cat /scratch/out.json
     volumeMounts:
     - mountPath: /scratch
       name: scratch
@@ -60,7 +57,7 @@ spec:
     command: ["/app/components/producers/golang-nancy/golang-nancy-parser"]
     args:
     - "-in=/scratch/out.json"
-    - "-out=$(workspaces.source-code-ws.path)/.dracon/producers/golang-nancy.pb"
+    - "-out=$(workspaces.output.path)/.dracon/producers/golang-nancy.pb"
     volumeMounts:
     - mountPath: /scratch
       name: scratch

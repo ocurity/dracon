@@ -12,7 +12,7 @@ spec:
     default: []
   - name: producer-docker-trivy-target
     type: string
-    default: "$(workspaces.source-code-ws.path)"
+    default: "$(workspaces.output.path)"
   - name: producer-docker-trivy-format
     type: string
   - name: producer-docker-trivy-command
@@ -21,7 +21,7 @@ spec:
     - name: scratch
       emptyDir: {}
   workspaces:
-    - name: source-code-ws
+    - name: output
       description: The workspace containing the source-code to scan.
   steps:
   - name: run-trivy
@@ -47,7 +47,7 @@ spec:
     args:
     - "-format=$(params.producer-docker-trivy-format)"
     - "-in=/scratch/out.json"
-    - "-out=$(workspaces.source-code-ws.path)/.dracon/producers/docker-trivy.pb"
+    - "-out=$(workspaces.output.path)/.dracon/producers/docker-trivy.pb"
     volumeMounts:
     - mountPath: /scratch
       name: scratch

@@ -23,7 +23,7 @@ spec:
   - name: consumer-github-user
     value: "a github username with access to upload results to the repo"
   workspaces:
-  - name: source-code-ws
+  - name: output
     subPath: source-code
     volumeClaimTemplate:
       spec:

@@ -14,7 +14,7 @@ spec:
     - name: scratch
       emptyDir: {}
   workspaces:
-    - name: source-code-ws
+    - name: output
       description: The workspace containing the source-code to scan.
   steps:
   - name: run-trufflehog
@@ -29,7 +29,7 @@ spec:
         trufflehog \
           filesystem \
             --json \
-            --directory="$(workspaces.source-code-ws.path)" &> /scratch/out.json
+            --directory="$(workspaces.output.path)" &> /scratch/out.json
       fi
       cat /scratch/out.json
     volumeMounts:
@@ -41,7 +41,7 @@ spec:
     command: ["/app/components/producers/trufflehog/trufflehog-parser"]
     args:
     - "-in=/scratch/out.json"
-    - "-out=$(workspaces.source-code-ws.path)/.dracon/producers/trufflehog.pb"
+    - "-out=$(workspaces.output.path)/.dracon/producers/trufflehog.pb"
     volumeMounts:
     - mountPath: /scratch
       name: scratch

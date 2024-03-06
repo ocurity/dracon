@@ -23,7 +23,7 @@ spec:
     - name: scratch
       emptyDir: {}
   workspaces:
-    - name: source-code-ws
+    - name: output
       description: The workspace containing the source-code to scan.
   steps:
   - name: run-zap
@@ -57,7 +57,7 @@ spec:
     command: ["/app/components/producers/zaproxy/zaproxy-parser"]
     args:
     - "-in=/scratch/out.json"
-    - "-out=$(workspaces.source-code-ws.path)/.dracon/producers/zap.pb"
+    - "-out=$(workspaces.output.path)/.dracon/producers/zap.pb"
     volumeMounts:
     - mountPath: /scratch
       name: scratch

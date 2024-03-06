@@ -335,7 +335,7 @@ func Test_draconIssueToSarif(t *testing.T) {
 		Severity:    v1.Severity_SEVERITY_INFO,
 		Cvss:        0.0,
 		Source:      "//foo/bar:baz",
-		Target:      "/workspace/source-code-ws/foo1/bar1:baz2",
+		Target:      "/workspace/output/foo1/bar1:baz2",
 		Title:       "Unit Test Title",
 		Type:        "test type",
 		Cve:         "CVE-0000-99999",

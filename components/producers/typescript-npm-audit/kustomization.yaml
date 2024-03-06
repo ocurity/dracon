@@ -14,14 +14,14 @@ patches:
         name: unused
       spec:
         workspaces:
-          - name: source-code-ws
+          - name: output
         tasks:
           - name: producer-typescript-npm-audit
             taskRef:
               name: producer-typescript-npm-audit
             workspaces:
-              - name: source-code-ws
-                workspace: source-code-ws
+              - name: output
+                workspace: output
             params:
               - name: producer-typescript-npm-audit-input-dependency-file
                 value: $(params.producer-typescript-npm-audit-input-dependency-file)
@@ -110,7 +110,7 @@ patches:
             script: |
               #!/usr/bin/env bash
               set -x
-              cd $(workspaces.source-code-ws.path)
+              cd $(workspaces.output.path)
               npm i --package-lock-only
               npm audit --json > /scratch/out.json || true
             env:

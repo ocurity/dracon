@@ -14,14 +14,14 @@ patches:
         name: unused
       spec:
         workspaces:
-          - name: source-code-ws
+          - name: output
         tasks:
           - name: consumer-bigquery
             taskRef:
               name: consumer-bigquery
             workspaces:
-              - name: source-code-ws
-                workspace: source-code-ws
+              - name: output
+                workspace: output
             params:
               - name: consumer-bigquery-project-id
                 value: $(params.consumer-bigquery-project-id)

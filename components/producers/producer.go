@@ -31,7 +31,7 @@ var (
 )
 
 const (
-	sourceDir = "/workspace/source-code-ws"
+	sourceDir = "/workspace/output"
 
 	// EnvDraconStartTime Start Time of Dracon Scan in RFC3339.
 	EnvDraconStartTime = "DRACON_SCAN_TIME"
