@@ -16,8 +16,7 @@ spec:
   # Corresponding public key for verification is MOt7TFuLyGB9yRN5mcIeAPa6jKoFglkwEwGBTOVLeXI=
     value: Lvbo+wAsW8Y4ENBA+lAikOwGTYAIXCQ49eRMEwClv94w63tMW4vIYH3JE3mZwh4A9rqMqgWCWTATAYFM5Ut5cg==
   workspaces:
-  - name: source-code-ws
-    subPath: source-code
+  - name: output
     volumeClaimTemplate:
       spec:
         accessModes:

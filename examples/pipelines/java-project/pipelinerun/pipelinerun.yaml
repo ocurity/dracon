@@ -17,7 +17,7 @@ spec:
   - name: producer-java-findsecbugs-jar-url
     value: https://github.com/WebGoat/WebGoat/releases/download/v2023.3/webgoat-2023.3.jar
   workspaces:
-  - name: source-code-ws
+  - name: output
     subPath: source-code
     volumeClaimTemplate:
       spec:
