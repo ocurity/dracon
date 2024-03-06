@@ -107,7 +107,7 @@ kubectl apply -n dracon -f deploy/dracon/rolebinding.yaml
 bin/cmd/draconctl migrations apply \
   --namespace dracon \
   --as-k8s-job \
-  --image "kind-registry:5000/ocurity/dracon/draconctl:..." \
+  --image "kind-registry:5000/ocurity/dracon/draconctl:$(make print-DRACON_VERSION)" \
   --url "postgresql://dracon:dracon@dracon-enrichment-db.dracon.svc.cluster.local?sslmode=disable" \
   /etc/dracon/migrations/enrichment
 ```
@@ -128,8 +128,9 @@ Running the `golang-project` is as simple as running:
 ```bash
 helm upgrade golang-project-pipeline ./examples/pipelines/golang-project \
   --install \
-  --namespace dracon
-  --set "container_registry=kind-registry:5000/ocurity/dracon"
+  --namespace dracon \
+  --set "container_registry=kind-registry:5000/ocurity/dracon" \
+  --set "dracon_os_component_version=$(make print-DRACON_VERSION)"
 ```
 
 If you want to use a custom container registry, add the following flag:
