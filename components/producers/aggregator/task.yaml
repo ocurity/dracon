@@ -6,11 +6,7 @@ metadata:
   labels:
     v1.dracon.ocurity.com/component: producer-aggregator
 spec:
-  params:
-  - name: producer-aggregator-anchors
-    description: A list of tasks that this task depends on.
-    type: array
-    default: []
+  params: []
   results:
   - name: anchor
     description: An anchor to allow other tasks to depend on this task.
