@@ -14,14 +14,14 @@ patches:
         name: unused
       spec:
         workspaces:
-          - name: source-code-ws
+          - name: output
         tasks:
           - name: producer-ossf-scorecard
             taskRef:
               name: producer-ossf-scorecard
             workspaces:
-              - name: source-code-ws
-                workspace: source-code-ws
+              - name: output
+                workspace: output
             params:
               - name: producer-ossf-scorecard-input-repo
                 value: $(params.producer-ossf-scorecard-input-repo)

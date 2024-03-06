@@ -17,7 +17,7 @@ spec:
       type: string
       default: "consumer-mongodb"
   workspaces:
-    - name: source-code-ws
+    - name: output
       description: The workspace containing the source-code to scan.
   steps:
   - name: run-consumer
@@ -25,7 +25,7 @@ spec:
     image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/consumers/mongodb:{{ default "latest" .Values.dracon_os_component_version }}'
     command: ["/app/components/consumers/mongodb/mongodb"]
     args: [
-      "-in", "$(workspaces.source-code-ws.path)/.dracon/enrichers/",
+      "-in", "$(workspaces.output.path)/.dracon/enrichers/",
       "-db-uri", "$(params.consumer-mongodb-db-uri)",
       "-db-name", "$(params.consumer-mongodb-db-name)",
       "-collection-name", "$(params.consumer-mongodb-collection-name)",

@@ -26,7 +26,7 @@ spec:
     - name: scratch
       emptyDir: {}
   workspaces:
-    - name: source-code-ws
+    - name: output
       description: The workspace containing the source-code to scan.
   steps:
     - name: run-cdxgen
@@ -40,7 +40,7 @@ spec:
           value: $(params.producer-cdxgen-astgen-ignore-file-pattern)
         - name: ASTGEN_IGNORE_DIRS
           value: $(params.producer-cdxgen-astgen-ignore-dirs)
-      script: node /opt/cdxgen/bin/cdxgen.js -r -p -o /scratch/out.json $(workspaces.source-code-ws.path)/ --spec-version 1.4
+      script: node /opt/cdxgen/bin/cdxgen.js -r -p -o /scratch/out.json $(workspaces.output.path)/ --spec-version 1.4
       volumeMounts:
         - mountPath: /scratch
           name: scratch
@@ -51,7 +51,7 @@ spec:
       command: ["/app/components/producers/cdxgen/cdxgen-parser"]
       args:
         - "-in=/scratch/out.json"
-        - "-out=$(workspaces.source-code-ws.path)/.dracon/producers/cdxgen.pb"
+        - "-out=$(workspaces.output.path)/.dracon/producers/cdxgen.pb"
       volumeMounts:
         - mountPath: /scratch
           name: scratch

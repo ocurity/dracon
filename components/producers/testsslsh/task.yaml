@@ -17,7 +17,7 @@ spec:
     - name: scratch
       emptyDir: {}
   workspaces:
-    - name: source-code-ws
+    - name: output
       description: The workspace containing the source-code to scan.
   steps:
   - name: run-testsslsh
@@ -37,7 +37,7 @@ spec:
     command: ["/app/components/producers/testsslsh/testsslsh-parser"]
     args:
     - "-in=/scratch/out.json"
-    - "-out=$(workspaces.source-code-ws.path)/.dracon/producers/testsslsh.pb"
+    - "-out=$(workspaces.output.path)/.dracon/producers/testsslsh.pb"
     volumeMounts:
     - mountPath: /scratch
       name: scratch

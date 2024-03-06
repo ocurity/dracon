@@ -14,14 +14,14 @@ patches:
         name: unused
       spec:
         workspaces:
-          - name: source-code-ws
+          - name: output
         tasks:
           - name: producer-trufflehog
             taskRef:
               name: producer-trufflehog
             workspaces:
-              - name: source-code-ws
-                workspace: source-code-ws
+              - name: output
+                workspace: output
             params:
               - name: producer-trufflehog-git-repository
                 value: $(params.producer-trufflehog-git-repository)
@@ -117,7 +117,7 @@ patches:
                 trufflehog \
                   filesystem \
                     --json \
-                    --directory="$(workspaces.source-code-ws.path)" &> /scratch/out.json
+                    --directory="$(workspaces.output.path)" &> /scratch/out.json
               fi
               cat /scratch/out.json
             env:

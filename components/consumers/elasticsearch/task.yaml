@@ -14,7 +14,7 @@ spec:
       type: string
       default: ""
   workspaces:
-    - name: source-code-ws
+    - name: output
       description: The workspace containing the source-code to scan.
   steps:
   - name: run-consumer
@@ -25,7 +25,7 @@ spec:
     - name: ELASTICSEARCH_URL
       value: "$(params.consumer-elasticsearch-url)"
     args: [
-      "-in", "$(workspaces.source-code-ws.path)/.dracon/enrichers/",
+      "-in", "$(workspaces.output.path)/.dracon/enrichers/",
       "-es-index", "dracon",
       "-descriptionTemplate","$(params.consumer-elasticsearch-description-template)"
     ]

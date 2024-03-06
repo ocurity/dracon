@@ -7,7 +7,7 @@ metadata:
     v1.dracon.ocurity.com/component: consumer
 spec:
   workspaces:
-    - name: source-code-ws
+    - name: output
       description: The workspace containing the source-code to scan.
   steps:
   - name: run-consumer
@@ -15,7 +15,7 @@ spec:
     image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/consumers/arangodb:{{ default "latest" .Values.dracon_os_component_version }}'
     command: ["/app/components/consumers/arangodb/arangodb"]
     args: [
-      "-in", "$(workspaces.source-code-ws.path)/.dracon/enrichers/",
+      "-in", "$(workspaces.output.path)/.dracon/enrichers/",
       "-db-url", "https://dracon.arangodb.svc:8529",
       "-db-name", "dracon",
       "-collection-name", "dracon",

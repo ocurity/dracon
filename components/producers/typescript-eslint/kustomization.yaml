@@ -14,14 +14,14 @@ patches:
         name: unused
       spec:
         workspaces:
-          - name: source-code-ws
+          - name: output
         tasks:
           - name: producer-typescript-eslint
             taskRef:
               name: producer-typescript-eslint
             workspaces:
-              - name: source-code-ws
-                workspace: source-code-ws
+              - name: output
+                workspace: output
             params:
               - name: producer-typescript-eslint-config-js
                 value: $(params.producer-typescript-eslint-config-js)

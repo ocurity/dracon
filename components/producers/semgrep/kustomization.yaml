@@ -14,14 +14,14 @@ patches:
         name: unused
       spec:
         workspaces:
-          - name: source-code-ws
+          - name: output
         tasks:
           - name: producer-semgrep
             taskRef:
               name: producer-semgrep
             workspaces:
-              - name: source-code-ws
-                workspace: source-code-ws
+              - name: output
+                workspace: output
             params:
               - name: producer-semgrep-rules-yaml
                 value: $(params.producer-semgrep-rules-yaml)

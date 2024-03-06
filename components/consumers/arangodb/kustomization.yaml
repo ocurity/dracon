@@ -14,14 +14,14 @@ patches:
         name: unused
       spec:
         workspaces:
-          - name: source-code-ws
+          - name: output
         tasks:
           - name: consumer-arangodb
             taskRef:
               name: consumer-arangodb
             workspaces:
-              - name: source-code-ws
-                workspace: source-code-ws
+              - name: output
+                workspace: output
     target:
       kind: Pipeline
   # Add anchors to Task.

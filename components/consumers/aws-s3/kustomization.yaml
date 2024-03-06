@@ -14,14 +14,14 @@ patches:
         name: unused
       spec:
         workspaces:
-          - name: source-code-ws
+          - name: output
         tasks:
           - name: consumer-aws-s3
             taskRef:
               name: consumer-aws-s3
             workspaces:
-              - name: source-code-ws
-                workspace: source-code-ws
+              - name: output
+                workspace: output
             params:
               - name: consumer-aws-s3-access-key-id
                 value: $(params.consumer-aws-s3-access-key-id)

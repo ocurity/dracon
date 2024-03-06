@@ -14,14 +14,14 @@ patches:
         name: unused
       spec:
         workspaces:
-          - name: source-code-ws
+          - name: output
         tasks:
           - name: consumer-dependency-track
             taskRef:
               name: consumer-dependency-track
             workspaces:
-              - name: source-code-ws
-                workspace: source-code-ws
+              - name: output
+                workspace: output
             params:
               - name: consumer-dependency-track-api-url
                 value: $(params.consumer-dependency-track-api-url)

@@ -10,7 +10,7 @@ spec:
     - name: scratch
       emptyDir: {}
   workspaces:
-    - name: source-code-ws
+    - name: output
       description: The workspace containing the source-code to scan.
   steps:
   - name: run-dependency-check
@@ -22,7 +22,7 @@ spec:
     - -o
     - /scratch
     - -s
-    - $(workspaces.source-code-ws.path)/
+    - $(workspaces.output.path)/
     volumeMounts:
     - mountPath: /scratch
       name: scratch
@@ -32,7 +32,7 @@ spec:
     command: ["/app/components/producers/dependency-check/dependency-check-parser"]
     args:
     - "-in=/scratch/dependency-check-report.json"
-    - "-out=$(workspaces.source-code-ws.path)/.dracon/producers/dependency-check.pb"
+    - "-out=$(workspaces.output.path)/.dracon/producers/dependency-check.pb"
     volumeMounts:
     - mountPath: /scratch
       name: scratch

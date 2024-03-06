@@ -7,7 +7,7 @@ metadata:
     v1.dracon.ocurity.com/component: enricher
 spec:
   workspaces:
-    - name: source-code-ws
+    - name: output
       description: The workspace containing the source-code to scan.
   steps:
   - name: run-enricher
@@ -16,8 +16,8 @@ spec:
     command: ["/app/components/enrichers/deduplication/deduplication"]
     env:
     - name: ENRICHER_READ_PATH
-      value: $(workspaces.source-code-ws.path)/.dracon/producers
+      value: $(workspaces.output.path)/.dracon/producers
     - name: ENRICHER_WRITE_PATH
-      value: "$(workspaces.source-code-ws.path)/.dracon/enrichers/deduplication"
+      value: "$(workspaces.output.path)/.dracon/enrichers/deduplication"
     - name: ENRICHER_DB_CONNECTION
       value: "postgresql://dracon:dracon@dracon-enrichment-db.$(context.taskRun.namespace).svc?sslmode=disable"

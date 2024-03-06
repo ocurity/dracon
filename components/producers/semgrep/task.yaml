@@ -15,7 +15,7 @@ spec:
     - name: scratch
       emptyDir: {}
   workspaces:
-    - name: source-code-ws
+    - name: output
       description: The workspace containing the source-code to scan.
   steps:
   - name: write-semgrep-config
@@ -41,7 +41,7 @@ spec:
     - "--json"
     - "--output"
     - "/scratch/out.json"
-    - "$(workspaces.source-code-ws.path)"
+    - "$(workspaces.output.path)"
 
     volumeMounts:
     - mountPath: /scratch
@@ -53,7 +53,7 @@ spec:
     command: ["/app/components/producers/semgrep/semgrep-parser"]
     args:
     - "-in=/scratch/out.json"
-    - "-out=$(workspaces.source-code-ws.path)/.dracon/producers/semgrep.pb"
+    - "-out=$(workspaces.output.path)/.dracon/producers/semgrep.pb"
     volumeMounts:
     - mountPath: /scratch
       name: scratch

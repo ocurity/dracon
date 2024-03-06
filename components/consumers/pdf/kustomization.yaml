@@ -14,14 +14,14 @@ patches:
         name: unused
       spec:
         workspaces:
-          - name: source-code-ws
+          - name: output
         tasks:
           - name: consumer-pdf
             taskRef:
               name: consumer-pdf
             workspaces:
-              - name: source-code-ws
-                workspace: source-code-ws
+              - name: output
+                workspace: output
             params:
               - name: consumer-pdf-s3-access-key-id
                 value: $(params.consumer-pdf-s3-access-key-id)

@@ -14,14 +14,14 @@ patches:
         name: unused
       spec:
         workspaces:
-          - name: source-code-ws
+          - name: output
         tasks:
           - name: producer-cdxgen
             taskRef:
               name: producer-cdxgen
             workspaces:
-              - name: source-code-ws
-                workspace: source-code-ws
+              - name: output
+                workspace: output
             params:
               - name: producer-cdxgen-flags
                 value:
@@ -128,7 +128,7 @@ patches:
         steps:
           - name: run-cdxgen
             image: ghcr.io/cyclonedx/cdxgen:v9.8.10
-            script: node /opt/cdxgen/bin/cdxgen.js -r -p -o /scratch/out.json $(workspaces.source-code-ws.path)/ --spec-version 1.4
+            script: node /opt/cdxgen/bin/cdxgen.js -r -p -o /scratch/out.json $(workspaces.output.path)/ --spec-version 1.4
             env:
               - name: FETCH_LICENSE
                 value: $(params.producer-cdxgen-fetch-license)

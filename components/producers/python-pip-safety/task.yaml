@@ -14,7 +14,7 @@ spec:
   - name: scratch
     emptyDir: {}
   workspaces:
-    - name: source-code-ws
+    - name: output
       description: The workspace containing the source-code to scan.
   steps:
   - name: run-pip-safety
@@ -22,7 +22,7 @@ spec:
     image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/python-pip-safety/tool:{{ default "latest" .Values.dracon_os_component_version }}'
     script: |
       set -x
-      cd $(workspaces.source-code-ws.path)
+      cd $(workspaces.output.path)
       touch "uber-reqs.txt"
       for file in $(find . -iname "requirements.txt"); do
         cat $file >> "uber-reqs.txt"
@@ -40,7 +40,7 @@ spec:
     command: ["/app/components/producers/python-pip-safety/python-pip-safety-parser"]
     args:
     - "-in=/scratch/out.json"
-    - "-out=$(workspaces.source-code-ws.path)/.dracon/producers/python-pip-safety.pb"
+    - "-out=$(workspaces.output.path)/.dracon/producers/python-pip-safety.pb"
     volumeMounts:
     - mountPath: /scratch
       name: scratch

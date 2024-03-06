@@ -16,13 +16,13 @@ spec:
   - name: scratch
     emptyDir: {}
   workspaces:
-    - name: source-code-ws
+    - name: output
       description: The workspace containing the source-code to scan.
   steps:
   - name: get-jar
     image: busybox:latest
     script: |
-      wget "$(params.producer-java-findsecbugs-jar-url)" -O "$(workspaces.source-code-ws.path)/main.jar"
+      wget "$(params.producer-java-findsecbugs-jar-url)" -O "$(workspaces.output.path)/main.jar"
   - name: run-findsecbugs
     imagePullPolicy: IfNotPresent
     image: docker.io/captainfoobar/findsecbugs:1.12.0.3
@@ -34,7 +34,7 @@ spec:
       - -output
       - /scratch/out.xml
       - "$(params.producer-java-findsecbugs-extra-flags[*])"
-      - "$(workspaces.source-code-ws.path)/main.jar"
+      - "$(workspaces.output.path)/main.jar"
     volumeMounts:
     - mountPath: /scratch
       name: scratch
@@ -53,7 +53,7 @@ spec:
     command: ["/app/components/producers/java-findsecbugs/java-findsecbugs-parser"]
     args:
     - "-in=/scratch/out.xml"
-    - "-out=$(workspaces.source-code-ws.path)/.dracon/producers/java-findsecbugs.pb"
+    - "-out=$(workspaces.output.path)/.dracon/producers/java-findsecbugs.pb"
     volumeMounts:
     - mountPath: /scratch
       name: scratch

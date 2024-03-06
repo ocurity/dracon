@@ -18,7 +18,7 @@ spec:
     - name: scratch
       emptyDir: {}
   workspaces:
-    - name: source-code-ws
+    - name: output
       description: The workspace containing the source-code to scan.
   steps:
   - name: run-example-tool
@@ -29,7 +29,7 @@ spec:
     - "-fmt=json"
     - "-out=/scratch/out.json"
     - "-no-fail"
-    - "$(workspaces.source-code-ws.path)/..."
+    - "$(workspaces.output.path)/..."
     volumeMounts:
     - mountPath: /scratch
       name: scratch
@@ -40,7 +40,7 @@ spec:
     command: ["/app/components/producers/example-tool/example-tool-parser"]
     args:
     - "-in=/scratch/out.json"
-    - "-out=$(workspaces.source-code-ws.path)/.dracon/producers/example-tool.pb"
+    - "-out=$(workspaces.output.path)/.dracon/producers/example-tool.pb"
     volumeMounts:
     - mountPath: /scratch
       name: scratch

@@ -14,14 +14,14 @@ spec:
     - name: scratch
       emptyDir: {}
   workspaces:
-    - name: source-code-ws
+    - name: output
       description: The workspace containing the source-code to scan.
   steps:
   - name: run-tfsec
     image: docker.io/aquasec/tfsec:v1.28
     command: [tfsec]
     args:
-    - $(workspaces.source-code-ws.path)
+    - $(workspaces.output.path)
     - -f
     - json
     - --concise-output
@@ -38,7 +38,7 @@ spec:
     command: ["/app/components/producers/terraform-tfsec/tfsec-parser"]
     args:
     - "-in=/scratch/out.json"
-    - "-out=$(workspaces.source-code-ws.path)/.dracon/producers/terraform-tfsec.pb"
+    - "-out=$(workspaces.output.path)/.dracon/producers/terraform-tfsec.pb"
     volumeMounts:
     - mountPath: /scratch
       name: scratch

@@ -14,14 +14,14 @@ patches:
         name: unused
       spec:
         workspaces:
-          - name: source-code-ws
+          - name: output
         tasks:
           - name: enricher-codeowners
             taskRef:
               name: enricher-codeowners
             workspaces:
-              - name: source-code-ws
-                workspace: source-code-ws
+              - name: output
+                workspace: output
             params:
               - name: enricher-codeowners-annotation
                 value: $(params.enricher-codeowners-annotation)

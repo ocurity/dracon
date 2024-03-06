@@ -14,14 +14,14 @@ patches:
         name: unused
       spec:
         workspaces:
-          - name: source-code-ws
+          - name: output
         tasks:
           - name: enricher-policy
             taskRef:
               name: enricher-policy
             workspaces:
-              - name: source-code-ws
-                workspace: source-code-ws
+              - name: output
+                workspace: output
             params:
               - name: enricher-policy-base64-policy
                 value: $(params.enricher-policy-base64-policy)

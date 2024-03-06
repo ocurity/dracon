@@ -14,14 +14,14 @@ patches:
         name: unused
       spec:
         workspaces:
-          - name: source-code-ws
+          - name: output
         tasks:
           - name: producer-kics
             taskRef:
               name: producer-kics
             workspaces:
-              - name: source-code-ws
-                workspace: source-code-ws
+              - name: output
+                workspace: output
     target:
       kind: Pipeline
   # Add anchors to Task.
@@ -104,7 +104,7 @@ patches:
               #!/bin/sh
               /app/bin/kics \
               scan \
-              -p $(workspaces.source-code-ws.path) \
+              -p $(workspaces.output.path) \
               -o /scratch \
               --minimal-ui \
               --no-progress \

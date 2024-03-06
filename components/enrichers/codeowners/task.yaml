@@ -12,7 +12,7 @@ spec:
     default: ""
 
   workspaces:
-    - name: source-code-ws
+    - name: output
       description: The workspace containing the source-code to scan.
   steps:
   - name: run-enricher
@@ -21,10 +21,10 @@ spec:
     command: ["/app/components/enrichers/codeowners/codeowners"]
     env:
     - name: READ_PATH
-      value: $(workspaces.source-code-ws.path)/.dracon/producers
+      value: $(workspaces.output.path)/.dracon/producers
     - name: WRITE_PATH
-      value: "$(workspaces.source-code-ws.path)/.dracon/enrichers/codeowners"
+      value: "$(workspaces.output.path)/.dracon/enrichers/codeowners"
     - name: REPO_BASE_PATH
-      value: "$(workspaces.source-code-ws.path)/"
+      value: "$(workspaces.output.path)/"
     - name: ANNOTATION
       value: "$(params.enricher-codeowners-annotation)"

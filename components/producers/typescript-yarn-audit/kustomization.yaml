@@ -14,14 +14,14 @@ patches:
         name: unused
       spec:
         workspaces:
-          - name: source-code-ws
+          - name: output
         tasks:
           - name: producer-typescript-yarn-audit
             taskRef:
               name: producer-typescript-yarn-audit
             workspaces:
-              - name: source-code-ws
-                workspace: source-code-ws
+              - name: output
+                workspace: output
     target:
       kind: Pipeline
   # Add anchors to Task.
@@ -101,7 +101,7 @@ patches:
           - name: run-yarn-audit
             image: docker.io/node:lts
             script: |
-              cd $(workspaces.source-code-ws.path)
+              cd $(workspaces.output.path)
               yarn audit --json --silent --no-progress > /scratch/out.json || true
             env:
               - name: DRACON_SCAN_TIME
