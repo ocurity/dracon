@@ -7,17 +7,11 @@ metadata:
     v1.dracon.ocurity.com/component: producer-aggregator
 spec:
   params: []
-  results:
-  - name: anchor
-    description: An anchor to allow other tasks to depend on this task.
+  results: []
   workspaces:
     - name: output
       description: The workspace containing the source-code to scan.
   steps:
-  - name: anchor
-    image: docker.io/busybox
-    script: echo "$(context.task.name)" > "$(results.anchor.path)"
-    env: []
   - name: aggregate
     image: docker.io/busybox
     command: ["ls"]
