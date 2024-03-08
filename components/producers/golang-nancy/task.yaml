@@ -22,8 +22,8 @@ spec:
     image: "$(params.producer-golang-nancy-goImage)"
     script: | # necessary because sonatypecommunity/nancy does not include go
      #!/bin/bash -xe
-     echo $(workspaces.output.path)
-     ls -lah $(workspaces.output.path)
+     # make sure that the git repo is considered secure since it's mounted with onwen None but the process itself runs as root
+     git config --global --add safe.directory $(workspaces.output.path)/source-code
      if [[ ! -f "$(workspaces.output.path)/source-code/Gopkg.lock" ]]; then
         go_mod_paths=$(find $(workspaces.output.path)/source-code -iname "go.mod")
         touch /scratch/golist.json
