@@ -71,6 +71,7 @@ func getRawIssue(scanStartTime time.Time, res *v1.LaunchToolResponse, iss *v1.Is
 		FalsePositive: false,
 		CVE:           iss.GetCve(),
 		CycloneDXSBOM: sbom,
+		ScanTags:      res.GetScanInfo().ScanTags,
 	})
 	if err != nil {
 		return []byte{}, err
@@ -106,6 +107,7 @@ func getEnrichedIssue(scanStartTime time.Time, res *v1.EnrichedLaunchToolRespons
 		CVE:            iss.GetRawIssue().GetCve(),
 		CycloneDXSBOM:  sbom,
 		Annotations:    iss.GetAnnotations(),
+		ScanTags:       res.GetOriginalResults().ScanInfo.ScanTags,
 	})
 	if err != nil {
 		return []byte{}, err
@@ -133,4 +135,5 @@ type draconDocument struct {
 	CVE            string                 `json:"cve"`
 	CycloneDXSBOM  map[string]interface{} `json:"CycloneDX_SBOM"`
 	Annotations    map[string]string      `json:"annotations"`
+	ScanTags       map[string]string      `json:"scan_tags"`
 }
