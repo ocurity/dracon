@@ -1,7 +1,6 @@
 package pipelines
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"path"
@@ -12,9 +11,6 @@ import (
 	"github.com/ocurity/dracon/pkg/pipelines"
 	"github.com/spf13/cobra"
 	tektonV1Beta1 "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1beta1"
-	"gopkg.in/yaml.v3"
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/kustomize/api/types"
 )
 
@@ -30,24 +26,6 @@ to output the Pipeline in different formats. For the time being we only support 
 
 func init() {
 	buildSubCmd.Flags().StringP("out", "o", "stdout", "The file to output the generated manifests")
-}
-
-func loadPathOrURIOfK8sObj(ctx context.Context, root, pathOrURI, targetFile string) (runtime.Object, *schema.GroupVersionKind, error) {
-	loader, err := manifests.NewLoader(root, pathOrURI, targetFile)
-	if err != nil {
-		return nil, nil, fmt.Errorf("%s: could not resolve path or URI: %w", pathOrURI, err)
-	}
-
-	manifestBytes, err := loader.Load(ctx)
-	if err != nil {
-		return nil, nil, fmt.Errorf("%s: could not load path or URI: %w", loader.Path(), err)
-	}
-
-	obj, gKV, err := manifests.K8sObjDecoder.Decode(manifestBytes, nil, nil)
-	if err != nil {
-		return nil, nil, fmt.Errorf("%s: could not decode file into a K8s object:3 %w", loader.Path(), err)
-	}
-	return obj, gKV, err
 }
 
 func buildPipeline(cmd *cobra.Command, args []string) error {
@@ -68,8 +46,8 @@ func buildPipeline(cmd *cobra.Command, args []string) error {
 	}
 
 	// Parse Pipeline kustomization
-	kustomization := types.Kustomization{}
-	if err = yaml.Unmarshal(fileContents, &kustomization); err != nil {
+	kustomization := &types.Kustomization{}
+	if err = kustomization.Unmarshal(fileContents); err != nil {
 		return fmt.Errorf("%s: could not unmarshal YAML file: %w", kustomizationPath, err)
 	}
 
@@ -84,31 +62,20 @@ func buildPipeline(cmd *cobra.Command, args []string) error {
 	}
 
 	var baseTaskPath string
-	var obj runtime.Object
-	var gKV *schema.GroupVersionKind
-	if strings.HasSuffix(kustomization.Resources[0], "pipeline.yaml") {
-		obj, gKV, err = loadPathOrURIOfK8sObj(cmd.Context(), kustomizationDir, kustomization.Resources[0], "pipeline.yaml")
-		baseTaskPath = kustomization.Resources[1]
-	} else {
-		obj, gKV, err = loadPathOrURIOfK8sObj(cmd.Context(), kustomizationDir, kustomization.Resources[1], "pipeline.yaml")
+	var basePipeline *tektonV1Beta1.Pipeline
+
+	if basePipeline, err = manifests.LoadTektonV1Beta1Pipeline(cmd.Context(), kustomizationDir, kustomization.Resources[0]); err != nil {
+		if basePipeline, err = manifests.LoadTektonV1Beta1Pipeline(cmd.Context(), kustomizationDir, kustomization.Resources[1]); err != nil {
+			return err
+		}
 		baseTaskPath = kustomization.Resources[0]
+	} else {
+		baseTaskPath = kustomization.Resources[1]
 	}
+
+	baseTask, err := manifests.LoadTektonV1Beta1Task(cmd.Context(), kustomizationDir, baseTaskPath)
 	if err != nil {
 		return err
-	}
-
-	basePipeline, isAPipeline := obj.(*tektonV1Beta1.Pipeline)
-	if !isAPipeline {
-		return fmt.Errorf("object loaded is not a pipeline: %v", gKV)
-	}
-
-	if obj, gKV, err = loadPathOrURIOfK8sObj(cmd.Context(), kustomizationDir, baseTaskPath, "task.yaml"); err != nil {
-		return err
-	}
-
-	baseTask, isATask := obj.(*tektonV1Beta1.Task)
-	if !isATask {
-		return fmt.Errorf("object loaded is not a task: %v", gKV)
 	}
 
 	if len(kustomization.Components) == 0 {
@@ -117,13 +84,9 @@ func buildPipeline(cmd *cobra.Command, args []string) error {
 
 	taskList := []*tektonV1Beta1.Task{baseTask}
 	for _, pathOrURI := range kustomization.Components {
-		if obj, gKV, err = loadPathOrURIOfK8sObj(cmd.Context(), kustomizationDir, pathOrURI, "task.yaml"); err != nil {
+		newTask, err := manifests.LoadTektonV1Beta1Task(cmd.Context(), kustomizationDir, pathOrURI)
+		if err != nil {
 			return err
-		}
-
-		newTask, isATask := obj.(*tektonV1Beta1.Task)
-		if !isATask {
-			return fmt.Errorf("object loaded is not a task: %v", gKV)
 		}
 
 		if err = components.ValidateTask(newTask); err != nil {
