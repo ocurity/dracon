@@ -17,4 +17,4 @@ CREATE TABLE IF NOT EXISTS issues (
   "description" TEXT NOT NULL,
   PRIMARY KEY ("hash")
 );
-CREATE INDEX idx_issues_source ON issues(source);
+CREATE INDEX IF NOT EXISTS idx_issues_source ON issues(source);
