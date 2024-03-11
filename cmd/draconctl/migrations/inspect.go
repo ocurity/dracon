@@ -1,6 +1,7 @@
 package migrations
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -16,6 +17,14 @@ var inspectSubCmd = &cobra.Command{
 	Short:   "Check which migrations have been applied to the database.",
 	GroupID: "Migrations",
 	RunE:    entrypointWrapper(inspectMigrations),
+}
+
+var migrationsInspectCmdConfig = struct {
+	jsonOutput bool
+}{}
+
+func init() {
+	migrationsCmd.PersistentFlags().BoolVar(&migrationsInspectCmdConfig.jsonOutput, "json", false, "Output inspection data in json")
 }
 
 func inspectMigrations(cmd *cobra.Command, args []string) error {
@@ -40,11 +49,24 @@ func inspectMigrations(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("could not get state of database: %w", err)
 	}
 
-	table := tablewriter.NewWriter(os.Stdout) //cmd.OutOrStdout())
-	table.SetHeader([]string{"", ""})
-	table.Append([]string{"Latest Migration Version", fmt.Sprintf("%d", latestMigration)})
-	table.Append([]string{"Has Failed Migrations", fmt.Sprintf("%v", isDirty)})
-	table.Render()
+	if migrationsInspectCmdConfig.jsonOutput {
+		jsonOutput := struct {
+			Version uint
+			Dirty   bool
+		}{latestMigration, isDirty}
+
+		marshaledBytes, err := json.Marshal(jsonOutput)
+		if err != nil {
+			return fmt.Errorf("could not marshal JSON output: %w", err)
+		}
+		fmt.Fprintln(cmd.OutOrStderr(), string(marshaledBytes))
+	} else {
+		table := tablewriter.NewWriter(os.Stdout) //cmd.OutOrStdout())
+		table.SetHeader([]string{"", ""})
+		table.Append([]string{"Latest Migration Version", fmt.Sprintf("%d", latestMigration)})
+		table.Append([]string{"Has Failed Migrations", fmt.Sprintf("%v", isDirty)})
+		table.Render()
+	}
 
 	return nil
 }
