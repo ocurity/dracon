@@ -2,6 +2,8 @@ package sarif
 
 import (
 	"os"
+	"slices"
+	"strings"
 	"testing"
 	"time"
 
@@ -232,8 +234,18 @@ func Test_FromDraconEnrichedIssuesRun(t *testing.T) {
 
 	report, err := FromDraconEnrichedIssuesRun(responses, false)
 	require.NoError(t, err)
-	require.NotNil(t, report)
-	require.EqualValues(t, report, expected)
+	require.Len(t, report.Runs, 1)
+	require.Len(t, report.Runs[0].Results, 1)
+	require.Len(t, report.Runs[0].Results[0].Attachments, len(expected.Runs[0].Results[0].Attachments))
+
+	slices.SortFunc(expected.Runs[0].Results[0].Attachments, func(a *sarif.Attachment, b *sarif.Attachment) int {
+		return strings.Compare(*(a.Description.Text), *(b.Description.Text))
+	})
+	slices.SortFunc(report.Runs[0].Results[0].Attachments, func(a *sarif.Attachment, b *sarif.Attachment) int {
+		return strings.Compare(*(a.Description.Text), *(b.Description.Text))
+	})
+
+	require.Equal(t, expected, report)
 }
 
 func Test_FromDraconRawIssuesRun(t *testing.T) {

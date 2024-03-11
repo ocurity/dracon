@@ -18,14 +18,17 @@ type DraconIssueCollection struct {
 	Issues   []*v1.Issue
 }
 
-// FromDraconEnrichedIssuesRun transforms a set of LaunchToolResponse to ONE sarif document with one run per launch tool response, by default it skips duplicates unless reportDuplicates is set to true.
+// FromDraconEnrichedIssuesRun transforms a set of LaunchToolResponse to ONE sarif document with
+// one run per launch tool response, by default it skips duplicates unless reportDuplicates is set
+// to true.
 func FromDraconEnrichedIssuesRun(responses []*v1.EnrichedLaunchToolResponse, reportDuplicates bool) (*sarif.Report, error) {
 	// if you are not ignoring duplicates use resultProvenance in each message to mark duplicates
-	//  annotations become attachments in each findings with the description the json of the label
+	// annotations become attachments in each findings with the description the json of the label
 	sarifReport, err := sarif.New(sarif.Version210)
 	if err != nil {
 		return &sarif.Report{}, err
 	}
+
 	for _, enrichedResponse := range responses {
 		tool := sarif.NewSimpleTool(enrichedResponse.GetOriginalResults().GetToolName())
 		run := sarif.NewRun(*tool)
@@ -38,6 +41,7 @@ func FromDraconEnrichedIssuesRun(responses []*v1.EnrichedLaunchToolResponse, rep
 		var sarifResults []*sarif.Result
 
 		for _, issue := range enrichedResponse.Issues {
+			// TODO(#119): improve this to avoid O(n^2)
 			rule, err := run.GetRuleById(issue.RawIssue.Type)
 			if err != nil {
 				rule = run.AddRule(issue.RawIssue.Type)
