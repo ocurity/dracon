@@ -425,9 +425,6 @@ github.com/minio/asm2plan9s
 # github.com/minio/c2goasm v0.0.0-20190812172519-36a3d3bbc4f3
 ## explicit
 github.com/minio/c2goasm
-# github.com/mitchellh/go-wordwrap v1.0.1
-## explicit; go 1.14
-github.com/mitchellh/go-wordwrap
 # github.com/mitchellh/mapstructure v1.5.0
 ## explicit; go 1.14
 github.com/mitchellh/mapstructure
