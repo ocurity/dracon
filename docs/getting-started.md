@@ -5,19 +5,29 @@ The first step is to create a dev Kubernetes cluster in order to deploy Tekton. 
 KiND to provision a local test cluster quickly. If you already have a K8s cluster then you can skip
 directly to the [Deploying Dracon dependencies](#Deploying-Dracon-dependencies) section.
 
+## Tools you will need
+
+You will need to have the following tools installed in your system:
+
+1. [KiND](https://kind.sigs.k8s.io/docs/user/quick-start/#installation)
+2. [kustomize](https://kubectl.docs.kubernetes.io/installation/kustomize/)
+3. [Docker](https://docs.docker.com/engine/install/)
+4. [Helm](https://helm.sh/docs/intro/install/)
+
 ## Setting up a [KinD](https://kind.sigs.k8s.io/) cluster
 
 KinD is is a tool for running local Kubernetes clusters using Docker container “nodes”.
 
-1. Create a KinD cluster named `dracon-demo` with its own Docker registry. You can use our Bash 
-   script or you can check for more info the 
+Create a KinD cluster named `dracon-demo` with its own Docker registry. You can use our Bash 
+script or you can check for more info the 
 [official documentation](https://kind.sigs.k8s.io/docs/user/quick-start/#creating-a-cluster):
 
 ```bash
 ./scripts/kind-with-registry.sh
 ```
 
-> :warning: **Warning 1:** make sure that all pods are up an running before proceeding
+> :warning: **Warning 1:** make sure you can connect to the KiND control plane before proceeding.
+> some times it takes a bit for everything to get started.
 
 ## Deploying Dracon dependencies
 
