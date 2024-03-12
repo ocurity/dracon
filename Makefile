@@ -26,7 +26,7 @@ DRACON_NS=dracon
 TEKTON_NS=tekton-pipelines
 ARANGODB_NS=arangodb
 BASE_IMAGE=scratch
-RUNNERS=
+RUNNERS="go/vet,go/revive,go/containedctx,go/ineffassign,go/errorlint,go/errcheck,buf_lint"
 
 DOCKER=docker
 PROTOC=protoc
@@ -99,7 +99,7 @@ clean: clean-protos clean-migrations-compose
 .PHONY: lint install-lint-tools tests go-tests fmt fmt-proto fmt-go migration-tests
 
 lint:
-	@reviewdog -fail-on-error $$([ "${CI}" = "true" ] && echo "-reporter=github-pr-review") -runners=$(RUNNERS) -diff="git diff origin/main" -filter-mode=added -tee -runners "go/vet,go/revive,go/containedctx,go/ineffassign,go/errorlint,go/errcheck,buf_lint"
+	@reviewdog -fail-on-error $$([ "${CI}" = "true" ] && echo "-reporter=github-pr-review") -runners=$(RUNNERS) -diff="git diff origin/main" -filter-mode=added -tee
 
 install-lint-tools:
 	@go install honnef.co/go/tools/cmd/staticcheck@latest
