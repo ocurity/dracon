@@ -31,7 +31,7 @@ func main() {
 		log.Fatal(err)
 	}
 	if err := producers.WriteDraconOut(
-		"gosec",
+		"dependency-track",
 		issues,
 	); err != nil {
 		log.Fatal(err)

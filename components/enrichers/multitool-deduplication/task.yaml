@@ -1,0 +1,23 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: enricher-multitool-deduplication
+  labels:
+    v1.dracon.ocurity.com/component: enricher
+spec:
+  workspaces:
+    - name: source-code-ws
+      description: The workspace containing the source-code to scan.
+  steps:
+  - name: run-enricher
+    imagePullPolicy: IfNotPresent
+    image: ghcr.io/ocurity/dracon/components/enrichers/multitool-deduplication/image:latest
+    command: ["app/components/enrichers/deduplication/enricher"]
+    env:
+    - name: ENRICHER_READ_PATH
+      value: $(workspaces.source-code-ws.path)/.dracon/producers
+    - name: ENRICHER_WRITE_PATH
+      value: "$(workspaces.source-code-ws.path)/.dracon/enrichers/multitool-deduplication"
+    - name: ENRICHER_DB_CONNECTION
+      value: "postgresql://dracon:dracon@dracon-enrichment-db.$(context.taskRun.namespace).svc?sslmode=disable"

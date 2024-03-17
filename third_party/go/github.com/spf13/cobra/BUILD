@@ -5,8 +5,7 @@ go_module(
     module = "github.com/spf13/cobra",
     version = "v0.0.5",
     visibility = [
-        "//components/enrichers/deduplication:all",
-        "//components/producers/jira_producer:all",
+        "//components/...",
     ],
     deps = [
         "//third_party/go/github.com/spf13/pflag",
