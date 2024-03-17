@@ -1,0 +1,26 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: producer-blackduck
+  labels:
+    v1.dracon.ocurity.com/component: producer
+spec:
+  volumes:
+    - name: scratch
+      emptyDir: {}
+  workspaces:
+    - name: source-code-ws
+      description: The workspace containing the source-code to scan.
+  steps:
+
+  - name: produce-issues
+    imagePullPolicy: IfNotPresent
+    image: ghcr.io/ocurity/dracon/components/producers/blackduck/image:latest
+    command: ["app/components/producers/blackduck/blackduck-parser"]
+    args:
+    - "-in=/scratch/out.json"
+    - "-out=$(workspaces.source-code-ws.path)/.dracon/producers/blackduck.pb"
+    volumeMounts:
+    - mountPath: /scratch
+      name: scratch
