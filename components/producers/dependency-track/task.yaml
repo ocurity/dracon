@@ -6,6 +6,19 @@ metadata:
   labels:
     v1.dracon.ocurity.com/component: producer
 spec:
+  params:
+  - name: producer-dependency-track-project-id
+    type: string
+    default: ""
+  - name: producer-dependency-track-fetch-vulnerabilities
+    type: string
+    default: ""
+  - name: producer-dependency-track-url
+    type: string
+    default: ""
+  - name: producer-dependency-track-api-key
+    type: string
+    default: ""
   volumes:
     - name: scratch
       emptyDir: {}
@@ -18,6 +31,10 @@ spec:
     image: ghcr.io/ocurity/dracon/components/producers/dependency-track/image:latest
     command: ["app/components/producers/dependency-track/dependency-track-parser"]
     args:
+    - "-fetchVulnerabilities=$(params.producer-dependency-track-fetch-vulnerabilities)"
+    - "-projectID=$(params.producer-dependency-track-project-id)"
+    - "-apiKey=$(params.producer-dependency-track-api-key)"
+    - "-url=$(params.producer-dependency-track-url)"
     - "-in=/scratch/out.json"
     - "-out=$(workspaces.source-code-ws.path)/.dracon/producers/dependency-track.pb"
     volumeMounts:

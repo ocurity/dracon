@@ -2,27 +2,58 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"log"
 
+	dtrack "github.com/DependencyTrack/client-go"
+	"github.com/google/uuid"
 	v1 "github.com/ocurity/dracon/api/proto/v1"
 
 	"github.com/ocurity/dracon/components/producers"
 )
 
+var (
+	// Fetch is a boolean flag that instructs the DT producer to fetch all vulnerabilities from a specific project
+	Fetch bool
+	// ProjectID is only used with "Fetch", if fetch is defined, vulnerabilities of the specific projectID will be fetched
+	ProjectID string
+
+	// APIKey is the DT api key
+	APIKey string
+
+	// URL is the URL of the remote DT
+	URL string
+)
+
 func main() {
+	flag.BoolVar(&Fetch, "fetchVulnerabilities", false, "a boolean flag that instructs the DT producer to fetch all vulnerabilities from a specific project")
+	flag.StringVar(&ProjectID, "projectID", "", "only used with \"Fetch\", if fetch is defined, vulnerabilities of the specific projectID will be fetched")
+	flag.StringVar(&APIKey, "apiKey", "", "only used with \"Fetch\", if fetch is defined, vulnerabilities of the specific projectID will be fetched using this API Key")
+	flag.StringVar(&URL, "url", "", "only used with \"Fetch\", if fetch is defined, vulnerabilities of the specific projectID will be fetched using this URL and the supplied API Key")
+
 	if err := producers.ParseFlags(); err != nil {
 		log.Fatal(err)
 	}
 
-	inFile, err := producers.ReadInFile()
-	if err != nil {
-		log.Fatal(err)
+	var inFile []byte
+	if Fetch {
+		input, err := readFromDependencyTrack(APIKey, URL, ProjectID)
+		if err != nil {
+			log.Fatal(err)
+		}
+		inFile = input
+	} else {
+		input, err := producers.ReadInFile()
+		if err != nil {
+			log.Fatal(err)
+		}
+		inFile = input
 	}
-
 	var results DependencyTrackOut
-	if err := producers.ParseJSON(inFile, &results); err != nil {
+	if err := json.Unmarshal(inFile, &results); err != nil {
 		log.Fatal(err)
 	}
 
@@ -31,13 +62,26 @@ func main() {
 		log.Fatal(err)
 	}
 	if err := producers.WriteDraconOut(
-		"gosec",
+		"Dependency Track",
 		issues,
 	); err != nil {
 		log.Fatal(err)
 	}
 }
+func readFromDependencyTrack(apiKey, url, projectID string) ([]byte, error) {
+	client, err := dtrack.NewClient(url, dtrack.WithAPIKey(apiKey))
+	if err != nil {
+		return nil, fmt.Errorf("could not instantiate client err: %#v", err)
+	}
 
+	findings, err := dtrack.FetchAll(func(po dtrack.PageOptions) (dtrack.Page[dtrack.Finding], error) {
+		return client.Finding.GetAll(context.Background(), uuid.MustParse(projectID), false, po)
+	})
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(findings)
+}
 func parseIssues(out *DependencyTrackOut) ([]*v1.Issue, error) {
 	issues := []*v1.Issue{}
 	for _, element := range *out {
@@ -128,7 +172,7 @@ type Vulnerability struct {
 	Recommendation string  `json:"recommendation"`
 }
 
-// DependencyTrackOut is an export from DT
+// DependencyTrackOut is an export from DT findings API
 type DependencyTrackOut []struct {
 	Component     Component     `json:"component"`
 	Vulnerability Vulnerability `json:"vulnerability"`
