@@ -36,10 +36,8 @@ func TestCreateFinding(t *testing.T) {
 		called = true
 		assert.Equal(t, r.Method, "POST")
 		assert.Equal(t, r.RequestURI, "/findings")
-
 		b, err := io.ReadAll(r.Body)
 		require.NoError(t, err)
-
 		var actual, exp types.FindingCreateRequest
 		exp = types.FindingCreateRequest{
 			Test:              1,
@@ -49,7 +47,7 @@ func TestCreateFinding(t *testing.T) {
 			FalseP:            false,
 			Severity:          "High",
 			Description:       "description",
-			Active:            false,
+			Active:            true,
 			Verified:          false,
 			Line:              1,
 			NumericalSeverity: "C:I",
@@ -59,11 +57,9 @@ func TestCreateFinding(t *testing.T) {
 		}
 		require.NoError(t, json.Unmarshal(b, &actual))
 		assert.Equal(t, actual, exp)
-
 		_, err = w.Write([]byte(expected))
 		require.NoError(t, err)
 	}))
-
 	c := &Client{host: mockTs.URL, apiToken: "test", user: ""}
 	_, err := c.CreateFinding("title",
 		"description",
@@ -74,7 +70,7 @@ func TestCreateFinding(t *testing.T) {
 		[]string{"tests"},
 		1,
 		1,
-		0, 0, false, false, false, 3.9)
+		0, 0, false, false, 3.9)
 	require.NoError(t, err)
 	assert.True(t, called)
 }
@@ -85,10 +81,8 @@ func TestCreateEngagement(t *testing.T) {
 		called = true
 		assert.Equal(t, r.Method, "POST")
 		assert.Equal(t, r.RequestURI, "/engagements")
-
 		b, err := io.ReadAll(r.Body)
 		require.NoError(t, err)
-
 		var engagement types.EngagementRequest
 		require.NoError(t, json.Unmarshal(b, &engagement))
 
@@ -101,11 +95,9 @@ func TestCreateEngagement(t *testing.T) {
 			Product:                   2,
 		}
 		assert.Equal(t, expectedEngagement, engagement)
-
 		_, err = w.Write([]byte(`{"id":4,"tags":["foo.git/somesha"],"name":"dracon scan foo","description":null,"version":"string","first_contacted":null,"target_start":"2022-06-01","target_end":"2022-06-01","reason":null,"updated":"2022-06-01T16:29:18.965507Z","created":"2022-06-01T16:29:18.908694Z","active":true,"tracker":null,"test_strategy":null,"threat_model":true,"api_test":true,"pen_test":true,"check_list":true,"status":"","progress":"threat_model","tmodel_path":"none","done_testing":false,"engagement_type":"Interactive","build_id":"foo","commit_hash":null,"branch_tag":null,"source_code_management_uri":null,"deduplication_on_engagement":false,"lead":null,"requester":null,"preset":null,"report_type":null,"product":2,"build_server":null,"source_code_management_server":null,"orchestration_engine":null,"notes":[],"files":[],"risk_acceptance":[]}`))
 		require.NoError(t, err)
 	}))
-
 	c := &Client{host: mockTs.URL, apiToken: "test", user: ""}
 	_, err := c.CreateEngagement("dracon scan foo", "2022-06-01", []string{"foo.git/somesha"}, 2)
 	require.NoError(t, err)
