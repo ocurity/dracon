@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"strconv"
 
@@ -37,7 +38,9 @@ func handleRawResults(product int, dojoClient *client.Client, responses []*v1.La
 		log.Fatalln("Non-uuid scan", responses)
 	}
 	tags := []string{"DraconScan", "RawScan", scanUUID}
-
+	for key, val := range responses[0].GetScanInfo().GetScanTags() {
+		tags = append(tags, fmt.Sprintf("%s:%s", key, val))
+	}
 	engagement, err := dojoClient.CreateEngagement( // with current architecture, all responses should have the same scaninfo
 		scanUUID, responses[0].GetScanInfo().GetScanStartTime().AsTime().Format(DojoTimeFormat), tags, int32(product))
 	if err != nil {
@@ -91,6 +94,9 @@ func handleEnrichedResults(product int, dojoClient *client.Client, responses []*
 		log.Fatalln("Non-uuid scan", responses)
 	}
 	tags := []string{"DraconScan", "EnrichedScan", scanUUID}
+	for key, val := range responses[0].GetOriginalResults().GetScanInfo().GetScanTags() {
+		tags = append(tags, fmt.Sprintf("%s:%s", key, val))
+	}
 	engagement, err := dojoClient.CreateEngagement( // with current architecture, all responses should have the same scaninfo
 		scanUUID,
 		responses[0].GetOriginalResults().GetScanInfo().GetScanStartTime().AsTime().Format(DojoTimeFormat), tags, int32(product))

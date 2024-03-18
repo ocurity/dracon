@@ -5,6 +5,7 @@ package consumers
 import (
 	"flag"
 	"fmt"
+	"time"
 
 	v1 "github.com/ocurity/dracon/api/proto/v1"
 
@@ -48,4 +49,70 @@ func LoadToolResponse() ([]*v1.LaunchToolResponse, error) {
 // LoadEnrichedToolResponse loads enriched results from the enricher.
 func LoadEnrichedToolResponse() ([]*v1.EnrichedLaunchToolResponse, error) {
 	return putil.LoadEnrichedToolResponse(inResults)
+}
+
+// FlatenLaunchToolResponse returns an array of map[string]string with each element containing a flattened version of each issue, useful for writing data in datalakes
+func FlatenLaunchToolResponse(response *v1.LaunchToolResponse) []map[string]string {
+	result := []map[string]string{}
+	for _, iss := range response.Issues {
+		flat := map[string]string{
+			"ScanStartTime":  response.GetScanInfo().GetScanStartTime().AsTime().Format(time.RFC3339),
+			"ScanID":         response.GetScanInfo().GetScanUuid(),
+			"ToolName":       response.GetToolName(),
+			"Source":         iss.GetSource(),
+			"Title":          iss.GetTitle(),
+			"Target":         iss.GetTarget(),
+			"Type":           iss.GetType(),
+			"Severity":       iss.GetSeverity().String(),
+			"CVSS":           fmt.Sprintf("%f", iss.GetCvss()),
+			"Confidence":     iss.GetConfidence().Enum().String(),
+			"Description":    iss.GetDescription(),
+			"SeverityText":   iss.GetSeverity().Enum().String(),
+			"ConfidenceText": iss.GetConfidence().Enum().String(),
+			"CVE":            iss.GetCve(),
+			"CycloneDXSBOM":  iss.GetCycloneDXSBOM(),
+		}
+		for k, v := range response.GetScanInfo().GetScanTags() {
+			flat[fmt.Sprintf("ScanTag:%s", k)] = v
+		}
+		result = append(result, flat)
+	}
+	return result
+}
+
+// FlatenLaunchToolResponse returns an array of map[string]string with each element containing a flattened version of each issue, useful for writing data in datalakes
+func FlatenEnrichedLaunchToolResponse(response *v1.EnrichedLaunchToolResponse) []map[string]string {
+	result := []map[string]string{}
+	for _, iss := range response.GetIssues() {
+		flat := map[string]string{
+			"ScanStartTime":  response.GetOriginalResults().GetScanInfo().GetScanStartTime().AsTime().Format(time.RFC3339),
+			"ScanID":         response.GetOriginalResults().GetScanInfo().GetScanUuid(),
+			"ToolName":       response.GetOriginalResults().GetToolName(),
+			"Source":         iss.GetRawIssue().GetSource(),
+			"Title":          iss.GetRawIssue().GetTitle(),
+			"Target":         iss.GetRawIssue().GetTarget(),
+			"Type":           iss.GetRawIssue().GetType(),
+			"Severity":       iss.GetRawIssue().GetSeverity().String(),
+			"CVSS":           fmt.Sprintf("%f", iss.GetRawIssue().GetCvss()),
+			"Confidence":     iss.GetRawIssue().GetConfidence().Enum().String(),
+			"Description":    iss.GetRawIssue().GetDescription(),
+			"SeverityText":   iss.GetRawIssue().GetSeverity().Enum().String(),
+			"ConfidenceText": iss.GetRawIssue().GetConfidence().Enum().String(),
+			"CVE":            iss.GetRawIssue().GetCve(),
+			"CycloneDXSBOM":  iss.GetRawIssue().GetCycloneDXSBOM(),
+			"FirstSeen":      iss.GetFirstSeen().AsTime().Format(time.RFC3339),
+			"Count":          fmt.Sprintf("%d", iss.GetCount()),
+			"FalsePositive":  fmt.Sprintf("%t", iss.GetFalsePositive()),
+			"UpdatedAt":      iss.GetFirstSeen().String(),
+		}
+		for k, v := range response.GetOriginalResults().GetScanInfo().GetScanTags() {
+			flat[fmt.Sprintf("ScanTag:%s", k)] = v
+		}
+		for k, v := range iss.GetAnnotations() {
+			flat[fmt.Sprintf("Annotation:%s", k)] = v
+		}
+
+		result = append(result, flat)
+	}
+	return result
 }

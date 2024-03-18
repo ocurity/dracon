@@ -7,7 +7,6 @@ import (
 
 	v1 "github.com/ocurity/dracon/api/proto/v1"
 	"github.com/ocurity/dracon/components/consumers"
-	"github.com/ocurity/dracon/pkg/enumtransformers"
 )
 
 func main() {
@@ -54,25 +53,7 @@ func getRawIssue(scanStartTime time.Time, res *v1.LaunchToolResponse, iss *v1.Is
 			log.Fatalf("error unmarshaling cyclonedx sbom, err:%s", err)
 		}
 	}
-	jBytes, err := json.Marshal(&draconDocument{
-		ScanStartTime: scanStartTime,
-		ScanID:        res.GetScanInfo().GetScanUuid(),
-		ToolName:      res.GetToolName(),
-		Source:        iss.GetSource(),
-		Title:         iss.GetTitle(),
-		Target:        iss.GetTarget(),
-		Type:          iss.GetType(),
-		Severity:      iss.GetSeverity(),
-		CVSS:          iss.GetCvss(),
-		Confidence:    iss.GetConfidence(),
-		Description:   iss.GetDescription(),
-		FirstFound:    scanStartTime,
-		Count:         1,
-		FalsePositive: false,
-		CVE:           iss.GetCve(),
-		CycloneDXSBOM: sbom,
-		ScanTags:      res.GetScanInfo().ScanTags,
-	})
+	jBytes, err := json.Marshal(consumers.FlatenLaunchToolResponse(res))
 	if err != nil {
 		return []byte{}, err
 	}
@@ -86,54 +67,9 @@ func getEnrichedIssue(scanStartTime time.Time, res *v1.EnrichedLaunchToolRespons
 			log.Fatalf("error unmarshaling cyclonedx sbom, err:%s", err)
 		}
 	}
-	firstSeenTime := iss.GetFirstSeen().AsTime()
-	jBytes, err := json.Marshal(&draconDocument{
-		ScanStartTime:  scanStartTime,
-		ScanID:         res.GetOriginalResults().GetScanInfo().GetScanUuid(),
-		ToolName:       res.GetOriginalResults().GetToolName(),
-		Source:         iss.GetRawIssue().GetSource(),
-		Title:          iss.GetRawIssue().GetTitle(),
-		Target:         iss.GetRawIssue().GetTarget(),
-		Type:           iss.GetRawIssue().GetType(),
-		Severity:       iss.GetRawIssue().GetSeverity(),
-		CVSS:           iss.GetRawIssue().GetCvss(),
-		Confidence:     iss.GetRawIssue().GetConfidence(),
-		Description:    iss.GetRawIssue().GetDescription(),
-		FirstFound:     firstSeenTime,
-		Count:          iss.GetCount(),
-		FalsePositive:  iss.GetFalsePositive(),
-		SeverityText:   enumtransformers.SeverityToText(iss.GetRawIssue().GetSeverity()),
-		ConfidenceText: enumtransformers.ConfidenceToText(iss.GetRawIssue().GetConfidence()),
-		CVE:            iss.GetRawIssue().GetCve(),
-		CycloneDXSBOM:  sbom,
-		Annotations:    iss.GetAnnotations(),
-		ScanTags:       res.GetOriginalResults().ScanInfo.ScanTags,
-	})
+	jBytes, err := json.Marshal(consumers.FlatenEnrichedLaunchToolResponse(res))
 	if err != nil {
 		return []byte{}, err
 	}
 	return jBytes, nil
-}
-
-type draconDocument struct {
-	ScanStartTime  time.Time              `json:"scan_start_time"`
-	ScanID         string                 `json:"scan_id"`
-	ToolName       string                 `json:"tool_name"`
-	Source         string                 `json:"source"`
-	Target         string                 `json:"target"`
-	Type           string                 `json:"type"`
-	Title          string                 `json:"title"`
-	Severity       v1.Severity            `json:"severity"`
-	SeverityText   string                 `json:"severity_text"`
-	CVSS           float64                `json:"cvss"`
-	Confidence     v1.Confidence          `json:"confidence"`
-	ConfidenceText string                 `json:"confidence_text"`
-	Description    string                 `json:"description"`
-	FirstFound     time.Time              `json:"first_found"`
-	Count          uint64                 `json:"count"`
-	FalsePositive  bool                   `json:"false_positive"`
-	CVE            string                 `json:"cve"`
-	CycloneDXSBOM  map[string]interface{} `json:"CycloneDX_SBOM"`
-	Annotations    map[string]string      `json:"annotations"`
-	ScanTags       map[string]string      `json:"scan_tags"`
 }
