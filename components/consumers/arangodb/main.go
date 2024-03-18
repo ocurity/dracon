@@ -82,7 +82,8 @@ func main() {
 		}
 		for _, res := range responses {
 			// scanStartTime := res.GetScanInfo().GetScanStartTime().AsTime()
-			for _, iss := range res.GetIssues() {
+			flatIssues := consumers.FlatenLaunchToolResponse(res)
+			for _, iss := range flatIssues {
 				log.Printf("Pushing %d, issues to es \n", len(responses))
 				metadata, err := col.CreateDocument(ctx, iss)
 				if err != nil {
@@ -99,7 +100,8 @@ func main() {
 		}
 		for _, res := range responses {
 			// scanStartTime := res.GetOriginalResults().GetScanInfo().GetScanStartTime().AsTime()
-			for _, iss := range res.GetIssues() {
+			flatIssues := consumers.FlatenEnrichedLaunchToolResponse(res)
+			for _, iss := range flatIssues {
 				metadata, err := col.CreateDocument(ctx, iss)
 				if err != nil {
 					log.Fatalf("could not create document from '%#v': %s", iss, err)
