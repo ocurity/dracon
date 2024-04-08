@@ -6,12 +6,10 @@ import (
 	"path"
 	"strings"
 
-	"github.com/ocurity/dracon/pkg/components"
 	"github.com/ocurity/dracon/pkg/manifests"
 	"github.com/ocurity/dracon/pkg/pipelines"
 	"github.com/spf13/cobra"
-	tektonV1Beta1 "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1beta1"
-	"sigs.k8s.io/kustomize/api/types"
+	kustomizeType "sigs.k8s.io/kustomize/api/types"
 )
 
 var buildSubCmd = &cobra.Command{
@@ -46,7 +44,7 @@ func buildPipeline(cmd *cobra.Command, args []string) error {
 	}
 
 	// Parse Pipeline kustomization
-	kustomization := &types.Kustomization{}
+	kustomization := &kustomizeType.Kustomization{}
 	if err = kustomization.Unmarshal(fileContents); err != nil {
 		return fmt.Errorf("%s: could not unmarshal YAML file: %w", kustomizationPath, err)
 	}
@@ -61,40 +59,10 @@ func buildPipeline(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("you need to specify the base pipeline and task in the resources field of the kustomization")
 	}
 
-	var baseTaskPath string
-	var basePipeline *tektonV1Beta1.Pipeline
-
-	if basePipeline, err = manifests.LoadTektonV1Beta1Pipeline(cmd.Context(), kustomizationDir, kustomization.Resources[0]); err != nil {
-		if basePipeline, err = manifests.LoadTektonV1Beta1Pipeline(cmd.Context(), kustomizationDir, kustomization.Resources[1]); err != nil {
-			return err
-		}
-		baseTaskPath = kustomization.Resources[0]
-	} else {
-		baseTaskPath = kustomization.Resources[1]
-	}
-
-	baseTask, err := manifests.LoadTektonV1Beta1Task(cmd.Context(), kustomizationDir, baseTaskPath)
+	pipelineKustomization := &pipelines.Kustomization{Kustomization: kustomization, KustomizationDir: kustomizationDir}
+	basePipeline, taskList, err := pipelineKustomization.ResolveKustomizationResources(cmd.Context())
 	if err != nil {
-		return err
-	}
-
-	if len(kustomization.Components) == 0 {
-		return fmt.Errorf("%s: no components are listed in the kustomization", kustomizationPath)
-	}
-
-	taskList := []*tektonV1Beta1.Task{baseTask}
-	for _, pathOrURI := range kustomization.Components {
-		newTask, err := manifests.LoadTektonV1Beta1Task(cmd.Context(), kustomizationDir, pathOrURI)
-		if err != nil {
-			return err
-		}
-
-		if err = components.ValidateTask(newTask); err != nil {
-			return fmt.Errorf("%s: invalid task found: %w", newTask.Name, err)
-		}
-
-		newTask.Namespace = kustomization.Namespace
-		taskList = append(taskList, newTask)
+		return fmt.Errorf("%s: could not resolve base pipeline and tasks: %w", kustomizationDir, err)
 	}
 
 	k8sBackend, err := pipelines.NewTektonV1Beta1Backend(basePipeline, taskList, kustomization.NamePrefix, kustomization.NameSuffix)
