@@ -10,8 +10,6 @@ import (
 	"strings"
 
 	v1 "github.com/ocurity/dracon/api/proto/v1"
-	"github.com/ocurity/dracon/pkg/context"
-
 	"github.com/ocurity/dracon/components/producers"
 )
 
@@ -92,11 +90,6 @@ func parseIssues(out *Flaws) ([]*v1.Issue, error) {
 			Confidence:  v1.Confidence(v1.Confidence_value["CONFIDENCE_UNSPECIFIED"]),
 			Description: string(draconDesc),
 		}
-		code, err := context.ExtractCode(iss)
-		if err != nil {
-			return nil, err
-		}
-		iss.ContextSegment = &code
 		issues = append(issues, iss)
 	}
 	return issues, nil
