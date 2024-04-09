@@ -1,20 +1,40 @@
 package pipelines
 
 import (
-	"errors"
+	"context"
 	"fmt"
 	"slices"
 
+	"github.com/go-errors/errors"
 	"github.com/ocurity/dracon/pkg/components"
-	tektonV1Beta1 "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1beta1"
+	"github.com/ocurity/dracon/pkg/manifests"
+	tektonV1Beta1API "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1beta1"
 	corev1 "k8s.io/api/core/v1"
+	kustomizeTypes "sigs.k8s.io/kustomize/api/types"
 )
 
-var _ Backend[*tektonV1Beta1.Pipeline] = (*tektonV1Beta1Backend)(nil)
+var _ Backend[*tektonV1Beta1API.Pipeline] = (*tektonV1Beta1Backend)(nil)
+
+var (
+	// ErrNoComponentsInKustomization is returned when a kustomization has no components listed
+	ErrNoComponentsInKustomization = errors.New("no components listed in kustomization")
+	// ErrKustomizationMissingBaseResources is returned when a kustomization doesn't have 2 base resources
+	ErrKustomizationMissingBaseResources = errors.New("kustomization must have exactly 2 resources: a base pipeline and a base task")
+	// ErrNoTasks is returned when no tasks are provided to the Tekton backend
+	ErrNoTasks = errors.New("no tasks provided")
+)
+
+// Kustomization is a wrapper around the `Kustomization` struct of kustomize that adds some fields
+// and methods to the object for parsing.
+type Kustomization struct {
+	*kustomizeTypes.Kustomization
+	// KustomizationDir is the relative path to the directory where the kustomization lives
+	KustomizationDir string
+}
 
 type tektonV1Beta1Backend struct {
-	pipeline *tektonV1Beta1.Pipeline
-	tasks    []*tektonV1Beta1.Task
+	pipeline *tektonV1Beta1API.Pipeline
+	tasks    []*tektonV1Beta1API.Task
 	prefix   string
 	suffix   string
 }
@@ -54,17 +74,17 @@ type tektonV1Beta1Backend struct {
 
 // addAnchorResult adds an `anchor` entry to the results section of a Task. This helps reduce the
 // amount of boilerplate needed to be written by a user to introduce a component.
-func addAnchorResult(task *tektonV1Beta1.Task) {
+func addAnchorResult(task *tektonV1Beta1API.Task) {
 	if task.Labels[components.LabelKey] == components.Consumer.String() || task.Labels[components.LabelKey] == components.Base.String() {
 		return
 	}
 
-	task.Spec.Results = append(task.Spec.Results, tektonV1Beta1.TaskResult{
+	task.Spec.Results = append(task.Spec.Results, tektonV1Beta1API.TaskResult{
 		Name:        "anchor",
 		Description: "An anchor to allow other tasks to depend on this task.",
 	})
 
-	task.Spec.Steps = append(task.Spec.Steps, tektonV1Beta1.Step{
+	task.Spec.Steps = append(task.Spec.Steps, tektonV1Beta1API.Step{
 		Name:   "anchor",
 		Image:  "docker.io/busybox",
 		Script: "echo \"$(context.task.name)\" > \"$(results.anchor.path)\"",
@@ -73,10 +93,10 @@ func addAnchorResult(task *tektonV1Beta1.Task) {
 
 // addAnchorParameter adds an `anchors` entry to the parameters of a Task. This entry will then be
 // filled in the pipeline with the anchors of the tasks that this task depends on.
-func addAnchorParameter(task *tektonV1Beta1.Task) {
+func addAnchorParameter(task *tektonV1Beta1API.Task) {
 	componentType, err := components.ToComponentType(task.Labels[components.LabelKey])
 	if err != nil {
-		panic(fmt.Errorf("%s: %w", task.Name, err))
+		panic(errors.Errorf("%s: %w", task.Name, err))
 	}
 	if componentType < components.Producer {
 		return
@@ -88,21 +108,68 @@ func addAnchorParameter(task *tektonV1Beta1.Task) {
 		}
 	}
 
-	task.Spec.Params = append(task.Spec.Params, tektonV1Beta1.ParamSpec{
+	task.Spec.Params = append(task.Spec.Params, tektonV1Beta1API.ParamSpec{
 		Name:        "anchors",
 		Description: "A list of tasks that this task depends on",
 		Type:        "array",
-		Default: &tektonV1Beta1.ParamValue{
-			Type: tektonV1Beta1.ParamTypeArray,
+		Default: &tektonV1Beta1API.ParamValue{
+			Type: tektonV1Beta1API.ParamTypeArray,
 		},
 	})
 }
 
+// ResolveKustomizationResourceBases checks the resources section to find the base pipeline and
+// task and fetches them wherever they are located.
+func (pk *Kustomization) ResolveKustomizationResources(ctx context.Context) (*tektonV1Beta1API.Pipeline, []*tektonV1Beta1API.Task, error) {
+	var err error
+	var baseTaskPath string
+	var basePipeline *tektonV1Beta1API.Pipeline
+
+	if len(pk.Resources) != 2 {
+		return nil, nil, errors.Errorf("%s: %w", pk.KustomizationDir, ErrKustomizationMissingBaseResources)
+	}
+
+	if basePipeline, err = manifests.LoadTektonV1Beta1Pipeline(ctx, pk.KustomizationDir, pk.Resources[0]); err != nil {
+		if basePipeline, err = manifests.LoadTektonV1Beta1Pipeline(ctx, pk.KustomizationDir, pk.Resources[1]); err != nil {
+			return nil, nil, err
+		}
+		baseTaskPath = pk.Resources[0]
+	} else {
+		baseTaskPath = pk.Resources[1]
+	}
+
+	baseTask, err := manifests.LoadTektonV1Beta1Task(ctx, pk.KustomizationDir, baseTaskPath)
+	if err != nil {
+		return nil, nil, errors.Errorf("%s: could not load task: %w", baseTaskPath, err)
+	}
+
+	if len(pk.Components) == 0 {
+		return nil, nil, errors.Errorf("%s: %w", pk.KustomizationDir, ErrNoComponentsInKustomization)
+	}
+
+	taskList := []*tektonV1Beta1API.Task{baseTask}
+	for _, pathOrURI := range pk.Components {
+		newTask, err := manifests.LoadTektonV1Beta1Task(ctx, pk.KustomizationDir, pathOrURI)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		if err = components.ValidateTask(newTask); err != nil {
+			return nil, nil, errors.Errorf("%s: invalid task found: %w", newTask.Name, err)
+		}
+
+		newTask.Namespace = pk.Namespace
+		taskList = append(taskList, newTask)
+	}
+
+	return basePipeline, taskList, nil
+}
+
 // NewTektonBackend returns an implementation of the Backend interface that will produce a Tekton
 // Pipeline object with all the configured tasks.
-func NewTektonV1Beta1Backend(basePipeline *tektonV1Beta1.Pipeline, tasks []*tektonV1Beta1.Task, prefix, suffix string) (Backend[*tektonV1Beta1.Pipeline], error) {
+func NewTektonV1Beta1Backend(basePipeline *tektonV1Beta1API.Pipeline, tasks []*tektonV1Beta1API.Task, prefix, suffix string) (Backend[*tektonV1Beta1API.Pipeline], error) {
 	if len(tasks) == 0 {
-		return nil, errors.New("no tasks provided")
+		return nil, errors.Errorf("%w", ErrNoTasks)
 	}
 
 	tektonBackend := &tektonV1Beta1Backend{pipeline: basePipeline, tasks: tasks[:], prefix: prefix, suffix: suffix}
@@ -114,7 +181,7 @@ func NewTektonV1Beta1Backend(basePipeline *tektonV1Beta1.Pipeline, tasks []*tekt
 	}
 
 	// Sort tasks based on their component type
-	slices.SortFunc(tektonBackend.tasks, func(a *tektonV1Beta1.Task, b *tektonV1Beta1.Task) int {
+	slices.SortFunc(tektonBackend.tasks, func(a *tektonV1Beta1API.Task, b *tektonV1Beta1API.Task) int {
 		componentTypeA := components.MustGetComponentType(a.Labels[components.LabelKey])
 		componentTypeB := components.MustGetComponentType(b.Labels[components.LabelKey])
 		return int(componentTypeA) - int(componentTypeB)
@@ -123,7 +190,7 @@ func NewTektonV1Beta1Backend(basePipeline *tektonV1Beta1.Pipeline, tasks []*tekt
 	return tektonBackend, nil
 }
 
-func (tb *tektonV1Beta1Backend) Generate() (*tektonV1Beta1.Pipeline, error) {
+func (tb *tektonV1Beta1Backend) Generate() (*tektonV1Beta1API.Pipeline, error) {
 	tb.pipeline.Name = tb.prefix + tb.pipeline.Name + tb.suffix
 	pipelineWorkspaces := map[string]struct{}{}
 	anchors := map[string][]string{}
@@ -133,9 +200,9 @@ func (tb *tektonV1Beta1Backend) Generate() (*tektonV1Beta1.Pipeline, error) {
 		anchors[componentType] = append(anchors[componentType], task.Name)
 
 		// add task to pipeline tasks
-		pipelineTask := tektonV1Beta1.PipelineTask{
+		pipelineTask := tektonV1Beta1API.PipelineTask{
 			Name: task.Name,
-			TaskRef: &tektonV1Beta1.TaskRef{
+			TaskRef: &tektonV1Beta1API.TaskRef{
 				Name: task.Name,
 			},
 		}
@@ -144,13 +211,13 @@ func (tb *tektonV1Beta1Backend) Generate() (*tektonV1Beta1.Pipeline, error) {
 		// make sure to propagate the `optional` field
 		for _, ws := range task.Spec.Workspaces {
 			if _, inserted := pipelineWorkspaces[ws.Name]; !inserted {
-				tb.pipeline.Spec.Workspaces = append(tb.pipeline.Spec.Workspaces, tektonV1Beta1.PipelineWorkspaceDeclaration{
+				tb.pipeline.Spec.Workspaces = append(tb.pipeline.Spec.Workspaces, tektonV1Beta1API.PipelineWorkspaceDeclaration{
 					Name:     ws.Name,
 					Optional: ws.Optional,
 				})
 				pipelineWorkspaces[ws.Name] = struct{}{}
 			}
-			pipelineTask.Workspaces = append(pipelineTask.Workspaces, tektonV1Beta1.WorkspacePipelineTaskBinding{
+			pipelineTask.Workspaces = append(pipelineTask.Workspaces, tektonV1Beta1API.WorkspacePipelineTaskBinding{
 				Name:      ws.Name,
 				Workspace: ws.Name,
 			})
@@ -158,12 +225,12 @@ func (tb *tektonV1Beta1Backend) Generate() (*tektonV1Beta1.Pipeline, error) {
 
 		// add the task's parameters to the pipeline's parameters and
 		// reference them in the pipeline task parameters
-		pipelineTask.Params = make(tektonV1Beta1.Params, len(task.Spec.Params))
+		pipelineTask.Params = make(tektonV1Beta1API.Params, len(task.Spec.Params))
 
 		for i, param := range task.Spec.Params {
-			pipelineTask.Params[i] = tektonV1Beta1.Param{
+			pipelineTask.Params[i] = tektonV1Beta1API.Param{
 				Name:  param.Name,
-				Value: tektonV1Beta1.ParamValue{},
+				Value: tektonV1Beta1API.ParamValue{},
 			}
 
 			if param.Name == "anchors" {
@@ -176,17 +243,17 @@ func (tb *tektonV1Beta1Backend) Generate() (*tektonV1Beta1.Pipeline, error) {
 				}
 
 				pipelineTask.Params[i].Value.ArrayVal = values
-				pipelineTask.Params[i].Value.Type = tektonV1Beta1.ParamTypeArray
+				pipelineTask.Params[i].Value.Type = tektonV1Beta1API.ParamTypeArray
 			} else {
 				switch param.Type {
-				case tektonV1Beta1.ParamTypeArray:
+				case tektonV1Beta1API.ParamTypeArray:
 					pipelineTask.Params[i].Value.Type = param.Type
 					pipelineTask.Params[i].Value.ArrayVal = []string{fmt.Sprintf("$(params.%s)", param.Name)}
-				case tektonV1Beta1.ParamTypeString:
+				case tektonV1Beta1API.ParamTypeString:
 					pipelineTask.Params[i].Value.Type = param.Type
 					pipelineTask.Params[i].Value.StringVal = fmt.Sprintf("$(params.%s)", param.Name)
 				case "":
-					return nil, fmt.Errorf("parameter %s of task %s has no type set", param.Name, task.Name)
+					return nil, errors.Errorf("parameter %s of task %s has no type set", param.Name, task.Name)
 				}
 
 				// ensure that the parameter type is always set
@@ -195,7 +262,7 @@ func (tb *tektonV1Beta1Backend) Generate() (*tektonV1Beta1.Pipeline, error) {
 				}
 
 				// add parameter to pipeline parameters
-				tb.pipeline.Spec.Params = append(tb.pipeline.Spec.Params, tektonV1Beta1.ParamSpec{
+				tb.pipeline.Spec.Params = append(tb.pipeline.Spec.Params, tektonV1Beta1API.ParamSpec{
 					Name:        param.Name,
 					Type:        param.Type,
 					Description: param.Description,
@@ -219,43 +286,43 @@ func (tb *tektonV1Beta1Backend) Generate() (*tektonV1Beta1.Pipeline, error) {
 // addParamsAndEnvVars will add parameters and environment variables to the producer task that will
 // allow it to pick the start time, pipeline UUID and any tags that have been given as parameter to
 // the pipeline so that the issues discovered can be annotated with these values.
-func addParamsAndEnvVars(pipelineTask *tektonV1Beta1.PipelineTask, anchors map[string][]string, task *tektonV1Beta1.Task) {
-	pipelineTask.Params = append(pipelineTask.Params, []tektonV1Beta1.Param{
+func addParamsAndEnvVars(pipelineTask *tektonV1Beta1API.PipelineTask, anchors map[string][]string, task *tektonV1Beta1API.Task) {
+	pipelineTask.Params = append(pipelineTask.Params, []tektonV1Beta1API.Param{
 		{
 			Name: "dracon_scan_id",
-			Value: tektonV1Beta1.ParamValue{
-				Type:      tektonV1Beta1.ParamTypeString,
+			Value: tektonV1Beta1API.ParamValue{
+				Type:      tektonV1Beta1API.ParamTypeString,
 				StringVal: fmt.Sprintf("$(tasks.%s.results.dracon-scan-id)", anchors[components.Base.String()][0]),
 			},
 		},
 		{
 			Name: "dracon_scan_start_time",
-			Value: tektonV1Beta1.ParamValue{
-				Type:      tektonV1Beta1.ParamTypeString,
+			Value: tektonV1Beta1API.ParamValue{
+				Type:      tektonV1Beta1API.ParamTypeString,
 				StringVal: fmt.Sprintf("$(tasks.%s.results.dracon-scan-start-time)", anchors[components.Base.String()][0]),
 			},
 		},
 		{
 			Name: "dracon_scan_tags",
-			Value: tektonV1Beta1.ParamValue{
-				Type:      tektonV1Beta1.ParamTypeString,
+			Value: tektonV1Beta1API.ParamValue{
+				Type:      tektonV1Beta1API.ParamTypeString,
 				StringVal: fmt.Sprintf("$(tasks.%s.results.dracon-scan-tags)", anchors[components.Base.String()][0]),
 			},
 		},
 	}...)
 
-	task.Spec.Params = append(task.Spec.Params, tektonV1Beta1.ParamSpecs{
+	task.Spec.Params = append(task.Spec.Params, tektonV1Beta1API.ParamSpecs{
 		{
 			Name: "dracon_scan_id",
-			Type: tektonV1Beta1.ParamTypeString,
+			Type: tektonV1Beta1API.ParamTypeString,
 		},
 		{
 			Name: "dracon_scan_start_time",
-			Type: tektonV1Beta1.ParamTypeString,
+			Type: tektonV1Beta1API.ParamTypeString,
 		},
 		{
 			Name: "dracon_scan_tags",
-			Type: tektonV1Beta1.ParamTypeString,
+			Type: tektonV1Beta1API.ParamTypeString,
 		},
 	}...)
 

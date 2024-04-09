@@ -32,11 +32,14 @@ func (hfl *httpFileLoader) Load(ctx context.Context) (content []byte, err error)
 	}()
 
 	if resp.StatusCode < 200 || resp.StatusCode > 299 {
-		return nil, fmt.Errorf("%s: could not fetch file: %w", hfl.uri, err)
+		return nil, fmt.Errorf("%s: could not fetch file: %d", hfl.uri, resp.StatusCode)
 	}
 
 	content, err = io.ReadAll(resp.Body)
-	return content, fmt.Errorf("%s: could not read body of response: %w", hfl.uri, err)
+	if err != nil {
+		return nil, fmt.Errorf("%s: could not read body of response: %w", hfl.uri, err)
+	}
+	return content, nil
 }
 
 func (hfl *httpFileLoader) Path() string {
