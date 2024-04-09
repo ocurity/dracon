@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"strconv"
@@ -24,7 +25,7 @@ func main() {
 	}
 
 	var results BlackduckOut
-	if err := producers.ParseJSON(inFile, &results); err != nil {
+	if err := json.Unmarshal(inFile, &results); err != nil {
 		log.Fatal(err)
 	}
 

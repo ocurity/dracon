@@ -1,8 +1,8 @@
 # packageurl-go
 
-Go implementation of the package url spec
+[![build](https://github.com/package-url/packageurl-go/workflows/test/badge.svg)](https://github.com/package-url/packageurl-go/actions?query=workflow%3Atest) [![Coverage Status](https://coveralls.io/repos/github/package-url/packageurl-go/badge.svg)](https://coveralls.io/github/package-url/packageurl-go) [![PkgGoDev](https://pkg.go.dev/badge/github.com/package-url/packageurl-go)](https://pkg.go.dev/github.com/package-url/packageurl-go) [![Go Report Card](https://goreportcard.com/badge/github.com/package-url/packageurl-go)](https://goreportcard.com/report/github.com/package-url/packageurl-go)
 
-[![Build Status](https://travis-ci.com/package-url/packageurl-go.svg)](https://travis-ci.com/package-url/packageurl-go)
+Go implementation of the package url spec.
 
 
 ## Install
@@ -55,20 +55,36 @@ func main() {
 
 
 ## Test
-Testing using the normal ``go test`` command. Using ``make test`` will pull down the test fixtures shared between all package-url projects and then execute the tests.
+Testing using the normal ``go test`` command. Using ``make test`` will pull the test fixtures shared between all package-url projects and then execute the tests.
 
 ```
-$ make test
-curl -L https://raw.githubusercontent.com/package-url/purl-test-suite/master/test-suite-data.json -o testdata/test-suite-data.json
-  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
-                                 Dload  Upload   Total   Spent    Left  Speed
-100  7181  100  7181    0     0   1202      0  0:00:05  0:00:05 --:--:--  1611
+curl -Ls https://raw.githubusercontent.com/package-url/purl-spec/master/test-suite-data.json -o testdata/test-suite-data.json
 go test -v -cover ./...
 === RUN   TestFromStringExamples
 --- PASS: TestFromStringExamples (0.00s)
 === RUN   TestToStringExamples
 --- PASS: TestToStringExamples (0.00s)
+=== RUN   TestStringer
+--- PASS: TestStringer (0.00s)
+=== RUN   TestQualifiersMapConversion
+--- PASS: TestQualifiersMapConversion (0.00s)
 PASS
-coverage: 94.7% of statements
-ok      github.com/package-url/packageurl-go    0.002s
+        github.com/package-url/packageurl-go    coverage: 90.7% of statements
+ok      github.com/package-url/packageurl-go    0.004s  coverage: 90.7% of statements
 ```
+
+## Fuzzing
+
+Fuzzing is done with standard [Go fuzzing](https://go.dev/doc/fuzz/), introduced in Go 1.18.
+
+Fuzz tests check for inputs that cause `FromString` to panic.
+
+Using `make fuzz` will run fuzz tests for one minute.
+
+To run fuzz tests longer:
+
+```
+go test -fuzztime=60m -fuzz .
+```
+
+Or omit `-fuzztime` entirely to run indefinitely.
