@@ -35,7 +35,6 @@ type Kustomization struct {
 type tektonV1Beta1Backend struct {
 	pipeline *tektonV1Beta1API.Pipeline
 	tasks    []*tektonV1Beta1API.Task
-	prefix   string
 	suffix   string
 }
 
@@ -167,12 +166,12 @@ func (pk *Kustomization) ResolveKustomizationResources(ctx context.Context) (*te
 
 // NewTektonBackend returns an implementation of the Backend interface that will produce a Tekton
 // Pipeline object with all the configured tasks.
-func NewTektonV1Beta1Backend(basePipeline *tektonV1Beta1API.Pipeline, tasks []*tektonV1Beta1API.Task, prefix, suffix string) (Backend[*tektonV1Beta1API.Pipeline], error) {
+func NewTektonV1Beta1Backend(basePipeline *tektonV1Beta1API.Pipeline, tasks []*tektonV1Beta1API.Task, suffix string) (Backend[*tektonV1Beta1API.Pipeline], error) {
 	if len(tasks) == 0 {
 		return nil, errors.Errorf("%w", ErrNoTasks)
 	}
 
-	tektonBackend := &tektonV1Beta1Backend{pipeline: basePipeline, tasks: tasks[:], prefix: prefix, suffix: suffix}
+	tektonBackend := &tektonV1Beta1Backend{pipeline: basePipeline, tasks: tasks[:], suffix: suffix}
 	for _, task := range tasks {
 		// TODO(?): revisit if we need this in the future
 		// fixTaskPrefixSuffix(task, prefix, suffix)
@@ -191,7 +190,7 @@ func NewTektonV1Beta1Backend(basePipeline *tektonV1Beta1API.Pipeline, tasks []*t
 }
 
 func (tb *tektonV1Beta1Backend) Generate() (*tektonV1Beta1API.Pipeline, error) {
-	tb.pipeline.Name = tb.prefix + tb.pipeline.Name + tb.suffix
+	tb.pipeline.Name = tb.pipeline.Name + tb.suffix
 	pipelineWorkspaces := map[string]struct{}{}
 	anchors := map[string][]string{}
 

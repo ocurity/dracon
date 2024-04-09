@@ -65,7 +65,7 @@ func buildPipeline(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: could not resolve base pipeline and tasks: %w", kustomizationDir, err)
 	}
 
-	k8sBackend, err := pipelines.NewTektonV1Beta1Backend(basePipeline, taskList, kustomization.NamePrefix, kustomization.NameSuffix)
+	k8sBackend, err := pipelines.NewTektonV1Beta1Backend(basePipeline, taskList, kustomization.NameSuffix)
 	if err != nil {
 		return fmt.Errorf("could not initialise backend: %w", err)
 	}
