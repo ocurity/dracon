@@ -26,7 +26,6 @@ DRACON_NS=dracon
 TEKTON_NS=tekton-pipelines
 ARANGODB_NS=arangodb
 BASE_IMAGE=scratch
-RUNNERS="go/vet,go/revive,go/containedctx,go/ineffassign,go/errorlint,go/errcheck,buf_lint"
 
 DOCKER=docker
 PROTOC=protoc
@@ -96,10 +95,10 @@ clean: clean-protos clean-migrations-compose
 ########################################
 ######### CODE QUALITY TARGETS #########
 ########################################
-.PHONY: lint install-lint-tools tests go-tests fmt fmt-proto fmt-go migration-tests
+.PHONY: lint install-lint-tools tests go-tests fmt fmt-proto fmt-go install-go-fmt-tools migration-tests
 
 lint:
-	@reviewdog -fail-on-error $$([ "${CI}" = "true" ] && echo "-reporter=github-pr-review") -runners=$(RUNNERS) -diff="git diff origin/main" -filter-mode=added -tee
+	@reviewdog -fail-on-error $$([ "${CI}" = "true" ] && echo "-reporter=github-pr-review") -diff="git diff origin/main" -filter-mode=added -tee
 
 install-lint-tools:
 	@go install honnef.co/go/tools/cmd/staticcheck@latest
@@ -109,6 +108,7 @@ install-lint-tools:
 	@go install github.com/polyfloyd/go-errorlint@latest
 	@go install github.com/kisielk/errcheck@latest
 	@go install github.com/rhysd/actionlint/cmd/actionlint@latest
+	@go install github.com/client9/misspell/cmd/misspell@latest
 	@go install github.com/bufbuild/buf/cmd/buf@v1.28.1
 
 go-tests:
@@ -124,9 +124,14 @@ fmt-proto:
 	@echo "Tidying up Proto files"
 	@buf format -w ./api/proto
 
+install-go-fmt-tools:
+	@go install github.com/bufbuild/buf/cmd/buf@v1.28.1
+	@go install golang.org/x/tools/cmd/goimports@latest
+
 fmt-go:
 	@echo "Tidying up Go files"
 	@gofmt -l -w $$(find . -name *.go -not -path "./vendor/*" | xargs -n 1 dirname | uniq)
+	@goimports -local $$(cat go.mod | grep -E "^module" | sed 's/module //') -w $$(find . -name *.go -not -path "./vendor/*" | xargs -n 1 dirname | uniq)
 
 fmt: fmt-go fmt-proto
 

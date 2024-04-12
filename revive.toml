@@ -1,2 +1,13 @@
+enableAllRules = true
 [rule.package-comments]
     Disabled = true
+[rule.line-length-limit]
+    Disabled = true
+[rule.add-constant]
+    Disabled = true
+[rule.confusing-naming]
+    Disabled = true
+[rule.function-length]
+    arguments = [150,0]
+[rule.cognitive-complexity]
+    arguments = [11]
