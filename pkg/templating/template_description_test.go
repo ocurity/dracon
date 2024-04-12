@@ -6,8 +6,9 @@ import (
 
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	v1 "github.com/ocurity/dracon/api/proto/v1"
 	"github.com/stretchr/testify/require"
+
+	v1 "github.com/ocurity/dracon/api/proto/v1"
 )
 
 func Test_TemplateStringRaw(t *testing.T) {

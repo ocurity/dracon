@@ -10,6 +10,7 @@ import (
 
 	dtrack "github.com/DependencyTrack/client-go"
 	"github.com/google/uuid"
+
 	v1 "github.com/ocurity/dracon/api/proto/v1"
 	"github.com/ocurity/dracon/components/consumers"
 	cyclonedx "github.com/ocurity/dracon/pkg/cyclonedx"

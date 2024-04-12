@@ -5,9 +5,10 @@ import (
 	"os"
 	"testing"
 
-	v1 "github.com/ocurity/dracon/api/proto/v1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	v1 "github.com/ocurity/dracon/api/proto/v1"
 )
 
 func TestToDraconLibrary(t *testing.T) {

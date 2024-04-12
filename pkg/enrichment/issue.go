@@ -10,9 +10,10 @@ import (
 	"log"
 	"strings"
 
+	"google.golang.org/protobuf/types/known/timestamppb"
+
 	v1 "github.com/ocurity/dracon/api/proto/v1"
 	"github.com/ocurity/dracon/pkg/db"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // GetHash returns the hash of an issue.

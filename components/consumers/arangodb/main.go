@@ -9,6 +9,7 @@ import (
 
 	driver "github.com/arangodb/go-driver"
 	"github.com/arangodb/go-driver/http"
+
 	"github.com/ocurity/dracon/components/consumers"
 )
 

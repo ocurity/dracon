@@ -7,10 +7,11 @@ import (
 	"testing"
 	"time"
 
-	v1 "github.com/ocurity/dracon/api/proto/v1"
 	"github.com/owenrumney/go-sarif/v2/sarif"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	v1 "github.com/ocurity/dracon/api/proto/v1"
 
 	"google.golang.org/protobuf/types/known/timestamppb"
 )

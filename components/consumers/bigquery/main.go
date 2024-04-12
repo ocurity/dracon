@@ -9,10 +9,11 @@ import (
 	"time"
 
 	"cloud.google.com/go/bigquery"
-	"github.com/ocurity/dracon/components/consumers"
-	"github.com/ocurity/dracon/pkg/enumtransformers"
 	"golang.org/x/oauth2"
 	"google.golang.org/api/option"
+
+	"github.com/ocurity/dracon/components/consumers"
+	"github.com/ocurity/dracon/pkg/enumtransformers"
 )
 
 var (

@@ -7,9 +7,10 @@ import (
 	"log"
 
 	"github.com/avast/retry-go/v4"
-	"github.com/ocurity/dracon/components/consumers"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+
+	"github.com/ocurity/dracon/components/consumers"
 )
 
 var (

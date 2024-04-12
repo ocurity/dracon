@@ -9,9 +9,10 @@ import (
 	"os"
 	"path/filepath"
 
+	"golang.org/x/crypto/nacl/sign"
+
 	v1 "github.com/ocurity/dracon/api/proto/v1"
 	"github.com/ocurity/dracon/pkg/putil"
-	"golang.org/x/crypto/nacl/sign"
 )
 
 const signatureAnnotation = "JSON-Message-Signature"

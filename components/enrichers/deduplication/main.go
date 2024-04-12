@@ -8,11 +8,12 @@ import (
 
 	v1 "github.com/ocurity/dracon/api/proto/v1"
 
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+
 	"github.com/ocurity/dracon/pkg/db"
 	"github.com/ocurity/dracon/pkg/enrichment"
 	"github.com/ocurity/dracon/pkg/putil"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 var (

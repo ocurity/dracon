@@ -13,10 +13,11 @@ import (
 	"time"
 
 	cdx "github.com/CycloneDX/cyclonedx-go"
+	packageurl "github.com/package-url/packageurl-go"
+
 	v1 "github.com/ocurity/dracon/api/proto/v1"
 	"github.com/ocurity/dracon/pkg/cyclonedx"
 	"github.com/ocurity/dracon/pkg/putil"
-	packageurl "github.com/package-url/packageurl-go"
 )
 
 const defaultAnnotation = "Enriched Licenses"

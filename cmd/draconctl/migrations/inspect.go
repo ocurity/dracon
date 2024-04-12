@@ -7,9 +7,10 @@ import (
 	"os"
 
 	"github.com/golang-migrate/migrate/v4"
-	"github.com/ocurity/dracon/pkg/db"
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
+
+	"github.com/ocurity/dracon/pkg/db"
 )
 
 var inspectSubCmd = &cobra.Command{

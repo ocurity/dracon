@@ -6,11 +6,12 @@ import (
 	"slices"
 
 	"github.com/go-errors/errors"
-	"github.com/ocurity/dracon/pkg/components"
-	"github.com/ocurity/dracon/pkg/manifests"
 	tektonV1Beta1API "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1beta1"
 	corev1 "k8s.io/api/core/v1"
 	kustomizeTypes "sigs.k8s.io/kustomize/api/types"
+
+	"github.com/ocurity/dracon/pkg/components"
+	"github.com/ocurity/dracon/pkg/manifests"
 )
 
 var _ Backend[*tektonV1Beta1API.Pipeline] = (*tektonV1Beta1Backend)(nil)

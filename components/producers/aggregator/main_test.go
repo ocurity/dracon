@@ -8,11 +8,12 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	v1 "github.com/ocurity/dracon/api/proto/v1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
+
+	v1 "github.com/ocurity/dracon/api/proto/v1"
 )
 
 func genSampleIssues() []*v1.Issue {

@@ -8,10 +8,11 @@ import (
 	"os"
 	"strings"
 
-	v1 "github.com/ocurity/dracon/api/proto/v1"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+
+	v1 "github.com/ocurity/dracon/api/proto/v1"
 )
 
 var (

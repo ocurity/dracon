@@ -11,13 +11,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/types/known/timestamppb"
+
 	v1 "github.com/ocurity/dracon/api/proto/v1"
 	"github.com/ocurity/dracon/components/consumers/defectdojo/client"
 	"github.com/ocurity/dracon/components/consumers/defectdojo/types"
 	"github.com/ocurity/dracon/pkg/templating"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func createObjects(product int, scanType string) ([]*v1.LaunchToolResponse, []*types.TestCreateRequest, []*types.FindingCreateRequest, []*types.EngagementRequest, []*v1.EnrichedLaunchToolResponse) {

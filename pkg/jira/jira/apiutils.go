@@ -12,12 +12,13 @@ import (
 	jira "github.com/andygrunwald/go-jira"
 	"github.com/trivago/tgo/tcontainer"
 
+	"google.golang.org/protobuf/types/known/timestamppb"
+
 	v1 "github.com/ocurity/dracon/api/proto/v1"
 	"github.com/ocurity/dracon/pkg/enumtransformers"
 	"github.com/ocurity/dracon/pkg/jira/config"
 	"github.com/ocurity/dracon/pkg/jira/document"
 	"github.com/ocurity/dracon/pkg/templating"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type defaultJiraFields struct {

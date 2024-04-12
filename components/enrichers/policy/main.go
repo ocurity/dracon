@@ -10,10 +10,11 @@ import (
 	"strconv"
 	"time"
 
+	"google.golang.org/protobuf/encoding/protojson"
+
 	v1 "github.com/ocurity/dracon/api/proto/v1"
 	opaclient "github.com/ocurity/dracon/components/enrichers/policy/opaClient"
 	"github.com/ocurity/dracon/pkg/putil"
-	"google.golang.org/protobuf/encoding/protojson"
 )
 
 var (

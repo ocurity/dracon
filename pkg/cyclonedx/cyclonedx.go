@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	cdx "github.com/CycloneDX/cyclonedx-go"
+
 	v1 "github.com/ocurity/dracon/api/proto/v1"
 )
 

@@ -8,9 +8,10 @@ import (
 
 	v1 "github.com/ocurity/dracon/api/proto/v1"
 
-	"github.com/ocurity/dracon/pkg/putil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/ocurity/dracon/pkg/putil"
 )
 
 func TestLoadToolResponse(t *testing.T) {

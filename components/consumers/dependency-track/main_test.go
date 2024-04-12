@@ -10,10 +10,11 @@ import (
 
 	dtrack "github.com/DependencyTrack/client-go"
 	"github.com/google/uuid"
-	v1 "github.com/ocurity/dracon/api/proto/v1"
-	cyclonedx "github.com/ocurity/dracon/pkg/cyclonedx"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	v1 "github.com/ocurity/dracon/api/proto/v1"
+	cyclonedx "github.com/ocurity/dracon/pkg/cyclonedx"
 )
 
 func TestUploadBomsFromRaw(t *testing.T) {

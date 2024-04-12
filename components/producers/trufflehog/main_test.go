@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/mitchellh/mapstructure"
+
 	v1 "github.com/ocurity/dracon/api/proto/v1"
 	"github.com/ocurity/dracon/components/producers"
 

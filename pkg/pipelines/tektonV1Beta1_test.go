@@ -5,11 +5,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ocurity/dracon/pkg/manifests"
 	"github.com/stretchr/testify/require"
 	tektonV1Beta1API "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kustomizeTypes "sigs.k8s.io/kustomize/api/types"
+
+	"github.com/ocurity/dracon/pkg/manifests"
 )
 
 func TestResolveKustomizationResourceBases(t *testing.T) {

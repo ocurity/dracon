@@ -8,8 +8,9 @@ import (
 	"strings"
 	"time"
 
-	v1 "github.com/ocurity/dracon/api/proto/v1"
 	"github.com/owenrumney/go-sarif/v2/sarif"
+
+	v1 "github.com/ocurity/dracon/api/proto/v1"
 )
 
 // DraconIssueCollection represents all the findings in a single Sarif file converted to dracon format.

@@ -3,9 +3,10 @@ package main
 import (
 	"os"
 
+	"github.com/spf13/cobra"
+
 	"github.com/ocurity/dracon/cmd/draconctl/migrations"
 	"github.com/ocurity/dracon/cmd/draconctl/pipelines"
-	"github.com/spf13/cobra"
 )
 
 var rootCmd = &cobra.Command{

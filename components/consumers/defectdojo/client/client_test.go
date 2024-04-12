@@ -7,9 +7,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/ocurity/dracon/components/consumers/defectdojo/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/ocurity/dracon/components/consumers/defectdojo/types"
 )
 
 func TestDojoClient(t *testing.T) {

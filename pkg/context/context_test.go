@@ -6,9 +6,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	v1 "github.com/ocurity/dracon/api/proto/v1"
 	"github.com/ocurity/dracon/pkg/testutil"
-	"github.com/stretchr/testify/require"
 )
 
 func TestExtractCodeLineRange(t *testing.T) {

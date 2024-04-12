@@ -6,10 +6,11 @@ import (
 	"path"
 	"strings"
 
-	"github.com/ocurity/dracon/pkg/manifests"
-	"github.com/ocurity/dracon/pkg/pipelines"
 	"github.com/spf13/cobra"
 	kustomizeType "sigs.k8s.io/kustomize/api/types"
+
+	"github.com/ocurity/dracon/pkg/manifests"
+	"github.com/ocurity/dracon/pkg/pipelines"
 )
 
 var buildSubCmd = &cobra.Command{
