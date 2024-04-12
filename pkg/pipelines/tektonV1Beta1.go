@@ -118,8 +118,8 @@ func addAnchorParameter(task *tektonV1Beta1API.Task) {
 	})
 }
 
-// ResolveKustomizationResourceBases checks the resources section to find the base pipeline and
-// task and fetches them wherever they are located.
+// ResolveKustomizationResources checks the resources section to find the base pipeline and
+// task and fetches them from wherever they are located.
 func (pk *Kustomization) ResolveKustomizationResources(ctx context.Context) (*tektonV1Beta1API.Pipeline, []*tektonV1Beta1API.Task, error) {
 	var err error
 	var baseTaskPath string
@@ -165,8 +165,8 @@ func (pk *Kustomization) ResolveKustomizationResources(ctx context.Context) (*te
 	return basePipeline, taskList, nil
 }
 
-// NewTektonBackend returns an implementation of the Backend interface that will produce a Tekton
-// Pipeline object with all the configured tasks.
+// NewTektonV1Beta1Backend returns an implementation of the Backend interface
+// that will produce a Tekton Pipeline object with all the configured tasks.
 func NewTektonV1Beta1Backend(basePipeline *tektonV1Beta1API.Pipeline, tasks []*tektonV1Beta1API.Task, suffix string) (Backend[*tektonV1Beta1API.Pipeline], error) {
 	if len(tasks) == 0 {
 		return nil, errors.Errorf("%w", ErrNoTasks)

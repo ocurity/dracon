@@ -4,29 +4,31 @@ import (
 	"context"
 	"fmt"
 
-	tektonV1Beta1 "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1beta1"
+	tektonv1beta1 "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1beta1"
 )
 
-func LoadTektonV1Beta1Task(ctx context.Context, root, pathOrURI string) (*tektonV1Beta1.Task, error) {
-	obj, gKV, err := LoadK8sManifest(ctx, root, pathOrURI, "task.yaml")
+// LoadTektonV1Beta1Task loads a tektonV1Beta1 Task object from a path
+func LoadTektonV1Beta1Task(ctx context.Context, configurationDir, pathOrURI string) (*tektonv1beta1.Task, error) {
+	obj, gKV, err := LoadK8sManifest(ctx, configurationDir, pathOrURI, "task.yaml")
 	if err != nil {
 		return nil, err
 	}
 
-	task, isATask := obj.(*tektonV1Beta1.Task)
+	task, isATask := obj.(*tektonv1beta1.Task)
 	if !isATask {
 		return nil, fmt.Errorf("object loaded is not a task: %v", gKV)
 	}
 	return task, nil
 }
 
-func LoadTektonV1Beta1Pipeline(ctx context.Context, root, pathOrURI string) (*tektonV1Beta1.Pipeline, error) {
-	obj, gKV, err := LoadK8sManifest(ctx, root, pathOrURI, "pipeline.yaml")
+// LoadTektonV1Beta1Pipeline loads a tektonV1Beta1 Pipeline object from a path
+func LoadTektonV1Beta1Pipeline(ctx context.Context, configurationDir, pathOrURI string) (*tektonv1beta1.Pipeline, error) {
+	obj, gKV, err := LoadK8sManifest(ctx, configurationDir, pathOrURI, "pipeline.yaml")
 	if err != nil {
 		return nil, err
 	}
 
-	pipeline, isAPipeline := obj.(*tektonV1Beta1.Pipeline)
+	pipeline, isAPipeline := obj.(*tektonv1beta1.Pipeline)
 	if !isAPipeline {
 		return nil, fmt.Errorf("object loaded is not a pipeline: %v", gKV)
 	}

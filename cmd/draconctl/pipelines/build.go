@@ -7,8 +7,9 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	kustomizeType "sigs.k8s.io/kustomize/api/types"
+	kustomizetypes "sigs.k8s.io/kustomize/api/types"
 
+	"github.com/ocurity/dracon/pkg/files"
 	"github.com/ocurity/dracon/pkg/manifests"
 	"github.com/ocurity/dracon/pkg/pipelines"
 )
@@ -33,7 +34,7 @@ func buildPipeline(cmd *cobra.Command, args []string) error {
 	}
 
 	kustomizationPath := args[0]
-	kustomizationLoader, err := manifests.NewLoader(".", kustomizationPath, "kustomization.yaml")
+	kustomizationLoader, err := files.NewLoader(".", kustomizationPath, "kustomization.yaml")
 	if err != nil {
 		return fmt.Errorf("%s: could not read contents of file: %w", kustomizationPath, err)
 	}
@@ -45,7 +46,7 @@ func buildPipeline(cmd *cobra.Command, args []string) error {
 	}
 
 	// Parse Pipeline kustomization
-	kustomization := &kustomizeType.Kustomization{}
+	kustomization := &kustomizetypes.Kustomization{}
 	if err = kustomization.Unmarshal(fileContents); err != nil {
 		return fmt.Errorf("%s: could not unmarshal YAML file: %w", kustomizationPath, err)
 	}

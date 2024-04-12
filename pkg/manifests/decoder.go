@@ -4,13 +4,15 @@ import (
 	"context"
 	"fmt"
 
-	tektonV1Beta1 "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1beta1"
+	tektonv1beta1 "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1beta1"
 	batchv1 "k8s.io/api/batch/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
-	jsonSerializer "k8s.io/apimachinery/pkg/runtime/serializer/json"
+	jsonserializer "k8s.io/apimachinery/pkg/runtime/serializer/json"
 	"k8s.io/client-go/kubernetes/scheme"
+
+	"github.com/ocurity/dracon/pkg/files"
 )
 
 var K8sObjDecoder runtime.Decoder
@@ -23,18 +25,20 @@ func init() {
 	if err := scheme.AddToScheme(sch); err != nil {
 		panic(err)
 	}
-	if err := tektonV1Beta1.AddToScheme(sch); err != nil {
+	if err := tektonv1beta1.AddToScheme(sch); err != nil {
 		panic(err)
 	}
 	CodecFactory = serializer.NewCodecFactory(sch)
 	K8sObjDecoder = CodecFactory.UniversalDeserializer()
-	serializer := jsonSerializer.NewYAMLSerializer(jsonSerializer.DefaultMetaFactory, scheme.Scheme, scheme.Scheme)
-	TektonV1Beta1ObjEncoder = CodecFactory.EncoderForVersion(serializer, tektonV1Beta1.SchemeGroupVersion)
-	BatchV1ObjEncoder = CodecFactory.EncoderForVersion(serializer, batchv1.SchemeGroupVersion)
+	yamlSerializer := jsonserializer.NewYAMLSerializer(jsonserializer.DefaultMetaFactory, scheme.Scheme, scheme.Scheme)
+	TektonV1Beta1ObjEncoder = CodecFactory.EncoderForVersion(yamlSerializer, tektonv1beta1.SchemeGroupVersion)
+	BatchV1ObjEncoder = CodecFactory.EncoderForVersion(yamlSerializer, batchv1.SchemeGroupVersion)
 }
 
-func LoadK8sManifest(ctx context.Context, root, pathOrURI, targetFile string) (runtime.Object, *schema.GroupVersionKind, error) {
-	loader, err := NewLoader(root, pathOrURI, targetFile)
+// LoadK8sManifest resolves the path or the URI, fetches the bytes stored in it and then attempts
+// to deserializer the bytes into a known K8s object struct.
+func LoadK8sManifest(ctx context.Context, configurationDir, pathOrURI, targetFile string) (runtime.Object, *schema.GroupVersionKind, error) {
+	loader, err := files.NewLoader(configurationDir, pathOrURI, targetFile)
 	if err != nil {
 		return nil, nil, fmt.Errorf("%s: could not resolve path or URI: %w", pathOrURI, err)
 	}
