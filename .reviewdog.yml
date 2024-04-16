@@ -5,7 +5,7 @@ runner:
     format: govet
 
   go/staticcheck:
-    cmd: staticcheck $(go list ./... | grep -v /vendor/ | grep -v github.com/ocurity/dracon/api/proto)
+    cmd: staticcheck -checks "all,-SA1019,-ST1000" $(go list ./... | grep -v /vendor/ | grep -v github.com/ocurity/dracon/api/proto)
     format: staticcheck
 
   go/revive:
