@@ -6,15 +6,15 @@ nameSuffix: -github-project
 namespace: dracon
 
 resources:
-  - ../../../components/base
-
+  - ../../../components/base/pipeline.yaml
+  - ../../../components/base/task.yaml
 components:
-  - ../../../components/sources/git
-  - ../../../components/producers/aggregator
-  - ../../../components/producers/golang-gosec
-  - ../../../components/producers/golang-nancy
-  - ../../../components/enrichers/aggregator
-  # - ../../../components/enrichers/deduplication
-  - ../../../components/enrichers/policy
-  - ../../../components/consumers/mongodb
-  - ../../../components/consumers/github
+  - ../../../components/sources/git/task.yaml
+  - ../../../components/producers/aggregator/task.yaml
+  - ../../../components/producers/golang-gosec/task.yaml
+  - ../../../components/producers/golang-nancy/task.yaml
+  - ../../../components/enrichers/aggregator/task.yaml
+  # - ../../../components/enrichers/deduplication/task.yaml
+  - ../../../components/enrichers/policy/task.yaml
+  - ../../../components/consumers/mongodb/task.yaml
+  - ../../../components/consumers/github/task.yaml

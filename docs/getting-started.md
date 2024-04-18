@@ -1,9 +1,9 @@
-# Getting Started with Dracon 
+# Getting Started with Dracon
 
 This guide will help to quickly setup Dracon on a Kubernetes cluster and get a pipeline running.
 The first step is to create a dev Kubernetes cluster in order to deploy Tekton. We suggest you use
 KiND to provision a local test cluster quickly. If you already have a K8s cluster then you can skip
-directly to the [Deploying Dracon dependencies](#Deploying-Dracon-dependencies) section.
+directly to the [Deploying Dracon dependencies](#deploying-dracon-dependencies) section.
 
 ## Tools you will need
 
@@ -18,8 +18,8 @@ You will need to have the following tools installed in your system:
 
 KinD is is a tool for running local Kubernetes clusters using Docker container “nodes”.
 
-Create a KinD cluster named `dracon-demo` with its own Docker registry. You can use our Bash 
-script or you can check for more info the 
+Create a KinD cluster named `dracon-demo` with its own Docker registry. You can use our Bash
+script or you can check for more info the
 [official documentation](https://kind.sigs.k8s.io/docs/user/quick-start/#creating-a-cluster):
 
 ```bash
@@ -225,9 +225,9 @@ spec:
 4. Create the PipelineRun resource:
 
 ```bash
-$ kubectl create -f pipelinerun.yaml
+kubectl create -f pipelinerun.yaml
 ```
 
-5. Observe the PipelineRun at http://localhost:8001/api/v1/namespaces/tekton-pipelines/services/tekton-dashboard:http/proxy/#/about
+5. Observe the PipelineRun at <http://localhost:8001/api/v1/namespaces/tekton-pipelines/services/tekton-dashboard:http/proxy/#/about>
 
-6. Once the PipelineRun has finished, you can view the output in Kibana at http://localhost:5601.
+6. Once the PipelineRun has finished, you can view the output in Kibana at <http://localhost:5601>.

@@ -12,7 +12,6 @@ Consumers can be written in any language that supports protobufs. We currently h
 2. Parse all dracon compatible output files the `in` location.
 3. Do arbitrary logic with issues.
 4. Create a Tekton Task `task.yaml` with `.metadata.labels["v1.dracon.ocurity.com/component"] = consumer`.
-5. Include this task in a `dracon_component` build rule from `//build/defs:dracon`. This will generate a Kustomize component based on the `task.yaml`.
 
 ### Consumer API
 

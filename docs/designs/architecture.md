@@ -9,12 +9,14 @@ Tekton CRD describing how the container will be used execute some quantum of pro
 ## Components
 
 Dracon has 3 types of components:
+
 1. Producers: they run a binary with eg. some source code as input and produce some results
 2. Enrichers: they use the output of one or more producers and enrich it with metadata
 3. Consumers: they consume results from other jobs and redirect it to some sink, such as a database
 
 Each Task must be labelled with the type of component that is packaed in the image it references.
 The label must have the name `v1.dracon.ocurity.com/component` and the value must be one of:
+
 1. consumer
 2. producer
 3. enricher

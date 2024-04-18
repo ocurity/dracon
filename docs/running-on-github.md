@@ -7,7 +7,9 @@ This article describes how this works, what is required, considerations/pitfalls
 The motivation behind this is to allow open source developers the ability to run Dracon on their own projects without the need of a cluster.
 
 ## Building Blocks
+
 The following are needed in order to run Dracon using Github actions:
+
 * a pipeline setup step
 * one or more tools steps and the relevant tool producers
 * a step to load the enrichment database
@@ -29,9 +31,11 @@ Github actions work very similarly to Tekton(Dracon's runtime engine) so the set
     mkdir -p $tmp/tool_out $tmp/producer_out $tmp/enricher_out $tmp/enricher_db
 
 ```
+
 In this step we make a temporary directory under the current shared Github Workspace, this directory will hold intermediate output for our steps/tools
 
 Then we save:
+
 * the name of the directory under the `DRACON_DIR` environment variable
 * a unique `DRACON_SCAN_ID` which the consumers can use to annotate results
 * the time the scan started under `DRACON_SCAN_TIME`
@@ -42,7 +46,9 @@ We also make 3 intermediate directories:
 * `enricher_db` which is used to load and then save the enricher's database between runs
 
 ## Tooling steps
+
 The following runs a gosec docker image against the current repository and parses it's output to Dracon's internal format.
+
 ```yaml
 - name: run_gosec
     run: docker run -v $GITHUB_WORKSPACE:/code  securego/gosec -fmt json -r -no-fail -quiet -out /code/${{ env.DRACON_DIR }}/tool_out/gosec_out.json /code/...
@@ -55,12 +61,14 @@ The following runs a gosec docker image against the current repository and parse
 ```
 
 Gosec:
+
 * `-v $GITHUB_WORKSPACE:/code` mounts our current shared working directory to the container's `/code`. The name of the directory in the container is not important but it must match the arguments provided to gosec.
 * `-fmt json` is important as the gosec parser only understands json
 * `-no-fail` instructs gosec to return 0 even if it has findings, this is done so that the Github Action continues executing even if Gosec believes there are findings.
 * `-out /code/${{ env.DRACON_DIR }}/tool_out/gosec_out.json` instructs the tool to write the results to the file `gosec_out.json` located under `/code/${{ env.DRACON_DIR }}/tool_out/`. The variable `${{ env.DRACON_DIR }}` instructs the Github Actions runner to replace it with the value of the environment variable `DRACON_DIR`
 
 The producer:
+
 * Mounts the same workspace under `/code`
 * Uses the argument `-in` (common in all producers) to read the tool's output from the file `gosec_out.json` located in the path `/code/${{ env.DRACON_DIR }}/tool_out/`
 * Uses the argument `-out` (common in all producers) to write the producer's output to the protobuff file `/code/${{env.DRACON_DIR}}/producer_out/gosec-producer_out.pb`
@@ -104,7 +112,7 @@ Due to Github's lack of a persistent database this step is the most complicated:
 
 ```
 
-The step `fetch_db` uses a script located [here] https://github.com/northdpole/dracon-load-latest-database-action/blob/main/get_latest_artifact.py) to find the latest artifact named `dracon_enrichment_db` by creation date and attempts to download and extract it in the path denoted by `OUTPUT_DIR`.
+The step `fetch_db` uses a script located [here] <https://github.com/northdpole/dracon-load-latest-database-action/blob/main/get_latest_artifact.py>) to find the latest artifact named `dracon_enrichment_db` by creation date and attempts to download and extract it in the path denoted by `OUTPUT_DIR`.
 
 The step `run_enricher` starts by installing psql and pg_dump in order to be able to load and save the database and running a temporary postgres container so that the enricher has a database to connect to.
 The following attempts to load the database if the step `fetch_db` managed to find one in the artifacts:
@@ -115,7 +123,9 @@ The following attempts to load the database if the step `fetch_db` managed to fi
         rm -f $GITHUB_WORKSPACE/${{ env.DRACON_DIR}}/enricher_db/db.dump
     fi
 ```
+
 Then the enricher variables are setup and the enricher runs with.
+
 ```bash
     export ENRICHER_READ_PATH=/code/${{ env.DRACON_DIR }}/producer_out/
     export ENRICHER_WRITE_PATH=/code/${{ env.DRACON_DIR }}/enricher_out/
@@ -123,6 +133,7 @@ Then the enricher variables are setup and the enricher runs with.
 
     docker run --network host -v $GITHUB_WORKSPACE:/code -e ENRICHER_READ_PATH -e ENRICHER_WRITE_PATH -e ENRICHER_DB_CONNECTION thoughtmachine/dracon-enricher
 ```
+
 Please note that the enricher will run migrations therefore creating the necessary database structure if the necessary database tables do not exist.
 
 Finally, we save the database by dumping the running db and using the `upload-artifact` action to save it as a github artifact for 90 days (configurable)
@@ -131,6 +142,7 @@ Finally, we save the database by dumping the running db and using the `upload-ar
 
     pg_dump -h 127.0.0.1 -p 5432 -d postgres -U postgres -w -Fp --clean --no-owner --no-privileges --no-acl --if-exists --inserts --no-comments > $GITHUB_WORKSPACE/${{ env.DRACON_DIR }}/enricher_db/db.dump
 ```
+
 ```yaml
 - uses: actions/upload-artifact@v2
     with:
@@ -141,6 +153,7 @@ Finally, we save the database by dumping the running db and using the `upload-ar
 ```
 
 ## Consumers
+
 In this example we used the simplest consumer, `stdout-json` which just prints the results.
 You can use any of the supported consumers or write your own if required.
 
@@ -150,16 +163,18 @@ You can use any of the supported consumers or write your own if required.
     docker run -e DRACON_SCAN_ID -e DRACON_SCAN_TIME -v $GITHUB_WORKSPACE:/code thoughtmachine/dracon-consumer-stdout-json:v0.16.0 \
     -in /code/${{ env.DRACON_DIR}}/enricher_out/
 ```
+
 The consumer is supplied with
+
 * One volume mount `-v $GITHUB_WORKSPACE:/code thoughtmachine/`
 * The environment variables we setup at the beginning: `DRACON_SCAN_ID` and `DRACON_SCAN_TIME`
 * One argument, common to all consumers `-in` which points to the path where the enricher wrote it's results,  `${{ env.DRACON_DIR}}/enricher_out/`
 
 More complicated consumers such as slack or jira would also require extra variables (a webhook url for slack, jira credentials for jira) and in case of the Jira consumer, a configuration file as described in it's documentation page
 
-## Considerations:
+## Considerations
+
 The following are considerations/pitfalls you should be aware off when runnign dracon as a github action:
+
 * The variable `DRACON_SCAN_ID` needs to be a uuid4
 * The variable `DRACON_SCAN_TIME` needs to be an RFC3339 type timestamp, the `date` utility does not support timezones when it is run with `date --rfc-3339=seconds` and, to our knowledge, there is no way to make it output a timestamp in the correct format.
-
-
