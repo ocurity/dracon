@@ -13,7 +13,7 @@ Producers can be written in any language that supports protobufs. We currently h
 3. Add metadata to Protobufs (e.g. git/source-code information).
 4. Write the protobuf bytes to the `out` file.
 5. Create a Tekton Task `task.yaml` with `.metadata.labels["v1.dracon.ocurity.com/component"] = producer`.
-5. Include this task in a `dracon_component` build rule from `//build/defs:dracon`. This will generate a Kustomize component based on the `task.yaml`.
+
 ### Producer API
 
 For convenience, there are helper functions in the `./producers` pkg/module for Golang/Python.

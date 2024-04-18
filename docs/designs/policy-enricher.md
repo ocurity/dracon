@@ -3,8 +3,10 @@
 Large (and small) teams would benefit from having a way to automatically make decisions about scan results.
 This would allow them to custom tag results based on logic evaluation making it trivial to filter or otherwise manipulate results downstream.
 
-## Requirements 
+## Requirements
+
 As a user of this application I should be able to:
+
 * Upload and manage a set of rules in some DSL
 * Build policies in a user friendly way
 * Have a set of example default policies available for testing
@@ -25,6 +27,7 @@ Minio is a convenient solution for a Rego file manager and it further allows for
 ### API changes
 
 Currently the API dracon uses supports only the following fields in a raw finding:
+
 ```
 string target = 1; // can be host:port or //foo/bar
 string type = 2; // CWE-ID, etc for XSS, CSRF, etc.
@@ -38,6 +41,7 @@ string cve = 9; // [Optional] the CVE causing this vulnerability
 ```
 
 and in an enriched finding:
+
 ```
 Is  sue raw_issue = 1;
 // The first time this issue was seen by the enrichment service
@@ -74,8 +78,8 @@ message EnrichedIssue {
 }
 
 ```
-This backwards compatible change allows dracon to optionally append policy information to a message.
 
+This backwards compatible change allows dracon to optionally append policy information to a message.
 
 ### Enricher execution changes
 
@@ -84,7 +88,7 @@ Current consumer design assumes that any finding corresponds to a unique produce
 If we have multiple enrichers run in parallel then we will have finding dupication with different information appended to each version of a finding based on which enricher ran on it.
 There are two suggested ways of preserving finding uniqueness while having multiple enrichers.
 
-* The enricher phase can run enrichers in series randomising their execution order. 
+* The enricher phase can run enrichers in series randomising their execution order.
 This would allow a quick and easy way of chaining a potentially large ammount of enrichers all while preserving finding uniqueness.
 However performance would suffer drastically.
 * The enricher phase can be pre-empted by a "message uniqueness" phase which adds a UUID to each enriched message.

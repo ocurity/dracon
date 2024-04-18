@@ -10,19 +10,19 @@ development environment and Tekton.
 3. Run the formatters.
 
     ```bash
-    $ make fmt
+    make fmt
     ```
 
 4. Run linters.
 
     ```bash
-    $ make lint
+    make lint
     ```
 
 5. Run tests.
 
     ```bash
-    $ make test
+    make test
     ```
 
 6. Make sure you have updated all manifests in case you are changing anything in the tools that

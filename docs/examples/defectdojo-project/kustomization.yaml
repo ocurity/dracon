@@ -5,13 +5,13 @@ kind: Kustomization
 nameSuffix: -defectdojo-project
 
 resources:
-  - ../../../components/base
-
+  - ../../../components/base/pipeline.yaml
+  - ../../../components/base/task.yaml
 components:
-  - ../../../components/sources/git
-  - ../../../components/producers/aggregator
-  - ../../../components/producers/trufflehog
-  - ../../../components/enrichers/aggregator
-  - ../../../components/enrichers/policy
-  - ../../../components/consumers/mongodb
-  - ../../../components/consumers/defectdojo
+  - ../../../components/sources/git/task.yaml
+  - ../../../components/producers/aggregator/task.yaml
+  - ../../../components/producers/trufflehog/task.yaml
+  - ../../../components/enrichers/aggregator/task.yaml
+  - ../../../components/enrichers/policy/task.yaml
+  - ../../../components/consumers/mongodb/task.yaml
+  - ../../../components/consumers/defectdojo/task.yaml
