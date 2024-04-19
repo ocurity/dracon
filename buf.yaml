@@ -13,8 +13,6 @@ lint:
 
 deps:
   # buf requires us to add the third party protos here as deps.
-  # Run:
-  # $ ./pleasew run "//third_party/binary/bufbuild/buf:buf|buf" -- mod update
   # when you update this to update the lock file.
   - buf.build/googleapis/googleapis
   - buf.build/grpc-ecosystem/grpc-gateway

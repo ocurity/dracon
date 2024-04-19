@@ -1,9 +1,10 @@
 # Developing
 
-We provide a complete development environment using the [Please build system](https://please.build). A `./pleasew` wrapper script is available for contributers who do not have Please installed and for use in CI/CD systems.
+Contributions to this project are more than welcome!
 
 ## Getting Started
 
+0. The project is based in Go so you need to have the go binary installed. For linting Markdown files (required for component documentation) we use `markdownlint-cli` which is an `npm` package
 1. Use the [Getting Started](../../docs/getting-started/installation.md) guide to setup your
 development environment and Tekton.
 2. Make your changes :).

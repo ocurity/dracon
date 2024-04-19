@@ -8,21 +8,21 @@ Composing pipelines is easy, just 4 steps.
 4. Write a pipelineRun.yaml providing values for your pipeline
 
 ## Example
+
 Let's assume we want to scan a repository, that contains code written in Go.
 Since we are scannign Go it makes sense to also enrich the results by detecting duplicates and as a bonus let's also apply a Rego policy.
 We can compose this pipeline by writing the following `kustomization.yaml`
 
-
 In the following file:
+
 * we tell `draconctl` that we want the pipeline pods to have the suffix `*-golang-project`
-* it should base everything to the official `task.yaml` and `pipeline.yaml` 
+* it should base everything to the official `task.yaml` and `pipeline.yaml`
 * it should start by running a `git clone` to bring the code in for scanning
 * it should scan the code with the `nancy` and `gosec` components.
 * it should aggregate the scanning results
 * enrich the results by applying policy and deduplicating
 * it should aggregate the enriched results
 * finally `draconctl` should push results to `mongodb` and `elasticsearch`
-
 
 ```yaml
 ---
@@ -58,6 +58,7 @@ type: "application"
 version: 0.0.1
 appVersion: "0.0.1"
 ```
+
 We can manage this chart as any other Helm chart and install it with:
 `helm upgrade go-pipeline ./go-pipeline --install  --set "container_registry=kind-registry:5000/ocurity/dracon" --set "dracon_os_component_version=$(make print-DRACON_VERSION)"`
 

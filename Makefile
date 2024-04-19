@@ -110,6 +110,7 @@ install-lint-tools:
 	@go install github.com/rhysd/actionlint/cmd/actionlint@latest
 	@go install github.com/client9/misspell/cmd/misspell@latest
 	@go install github.com/bufbuild/buf/cmd/buf@v1.28.1
+	@npm install markdownlint-cli2 --global
 
 go-tests:
 	@mkdir -p tests/output
@@ -133,7 +134,12 @@ fmt-go:
 	@gofmt -l -w $$(find . -name *.go -not -path "./vendor/*" | xargs -n 1 dirname | uniq)
 	@goimports -local $$(cat go.mod | grep -E "^module" | sed 's/module //') -w $$(find . -name *.go -not -path "./vendor/*" | xargs -n 1 dirname | uniq)
 
-fmt: fmt-go fmt-proto
+
+fmt-md: 
+	@echo "Tidying up MD files"
+	@markdownlint-cli2 --fix "**/*.md" "#vendor"
+
+fmt: fmt-go fmt-proto fmt-md
 
 ########################################
 ########## DEBUGGING TARGETS ###########
