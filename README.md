@@ -1,5 +1,5 @@
 [![Lint](https://github.com/ocurity/dracon/actions/workflows/lint.yml/badge.svg)](https://github.com/ocurity/dracon/actions/workflows/lint.yml)
- [![Run dracon](https://github.com/ocurity/dracon/actions/workflows/run_dracon.yml/badge.svg)](https://github.com/ocurity/dracon/actions/workflows/run_dracon.yml) 
+ [![Run dracon](https://github.com/ocurity/dracon/actions/workflows/run_dracon.yml/badge.svg)](https://github.com/ocurity/dracon/actions/workflows/run_dracon.yml)
 <!-- [![Test](https://github.com/ocurity/dracon/actions/workflows/test.yml/badge.svg)](https://github.com/ocurity/dracon/actions/workflows/test.yml) -->
 [![Publish](https://github.com/ocurity/dracon/actions/workflows/publish.yml/badge.svg)](https://github.com/ocurity/dracon/actions/workflows/publish.yml)
 
@@ -11,7 +11,6 @@
 </p>
 
 # Dracon
-
 
 By [Ocurity](https://ocurity.com)
 Security scanning,results unification and enrichment tool ([ASOC](https://www.gartner.com/reviews/market/application-security-orchestration-and-correlation-asoc-tools)) - forked and rewritten from @thought-machine/dracon

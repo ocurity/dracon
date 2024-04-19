@@ -26,7 +26,6 @@ Trivy-Producer currently supports the following output formats:
 You can use this producer to scan an image for vulnerabilities or generate an SBOM from both images and filesystems.
 Accepted parameters and execution details can be found in [task.yaml](./task.yaml)
 
-
 ## Testing without Dracon
 
 You can run this producer outside of dracon for development with
@@ -34,6 +33,7 @@ You can run this producer outside of dracon for development with
 ``` bash
 plz run //components/producers/docker-trivy:trivy -- -in <trivy output> -format <what you passed as trivy -f flag> -out ./trivy.pb 
 ```
+
 Trivy can be run as a docker image by pulling `aquasec/trivy`
 
 ## SBOM mode

@@ -10,6 +10,7 @@ You can run this producer outside of dracon for development with
 ``` bash
 plz run //components/producers/cdxgen:cdxgen -- -in <any cyclonedx sbom document> -out ./cdxgen.pb 
 ```
+
 cdxgen can be run as a docker image by pulling `ghcr.io/cyclonedx/cdxgen`
 
 ## SBOM mode
