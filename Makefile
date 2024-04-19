@@ -137,7 +137,7 @@ fmt-go:
 
 fmt-md: 
 	@echo "Tidying up MD files"
-	@markdownlint-cli2 --fix "**/*.md" "#vendor"
+	@markdownlint-cli2 --config .markdownlint.yaml --fix "**/*.md" "#vendor"
 
 fmt: fmt-go fmt-proto fmt-md
 
