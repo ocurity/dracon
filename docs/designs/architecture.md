@@ -26,7 +26,7 @@ The label must have the name `v1.dracon.ocurity.com/component` and the value mus
 We use kustomize as a build system for the Pipelines. A Pipeline is a Tekton CRD describing how a
 number of Tasks are connected to each other to produce some result and store it in a database or
 producer a ticket (or both).
-Each component must define a Tekton Task object which is used as input to our `component-generator`
+Each component must define a Tekton Task object which is used as input to our `draconctl`
 to produce a `kustomization.yaml`. This kustomization describes how a Task should be added to a
 Pipeline.
 
