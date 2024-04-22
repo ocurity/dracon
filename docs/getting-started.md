@@ -131,13 +131,13 @@ bin/cmd/draconctl migrations apply \
   /etc/dracon/migrations/enrichment
 ```
 
-\* Notice that the repo we are using over here is slightly different than the
-one we pushed the
-images in the previous step. That's because with local registries the registry
-is exposed on a port in localhost, however inside the KiND cluster, that's not
-the case. Instead the registry's host is `kind-registry:5000`.
-This is also going to be important later when we will deploy the pipelines
-and their image repositories will also have to be set to this value.
+\* Notice that the repo we are using is slightly different than the
+one we pushed the images in the previous step. That's because with local 
+registries the registry is exposed on a port in localhost, however inside the 
+KiND cluster, that's not the case. Instead the registry's host is 
+`kind-registry:5000`. This is also going to be important later when we will 
+deploy the pipelines and their image repositories will also have to be set to 
+this value.
 
 \**Make sure that you use the draconctl image that you pushed in the repository
 
