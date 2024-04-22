@@ -7,12 +7,15 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+	corev1 "k8s.io/api/core/v1"
 	kustomizetypes "sigs.k8s.io/kustomize/api/types"
 
 	"github.com/ocurity/dracon/pkg/files"
 	"github.com/ocurity/dracon/pkg/manifests"
 	"github.com/ocurity/dracon/pkg/pipelines"
 )
+
+const DefaultPullPolicy = "IfNotPresent"
 
 var buildSubCmd = &cobra.Command{
 	Use: "build",
@@ -26,6 +29,7 @@ to output the Pipeline in different formats. For the time being we only support 
 
 func init() {
 	buildSubCmd.Flags().StringP("out", "o", "stdout", "The file to output the generated manifests")
+	buildSubCmd.Flags().StringP("pull-policy", "", DefaultPullPolicy, "override the default image pull policy")
 }
 
 func buildPipeline(cmd *cobra.Command, args []string) error {
@@ -71,8 +75,21 @@ func buildPipeline(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return fmt.Errorf("could not initialise backend: %w", err)
 	}
+	pullPolicy, err := cmd.Flags().GetString("pull-policy")
+	if err != nil {
+		return fmt.Errorf("could not get flag for pull policy: %w", err)
+	}
+	if pullPolicy != string(corev1.PullAlways) &&
+		pullPolicy != string(corev1.PullIfNotPresent) &&
+		pullPolicy != string(corev1.PullNever) {
+		return fmt.Errorf("unsuported pull policy %s", pullPolicy)
+	}
+	pp := corev1.PullPolicy(pullPolicy)
 
-	pipeline, err := k8sBackend.Generate()
+	ops := pipelines.GenerationOpts{
+		ImagePullPolicy: &pp,
+	}
+	pipeline, err := k8sBackend.Generate(ops)
 	if err != nil {
 		return fmt.Errorf("could not initialise backend: %w", err)
 	}

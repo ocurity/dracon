@@ -190,7 +190,10 @@ func NewTektonV1Beta1Backend(basePipeline *tektonV1Beta1API.Pipeline, tasks []*t
 	return tektonBackend, nil
 }
 
-func (tb *tektonV1Beta1Backend) Generate() (*tektonV1Beta1API.Pipeline, error) {
+// Generate is the main method for this backend, it generates the helm templates
+//
+// revive:disable:cognitive-complexity,cyclomatic High complexity score but easy to understand
+func (tb *tektonV1Beta1Backend) Generate(o GenerationOpts) (*tektonV1Beta1API.Pipeline, error) {
 	tb.pipeline.Name = tb.pipeline.Name + tb.suffix
 	pipelineWorkspaces := map[string]struct{}{}
 	anchors := map[string][]string{}
@@ -198,6 +201,13 @@ func (tb *tektonV1Beta1Backend) Generate() (*tektonV1Beta1API.Pipeline, error) {
 	for _, task := range tb.tasks {
 		componentType := task.Labels[components.LabelKey]
 		anchors[componentType] = append(anchors[componentType], task.Name)
+
+		// if custom imagePullPolicy is set override the task imagePullPolicy with the custom one
+		if o.ImagePullPolicy != nil {
+			for i := range task.Spec.Steps {
+				task.Spec.Steps[i].ImagePullPolicy = *o.ImagePullPolicy
+			}
+		}
 
 		// add task to pipeline tasks
 		pipelineTask := tektonV1Beta1API.PipelineTask{

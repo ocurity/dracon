@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	tektonV1Beta1API "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1beta1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kustomizeTypes "sigs.k8s.io/kustomize/api/types"
 
@@ -91,6 +92,103 @@ func TestResolveKustomizationResourceBases(t *testing.T) {
 			require.ErrorIs(t, err, testCase.expectedErr)
 			require.Equal(t, testCase.expectedPipeline, basePipeline)
 			require.EqualValues(t, testCase.expectedTasks, taskList)
+		})
+	}
+}
+
+func TestOverrideImagePullPolicy(t *testing.T) {
+	testCtx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	defer cancel()
+	always := corev1.PullAlways
+	testCases := []struct {
+		name             string
+		kustomization    *Kustomization
+		expectedPipeline *tektonV1Beta1API.Pipeline
+		expectedErr      error
+		config           GenerationOpts
+	}{
+
+		{
+			name: "no image pull policy means the existing one is used",
+			kustomization: &Kustomization{
+				Kustomization: &kustomizeTypes.Kustomization{
+					NameSuffix: "-cyberdyne-card-processing",
+					Resources: []string{
+						"https://raw.githubusercontent.com/ocurity/dracon/main/components/base/pipeline.yaml",
+						"https://raw.githubusercontent.com/ocurity/dracon/main/components/base/task.yaml",
+					},
+					Components: []string{"../../components/sources/git"},
+				},
+			},
+			expectedPipeline: &tektonV1Beta1API.Pipeline{
+				TypeMeta: metav1.TypeMeta{
+					Kind:       "Pipeline",
+					APIVersion: "tekton.dev/v1beta1",
+				},
+				ObjectMeta: metav1.ObjectMeta{Name: "dracon"},
+				Spec: tektonV1Beta1API.PipelineSpec{
+					Tasks:      []tektonV1Beta1API.PipelineTask{},
+					Workspaces: []tektonV1Beta1API.PipelineWorkspaceDeclaration{},
+				},
+			},
+		},
+		{
+			name: "Image Pull Policy set to Always updates the default accordingly",
+			kustomization: &Kustomization{
+				Kustomization: &kustomizeTypes.Kustomization{
+					NameSuffix: "-cyberdyne-card-processing",
+					Resources: []string{
+						"https://raw.githubusercontent.com/ocurity/dracon/main/components/base/pipeline.yaml",
+						"https://raw.githubusercontent.com/ocurity/dracon/main/components/base/task.yaml",
+					},
+					Components: []string{"../../components/sources/git"},
+				},
+			},
+			expectedPipeline: &tektonV1Beta1API.Pipeline{
+				TypeMeta: metav1.TypeMeta{
+					Kind:       "Pipeline",
+					APIVersion: "tekton.dev/v1beta1",
+				},
+				ObjectMeta: metav1.ObjectMeta{Name: "dracon"},
+				Spec: tektonV1Beta1API.PipelineSpec{
+					Tasks:      []tektonV1Beta1API.PipelineTask{},
+					Workspaces: []tektonV1Beta1API.PipelineWorkspaceDeclaration{},
+				},
+			},
+			config: GenerationOpts{ImagePullPolicy: &always},
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			runCtx, cancel := context.WithCancel(testCtx)
+			defer cancel()
+
+			basePipeline, taskList, err := testCase.kustomization.ResolveKustomizationResources(runCtx)
+			require.ErrorIs(t, err, testCase.expectedErr)
+			require.Equal(t, testCase.expectedPipeline, basePipeline)
+
+			k8sBackend, err := NewTektonV1Beta1Backend(basePipeline, taskList, testCase.kustomization.NameSuffix)
+			require.NoError(t, err)
+			pipeline, err := k8sBackend.Generate(testCase.config)
+			require.NoError(t, err)
+			if testCase.config.ImagePullPolicy != nil {
+				for _, task := range pipeline.Spec.Tasks {
+					if task.TaskSpec != nil && task.TaskSpec.Steps != nil {
+						for _, step := range task.TaskSpec.Steps {
+							require.EqualValues(t, step.ImagePullPolicy, testCase.config.ImagePullPolicy)
+						}
+					}
+				}
+			} else {
+				for _, task := range pipeline.Spec.Tasks {
+					if task.TaskSpec != nil && task.TaskSpec.Steps != nil {
+						for _, step := range task.TaskSpec.Steps {
+							require.NotNil(t, step.ImagePullPolicy)
+						}
+					}
+				}
+			}
 		})
 	}
 }
