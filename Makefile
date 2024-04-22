@@ -231,4 +231,6 @@ deploy-tektoncd-dashboard: tektoncd-dashboard-helm
 		--values ./deploy/tektoncd/dashboard/values.yaml \
 		--namespace $(TEKTON_NS)
 
+dev:
+	./scripts/kind-with-registry.sh
 dev-deploy: deploy-nginx deploy-arangodb deploy-kibana deploy-mongodb deploy-pg deploy-tektoncd-pipeline deploy-tektoncd-dashboard
