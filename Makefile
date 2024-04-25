@@ -9,7 +9,7 @@ latest_tag=$(shell git tag --list --sort="-version:refname" | head -n 1)
 commits_since_latest_tag=$(shell git log --oneline $(latest_tag)..HEAD | wc -l)
 
 GO_TEST_PACKAGES=$(shell go list ./... | grep -v /vendor/)
-CONTAINER_REPO=europe-west1-docker.pkg.dev/oc-dracon-saas/demo/ocurity/dracon
+CONTAINER_REPO=ghcr.io/ocurity/dracon
 DRACON_VERSION=$(shell echo $(latest_tag)$$([ $(commits_since_latest_tag) -eq 0 ] || echo "-$$(git log -n 1 --pretty='format:%h')" )$$([ -z "$$(git status --porcelain=v1 2>/dev/null)" ] || echo "-dirty" ))
 TEKTON_VERSION=0.44.0
 TEKTON_DASHBOARD_VERSION=0.29.2

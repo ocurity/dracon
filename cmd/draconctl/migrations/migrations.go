@@ -188,7 +188,7 @@ func grabLeaderLock(f cmdEntrypoint, cmd *cobra.Command, args []string, restCfg 
 // generateMigrationJob generates a Job manifest
 func generateMigrationJob(cmdName string) *batchv1.Job {
 	if migrationsAsK8sJobConfig.image == "" {
-		migrationsAsK8sJobConfig.image = "europe-west1-docker.pkg.dev/oc-dracon-saas/demo/ocurity/dracon/draconctl:latest"
+		migrationsAsK8sJobConfig.image = "https://ghcr.io/ocurity/dracon/draconctl:latest"
 	}
 
 	migrationJob := batchv1.Job{
