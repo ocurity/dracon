@@ -1,0 +1,23 @@
+apiVersion: v2
+name: dracon
+description: A Helm chart for Kubernetes
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+dependencies:
+  - name: postgresql
+    version: 15.2.5
+    repository: https://charts.bitnami.com/bitnami
+    condition: postgres.enabled
+  - name: mongodb
+    version: 15.1.5
+    repository: https://charts.bitnami.com/bitnami
+    condition: mongodb.enabled
+  - name: elasticsearch
+    version: 0.1.0
+    repository: file://../elasticsearch
+    condition: elasticsearch.enabled
+  - name: kibana
+    version: 0.1.0
+    repository: file://../kibana
+    condition: kibana.enabled

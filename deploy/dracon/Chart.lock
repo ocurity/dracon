@@ -1,0 +1,15 @@
+dependencies:
+- name: postgresql
+  repository: https://charts.bitnami.com/bitnami
+  version: 15.2.5
+- name: mongodb
+  repository: https://charts.bitnami.com/bitnami
+  version: 15.1.5
+- name: elasticsearch
+  repository: file://../elasticsearch
+  version: 0.1.0
+- name: kibana
+  repository: file://../kibana
+  version: 0.1.0
+digest: sha256:a9bd592c24509f294eae3b9415f420b6ec7de9a141d2ba410b7eb7602e866961
+generated: "2024-04-26T18:23:56.800279848+01:00"

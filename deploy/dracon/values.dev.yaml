@@ -1,0 +1,38 @@
+
+elasticsearch:
+  enabled: true
+  version: 8.3.2
+
+kibana:
+  enabled: true
+  version: 8.3.2
+
+mongodb:
+    enabled: true
+    # auth:
+    #   enabled: true
+    #   usernames: ["consumer-mongodb"]
+    #   passwords: ["consumer-mongodb"]
+    #   databases: ["consumer-mongodb"]
+    #   rootUser: "consumer-mongodb"
+    #   rootPassword: "consumer-mongodb"
+
+postgresql:
+  enabled: true
+  auth:
+    username: dracon
+    password: dracon
+    database: dracon
+    postgresPassword: dracon
+  fullnameOverride: dracon-enrichment-db
+
+tekton:
+  enabled: true
+
+global:
+  namespace: dracon
+  image:
+    registry: kind-registry:5000
+    draconVersion: "0.1.0"
+  enrichmentDB:
+    connectionStr: postgresql://dracon:dracon@dracon-enrichment-db.dracon.svc.cluster.local?sslmode=disable

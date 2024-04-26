@@ -184,37 +184,6 @@ deploy-elasticoperator: add-es-helm-repo
 		--create-namespace \
 		--version=$(ES_OPERATOR_VERSION)
 
-deploy-elasticsearch: deploy-elasticoperator
-	@helm upgrade dracon-es deploy/elasticsearch/ \
-		--install \
-		--set version=$(ES_VERSION) \
-		--namespace $(DRACON_NS) \
-		--create-namespace
-
-deploy-kibana: deploy-elasticsearch
-	@helm upgrade dracon-kb deploy/kibana/ \
-		--install \
-		--set version=$(ES_VERSION) \
-		--set es_name=dracon-es-elasticsearch \
-		--namespace $(DRACON_NS) \
-		--version $(ES_VERSION)
-
-deploy-mongodb:
-	@helm upgrade consumer-mongodb https://charts.bitnami.com/bitnami/mongodb-$(MONGODB_VERSION).tgz \
-		--install \
-		--namespace $(DRACON_NS) \
-		--create-namespace \
-		--set "auth.usernames[0]=consumer-mongodb" \
-		--set "auth.passwords[0]=consumer-mongodb" \
-		--set "auth.databases[0]=consumer-mongodb"
-
-deploy-pg:
-	@helm upgrade pg https://charts.bitnami.com/bitnami/postgresql-$(PG_VERSION).tgz \
-		--install \
-		--namespace $(DRACON_NS) \
-		--create-namespace \
-		--values=deploy/enrichment-db/values.yaml
-
 deploy/tektoncd/pipeline/release-v$(TEKTON_VERSION).yaml:
 	@wget "https://storage.googleapis.com/tekton-releases/pipeline/previous/v$(TEKTON_VERSION)/release.yaml" -O $@
 
@@ -239,4 +208,24 @@ deploy-tektoncd-dashboard: tektoncd-dashboard-helm
 		--values ./deploy/tektoncd/dashboard/values.yaml \
 		--namespace $(TEKTON_NS)
 
-dev-deploy: deploy-nginx deploy-arangodb deploy-kibana deploy-mongodb deploy-pg deploy-tektoncd-pipeline deploy-tektoncd-dashboard
+deploy-dracon-dev: deploy-elasticoperator
+	make draconctl-image-publish CONTAINER_REPO=localhost:5000/ocurity/dracon
+	@helm upgrade dracon ./deploy/dracon/ \
+	 	  --install \
+		  --values ./deploy/dracon/values.dev.yaml \
+		  --create-namespace \
+		  --namespace $(DRACON_NS) \
+		  --set "global.image.draconVersion=$(DRACON_VERSION)"
+		  --wait
+
+dev-deploy: 
+	make deploy-nginx
+	make deploy-arangodb
+	make deploy-tektoncd-pipeline
+	make deploy-tektoncd-dashboard
+	make deploy-dracon-dev
+
+dev-teardown:
+	kind delete clusters dracon-demo
+dev: 
+	./scripts/kind-with-registry.sh
