@@ -1,8 +1,0 @@
-apiVersion: v2
-description: ArangoDB Dev Instance for TektonCD
-name: arangodb-instance
-version: 0.1.0
-dependencies:
-  - name: kube-arangodb
-    chart: kube-arangodb
-    version: 1.2.19

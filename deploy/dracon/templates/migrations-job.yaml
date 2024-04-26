@@ -1,0 +1,33 @@
+{{ if .Values.enrichmentDB.migrations.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "dracon.fullname" . }}-migrations
+  labels:
+    {{- include "dracon.labels" . | nindent 4 }}
+  annotations:
+    # This is what defines this resource as a hook. Without this line, the
+    # job is considered part of the release.
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "-5"
+    "helm.sh/hook-delete-policy": hook-succeeded
+spec:
+  template:
+    metadata:
+      name: dracon-migrations
+      labels:
+        {{- include "dracon.labels" . | nindent 8 }}
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: dracon-migrations
+        image: {{ .Values.enrichmentDB.migrations.image | default (print .Values.global.image.registry "/ocurity/dracon/draconctl:" .Chart.AppVersion) }}
+        command:
+        - draconctl
+        - migrations
+        - apply
+        - --url
+        - {{.Values.enrichmentDB.connectionStr | quote}}
+        - /etc/dracon/migrations/enrichment
+      serviceAccountName: {{ include "dracon.fullname" . }}-migrations
+{{ end }}

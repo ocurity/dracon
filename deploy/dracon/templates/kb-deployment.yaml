@@ -1,17 +1,18 @@
+{{ if .Values.kibana.enabled }}
 apiVersion: kibana.k8s.elastic.co/v1
 kind: Kibana
 metadata:
-  name: dracon
+  name: {{ include "dracon.fullname" . }}
   annotations:
     "helm.sh/hook": post-install,post-upgrade
+  labels:
+    {{- include "dracon.labels" . | nindent 4 }}
 spec:
-  version: 8.3.2
-  image: docker.elastic.co/kibana/kibana:8.3.2
+  version: {{ .Values.kibana.version }}
+  image: docker.elastic.co/kibana/kibana:{{ .Values.kibana.version }}
   count: 1
   elasticsearchRef:
-    name: dracon
-  # config:
-  #   xpack.security.enabled: false
+    name: {{ include "dracon.fullname" . }}
   http:
     tls:
       selfSignedCertificate:
@@ -39,3 +40,4 @@ spec:
             periodSeconds: 10
             successThreshold: 1
             timeoutSeconds: 5
+{{ end }}

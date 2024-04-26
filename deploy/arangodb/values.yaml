@@ -1,3 +1,0 @@
-kube-arangodb:
-  operator:
-    enableCRDManagement: false

@@ -153,18 +153,8 @@ print-%:
 ########################################
 ########## DEPLOYMENT TARGETS ##########
 ########################################
-.PHONY: deploy-arangodb-crds deploy-arangodb dev-deploy deploy-elasticsearch deploy-mongodb deploy-pg deploy-tektoncd-pipeline tektoncd-pipeline-helm tektoncd-dashboard-helm
-
-deploy-arangodb-crds:
-	@helm upgrade arangodb-crds https://github.com/arangodb/kube-arangodb/releases/download/$(ARANGODB_VERSION)/kube-arangodb-crd-$(ARANGODB_VERSION).tgz \
-		--install
-
-deploy-arangodb: deploy-arangodb-crds
-	@helm upgrade arangodb-instance deploy/arangodb/ \
-		--install \
-		--namespace $(ARANGODB_NS) \
-		--create-namespace \
-		--values=deploy/arangodb/values.yaml
+.PHONY: deploy-nginx deploy-arangodb-crds deploy-arangodb-operator add-es-helm-repo deploy-elasticoperator \
+		tektoncd-dashboard-helm deploy-tektoncd-dashboard add-bitnami-repo deploy-dracon-dev dev-deploy dev-teardown
 
 deploy-nginx:
 	@helm upgrade nginx-ingress https://github.com/kubernetes/ingress-nginx/releases/download/helm-chart-$(NGINX_INGRESS_VERSION)/ingress-nginx-$(NGINX_INGRESS_VERSION).tgz \
@@ -172,6 +162,13 @@ deploy-nginx:
 		--namespace $(NGINX_INGRESS_NS) \
 		--create-namespace \
 		--set "controller.admissionWebhooks.enabled=false"
+
+deploy-arangodb-crds:
+	@helm upgrade arangodb-crds https://github.com/arangodb/kube-arangodb/releases/download/$(ARANGODB_VERSION)/kube-arangodb-crd-$(ARANGODB_VERSION).tgz \
+		--install
+
+deploy-arangodb-operator:
+	@helm install --generate-name https://github.com/arangodb/kube-arangodb/releases/download/1.2.40/kube-arangodb-1.2.40.tgz
 
 add-es-helm-repo:
 	@helm repo add elastic https://helm.elastic.co
@@ -183,37 +180,6 @@ deploy-elasticoperator: add-es-helm-repo
 		--namespace $(ES_NAMESPACE) \
 		--create-namespace \
 		--version=$(ES_OPERATOR_VERSION)
-
-deploy-elasticsearch: deploy-elasticoperator
-	@helm upgrade dracon-es deploy/elasticsearch/ \
-		--install \
-		--set version=$(ES_VERSION) \
-		--namespace $(DRACON_NS) \
-		--create-namespace
-
-deploy-kibana: deploy-elasticsearch
-	@helm upgrade dracon-kb deploy/kibana/ \
-		--install \
-		--set version=$(ES_VERSION) \
-		--set es_name=dracon-es-elasticsearch \
-		--namespace $(DRACON_NS) \
-		--version $(ES_VERSION)
-
-deploy-mongodb:
-	@helm upgrade consumer-mongodb https://charts.bitnami.com/bitnami/mongodb-$(MONGODB_VERSION).tgz \
-		--install \
-		--namespace $(DRACON_NS) \
-		--create-namespace \
-		--set "auth.usernames[0]=consumer-mongodb" \
-		--set "auth.passwords[0]=consumer-mongodb" \
-		--set "auth.databases[0]=consumer-mongodb"
-
-deploy-pg:
-	@helm upgrade pg https://charts.bitnami.com/bitnami/postgresql-$(PG_VERSION).tgz \
-		--install \
-		--namespace $(DRACON_NS) \
-		--create-namespace \
-		--values=deploy/enrichment-db/values.yaml
 
 deploy/tektoncd/pipeline/release-v$(TEKTON_VERSION).yaml:
 	@wget "https://storage.googleapis.com/tekton-releases/pipeline/previous/v$(TEKTON_VERSION)/release.yaml" -O $@
@@ -239,4 +205,22 @@ deploy-tektoncd-dashboard: tektoncd-dashboard-helm
 		--values ./deploy/tektoncd/dashboard/values.yaml \
 		--namespace $(TEKTON_NS)
 
-dev-deploy: deploy-nginx deploy-arangodb deploy-kibana deploy-mongodb deploy-pg deploy-tektoncd-pipeline deploy-tektoncd-dashboard
+add-bitnami-repo:
+	@helm repo add bitnami https://charts.bitnami.com/bitnami
+
+deploy-dracon-dev: deploy-elasticoperator deploy-arangodb-crds add-bitnami-repo
+	@echo "fetching dependencies if needed"
+	@helm dependency build ./deploy/dracon/
+	@echo "deploying dracon in dev mode"
+	@helm upgrade dracon ./deploy/dracon/ \
+	 	  --install \
+		  --values ./deploy/dracon/values.dev.yaml \
+		  --create-namespace \
+		  --namespace $(DRACON_NS) \
+		  --set "enrichmentDB.migrations.image=kind-registry:5000/ocurity/dracon/draconctl:$(DRACON_VERSION)"
+		  --wait
+
+dev-deploy: deploy-nginx deploy-tektoncd-pipeline deploy-tektoncd-dashboard deploy-dracon-dev
+
+dev-teardown:
+	@kind delete clusters dracon-demo

@@ -1,9 +1,0 @@
-global:
-  postgresql:
-    auth:
-      postgresPassword: dracon
-auth:
-  username: dracon
-  password: dracon
-  database: dracon
-fullnameOverride: dracon-enrichment-db

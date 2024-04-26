@@ -1,11 +1,11 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: dracon-migrations
+  name: {{ include "dracon.fullname" . }}-migrations
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: dracon-migrations
+  name: {{ include "dracon.fullname" . }}-migrations
 subjects:
 - kind: ServiceAccount
-  name: dracon-migrations
+  name: {{ include "dracon.fullname" . }}-migrations

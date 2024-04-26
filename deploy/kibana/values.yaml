@@ -1,5 +1,0 @@
-ingress:
-  annotations: {}
-  className: "nginx"
-  host: "kibana.dracon.localhost"
-  tlsEnabled: false

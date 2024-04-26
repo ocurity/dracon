@@ -1,0 +1,50 @@
+
+elasticsearch:
+  enabled: true
+  version: 8.3.2
+
+kibana:
+  enabled: true
+  version: 8.3.2
+  ingress:
+    className: nginx
+    host: kibana.dracon.localhost
+    tlsEnabled: false
+
+mongodb:
+  enabled: true
+  # auth:
+  #   enabled: true
+  #   usernames: ["consumer-mongodb"]
+  #   passwords: ["consumer-mongodb"]
+  #   databases: ["consumer-mongodb"]
+  #   rootUser: "consumer-mongodb"
+  #   rootPassword: "consumer-mongodb"
+
+arangodb:
+  enabled: true
+  version: 3.7.10
+  ingress:
+    className: nginx
+    host: arangodb.dracon.localhost
+
+postgresql:
+  enabled: true
+  auth:
+    username: dracon
+    password: dracon
+    database: dracon
+    postgresPassword: dracon
+  fullnameOverride: dracon-enrichment-db
+
+tekton:
+  enabled: true
+
+enrichmentDB:
+  migrations:
+    enabled: true
+  connectionStr: postgresql://dracon:dracon@dracon-enrichment-db.dracon.svc.cluster.local?sslmode=disable
+
+global:
+  image:
+    registry: kind-registry:5000
