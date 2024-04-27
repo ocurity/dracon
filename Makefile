@@ -110,6 +110,7 @@ install-lint-tools:
 	@go install github.com/rhysd/actionlint/cmd/actionlint@latest
 	@go install github.com/client9/misspell/cmd/misspell@latest
 	@go install github.com/bufbuild/buf/cmd/buf@v1.28.1
+	@npm ci
 
 go-tests:
 	@mkdir -p tests/output
@@ -133,7 +134,14 @@ fmt-go:
 	@gofmt -l -w $$(find . -name *.go -not -path "./vendor/*" | xargs -n 1 dirname | uniq)
 	@goimports -local $$(cat go.mod | grep -E "^module" | sed 's/module //') -w $$(find . -name *.go -not -path "./vendor/*" | xargs -n 1 dirname | uniq)
 
-fmt: fmt-go fmt-proto
+install-md-fmt-tools:
+	@npm ci
+
+fmt-md:
+	@echo "Tidying up MD files"
+	@npm run format
+
+fmt: fmt-go fmt-proto fmt-md
 
 ########################################
 ########## DEBUGGING TARGETS ###########
