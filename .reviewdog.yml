@@ -33,6 +33,11 @@ runner:
     errorformat:
       - '%f:%l:%c:%m'
 
+  npm/remark:
+    ###################### Removes ansi codes see https://github.com/reviewdog/errorformat/issues/51
+    cmd: npm run lint | sed 's/\x1b\[[0-9;]*m//g'
+    format: remark-lint
+
   # TODO: figure out how to set errorformat to parse the error output
   # actionlint:
   #   cmd: actionlint

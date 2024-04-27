@@ -31,6 +31,9 @@ jobs:
       with:
         go-version: 1.21.6
 
+    - name: Setup node
+      uses: actions/setup-node@v4
+
     - name: Setup reviewdog
       run: go install github.com/reviewdog/reviewdog/cmd/reviewdog@latest
 
