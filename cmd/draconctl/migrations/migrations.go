@@ -24,6 +24,7 @@ import (
 	"k8s.io/client-go/tools/leaderelection"
 	"k8s.io/client-go/tools/leaderelection/resourcelock"
 
+	"github.com/ocurity/dracon/pkg/k8s"
 	"github.com/ocurity/dracon/pkg/manifests"
 )
 
@@ -40,6 +41,7 @@ var migrationsAsK8sJobConfig = struct {
 	kubeConfig    string
 	namespace     string
 	leaseLockName string
+	ssa           string
 	dryRun        bool
 	inCluster     bool
 }{}
@@ -68,6 +70,7 @@ func init() {
 	migrationsCmd.PersistentFlags().StringVar(&migrationsAsK8sJobConfig.leaseLockName, "lease-lock", "migration-job-lock", "Name for the lease lock configmap to use")
 	migrationsCmd.PersistentFlags().StringVarP(&migrationsAsK8sJobConfig.namespace, "namespace", "n", "default", "Namespace where the migration job will be deployed")
 	migrationsCmd.PersistentFlags().StringVarP(&migrationsAsK8sJobConfig.image, "image", "i", "", "Image to use containing draconctl binary to run command")
+	migrationsCmd.PersistentFlags().StringVar(&migrationsAsK8sJobConfig.ssa, "ssa-name", "draconctl", "Name to use for server-side apply")
 	// migrationsCmd.Flags().Bool("provide-password", false, "Provide the password via a console")
 }
 
@@ -90,7 +93,7 @@ func entrypointWrapper(f cmdEntrypoint) cmdEntrypoint {
 		defer cancel()
 
 		if migrationsCmdConfig.runAsK8sJob {
-			return deployMigrationJob(cmd)
+			return deployMigrationJob(cmd, migrationsAsK8sJobConfig.ssa)
 		}
 
 		if migrationsAsK8sJobConfig.dryRun {
@@ -247,7 +250,7 @@ func getCleanedUpArgs(cmdName string, args []string) []string {
 	return cleanedUpPodArgs
 }
 
-func deployMigrationJob(cmd *cobra.Command) error {
+func deployMigrationJob(cmd *cobra.Command, ssa string) error {
 	migrationJob := generateMigrationJob(cmd.Name())
 	if migrationsAsK8sJobConfig.dryRun {
 		if err := manifests.BatchV1ObjEncoder.Encode(migrationJob, cmd.OutOrStdout()); err != nil {
@@ -264,16 +267,12 @@ func deployMigrationJob(cmd *cobra.Command) error {
 		return fmt.Errorf("%s: could not initialise K8s client config with: %w", migrationsAsK8sJobConfig.kubeConfig, err)
 	}
 
-	client, err := clientset.NewForConfig(restCfg)
+	client, err := k8s.NewTypedClientForConfig(restCfg, ssa)
 	if err != nil {
 		return err
 	}
 
-	migrationJob, err = client.
-		BatchV1().
-		Jobs(migrationsAsK8sJobConfig.namespace).
-		Create(cmd.Context(), migrationJob, metav1.CreateOptions{})
-	if err != nil {
+	if err = client.Apply(cmd.Context(), migrationJob, migrationsAsK8sJobConfig.namespace, false); err != nil {
 		return fmt.Errorf("could not create migration job: %w", err)
 	}
 
@@ -282,7 +281,7 @@ func deployMigrationJob(cmd *cobra.Command) error {
 	return jobPodLogWatcher(ctx, client, migrationsAsK8sJobConfig.namespace, migrationJob.Name, cmd.OutOrStdout())
 }
 
-func jobPodLogWatcher(ctx context.Context, client *clientset.Clientset, namespace, name string, out io.Writer) error {
+func jobPodLogWatcher(ctx context.Context, client k8s.ClientInterface, namespace, name string, out io.Writer) error {
 	var err error
 	i64Ptr := func(i int64) *int64 { return &i }
 
