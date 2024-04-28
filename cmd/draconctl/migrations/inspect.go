@@ -56,18 +56,20 @@ func inspectMigrations(cmd *cobra.Command, args []string) error {
 			Dirty   bool
 		}{latestMigration, isDirty}
 
-		marshaledBytes, err := json.Marshal(jsonOutput)
+		var marshaledBytes []byte
+		marshaledBytes, err = json.Marshal(jsonOutput)
 		if err != nil {
 			return fmt.Errorf("could not marshal JSON output: %w", err)
 		}
-		fmt.Fprintln(cmd.OutOrStderr(), string(marshaledBytes))
+
+		_, err = fmt.Fprintln(cmd.OutOrStdout(), string(marshaledBytes))
 	} else {
-		table := tablewriter.NewWriter(os.Stdout) //cmd.OutOrStdout())
+		table := tablewriter.NewWriter(cmd.OutOrStdout())
 		table.SetHeader([]string{"", ""})
 		table.Append([]string{"Latest Migration Version", fmt.Sprintf("%d", latestMigration)})
 		table.Append([]string{"Has Failed Migrations", fmt.Sprintf("%v", isDirty)})
 		table.Render()
 	}
 
-	return nil
+	return err
 }
