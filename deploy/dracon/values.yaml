@@ -1,0 +1,24 @@
+
+elasticsearch:
+  enabled: false
+
+kibana:
+  enabled: false
+
+mongodb:
+    enabled: false
+
+
+postgresql:
+  enabled: false
+
+tekton:
+  enabled: false
+
+global:
+  namespace: dracon
+  image:
+    registry: "ghcr.io"
+    draconVersion: "0.1.0"
+  enrichmentDB:
+    connectionStr: "the connection string to dracon enrichment db"
