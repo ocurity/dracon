@@ -1,10 +1,13 @@
-## Issue
+# Issue
 
-### Expected behaviour
+## Expected behaviour
+
 Tell us what should happen.
 
-### Actual behaviour
+## Actual behaviour
+
 Tell us what happens instead.
 
-### Steps to reproduce
+## Steps to reproduce
+
 Tell us how to reproduce the error.
