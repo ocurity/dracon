@@ -13,22 +13,10 @@ Contributions to this project are more than welcome!
 2. Run the formatters, linters and tests.
 
 ```bash
-make fmt
+make install-lint-tools install-go-fmt-tools install-md-fmt-tools fmt lint tests
 ```
 
-4. Run linters.
-
-```bash
-make lint
-```
-
-5. Run tests.
-
-```bash
-make test
-```
-
-6. Make sure you have updated all manifests in case you are changing anything in
+3. Make sure you have updated all manifests in case you are changing anything in
    the tools that generate templates.
-7. All commits must be signed off and must include a ticket number along with a
+4. All commits must be signed off and must include a ticket number along with a
    clear descriptionof what is being changed.
