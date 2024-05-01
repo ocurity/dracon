@@ -35,7 +35,7 @@ export
 ########################################
 ############# BUILD TARGETS ############
 ########################################
-.PHONY: components component-binaries protos build publish-component-containers publish-containers draconctl-image draconctl-image-publish clean-protos clean
+.PHONY: components component-binaries cmd/draconctl/bin protos build publish-component-containers publish-containers draconctl-image draconctl-image-publish clean-protos clean
 
 $(component_binariess):
 	CGO_ENABLED=0 ./scripts/build_component_binary.sh $@
@@ -47,10 +47,10 @@ $(component_containers): %/docker: %/bin
 
 components: $(component_containers)
 
-bin/cmd/draconctl:
+cmd/draconctl/bin:
 	CGO_ENABLED=0 go build -o bin/cmd/draconctl cmd/draconctl/main.go
 
-draconctl-image: bin/cmd/draconctl
+draconctl-image: cmd/draconctl/bin
 	$(DOCKER) build -t "${CONTAINER_REPO}/draconctl:${DRACON_VERSION}" -f containers/Dockerfile.draconctl .
 
 draconctl-image-publish: draconctl-image
@@ -77,7 +77,7 @@ publish-component-containers: $(component_containers_publish)
 
 publish-containers: publish-component-containers draconctl-image-publish
 
-$(example_pipeline_kustomizations): bin/cmd/draconctl
+$(example_pipeline_kustomizations): cmd/draconctl/bin
 	@echo "Generating templates for $$(dirname $@)"
 	@mkdir -p "$$(dirname $@)/templates"
 	@bin/cmd/draconctl pipelines build --out "$$(dirname $@)/templates/all.yaml" $$(dirname $@)
@@ -116,7 +116,7 @@ go-tests:
 	@mkdir -p tests/output
 	@go test -race -json -coverprofile tests/output/cover.out $(GO_TEST_PACKAGES)
 
-migration-tests: bin/cmd/draconctl
+migration-tests: cmd/draconctl/bin
 	cd tests/migrations/ && docker compose up --abort-on-container-exit --build --exit-code-from tester
 
 test: go-tests migration-tests

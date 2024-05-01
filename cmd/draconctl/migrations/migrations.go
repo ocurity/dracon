@@ -2,28 +2,27 @@ package migrations
 
 import (
 	"context"
-	"fmt"
-	"io"
 	"os"
 	"os/signal"
 	"path"
-	"strings"
+	"sync"
 	"syscall"
 	"time"
 
+	"github.com/go-errors/errors"
 	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/apimachinery/pkg/watch"
 	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/tools/leaderelection"
 	"k8s.io/client-go/tools/leaderelection/resourcelock"
 
+	"github.com/ocurity/dracon/pkg/k8s"
 	"github.com/ocurity/dracon/pkg/manifests"
 )
 
@@ -40,6 +39,7 @@ var migrationsAsK8sJobConfig = struct {
 	kubeConfig    string
 	namespace     string
 	leaseLockName string
+	ssa           string
 	dryRun        bool
 	inCluster     bool
 }{}
@@ -60,7 +60,7 @@ func init() {
 	migrationsCmd.PersistentFlags().StringVar(&migrationsCmdConfig.connStr, "url", "postgres://postgres:postgres@localhost:5432", "Connection URL for the database.")
 	migrationsCmd.PersistentFlags().StringVar(&migrationsCmdConfig.migrationsTable, "migrations-table", "oss-migrations", "Migrations table to inspect.")
 	migrationsCmd.PersistentFlags().BoolVar(&migrationsCmdConfig.runAsK8sJob, "as-k8s-job", false, "Run command as a job in K8s")
-	migrationsCmd.PersistentFlags().IntVarP(&migrationsCmdConfig.timeout, "timeout", "t", 30, "Timeout for command")
+	migrationsCmd.PersistentFlags().IntVarP(&migrationsCmdConfig.timeout, "timeout", "t", 10, "Timeout for command")
 	migrationsCmd.PersistentFlags().BoolVar(&migrationsAsK8sJobConfig.dryRun, "dry-run", false, "Print the Job manifest to stdout instead of deploying it")
 	migrationsCmd.PersistentFlags().BoolVar(&migrationsAsK8sJobConfig.inCluster, "in-cluster", false, "Binary is running inside a pod")
 	migrationsCmd.PersistentFlags().StringVar(&migrationsAsK8sJobConfig.kubeContext, "kubecontext", "", "Use a specific kube context to execute opeations")
@@ -68,6 +68,7 @@ func init() {
 	migrationsCmd.PersistentFlags().StringVar(&migrationsAsK8sJobConfig.leaseLockName, "lease-lock", "migration-job-lock", "Name for the lease lock configmap to use")
 	migrationsCmd.PersistentFlags().StringVarP(&migrationsAsK8sJobConfig.namespace, "namespace", "n", "default", "Namespace where the migration job will be deployed")
 	migrationsCmd.PersistentFlags().StringVarP(&migrationsAsK8sJobConfig.image, "image", "i", "", "Image to use containing draconctl binary to run command")
+	migrationsCmd.PersistentFlags().StringVar(&migrationsAsK8sJobConfig.ssa, "ssa-name", "draconctl", "Name to use for server-side apply")
 	// migrationsCmd.Flags().Bool("provide-password", false, "Provide the password via a console")
 }
 
@@ -90,50 +91,59 @@ func entrypointWrapper(f cmdEntrypoint) cmdEntrypoint {
 		defer cancel()
 
 		if migrationsCmdConfig.runAsK8sJob {
-			return deployMigrationJob(cmd)
+			return deployMigrationJob(cmd, migrationsAsK8sJobConfig.ssa)
 		}
 
 		if migrationsAsK8sJobConfig.dryRun {
-			return fmt.Errorf("you can't use the `--%s` flag without the `%s` flag", cmd.Flag("dry-run").Name, cmd.Flag("as-k8s-job").Name)
+			return errors.Errorf("you can't use the `--%s` flag without the `%s` flag", cmd.Flag("dry-run").Name, cmd.Flag("as-k8s-job").Name)
 		} else if migrationsAsK8sJobConfig.kubeContext != "" {
-			return fmt.Errorf("you can't use the `--%s` flag without the `%s` flag", cmd.Flag("kube-context").Name, cmd.Flag("as-k8s-job").Name)
+			return errors.Errorf("you can't use the `--%s` flag without the `%s` flag", cmd.Flag("kube-context").Name, cmd.Flag("as-k8s-job").Name)
 		} else if migrationsAsK8sJobConfig.kubeConfig != "" {
-			return fmt.Errorf("you can't use the `--%s` flag without the `%s` flag", cmd.Flag("kube-config").Name, cmd.Flag("as-k8s-job").Name)
+			return errors.Errorf("you can't use the `--%s` flag without the `%s` flag", cmd.Flag("kube-config").Name, cmd.Flag("as-k8s-job").Name)
 		} else if migrationsAsK8sJobConfig.image != "" {
-			return fmt.Errorf("you can't use the `--%s` flag without the `%s` flag", cmd.Flag("image").Name, cmd.Flag("as-k8s-job").Name)
+			return errors.Errorf("you can't use the `--%s` flag without the `%s` flag", cmd.Flag("image").Name, cmd.Flag("as-k8s-job").Name)
 		}
 
 		if migrationsAsK8sJobConfig.inCluster {
 			// binary has been invoked inside a pod, we need to setup the client accordingly
 			restCfg, err := rest.InClusterConfig()
 			if err != nil {
-				return fmt.Errorf("could not initialise in-cluster K8s client config: %w", err)
+				return errors.Errorf("could not initialise in-cluster K8s client config: %w", err)
 			}
-			return grabLeaderLock(f, cmd, args, restCfg)
+			leaderLockCtx, cancel := context.WithTimeout(cmd.Context(), time.Duration(migrationsCmdConfig.timeout)*time.Second)
+			defer cancel()
+			return grabLeaderLock(leaderLockCtx, f, cmd, args, restCfg)
 		}
 		return f(cmd, args)
 	}
 }
 
 // grabLeaderLock will grab the leader lease and then execute the actual command
-func grabLeaderLock(f cmdEntrypoint, cmd *cobra.Command, args []string, restCfg *rest.Config) (err error) {
+func grabLeaderLock(ctx context.Context, f cmdEntrypoint, cmd *cobra.Command, args []string, restCfg *rest.Config) (err error) {
 	var client *clientset.Clientset
 	client, err = clientset.NewForConfig(restCfg)
 	if err != nil {
 		return err
 	}
 
-	leaderElectionCtx, leaderElectionCancel := context.WithCancel(cmd.Context())
+	leaderElectionCtx, leaderElectionCancel := context.WithCancel(ctx)
 
 	// listen for interrupts or the Linux SIGTERM signal and cancel
 	// our context, which the leader election code will observe and
 	// step down. channel will be closed
-	ch := make(chan os.Signal, 1)
-	signal.Notify(ch, os.Interrupt, syscall.SIGTERM)
+	setErr := sync.Once{}
+
+	signalCh := make(chan os.Signal, 1)
+	signal.Notify(signalCh, os.Interrupt, syscall.SIGTERM)
 	go func() {
-		<-ch
+		<-signalCh
+		setErr.Do(func() {
+			err = errors.New("received SIGTERM signal")
+		})
 		leaderElectionCancel()
 	}()
+	// cleanup signal handler
+	defer signal.Stop(signalCh)
 
 	leaseId := uuid.NewString()
 
@@ -161,14 +171,18 @@ func grabLeaderLock(f cmdEntrypoint, cmd *cobra.Command, args []string, restCfg 
 		RetryPeriod:     5 * time.Second,
 		Callbacks: leaderelection.LeaderCallbacks{
 			OnStartedLeading: func(ctx context.Context) {
+				// defer wg.Done()
 				cmd.Println("Starting controller loop...")
 				cmd.SetContext(ctx)
-				err = f(cmd, args)
-				// close the channel so  that the  loop can be terminated
-				close(ch)
+				cmdErr := f(cmd, args)
+				setErr.Do(func() {
+					err = cmdErr
+				})
 			},
 			OnStoppedLeading: func() {
-				cmd.Printf("leader lost: %s\n", leaseId)
+				setErr.Do(func() {
+					err = errors.Errorf("stopped being lease holder: %w", leaderElectionCtx.Err())
+				})
 				leaderElectionCancel()
 			},
 			OnNewLeader: func(identity string) {
@@ -192,6 +206,10 @@ func generateMigrationJob(cmdName string) *batchv1.Job {
 	}
 
 	migrationJob := batchv1.Job{
+		TypeMeta: metav1.TypeMeta{
+			Kind: "Job",
+			APIVersion: batchv1.SchemeGroupVersion.String(),
+		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "dracon-migrations",
 			Namespace: migrationsAsK8sJobConfig.namespace,
@@ -208,6 +226,7 @@ func generateMigrationJob(cmdName string) *batchv1.Job {
 							Name:  "dracon-migrations",
 							Image: migrationsAsK8sJobConfig.image,
 							Args:  getCleanedUpArgs(cmdName, os.Args[1:]),
+							ImagePullPolicy: corev1.PullAlways,
 						},
 					},
 					RestartPolicy:      corev1.RestartPolicyNever,
@@ -226,6 +245,7 @@ func getCleanedUpArgs(cmdName string, args []string) []string {
 		"--as-k8s-job":  false,
 		"--kubecontext": true,
 		"--kubeconfig":  true,
+		"--timeout": 	 true,
 		"--dry-run":     false,
 		"--image":       true,
 		"-i":            true,
@@ -247,11 +267,11 @@ func getCleanedUpArgs(cmdName string, args []string) []string {
 	return cleanedUpPodArgs
 }
 
-func deployMigrationJob(cmd *cobra.Command) error {
+func deployMigrationJob(cmd *cobra.Command, ssa string) error {
 	migrationJob := generateMigrationJob(cmd.Name())
 	if migrationsAsK8sJobConfig.dryRun {
 		if err := manifests.BatchV1ObjEncoder.Encode(migrationJob, cmd.OutOrStdout()); err != nil {
-			return fmt.Errorf("could not marshal job manifest: %w", err)
+			return errors.Errorf("could not marshal job manifest: %w", err)
 		}
 		return nil
 	}
@@ -261,161 +281,19 @@ func deployMigrationJob(cmd *cobra.Command) error {
 	}
 	restCfg, err := clientcmd.BuildConfigFromFlags("", migrationsAsK8sJobConfig.kubeConfig)
 	if err != nil {
-		return fmt.Errorf("%s: could not initialise K8s client config with: %w", migrationsAsK8sJobConfig.kubeConfig, err)
+		return errors.Errorf("%s: could not initialise K8s client config with: %w", migrationsAsK8sJobConfig.kubeConfig, err)
 	}
 
-	client, err := clientset.NewForConfig(restCfg)
+	client, err := k8s.NewTypedClientForConfig(restCfg, ssa)
 	if err != nil {
 		return err
 	}
 
-	migrationJob, err = client.
-		BatchV1().
-		Jobs(migrationsAsK8sJobConfig.namespace).
-		Create(cmd.Context(), migrationJob, metav1.CreateOptions{})
-	if err != nil {
-		return fmt.Errorf("could not create migration job: %w", err)
+	if err = client.Apply(cmd.Context(), migrationJob, migrationsAsK8sJobConfig.namespace, false); err != nil {
+		return errors.Errorf("could not create migration job: %w", err)
 	}
 
-	ctx, cancel := context.WithCancel(cmd.Context())
-	defer func() { cancel() }()
-	return jobPodLogWatcher(ctx, client, migrationsAsK8sJobConfig.namespace, migrationJob.Name, cmd.OutOrStdout())
-}
-
-func jobPodLogWatcher(ctx context.Context, client *clientset.Clientset, namespace, name string, out io.Writer) error {
-	var err error
-	i64Ptr := func(i int64) *int64 { return &i }
-
-	// get the job so that we can use it's label selector for subsequent queries
-	deployedJob, err := client.
-		BatchV1().
-		Jobs(namespace).
-		Get(ctx, name, metav1.GetOptions{})
-	if err != nil {
-		return fmt.Errorf("%s/%s: could not get Job: %w", namespace, name, err)
-	}
-
-	// start a watcher to monitor the job status
-	var watcher watch.Interface
-	watcher, err = client.
-		BatchV1().
-		Jobs("dracon").
-		Watch(ctx, metav1.ListOptions{
-			LabelSelector:  metav1.FormatLabelSelector(deployedJob.Spec.Selector),
-			TimeoutSeconds: i64Ptr(120),
-			Watch:          true,
-		})
-	if err != nil {
-		return fmt.Errorf("could not watch status of migration job: %w", err)
-	}
-	defer watcher.Stop()
-
-	// send a message if the Job itself is deleted
-	jobDeleted := make(chan struct{})
-	go func() {
-		select {
-		case event := <-watcher.ResultChan():
-			if event.Type == watch.Deleted {
-				err = fmt.Errorf("%s/%s: job was deleted", namespace, name)
-				close(jobDeleted)
-			}
-		case <-ctx.Done():
-			return
-		}
-	}()
-
-	podLogFollowingDone := make(chan struct{})
-	// watch all pods related to the job
-	go func() {
-		defer func() { close(podLogFollowingDone) }()
-
-		fieldSelectorSB := strings.Builder{}
-		// remove from the list Pending pods or pods whose state is Unknown
-		fieldSelectorSB.WriteString("status.phase!=Pending,status.phase!=Unknown")
-
-		var podList *corev1.PodList
-		if _, err = fmt.Fprintf(out, "watching pod logs for job: %s/%s\n", namespace, name); err != nil {
-			return
-		}
-
-		// pods whose logs we have watched but don't know the exit code
-		watchedPods := map[string]struct{}{}
-
-		for {
-			podList, err = client.
-				CoreV1().
-				Pods(deployedJob.Namespace).
-				List(ctx, metav1.ListOptions{
-					LabelSelector: metav1.FormatLabelSelector(deployedJob.Spec.Selector),
-					FieldSelector: fieldSelectorSB.String(),
-				})
-			if err != nil {
-				err = fmt.Errorf("could not list pods generated for job %s/%s with labels %s: %w",
-					deployedJob.Namespace, deployedJob.Name, metav1.FormatLabelSelector(deployedJob.Spec.Selector), err)
-				return
-			}
-
-			var stream io.ReadCloser
-			for _, pod := range podList.Items {
-				if _, logsWatched := watchedPods[pod.Name]; logsWatched {
-					if pod.Status.Phase == corev1.PodSucceeded {
-						return
-					} else if pod.Status.Phase == corev1.PodFailed {
-						delete(watchedPods, pod.Name)
-						fieldSelectorSB.WriteString(fmt.Sprintf(",metadata.name!=%s", pod.Name))
-						continue
-					}
-				}
-
-				// add pod to the map to check its status in the next iteration
-				watchedPods[pod.Name] = struct{}{}
-
-				stream, err = client.
-					CoreV1().
-					Pods(namespace).
-					GetLogs(pod.Name, &corev1.PodLogOptions{Follow: true}).
-					Stream(ctx)
-				if err != nil {
-					err = fmt.Errorf("%s/%s: could not stream logs: %w", pod.Namespace, pod.Name, err)
-					return
-				}
-
-				if _, err = fmt.Fprintf(out, "======= watching logs of pod %s/%s =======\n", pod.Namespace, pod.Name); err != nil {
-					return
-				}
-				_, err = io.Copy(out, stream)
-				sErr := stream.Close()
-				if sErr != nil {
-					if err != nil {
-						err = fmt.Errorf("%w: %w", sErr, err)
-					} else {
-						err = sErr
-					}
-				} else if err != nil {
-					return
-				}
-				if _, err = fmt.Fprintf(out, "======= done watching logs of pod %s/%s =======\n", pod.Namespace, pod.Name); err != nil {
-					return
-				}
-			}
-
-			select {
-			case <-ctx.Done():
-				return
-			case <-time.After(3 * time.Second):
-				if len(podList.Items) == 0 {
-					if _, err = fmt.Fprintf(out, "found no running/succeeded/failed pods, waiting for 3s to list again\n"); err != nil {
-						return
-					}
-				}
-			}
-		}
-	}()
-
-	select {
-	case <-jobDeleted:
-	case <-podLogFollowingDone:
-	}
-
-	return err
+	ctx, cancel := context.WithTimeout(cmd.Context(), time.Duration(migrationsCmdConfig.timeout)*time.Second)
+	defer cancel()
+	return k8s.WatchJobPodLogs(ctx, client, migrationsAsK8sJobConfig.namespace, migrationJob.Name, 5, cmd.OutOrStdout())
 }
