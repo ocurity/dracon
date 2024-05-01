@@ -111,7 +111,7 @@ func NewFakeTypedClientWithApplyHook(applyHook ApplyHookType, objects ...runtime
 		},
 		ApplyHook: applyHook,
 		MetaRESTMapper: restmapper.NewShortcutExpander(
-			testrestmapper.TestOnlyStaticRESTMapper(scheme), fakeCoreK8sClient.Discovery(),
+			testrestmapper.TestOnlyStaticRESTMapper(scheme), fakeCoreK8sClient.Discovery(), func(_ string) {},
 		),
 	}, nil
 }

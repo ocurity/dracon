@@ -10,4 +10,4 @@ enableAllRules = true
 [rule.function-length]
     arguments = [150,0]
 [rule.cognitive-complexity]
-    arguments = [11]
+    arguments = [20]

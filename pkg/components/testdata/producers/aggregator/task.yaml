@@ -1,0 +1,27 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: producer-aggregator
+  labels:
+    v1.dracon.ocurity.com/component: producer-aggregator
+spec:
+  params: []
+  results: []
+  workspaces:
+    - name: output
+      description: The workspace containing the source-code to scan.
+  steps:
+  - name: aggregate
+    image: docker.io/busybox
+    command: ["ls"]
+    args: ["$(workspaces.output.path)"]
+    env: []
+  - name: tag
+    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/tagger:{{ default "latest" .Values.dracon_os_component_version }}'
+    command: ["/app/components/producers/aggregator/tagger"]
+    env:
+    - name: READ_PATH
+      value: $(workspaces.output.path)/.dracon/producers
+    - name: WRITE_PATH
+      value: "$(workspaces.output.path)/.dracon/producers"

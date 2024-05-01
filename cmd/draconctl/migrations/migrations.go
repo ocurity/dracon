@@ -48,7 +48,7 @@ var migrationsAsK8sJobConfig = struct {
 
 var migrationsCmd = &cobra.Command{
 	Use:     "migrations",
-	Short:    "A set of subcommands for managing database migrations",
+	Short:   "A set of subcommands for managing database migrations",
 	GroupID: "top-level",
 }
 
@@ -138,7 +138,7 @@ func grabLeaderLock(f cmdEntrypoint, cmd *cobra.Command, args []string, restCfg 
 		leaderElectionCancel()
 	}()
 
-	leaseId := uuid.NewString()
+	leaseID := uuid.NewString()
 
 	// start the leader election code loop
 	leaderelection.RunOrDie(leaderElectionCtx, leaderelection.LeaderElectionConfig{
@@ -149,7 +149,7 @@ func grabLeaderLock(f cmdEntrypoint, cmd *cobra.Command, args []string, restCfg 
 			},
 			Client: client.CoordinationV1(),
 			LockConfig: resourcelock.ResourceLockConfig{
-				Identity: leaseId,
+				Identity: leaseID,
 			},
 		},
 		// IMPORTANT: you MUST ensure that any code you have that
@@ -171,12 +171,12 @@ func grabLeaderLock(f cmdEntrypoint, cmd *cobra.Command, args []string, restCfg 
 				close(ch)
 			},
 			OnStoppedLeading: func() {
-				cmd.Printf("leader lost: %s\n", leaseId)
+				cmd.Printf("leader lost: %s\n", leaseID)
 				leaderElectionCancel()
 			},
 			OnNewLeader: func(identity string) {
 				// we're notified when new leader elected
-				if identity == leaseId {
+				if identity == leaseID {
 					// I just got the lock
 					return
 				}
