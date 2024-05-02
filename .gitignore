@@ -6,3 +6,4 @@ bin
 .custom_image
 tests/output
 .vscode/
+charts/
