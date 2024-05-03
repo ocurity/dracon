@@ -141,7 +141,7 @@ func constructPackage(ctx context.Context, helmFolder, name, version, appVersion
 func gatherTasks(folder string) ([]string, error) {
 	taskPaths := []string{}
 
-	for _, componentType := range []string{"sources", "producers", "enrichers", "consumers"} {
+	for _, componentType := range []string{"base", "sources", "producers", "enrichers", "consumers"} {
 		componentsFolder := path.Join(folder, componentType)
 		stat, err := os.Stat(componentsFolder)
 		if err != nil {
