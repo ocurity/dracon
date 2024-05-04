@@ -1,6 +1,6 @@
 module github.com/ocurity/dracon
 
-go 1.21.6
+go 1.22.2
 
 require (
 	cloud.google.com/go/bigquery v1.57.1
