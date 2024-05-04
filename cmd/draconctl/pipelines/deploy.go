@@ -1,6 +1,7 @@
 package pipelines
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
@@ -62,7 +63,16 @@ func deployPipeline(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: could not unmarshal YAML file: %w", kustomizationPath, err)
 	}
 
-	basePipeline := pipelines.BasePipeline.DeepCopy()
+	basePipeline, err := pipelines.ResolveBase(cmd.Context(), kustomizationPath, *kustomization)
+	if err != nil {
+		return err
+	}
+
+	if kustomization.NameSuffix == "" {
+		return errors.New("pipeline should have a suffix. please set the NameSuffix field")
+	}
+	basePipeline.Name = basePipeline.Name + kustomization.NameSuffix
+
 	pipelineComponents := []components.Component{}
 	for _, reference := range kustomization.Components {
 		pipelineComponent, err := components.FromReference(cmd.Context(), reference)
@@ -87,7 +97,7 @@ func deployPipeline(cmd *cobra.Command, args []string) error {
 		*deploySubCmdFlags.k8sConfigFlags.Namespace = "dracon"
 	}
 
-	deploymentOrchestrator := pipelines.NewOrchestrator(client, *deploySubCmdFlags.k8sConfigFlags.Namespace)
+	deploymentOrchestrator := pipelines.NewTektonV1Beta1Orchestrator(client, *deploySubCmdFlags.k8sConfigFlags.Namespace)
 	if err = deploymentOrchestrator.Prepare(cmd.Context(), pipelineComponents); err != nil {
 		return err
 	}

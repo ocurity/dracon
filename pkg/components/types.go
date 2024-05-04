@@ -36,6 +36,13 @@ type Component struct {
 	// Repository is the repository from where this component was fetched
 	Repository string
 
+	// Type of the component (base, source, producer, etc...)
+	Type ComponentType
+
+	// Resolved shows whether or not the component manifest has been loaded
+	// or not. Before this is set to true, the Type and Manifest are not known.
+	Resolved bool
+
 	// OrchestrationType shows how the component deployment is managed
 	OrchestrationType OrchestrationType
 
@@ -67,9 +74,16 @@ func FromReference(ctx context.Context, ref string) (Component, error) {
 		return zero, errors.Errorf("could not load reference: %w", err)
 	}
 
+	componentType, err := ValidateTask(task)
+	if err != nil {
+		return zero, err
+	}
+
 	return Component{
 		Name:              task.Name,
+		Type:              componentType,
 		Reference:         ref,
+		Resolved:          true,
 		OrchestrationType: Naive,
 		Manifest:          task,
 	}, nil

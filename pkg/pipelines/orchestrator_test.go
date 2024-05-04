@@ -21,7 +21,7 @@ func TestStuff(t *testing.T) {
 	client, err := k8s.NewTypedClientForConfig(restCfg, "bla")
 	require.NoError(t, err)
 
-	orch := NewOrchestrator(client, "dracon")
+	orch := NewTektonV1Beta1Orchestrator(client, "dracon")
 	orch.Prepare(context.Background(), []components.Component{
 		{
 			Name:              "git-clone",
