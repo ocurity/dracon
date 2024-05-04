@@ -48,7 +48,7 @@ var migrationsAsK8sJobConfig = struct {
 
 var migrationsCmd = &cobra.Command{
 	Use:     "migrations",
-	Long:    "A set of subcommands for managing database migrations",
+	Short:    "A set of subcommands for managing database migrations",
 	GroupID: "top-level",
 }
 
