@@ -31,3 +31,11 @@ jobs:
 
       - name: Publish Docker images
         run: make publish-component-containers
+
+      - name: Publish component Helm package
+        run: |
+          set -e;
+          DRACON_VERSION=$(sed 's/v//' <<< ${{ github.ref_name }});
+          make cmd/draconctl/bin; \
+          bin/cmd/draconctl components package --version ${DRACON_VERSION} --chart-version ${DRACON_VERSION} --name dracon-oss-components ./components; \
+          helm push dracon-oss-components-${DRACON_VERSION}.tgz oci://ghcr.io/ocurity/charts
