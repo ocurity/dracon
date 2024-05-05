@@ -7,6 +7,7 @@ on:
 permissions:
   # Grant the ability to checkout the repository
   contents: read
+  packages: write
 
 jobs:
   publish-docker-images:
