@@ -6,19 +6,14 @@ on:
 
 permissions:
   # Grant the ability to checkout the repository
-  contents: read
+  contents: write
+  # Grant the ability to push packages
   packages: write
 
 jobs:
   publish-docker-images:
     name: Push Docker images
     runs-on: ubuntu-latest
-    permissions:
-      # Grant the ability to write to GitHub Packages (push Docker images to
-      # GitHub Container Registry).
-      packages: write
-      # Grant the ability to checkout the repository.
-      contents: write
     steps:
       - name: Check out code
         uses: actions/checkout@v2
