@@ -9,6 +9,7 @@ DOCKER=docker
 extras:
 	$(DOCKER) build --tag $(CONTAINER_REPO)/components/producers/ossf-scorecard:$(DRACON_VERSION) \
 					--file Dockerfile \
+					$$([ "${SOURCE_CODE_REPO}" != "" ] && echo "--label=org.opencontainers.image.source=${SOURCE_CODE_REPO}" ) \
 					--build-arg OSSF_SCORECARD_SAFETY_BASE_IMAGE=$(OSSF_SCORECARD_SAFETY_BASE_IMAGE) ../../.. 1>&2
 
 publish-extras:

@@ -10,6 +10,7 @@ commits_since_latest_tag=$(shell git log --oneline $(latest_tag)..HEAD | wc -l)
 
 GO_TEST_PACKAGES=$(shell go list ./... | grep -v /vendor/)
 CONTAINER_REPO=ghcr.io/ocurity/dracon
+SOURCE_CODE_REPO=https://github.com/ocurity/dracon
 DRACON_VERSION=$(shell echo $(latest_tag)$$([ $(commits_since_latest_tag) -eq 0 ] || echo "-$$(git log -n 1 --pretty='format:%h')" )$$([ -z "$$(git status --porcelain=v1 2>/dev/null)" ] || echo "-dirty" ))
 TEKTON_VERSION=0.44.0
 TEKTON_DASHBOARD_VERSION=0.29.2
@@ -51,7 +52,9 @@ cmd/draconctl/bin:
 	CGO_ENABLED=0 go build -o bin/cmd/draconctl cmd/draconctl/main.go
 
 draconctl-image: cmd/draconctl/bin
-	$(DOCKER) build -t "${CONTAINER_REPO}/draconctl:${DRACON_VERSION}" -f containers/Dockerfile.draconctl .
+	$(DOCKER) build -t "${CONTAINER_REPO}/draconctl:${DRACON_VERSION}" \
+		$$([ "${SOURCE_CODE_REPO}" != "" ] && echo "--label=org.opencontainers.image.source=${SOURCE_CODE_REPO}" ) \
+		-f containers/Dockerfile.draconctl .
 
 draconctl-image-publish: draconctl-image
 	$(DOCKER) push "${CONTAINER_REPO}/draconctl:${DRACON_VERSION}"
