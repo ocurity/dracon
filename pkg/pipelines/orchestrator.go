@@ -8,7 +8,9 @@ import (
 	"github.com/ocurity/dracon/pkg/components"
 )
 
-// Orchestrator represents a piece of code
+// Orchestrator represents a piece of code that orchestrates the deployment of
+// components and pipelines on a backend. The backend could be a cluster with a
+// Tekton operator for example, or some other system.
 type Orchestrator[P runtime.Object] interface {
 	// Prepare checks if the expected components are present in the cluster and
 	// performs any operations to ensure that the workflow can be deployed.
