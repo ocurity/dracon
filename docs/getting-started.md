@@ -244,5 +244,5 @@ Then you can run an instance of the pipeline as follows:
 ```bash
 kubectl create \
   -n dracon \
-  -f ./examples/pipelines/golang-project/pipelinerun/pipelinerun.yaml
+  -f ./examples/pipelines/golang-project/pipelinerun.yaml
 ```
