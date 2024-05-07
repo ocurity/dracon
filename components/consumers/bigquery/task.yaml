@@ -23,7 +23,7 @@ spec:
   steps:
     - name: run-consumer
       imagePullPolicy: IfNotPresent
-      image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/consumers/bigquery:{{ default "latest" .Values.dracon_os_component_version }}'
+      image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/consumers/bigquery:latest'
       command: ["/app/components/consumers/bigquery/bigquery"]
       args:
         [

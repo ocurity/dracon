@@ -19,7 +19,7 @@ spec:
   steps:
   - name: run-pip-safety
     imagePullPolicy: IfNotPresent
-    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/python-pip-safety/tool:{{ default "latest" .Values.dracon_os_component_version }}'
+    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/python-pip-safety/tool:latest'
     script: |
       set -x
       cd $(workspaces.output.path)
@@ -36,7 +36,7 @@ spec:
       name: scratch
   - name: produce-issues
     imagePullPolicy: IfNotPresent
-    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/python-pip-safety:{{ default "latest" .Values.dracon_os_component_version }}'
+    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/python-pip-safety:latest'
     command: ["/app/components/producers/python-pip-safety/python-pip-safety-parser"]
     args:
     - "-in=/scratch/out.json"
