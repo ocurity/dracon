@@ -6,6 +6,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
 
 	"github.com/go-errors/errors"
 	tektonv1beta1api "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1beta1"
@@ -95,6 +96,7 @@ func constructPackage(ctx context.Context, helmFolder, name, version, appVersion
 	for _, task := range taskList {
 		addAnchorParameter(task)
 		addAnchorResult(task)
+		fixImageVersion(task, version)
 
 		if err = manifests.TektonV1Beta1ObjEncoder.Encode(task, tasksFile); err != nil {
 			return errors.Errorf("could not store task %s: %w", task.Name, err)
@@ -197,8 +199,9 @@ func addAnchorResult(task *tektonv1beta1api.Task) {
 	})
 }
 
-// addAnchorParameter adds an `anchors` entry to the parameters of a Task. This entry will then be
-// filled in the pipeline with the anchors of the tasks that this task depends on.
+// addAnchorParameter adds an `anchors` entry to the parameters of a Task. This
+// entry will then be filled in the pipeline with the anchors of the tasks that
+// this task depends on.
 func addAnchorParameter(task *tektonv1beta1api.Task) {
 	componentType, err := ToComponentType(task.Labels[LabelKey])
 	if err != nil {
@@ -222,4 +225,17 @@ func addAnchorParameter(task *tektonv1beta1api.Task) {
 			Type: tektonv1beta1api.ParamTypeArray,
 		},
 	})
+}
+
+func fixImageVersion(task *tektonv1beta1api.Task, draconVersion string) {
+	for i, step := range task.Spec.Steps {
+		// the image is the value of a parameter so we can't do much over her
+		if strings.HasPrefix("$(", step.Image) {
+			continue
+		}
+		if updatedImage, isSetToLatest := strings.CutSuffix(step.Image, ":latest"); isSetToLatest {
+			step.Image = updatedImage + ":" + draconVersion
+			task.Spec.Steps[i] = step
+		}
+	}
 }

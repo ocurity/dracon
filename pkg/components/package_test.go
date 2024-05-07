@@ -9,6 +9,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	tektonv1beta1api "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1beta1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/ocurity/dracon/pkg/manifests"
 )
@@ -93,4 +94,32 @@ version: 0.1.0
 
 		require.Equal(t, "anchor", task.Spec.Steps[len(task.Spec.Steps)-1].Name, "task %s has no anchor step", task.Name)
 	}
+}
+
+func TestImagePinning(t *testing.T) {
+	task := &tektonv1beta1api.Task{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "testImageFixing",
+		},
+		Spec: tektonv1beta1api.TaskSpec{
+			Steps: []tektonv1beta1api.Step{
+				{
+					Name: "test_pinned_to_latest",
+					Image: "{{ default 'ghcr.io/ocurity/dracon' .Values.container_registry }}/components/enrichers/aggregator:latest",
+				},
+				{
+					Name: "test_pinned_to_some_version",
+					Image: "docker.io/library/buildpack-deps:stable-curl@sha256:3d5e59c47d5f82a769ad3f372cc9f86321e2e2905141bba974b75d3c08a53e8e",
+				},
+				{
+					Name: "test_image_is_a_parameter",
+					Image: "$(taskName.param.some-image)",
+				},
+			},
+		},
+	}
+	fixImageVersion(task, "1.0.1")
+	require.Equal(t, "{{ default 'ghcr.io/ocurity/dracon' .Values.container_registry }}/components/enrichers/aggregator:1.0.1", task.Spec.Steps[0].Image)
+	require.Equal(t, "docker.io/library/buildpack-deps:stable-curl@sha256:3d5e59c47d5f82a769ad3f372cc9f86321e2e2905141bba974b75d3c08a53e8e", task.Spec.Steps[1].Image)
+	require.Equal(t, "$(taskName.param.some-image)", task.Spec.Steps[2].Image)
 }
