@@ -96,7 +96,7 @@ func constructPackage(ctx context.Context, helmFolder, name, version, appVersion
 	for _, task := range taskList {
 		addAnchorParameter(task)
 		addAnchorResult(task)
-		fixImageVersion(task, version)
+		fixImageVersion(task, appVersion)
 
 		if err = manifests.TektonV1Beta1ObjEncoder.Encode(task, tasksFile); err != nil {
 			return errors.Errorf("could not store task %s: %w", task.Name, err)
