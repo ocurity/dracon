@@ -33,5 +33,5 @@ jobs:
           set -e;
           DRACON_VERSION_SEMVER=$(sed 's/v//' <<< ${{ github.ref_name }});
           make cmd/draconctl/bin; \
-          bin/cmd/draconctl components package --version ${DRACON_VERSION} --chart-version ${DRACON_VERSION_SEMVER} --name dracon-oss-components ./components; \
+          bin/cmd/draconctl components package --version ${{ github.ref_name }} --chart-version ${DRACON_VERSION_SEMVER} --name dracon-oss-components ./components; \
           helm push dracon-oss-components-${DRACON_VERSION}.tgz oci://ghcr.io/ocurity/dracon/charts
