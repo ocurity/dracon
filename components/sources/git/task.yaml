@@ -244,6 +244,3 @@ spec:
         printf "%s" "${RESULT_COMMITTER_DATE}" > "$(results.committer-date.path)"
         printf "%s" "${RESULT_SHA}" > "$(results.commit.path)"
         printf "%s" "${PARAM_URL}" > "$(results.url.path)"
-    - name: add-anchor
-      image: "$(params.git-clone-gitInitImage)"
-      script: echo "git-clone" > "$(results.anchor.path)"
