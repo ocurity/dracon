@@ -211,7 +211,7 @@ deploy-tektoncd-dashboard: tektoncd-dashboard-helm
 add-bitnami-repo:
 	@helm repo add bitnami https://charts.bitnami.com/bitnami
 
-deploy-dracon-dev: deploy-elasticoperator deploy-arangodb-crds add-bitnami-repo
+dev-dracon: deploy-elasticoperator deploy-arangodb-crds add-bitnami-repo
 	@echo "fetching dependencies if needed"
 	@helm dependency build ./deploy/dracon/chart
 	@echo "deploying dracon in dev mode"
@@ -224,6 +224,8 @@ deploy-dracon-dev: deploy-elasticoperator deploy-arangodb-crds add-bitnami-repo
 		  --wait
 
 dev-infra: deploy-nginx deploy-tektoncd-pipeline deploy-tektoncd-dashboard
+
+dev-deploy: dev-infra dev-dracon
 
 dev-teardown:
 	@kind delete clusters dracon-demo
