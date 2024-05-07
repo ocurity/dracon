@@ -78,7 +78,7 @@ Kibana and the bitnami charts to deploy instances of PostgreSQL and MongoDB.
 If you run the command:
 
 ```bash
-make deploy-dracon-dev DRACON_VERSION=0.8.0
+make dev-dracon DRACON_VERSION=v0.8.0
 ```
 
 You will deploy the Elastic Operator on the cluster and the Dracon Helm

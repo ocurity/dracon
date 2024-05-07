@@ -157,7 +157,7 @@ print-%:
 ########## DEPLOYMENT TARGETS ##########
 ########################################
 .PHONY: deploy-nginx deploy-arangodb-crds deploy-arangodb-operator add-es-helm-repo deploy-elasticoperator \
-		tektoncd-dashboard-helm deploy-tektoncd-dashboard add-bitnami-repo deploy-dracon-dev dev-deploy dev-teardown
+		tektoncd-dashboard-helm deploy-tektoncd-dashboard add-bitnami-repo dev-dracon dev-deploy dev-teardown
 
 deploy-nginx:
 	@helm upgrade nginx-ingress https://github.com/kubernetes/ingress-nginx/releases/download/helm-chart-$(NGINX_INGRESS_VERSION)/ingress-nginx-$(NGINX_INGRESS_VERSION).tgz \
