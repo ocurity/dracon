@@ -222,6 +222,9 @@ dev-dracon: deploy-elasticoperator deploy-arangodb-crds add-bitnami-repo
 		  --namespace $(DRACON_NS) \
 		  --set "enrichmentDB.migrations.image=$(CONTAINER_REPO)/draconctl:$(DRACON_VERSION)"
 		  --wait
+	@helm upgrade dracon-oss-components oci://ghcr.io/ocurity/dracon/charts/dracon-oss-components \
+		--install \
+		--version $$(echo "${DRACON_VERSION}" | sed 's/^v//')
 
 dev-infra: deploy-nginx deploy-tektoncd-pipeline deploy-tektoncd-dashboard
 
