@@ -224,6 +224,7 @@ dev-dracon: deploy-elasticoperator deploy-arangodb-crds add-bitnami-repo
 		  --wait
 	@helm upgrade dracon-oss-components oci://ghcr.io/ocurity/dracon/charts/dracon-oss-components \
 		--install \
+		--namespace $(DRACON_NS) \
 		--version $$(echo "${DRACON_VERSION}" | sed 's/^v//')
 
 dev-infra: deploy-nginx deploy-tektoncd-pipeline deploy-tektoncd-dashboard
