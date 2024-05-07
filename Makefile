@@ -213,17 +213,17 @@ add-bitnami-repo:
 
 deploy-dracon-dev: deploy-elasticoperator deploy-arangodb-crds add-bitnami-repo
 	@echo "fetching dependencies if needed"
-	@helm dependency build ./deploy/dracon/
+	@helm dependency build ./deploy/dracon/chart
 	@echo "deploying dracon in dev mode"
-	@helm upgrade dracon ./deploy/dracon/ \
+	@helm upgrade dracon ./deploy/dracon/chart \
 	 	  --install \
-		  --values ./deploy/dracon/values.dev.yaml \
+		  --values ./deploy/dracon/values/dev.yaml \
 		  --create-namespace \
 		  --namespace $(DRACON_NS) \
-		  --set "enrichmentDB.migrations.image=kind-registry:5000/ocurity/dracon/draconctl:$(DRACON_VERSION)"
+		  --set "enrichmentDB.migrations.image=$(CONTAINER_REPO)/draconctl:$(DRACON_VERSION)"
 		  --wait
 
-dev-deploy: deploy-nginx deploy-tektoncd-pipeline deploy-tektoncd-dashboard deploy-dracon-dev
+dev-infra: deploy-nginx deploy-tektoncd-pipeline deploy-tektoncd-dashboard
 
 dev-teardown:
 	@kind delete clusters dracon-demo

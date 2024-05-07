@@ -1,0 +1,70 @@
+
+elasticsearch:
+  # if set, an ElasticSearch CRD instance will be deployed
+  # the instance is expected to be managed by the Elastic Operator
+  enabled: true
+  # Sets the version of the ElasticSeacrh to be deployed
+  version: 8.3.2
+
+kibana:
+  # if set, a Kibana CRD instance and an Ingress object will be deployed
+  # the instance is expected to be managed by the Elastic Operator
+  enabled: true
+  # Sets the version of the Kibana to be deployed
+  version: 8.3.2
+  # values that set fields of the Kibana ingress
+  ingress:
+    className: ""
+    host: ""
+    tlsEnabled: false
+
+mongodb:
+  # if set, a MongoDB instance will be deployed
+  enabled: true
+  # auth:
+  #   enabled: true
+  #   usernames: ["consumer-mongodb"]
+  #   passwords: ["consumer-mongodb"]
+  #   databases: ["consumer-mongodb"]
+  #   rootUser: "consumer-mongodb"
+  #   rootPassword: "consumer-mongodb"
+
+arangodb:
+  # if set, an ArangoDB instance will be deployed
+  enabled: true
+  version: 3.7.10
+  # values that set fields of the ArangoDB ingress
+  ingress:
+    className: ""
+    host: ""
+
+postgresql:
+  # if set, a PostgreSQL instance will be deployed
+  enabled: true
+  auth:
+    username: ""
+    password: ""
+    database: ""
+    postgresPassword: ""
+  fullnameOverride: ""
+
+tekton:
+  enabled: true
+
+# this section controls aspects of managing a database used to store enrichments
+# the database should use the Postgres dialect.
+enrichmentDB:
+  migrations:
+    # if set, a Job will be deployed that applies migrations to the enrichment database
+    # the Job will run as part of the post-install/post-upgrade hook
+    enabled: true
+    # image to use for applying the migrations
+    image: ""
+  # connection string for the migrations and potentially other processes to connect to the
+  # enrichment database
+  connectionStr: ""
+
+global:
+  image:
+    # registry to use for all 
+    registry: ""
