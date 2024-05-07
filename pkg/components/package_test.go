@@ -104,15 +104,15 @@ func TestImagePinning(t *testing.T) {
 		Spec: tektonv1beta1api.TaskSpec{
 			Steps: []tektonv1beta1api.Step{
 				{
-					Name: "test_pinned_to_latest",
+					Name:  "test_pinned_to_latest",
 					Image: "{{ default 'ghcr.io/ocurity/dracon' .Values.container_registry }}/components/enrichers/aggregator:latest",
 				},
 				{
-					Name: "test_pinned_to_some_version",
+					Name:  "test_pinned_to_some_version",
 					Image: "docker.io/library/buildpack-deps:stable-curl@sha256:3d5e59c47d5f82a769ad3f372cc9f86321e2e2905141bba974b75d3c08a53e8e",
 				},
 				{
-					Name: "test_image_is_a_parameter",
+					Name:  "test_image_is_a_parameter",
 					Image: "$(taskName.param.some-image)",
 				},
 			},
