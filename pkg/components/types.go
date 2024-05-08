@@ -14,10 +14,12 @@ import (
 type OrchestrationType int
 
 const (
+	// UnknownOrchestration is the default value for the enum
+	UnknownOrchestration OrchestrationType = iota
 	// Naive means that a component is deployed on the cluster automatically
 	// before a Pipeline is deployed without checking if it's a newer or older
 	// version.
-	Naive OrchestrationType = iota
+	Naive
 	// ExternalHelm means that a component is deployed on the cluster using
 	// Helm but the orchestrator itself is not involved in this process.
 	ExternalHelm
@@ -78,6 +80,9 @@ func FromReference(ctx context.Context, ref string) (Component, error) {
 	if err != nil {
 		return zero, err
 	}
+
+	addAnchorParameter(task)
+	addAnchorResult(task)
 
 	return Component{
 		Name:              task.Name,

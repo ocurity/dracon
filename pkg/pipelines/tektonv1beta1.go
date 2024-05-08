@@ -15,10 +15,14 @@ import (
 )
 
 var (
-	// ErrNoComponentsInKustomization is returned when a kustomization has no components listed
+	// ErrNoComponentsInKustomization is returned when a kustomization has no
+	// components listed
 	ErrNoComponentsInKustomization = errors.New("no components listed in kustomization")
 	// ErrNoTasks is returned when no tasks are provided to the Tekton backend
 	ErrNoTasks = errors.New("no tasks provided")
+	// ErrNotResolved is returned when a component that has not been resolved
+	// is passed to the Orchestrator
+	ErrNotResolved = errors.New("component has not been resolved")
 )
 
 // addParamsAndEnvVars will add parameters and environment variables to the producer task that will
@@ -145,6 +149,9 @@ func (k k8sOrchestrator) Prepare(ctx context.Context, pipelineComponents []compo
 
 	for i, pipelineComponent := range pipelineComponents {
 		if pipelineComponent.OrchestrationType == components.Naive {
+			if !pipelineComponent.Resolved || pipelineComponent.Manifest == nil {
+				return ErrNotResolved
+			}
 			k.clientset.Apply(ctx, pipelineComponent.Manifest, k.namespace, false)
 		} else if pipelineComponent.OrchestrationType == components.ExternalHelm {
 			componentSet, exists := helmManagedComponents[pipelineComponent.Repository]
