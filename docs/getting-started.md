@@ -196,19 +196,47 @@ You can package your components into a Helm package by running the following
 command:
 
 ```bash
-export CUSTOM_DRACON_VERSION=...
+export CUSTOM_DRACON_VERSION=$(make print-DRACON_VERSION)
 export CUSTOM_HELM_COMPONENT_PACKAGE_NAME=
 make cmd/draconctl/bin
 bin/cmd/draconctl components package \
   --version ${CUSTOM_DRACON_VERSION} \
   --chart-version ${CUSTOM_DRACON_VERSION} \
-  --name custom-dracon-components \
+  --name ${CUSTOM_HELM_COMPONENT_PACKAGE_NAME} \
   ./components
 helm upgrade ${CUSTOM_HELM_COMPONENT_PACKAGE_NAME} ./${CUSTOM_HELM_COMPONENT_PACKAGE_NAME}-${CUSTOM_DRACON_VERSION}.tgz \
   --install \
   --namespace dracon
 ```
 
+If your custom components are local, you need to override the component registry
+you can do so with the following slightly modified helm command
+
+```bash
+helm upgrade ${CUSTOM_HELM_COMPONENT_PACKAGE_NAME} ./${CUSTOM_HELM_COMPONENT_PACKAGE_NAME}-${CUSTOM_DRACON_VERSION}.tgz \
+  --install \
+  --namespace dracon\
+  --set container_registry=kind-registry:5000/ocurity/dracon
+```
+
+After changes to your components you need to redeploy, you can do so as such:
+
+```bash
+
+export CUSTOM_DRACON_VERSION=$(make print-DRACON_VERSION)
+make publish-component-containers CONTAINER_REPO=localhost:5000/ocurity/dracon
+bin/cmd/draconctl components package   --version ${CUSTOM_DRACON_VERSION}   \
+  --chart-version ${CUSTOM_DRACON_VERSION}   \
+  --name ${CUSTOM_HELM_COMPONENT_PACKAGE_NAME}   \
+  ./components 
+helm upgrade ${CUSTOM_HELM_COMPONENT_PACKAGE_NAME} \
+  ./${CUSTOM_HELM_COMPONENT_PACKAGE_NAME}-${CUSTOM_DRACON_VERSION}.tgz   \
+  --install \
+  --namespace dracon \
+  --set container_registry=kind-registry:5000/ocurity/dracon
+```
+
+````
 ### Applying manually migrations
 
 There some migrations that should be applied to the postgres instance so that
@@ -228,7 +256,7 @@ bin/cmd/draconctl migrations apply \
   --image "${CONTAINER_REPO}/draconctl:${CUSTOM_DRACON_VERSION}" \
   --url "postgresql://dracon:dracon@dracon-enrichment-db.dracon.svc.cluster.local?sslmode=disable" \
   /etc/dracon/migrations/enrichment
-```
+````
 
 ## Running one of the example pipelines
 
