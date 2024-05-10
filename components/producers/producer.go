@@ -134,7 +134,7 @@ func WriteDraconOut(
 	scanTags := map[string]string{}
 	err := json.Unmarshal([]byte(scanTagsStr), &scanTags)
 	if err != nil {
-		log.Println("scan with uuid", scanUUUID, "does not have any tags, err: '", err, "'")
+		log.Printf("scan with uuid %s does not have any tags, err:%s", scanUUUID, err)
 	}
 
 	stat, err := os.Stat(OutFile)

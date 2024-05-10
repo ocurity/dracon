@@ -28,6 +28,7 @@ func main() {
 	}
 
 	issues := []*v1.Issue{}
+	log.Printf("handling %d results\n", len(results.Results))
 	for _, res := range results.Results {
 		iss, err := parseResult(res)
 		if err != nil {
