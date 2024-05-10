@@ -19,8 +19,9 @@ spec:
   steps:
   - name: run-pip-safety
     imagePullPolicy: IfNotPresent
-    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/python-pip-safety/tool:latest'
+    image: 'python:3.10-slim'
     script: |
+      pip3 install safety
       set -x
       cd $(workspaces.output.path)
       touch "uber-reqs.txt"

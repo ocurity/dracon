@@ -142,10 +142,12 @@ We provide Helm packages with all our components that can be easily installed
 as follows:
 
 ```bash
-helm upgrade oci://ghcr.io/ocurity/dracon/charts/dracon-oss-components \
+helm upgrade \
   --install \
   --namespace dracon \
   --version 0.8.0
+  dracon-oss-components\
+  oci://ghcr.io/ocurity/dracon/charts/dracon-oss-components 
 ```
 
 ### Deploying a custom version of Dracon components
