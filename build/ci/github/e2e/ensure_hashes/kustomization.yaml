@@ -1,6 +1,0 @@
-resources:
-- pod.yaml
-configMapGenerator:
-- name: hashes
-  files:
-  - hashes.txt
