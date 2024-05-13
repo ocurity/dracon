@@ -1,6 +1,11 @@
 package components
 
-import "fmt"
+import (
+	"bytes"
+	"fmt"
+
+	"github.com/go-errors/errors"
+)
 
 // LabelKey is the key of the label where the value must be a string of the
 // ComponentType enum
@@ -33,6 +38,8 @@ const (
 // String converts the ComponentType enum value to a string
 func (ct ComponentType) String() string {
 	switch ct {
+	case Unknown:
+		return "unknown"
 	case Base:
 		return "base"
 	case Source:
@@ -56,6 +63,8 @@ func (ct ComponentType) String() string {
 // returns an error
 func ToComponentType(cts string) (ComponentType, error) {
 	switch cts {
+	case "unknown":
+		return Unknown, nil
 	case "base":
 		return Base, nil
 	case "source":
@@ -83,4 +92,75 @@ func MustGetComponentType(cts string) ComponentType {
 		panic(err)
 	}
 	return ct
+}
+
+// LabelValueOneOf checks if the labels map has the expected key set and if
+// that key has any one of the expected values
+func LabelValueOneOf(labels map[string]string, componentTypes ...ComponentType) (bool, error) {
+	labelValue, hasComponentType := labels[LabelKey]
+	if !hasComponentType {
+		return false, errors.Errorf("no %s key in labels", LabelKey)
+	}
+
+	labelCt, err := ToComponentType(labelValue)
+	if err != nil {
+		return false, err
+	}
+
+	for _, componentType := range componentTypes {
+		if labelCt == componentType {
+			return true, nil
+		}
+	}
+
+	return false, nil
+}
+
+// Equal checks if the other is a ComponentType or some type that can be parsed
+// and then checks for equality.
+func (ct ComponentType) Equal(other any) (bool, error) {
+	switch o := other.(type) {
+	case string:
+		parsed, err := ToComponentType(o)
+		if err != nil {
+			return false, err
+		}
+		return parsed == ct, nil
+	case ComponentType:
+		return ct == o, nil
+	case fmt.Stringer:
+		return ct.Equal(o.String())
+	default:
+		return false, errors.Errorf("unknown component type")
+	}
+}
+
+// MarshalJSON marshals a `ComponentType` into JSON bytes
+func (ct ComponentType) MarshalJSON() ([]byte, error) {
+	return []byte(`"` + ct.String() + `"`), nil
+}
+
+// MarshalText marshals the `ComponentType` into text bytes
+func (ct ComponentType) MarshalText() ([]byte, error) {
+	return []byte(`"` + ct.String() + `"`), nil
+}
+
+// UnmarshalJSON unmarshalls bytes into a `ComponentType`
+func (ct *ComponentType) UnmarshalJSON(b []byte) error {
+	b = bytes.Trim(bytes.Trim(b, `"`), ` `)
+	parsedComponent, err := ToComponentType(string(b))
+	if err == nil {
+		*ct = parsedComponent
+	}
+	return err
+}
+
+// UnmarshalText unmarshalls bytes into a `ComponentType`
+func (ct *ComponentType) UnmarshalText(text []byte) error {
+	text = bytes.Trim(bytes.Trim(text, `"`), ` `)
+	parsedComponent, err := ToComponentType(string(text))
+	if err == nil {
+		*ct = parsedComponent
+	}
+	return err
 }
