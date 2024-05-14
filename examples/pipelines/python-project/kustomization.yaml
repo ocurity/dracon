@@ -5,10 +5,11 @@ nameSuffix: -python-project
 components:
   - pkg:helm/dracon-oss-components/base
   - pkg:helm/dracon-oss-components/git-clone
+  - pkg:helm/dracon-oss-components/producer-python-bandit
+  - pkg:helm/dracon-oss-components/producer-python-pip-safety
   - pkg:helm/dracon-oss-components/producer-aggregator
-  - ./components/producers/python-bandit
-  - ./components/producers/python-pip-safety
+  - pkg:helm/dracon-oss-components/enricher-policy
+  - pkg:helm/dracon-oss-components/enricher-deduplication
   - pkg:helm/dracon-oss-components/enricher-aggregator
-  - ./components/enrichers/deduplication
-  - ./components/consumers/mongodb
-  - ./components/consumers/elasticsearch
+  - pkg:helm/dracon-oss-components/consumer-mongodb
+  - pkg:helm/dracon-oss-components/consumer-elasticsearch

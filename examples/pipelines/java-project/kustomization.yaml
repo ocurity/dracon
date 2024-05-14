@@ -2,15 +2,14 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 nameSuffix: -java-project
-resources:
-  - ../../../components/base/pipeline.yaml
-  - ../../../components/base/task.yaml
 components:
-  - ../../../components/sources/git
-  - ../../../components/producers/aggregator
-  - ../../../components/producers/dependency-check
-  - ../../../components/producers/java-findsecbugs
-  - ../../../components/enrichers/aggregator
-  - ../../../components/enrichers/policy
-  - ../../../components/enrichers/deduplication
-  - ../../../components/consumers/mongodb
+  - pkg:helm/dracon-oss-components/base
+  - pkg:helm/dracon-oss-components/git-clone
+  - pkg:helm/dracon-oss-components/producer-dependency-check
+  - pkg:helm/dracon-oss-components/producer-java-findsecbugs
+  - pkg:helm/dracon-oss-components/producer-aggregator
+  - pkg:helm/dracon-oss-components/enricher-policy
+  - pkg:helm/dracon-oss-components/enricher-deduplication
+  - pkg:helm/dracon-oss-components/enricher-aggregator
+  - pkg:helm/dracon-oss-components/consumer-mongodb
+  - pkg:helm/dracon-oss-components/consumer-elasticsearch

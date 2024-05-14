@@ -2,15 +2,13 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 nameSuffix: -dast-project
-resources:
-  - ../../../components/base/pipeline.yaml
-  - ../../../components/base/task.yaml
 components:
-  - ../../../components/producers/aggregator
-  # - ../../../components/producers/testsslsh
-  - ../../../components/producers/zaproxy
-  - ../../../components/enrichers/aggregator
-  - ../../../components/enrichers/policy
-  - ../../../components/enrichers/deduplication
-  - ../../../components/consumers/mongodb
-  - ../../../components/consumers/elasticsearch
+  - pkg:helm/dracon-oss-components/base
+  - pkg:helm/dracon-oss-components/git-clone
+  - pkg:helm/dracon-oss-components/producers/zaproxy
+  - pkg:helm/dracon-oss-components/producer-aggregator
+  - pkg:helm/dracon-oss-components/enricher-policy
+  - pkg:helm/dracon-oss-components/enricher-deduplication
+  - pkg:helm/dracon-oss-components/enricher-aggregator
+  - pkg:helm/dracon-oss-components/consumer-mongodb
+  - pkg:helm/dracon-oss-components/consumer-elasticsearch
