@@ -8,8 +8,8 @@ spec:
   pipelineRef:
     name: dracon-python-project
   params:
-  - name: repository_url
-    value: https://github.com/ocurity/e2e-monorepo.git
+  - name: git-clone-url
+    value: https://github.com/ocurity/dracon.git
   - name: b64-signature-key
   # THIS IS AN EXAMPLE, PLEASE USE A PROPERLY SECURED SECRET KEY IN PRODUCTION
   # Corresponding public key for verification is MOt7TFuLyGB9yRN5mcIeAPa6jKoFglkwEwGBTOVLeXI=

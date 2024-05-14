@@ -15,14 +15,16 @@ spec:
   steps:
   - name: run-bandit
     imagePullPolicy: IfNotPresent
-    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/python-bandit/tool:latest'
+    image: 'python:3.10-slim'
     script: |
+      pip3 install bandit
       bandit \
         --recursive \
         $(workspaces.output.path) \
         --format json \
         --output /scratch/out.json \
         || true
+      cat /scratch/out.json
     volumeMounts:
     - mountPath: /scratch
       name: scratch

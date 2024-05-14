@@ -76,7 +76,7 @@ func WriteResults(
 		return fmt.Errorf("could not write to file '%s': %w", outFile, err)
 	}
 
-	log.Printf("wrote %d issues from to %s", len(issues), outFile)
+	log.Printf("wrote %d issues to %s", len(issues), outFile)
 	return nil
 }
 

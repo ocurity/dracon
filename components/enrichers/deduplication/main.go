@@ -48,6 +48,7 @@ var rootCmd = &cobra.Command{
 		writePath = viper.GetString("write_path")
 		for _, r := range res {
 			enrichedIssues := []*v1.EnrichedIssue{}
+			log.Printf("enriching %d issues", len(r.GetIssues()))
 			for _, i := range r.GetIssues() {
 				eI, err := enrichment.EnrichIssue(conn, i)
 				if err != nil {

@@ -43,7 +43,10 @@ import (
 // addAnchorResult adds an `anchor` entry to the results section of a Task. This helps reduce the
 // amount of boilerplate needed to be written by a user to introduce a component.
 func addAnchorResult(task *tektonv1beta1api.Task) {
-	if task.Labels[components.LabelKey] == components.Consumer.String() || task.Labels[components.LabelKey] == components.Base.String() {
+	noResultAnchorNeeded, err := components.LabelValueOneOf(task.Labels, components.Consumer, components.Base)
+	if err != nil {
+		panic(err)
+	} else if noResultAnchorNeeded {
 		return
 	}
 

@@ -1,7 +1,9 @@
 package components
 
 import (
+	"bytes"
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/go-errors/errors"
@@ -24,6 +26,65 @@ const (
 	// Helm but the orchestrator itself is not involved in this process.
 	ExternalHelm
 )
+
+// String converts the OrchestrationType to a string
+func (ot OrchestrationType) String() string {
+	switch ot {
+	case UnknownOrchestration:
+		return "unknown"
+	case Naive:
+		return "naive"
+	case ExternalHelm:
+		return "external-helm"
+	default:
+		panic(errors.Errorf("unknown orchestration type: %d", ot))
+	}
+}
+
+// MarshalJSON marshals an `OrchestrationType` into JSON bytes
+func (ot OrchestrationType) MarshalJSON() ([]byte, error) {
+	return []byte(`"` + ot.String() + `"`), nil
+}
+
+// MarshalText marshals the `OrchestrationType` into text bytes
+func (ot OrchestrationType) MarshalText() ([]byte, error) {
+	return []byte(`"` + ot.String() + `"`), nil
+}
+
+// UnmarshalJSON unmarshalls bytes into an `OrchestrationType`
+func (ot *OrchestrationType) UnmarshalJSON(b []byte) error {
+	b = bytes.Trim(bytes.Trim(b, `"`), ` `)
+	parsedOrchestrationType, err := ToOrchestrationType(string(b))
+	if err == nil {
+		*ot = parsedOrchestrationType
+	}
+	return err
+}
+
+// UnmarshalText unmarshalls bytes into an `OrchestrationType`
+func (ot *OrchestrationType) UnmarshalText(text []byte) error {
+	text = bytes.Trim(bytes.Trim(text, `"`), ` `)
+	parsedOrchestrationType, err := ToOrchestrationType(string(text))
+	if err == nil {
+		*ot = parsedOrchestrationType
+	}
+	return err
+}
+
+// ToOrchestrationType converts a string into an OrchestrationType enum value
+// or returns an error
+func ToOrchestrationType(cts string) (OrchestrationType, error) {
+	switch cts {
+	case "unknown":
+		return UnknownOrchestration, nil
+	case "naive":
+		return Naive, nil
+	case "external-helm":
+		return ExternalHelm, nil
+	default:
+		return UnknownOrchestration, fmt.Errorf("%s: unknown orchestration type", cts)
+	}
+}
 
 // Component represents a Dracon component. At the moment it can only be a
 // Tekton Task, but in the future it might represent other things too.
