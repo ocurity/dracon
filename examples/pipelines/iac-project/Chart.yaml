@@ -1,6 +1,0 @@
-apiVersion: v2
-name: "iac-project"
-description: "A Helm chart for deploying a Dracon pipeline for an IaC project."
-type: "application"
-version: 0.0.1
-appVersion: "0.0.1"

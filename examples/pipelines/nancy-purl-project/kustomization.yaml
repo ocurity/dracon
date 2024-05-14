@@ -2,13 +2,12 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 nameSuffix: -nancy-purl-project
-resources:
-  - ../../../components/base/pipeline.yaml
-  - ../../../components/base/task.yaml
 components:
-  - ../../../components/sources/dependency
-  - ../../../components/producers/aggregator
-  - ../../../components/producers/golang-nancy
-  - ../../../components/enrichers/aggregator
-  - ../../../components/enrichers/deduplication
-  - ../../../components/consumers/mongodb
+  - pkg:helm/dracon-oss-components/base
+  - pkg:helm/dracon-oss-components/git-clone
+  - pkg:helm/dracon-oss-components/producer-golang-nancy
+  - pkg:helm/dracon-oss-components/producer-aggregator
+  - pkg:helm/dracon-oss-components/enricher-policy
+  - pkg:helm/dracon-oss-components/enricher-deduplication
+  - pkg:helm/dracon-oss-components/enricher-aggregator
+  - pkg:helm/dracon-oss-components/consumer-mongodb
