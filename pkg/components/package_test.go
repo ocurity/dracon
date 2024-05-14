@@ -2,6 +2,7 @@ package components
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path"
 	"strings"
@@ -22,6 +23,7 @@ func TestGatherTasks(t *testing.T) {
 			"testdata/base/task.yaml",
 			"testdata/sources/git/task.yaml",
 			"testdata/producers/aggregator/task.yaml",
+			"testdata/producers/cdxgen/task.yaml",
 			"testdata/enrichers/aggregator/task.yaml",
 			"testdata/consumers/arangodb/task.yaml",
 		},
@@ -34,32 +36,50 @@ func TestGatherTasks(t *testing.T) {
 }
 
 func TestCreateHelmPackage(t *testing.T) {
-	helmFolder := t.TempDir()
-	err := constructPackage(
+	draconVersion := "v0.10.0"
+	semVer := "0.10.0"
+	taskList, err := loadTasks(
 		context.Background(),
-		helmFolder,
-		"dracon-oss-components",
-		"0.1.0",
-		"0.10.0",
 		[]string{
 			"testdata/base/task.yaml",
 			"testdata/sources/git/task.yaml",
+			"testdata/producers/cdxgen/task.yaml",
 			"testdata/producers/aggregator/task.yaml",
 			"testdata/enrichers/aggregator/task.yaml",
 			"testdata/consumers/arangodb/task.yaml",
 		},
 	)
 	require.NoError(t, err)
+
+	require.NoError(t, ProcessTasks(draconVersion, taskList...))
+	require.False(t, strings.HasSuffix(taskList[0].Spec.Steps[0].Image, draconVersion))
+	require.False(t, strings.HasSuffix(taskList[2].Spec.Steps[0].Image, draconVersion))
+	require.True(t, strings.HasSuffix(taskList[2].Spec.Steps[1].Image, draconVersion))
+	require.True(t, strings.HasSuffix(taskList[3].Spec.Steps[1].Image, draconVersion))
+	require.True(t, strings.HasSuffix(taskList[4].Spec.Steps[1].Image, draconVersion))
+	require.True(t, strings.HasSuffix(taskList[5].Spec.Steps[0].Image, draconVersion))
+	require.Len(t, taskList[2].Spec.Steps[1].Env, 3)
+	require.Equal(t, "DRACON_SCAN_TIME", taskList[2].Spec.Steps[1].Env[0].Name)
+	require.Equal(t, "DRACON_SCAN_ID", taskList[2].Spec.Steps[1].Env[1].Name)
+	require.Equal(t, "DRACON_SCAN_TAGS", taskList[2].Spec.Steps[1].Env[2].Name)
+	paramLen := len(taskList[2].Spec.Params)
+	require.Equal(t, taskList[2].Spec.Params[paramLen-4].Name, "anchors")
+	require.Equal(t, taskList[2].Spec.Params[paramLen-3].Name, "dracon_scan_id")
+	require.Equal(t, taskList[2].Spec.Params[paramLen-2].Name, "dracon_scan_start_time")
+	require.Equal(t, taskList[2].Spec.Params[paramLen-1].Name, "dracon_scan_tags")
+
+	helmFolder := t.TempDir()
+	require.NoError(t, constructPackage(helmFolder, "dracon-oss-components", semVer, draconVersion, taskList))
 	require.FileExists(t, path.Join(helmFolder, "Chart.yaml"))
 	chartFileContents, err := os.ReadFile(path.Join(helmFolder, "Chart.yaml"))
 	require.NoError(t, err)
 	require.Equal(
 		t,
-		`apiVersion: v2
-appVersion: 0.10.0
+		fmt.Sprintf(`apiVersion: v2
+appVersion: %s
 name: dracon-oss-components
-version: 0.1.0
-`,
+version: %s
+`, draconVersion, semVer),
 		string(chartFileContents),
 	)
 	require.FileExists(t, path.Join(path.Join(helmFolder, "templates", "tasks.yaml")))
@@ -75,8 +95,13 @@ version: 0.1.0
 		require.NoError(t, err)
 		require.Equal(t, *gKV, tektonv1beta1api.SchemeGroupVersion.WithKind("Task"))
 
-		task := obj.(*tektonv1beta1api.Task)
-		if task.Labels[LabelKey] == Base.String() || task.Labels[LabelKey] == Source.String() {
+		task, isATask := obj.(*tektonv1beta1api.Task)
+		require.True(t, isATask)
+
+		baseOrSource, err := LabelValueOneOf(task.Labels, Base, Source)
+		require.NoError(t, err)
+
+		if baseOrSource {
 			goto checkSteps
 		}
 
@@ -88,7 +113,9 @@ version: 0.1.0
 		t.Fatalf("task %s has no anchor parameter", task.Name)
 
 	checkSteps:
-		if task.Labels[LabelKey] == Consumer.String() || task.Labels[LabelKey] == Base.String() {
+		baseOrConsumer, err := LabelValueOneOf(task.Labels, Base, Consumer)
+		require.NoError(t, err)
+		if baseOrConsumer {
 			continue
 		}
 

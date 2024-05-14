@@ -13,6 +13,7 @@ import (
 	"helm.sh/helm/v3/pkg/chart"
 	"helm.sh/helm/v3/pkg/chart/loader"
 	"helm.sh/helm/v3/pkg/chartutil"
+	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/yaml"
 
 	"github.com/ocurity/dracon/pkg/manifests"
@@ -51,7 +52,17 @@ func Package(ctx context.Context, name, componentFolder string, draconVersion st
 	if err != nil {
 		return errors.Errorf("could not discover tasks: %w", err)
 	}
-	if err = constructPackage(ctx, tempFolder, name, chartVersion, draconVersion, taskPaths); err != nil {
+
+	taskList, err := loadTasks(ctx, taskPaths)
+	if err != nil {
+		return errors.Errorf("could not load tasks: %w", err)
+	}
+
+	if err = ProcessTasks(draconVersion, taskList...); err != nil {
+		return errors.Errorf("could not process tasks: %w", err)
+	}
+
+	if err = constructPackage(tempFolder, name, chartVersion, draconVersion, taskList); err != nil {
 		return errors.Errorf("could not generate Helm manifests: %w", err)
 	}
 
@@ -68,21 +79,51 @@ func Package(ctx context.Context, name, componentFolder string, draconVersion st
 	return nil
 }
 
+func loadTasks(ctx context.Context, taskPaths []string) ([]*tektonv1beta1api.Task, error) {
+	taskList := []*tektonv1beta1api.Task{}
+	for _, taskFile := range taskPaths {
+		task, err := manifests.LoadTektonV1Beta1Task(ctx, ".", taskFile)
+		if err != nil {
+			return nil, errors.Errorf("%s: not a valid manifest: %w", taskFile, err)
+		}
+		taskList = append(taskList, task)
+	}
+	return taskList, nil
+}
+
+// NoImagePinning signals to the ProcessTasks function that the Task images
+// should not be modified.
+const NoImagePinning string = ""
+
+// ProcessTasks adds anchors, environment variables, parameters and any
+// extra infrastructure required for a Task to become a useful part of a
+// pipeline. If the draconVersion is set to any value other than
+// `NoImagePinning`, the tag of every Task image will be set to that version.
+func ProcessTasks(draconVersion string, taskList ...*tektonv1beta1api.Task) error {
+	for _, task := range taskList {
+		if err := addAnchorParameter(task); err != nil {
+			return err
+		}
+		if err := addAnchorResult(task); err != nil {
+			return err
+		}
+		if err := addEnvVarsToTask(task); err != nil {
+			return err
+		}
+		if draconVersion != NoImagePinning {
+			fixImageVersion(task, draconVersion)
+		}
+	}
+
+	return nil
+}
+
 // constructPackage creates a templates folder with all the discovered tasks
 // in at the designated Path, along with a Chart file
 //
 //revive:disable:cyclomatic High complexity score but easy to understand
 //revive:disable:cognitive-complexity High complexity score but easy to understand
-func constructPackage(ctx context.Context, helmFolder, name, version, appVersion string, taskPaths []string) error {
-	taskList := []*tektonv1beta1api.Task{}
-	for _, taskFile := range taskPaths {
-		task, err := manifests.LoadTektonV1Beta1Task(ctx, ".", taskFile)
-		if err != nil {
-			return errors.Errorf("%s: not a valid manifest: %w", taskFile, err)
-		}
-		taskList = append(taskList, task)
-	}
-
+func constructPackage(helmFolder, name, version, draconVersion string, taskList []*tektonv1beta1api.Task) error {
 	if err := os.Mkdir(path.Join(helmFolder, "templates"), os.ModePerm); err != nil {
 		return errors.Errorf("could not create templates folder")
 	}
@@ -94,10 +135,6 @@ func constructPackage(ctx context.Context, helmFolder, name, version, appVersion
 	}
 
 	for _, task := range taskList {
-		addAnchorParameter(task)
-		addAnchorResult(task)
-		fixImageVersion(task, appVersion)
-
 		if err = manifests.TektonV1Beta1ObjEncoder.Encode(task, tasksFile); err != nil {
 			return errors.Errorf("could not store task %s: %w", task.Name, err)
 		}
@@ -117,7 +154,7 @@ func constructPackage(ctx context.Context, helmFolder, name, version, appVersion
 		APIVersion: chart.APIVersionV2,
 		Name:       name,
 		Version:    version,
-		AppVersion: appVersion,
+		AppVersion: draconVersion,
 	}
 
 	if err = helmChart.Validate(); err != nil {
@@ -176,15 +213,17 @@ func gatherTasks(folder string) ([]string, error) {
 	return taskPaths, nil
 }
 
-// TODO(ptzianos): these are copies of the functino in the pipelines package.
-// eventually we need to merge the two and clean them up
 // addAnchorResult adds an `anchor` entry to the results section of a Task.
 // This helps reduce the amount of boilerplate needed to be written by a user
 // to introduce a component. The base task doesn't need an anchor because its
 // output it a dependency for the consumer tasks.
-func addAnchorResult(task *tektonv1beta1api.Task) {
-	if task.Labels[LabelKey] == Consumer.String() || task.Labels[LabelKey] == Base.String() {
-		return
+func addAnchorResult(task *tektonv1beta1api.Task) error {
+	hasLabel, err := LabelValueOneOf(task.Labels, Consumer, Base)
+	if err != nil {
+		return errors.Errorf("%s: %w", task.Name, err)
+	}
+	if hasLabel {
+		return nil
 	}
 
 	task.Spec.Results = append(task.Spec.Results, tektonv1beta1api.TaskResult{
@@ -197,23 +236,25 @@ func addAnchorResult(task *tektonv1beta1api.Task) {
 		Image:  "docker.io/busybox",
 		Script: "echo \"$(context.task.name)\" > \"$(results.anchor.path)\"",
 	})
+
+	return nil
 }
 
 // addAnchorParameter adds an `anchors` entry to the parameters of a Task. This
 // entry will then be filled in the pipeline with the anchors of the tasks that
 // this task depends on.
-func addAnchorParameter(task *tektonv1beta1api.Task) {
+func addAnchorParameter(task *tektonv1beta1api.Task) error {
 	componentType, err := ToComponentType(task.Labels[LabelKey])
 	if err != nil {
-		panic(errors.Errorf("%s: %w", task.Name, err))
+		return errors.Errorf("%s: %w", task.Name, err)
 	}
 	if componentType < Producer {
-		return
+		return nil
 	}
 
 	for _, param := range task.Spec.Params {
 		if param.Name == "anchors" {
-			return
+			return nil
 		}
 	}
 
@@ -225,8 +266,59 @@ func addAnchorParameter(task *tektonv1beta1api.Task) {
 			Type: tektonv1beta1api.ParamTypeArray,
 		},
 	})
+
+	return nil
 }
 
+// addParamsAndEnvVars will add parameters and environment variables to the producer task that will
+// allow it to pick the start time, pipeline UUID and any tags that have been given as parameter to
+// the pipeline so that the issues discovered can be annotated with these values.
+func addEnvVarsToTask(task *tektonv1beta1api.Task) error {
+	componentType, err := ToComponentType(task.Labels[LabelKey])
+	if err != nil {
+		return errors.Errorf("%s: %w", task.Name, err)
+	}
+	if componentType != Producer {
+		return nil
+	}
+
+	task.Spec.Params = append(task.Spec.Params, tektonv1beta1api.ParamSpecs{
+		{
+			Name: "dracon_scan_id",
+			Type: tektonv1beta1api.ParamTypeString,
+		},
+		{
+			Name: "dracon_scan_start_time",
+			Type: tektonv1beta1api.ParamTypeString,
+		},
+		{
+			Name: "dracon_scan_tags",
+			Type: tektonv1beta1api.ParamTypeString,
+		},
+	}...)
+
+	for i, step := range task.Spec.Steps {
+		step.Env = append(step.Env, []corev1.EnvVar{
+			{
+				Name:  "DRACON_SCAN_TIME",
+				Value: "$(params.dracon_scan_start_time)",
+			},
+			{
+				Name:  "DRACON_SCAN_ID",
+				Value: "$(params.dracon_scan_id)",
+			},
+			{
+				Name:  "DRACON_SCAN_TAGS",
+				Value: "$(params.dracon_scan_tags)",
+			},
+		}...)
+		task.Spec.Steps[i] = step
+	}
+
+	return nil
+}
+
+// fixImageVersion replaces the image tag with the draconVersion
 func fixImageVersion(task *tektonv1beta1api.Task, draconVersion string) {
 	for i, step := range task.Spec.Steps {
 		// the image is the value of a parameter so we can't do much over her

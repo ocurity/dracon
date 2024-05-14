@@ -1,7 +1,8 @@
 package pipelines
 
 import (
-	"github.com/go-errors/errors"
+	"fmt"
+
 	tektonv1beta1api "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1beta1"
 
 	"github.com/ocurity/dracon/pkg/components"
@@ -40,51 +41,38 @@ import (
 // 	task.Name = prefix + task.Name + suffix
 // }
 
-// addAnchorResult adds an `anchor` entry to the results section of a Task. This helps reduce the
-// amount of boilerplate needed to be written by a user to introduce a component.
-func addAnchorResult(task *tektonv1beta1api.Task) {
-	noResultAnchorNeeded, err := components.LabelValueOneOf(task.Labels, components.Consumer, components.Base)
+func addDraconParamsToTask(pipelineTask *tektonv1beta1api.PipelineTask, baseTaskName string, task *tektonv1beta1api.Task) error {
+	isProducer, err := components.LabelValueOneOf(task.Labels, components.Producer)
 	if err != nil {
-		panic(err)
-	} else if noResultAnchorNeeded {
-		return
+		return err
+	}
+	if !isProducer {
+		return nil
 	}
 
-	task.Spec.Results = append(task.Spec.Results, tektonv1beta1api.TaskResult{
-		Name:        "anchor",
-		Description: "An anchor to allow other tasks to depend on this task.",
-	})
-
-	task.Spec.Steps = append(task.Spec.Steps, tektonv1beta1api.Step{
-		Name:   "anchor",
-		Image:  "docker.io/busybox",
-		Script: "echo \"$(context.task.name)\" > \"$(results.anchor.path)\"",
-	})
-}
-
-// addAnchorParameter adds an `anchors` entry to the parameters of a Task. This entry will then be
-// filled in the pipeline with the anchors of the tasks that this task depends on.
-func addAnchorParameter(task *tektonv1beta1api.Task) {
-	componentType, err := components.ToComponentType(task.Labels[components.LabelKey])
-	if err != nil {
-		panic(errors.Errorf("%s: %w", task.Name, err))
-	}
-	if componentType < components.Producer {
-		return
-	}
-
-	for _, param := range task.Spec.Params {
-		if param.Name == "anchors" {
-			return
-		}
-	}
-
-	task.Spec.Params = append(task.Spec.Params, tektonv1beta1api.ParamSpec{
-		Name:        "anchors",
-		Description: "A list of tasks that this task depends on",
-		Type:        "array",
-		Default: &tektonv1beta1api.ParamValue{
-			Type: tektonv1beta1api.ParamTypeArray,
+	pipelineTask.Params = append(pipelineTask.Params, []tektonv1beta1api.Param{
+		{
+			Name: "dracon_scan_id",
+			Value: tektonv1beta1api.ParamValue{
+				Type:      tektonv1beta1api.ParamTypeString,
+				StringVal: fmt.Sprintf("$(tasks.%s.results.dracon-scan-id)", baseTaskName),
+			},
 		},
-	})
+		{
+			Name: "dracon_scan_start_time",
+			Value: tektonv1beta1api.ParamValue{
+				Type:      tektonv1beta1api.ParamTypeString,
+				StringVal: fmt.Sprintf("$(tasks.%s.results.dracon-scan-start-time)", baseTaskName),
+			},
+		},
+		{
+			Name: "dracon_scan_tags",
+			Value: tektonv1beta1api.ParamValue{
+				Type:      tektonv1beta1api.ParamTypeString,
+				StringVal: fmt.Sprintf("$(tasks.%s.results.dracon-scan-tags)", baseTaskName),
+			},
+		},
+	}...)
+
+	return nil
 }

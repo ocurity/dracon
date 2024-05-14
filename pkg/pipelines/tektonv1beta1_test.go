@@ -80,7 +80,7 @@ func TestComponentPrepareChecks(t *testing.T) {
 			},
 			Labels: map[string]string{
 				"app.kubernetes.io/managed-by":    "Helm",
-				"v1.dracon.ocurity.com/component": "producer-aggregator",
+				"v1.dracon.ocurity.com/component": components.ProducerAggregator.String(),
 			},
 		},
 		Spec: tektonv1beta1api.TaskSpec{

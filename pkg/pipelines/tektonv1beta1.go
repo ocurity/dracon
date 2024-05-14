@@ -7,7 +7,6 @@ import (
 
 	"github.com/go-errors/errors"
 	tektonv1beta1api "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1beta1"
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/ocurity/dracon/pkg/components"
@@ -24,68 +23,6 @@ var (
 	// is passed to the Orchestrator
 	ErrNotResolved = errors.New("component has not been resolved")
 )
-
-// addParamsAndEnvVars will add parameters and environment variables to the producer task that will
-// allow it to pick the start time, pipeline UUID and any tags that have been given as parameter to
-// the pipeline so that the issues discovered can be annotated with these values.
-func addParamsAndEnvVars(pipelineTask *tektonv1beta1api.PipelineTask, anchors map[string][]string, task *tektonv1beta1api.Task) {
-	pipelineTask.Params = append(pipelineTask.Params, []tektonv1beta1api.Param{
-		{
-			Name: "dracon_scan_id",
-			Value: tektonv1beta1api.ParamValue{
-				Type:      tektonv1beta1api.ParamTypeString,
-				StringVal: fmt.Sprintf("$(tasks.%s.results.dracon-scan-id)", anchors[components.Base.String()][0]),
-			},
-		},
-		{
-			Name: "dracon_scan_start_time",
-			Value: tektonv1beta1api.ParamValue{
-				Type:      tektonv1beta1api.ParamTypeString,
-				StringVal: fmt.Sprintf("$(tasks.%s.results.dracon-scan-start-time)", anchors[components.Base.String()][0]),
-			},
-		},
-		{
-			Name: "dracon_scan_tags",
-			Value: tektonv1beta1api.ParamValue{
-				Type:      tektonv1beta1api.ParamTypeString,
-				StringVal: fmt.Sprintf("$(tasks.%s.results.dracon-scan-tags)", anchors[components.Base.String()][0]),
-			},
-		},
-	}...)
-
-	task.Spec.Params = append(task.Spec.Params, tektonv1beta1api.ParamSpecs{
-		{
-			Name: "dracon_scan_id",
-			Type: tektonv1beta1api.ParamTypeString,
-		},
-		{
-			Name: "dracon_scan_start_time",
-			Type: tektonv1beta1api.ParamTypeString,
-		},
-		{
-			Name: "dracon_scan_tags",
-			Type: tektonv1beta1api.ParamTypeString,
-		},
-	}...)
-
-	for i, step := range task.Spec.Steps {
-		step.Env = append(step.Env, []corev1.EnvVar{
-			{
-				Name:  "DRACON_SCAN_TIME",
-				Value: "$(params.dracon_scan_start_time)",
-			},
-			{
-				Name:  "DRACON_SCAN_ID",
-				Value: "$(params.dracon_scan_id)",
-			},
-			{
-				Name:  "DRACON_SCAN_TAGS",
-				Value: "$(params.dracon_scan_tags)",
-			},
-		}...)
-		task.Spec.Steps[i] = step
-	}
-}
 
 // NewTektonV1Beta1Orchestrator returns an Orchestrator implementation for TektonV1Beta1
 func NewTektonV1Beta1Orchestrator(clientset k8s.ClientInterface, namespace string) Orchestrator[*tektonv1beta1api.Pipeline] {
@@ -152,7 +89,16 @@ func (k k8sOrchestrator) Prepare(ctx context.Context, pipelineComponents []compo
 			if !pipelineComponent.Resolved || pipelineComponent.Manifest == nil {
 				return ErrNotResolved
 			}
-			k.clientset.Apply(ctx, pipelineComponent.Manifest, k.namespace, false)
+
+			err := components.ProcessTasks(components.NoImagePinning, pipelineComponent.Manifest.(*tektonv1beta1api.Task))
+			if err != nil {
+				return err
+			}
+
+			err = k.clientset.Apply(ctx, pipelineComponent.Manifest, k.namespace, false)
+			if err != nil {
+				return err
+			}
 		} else if pipelineComponent.OrchestrationType == components.ExternalHelm {
 			componentSet, exists := helmManagedComponents[pipelineComponent.Repository]
 			if !exists {
@@ -186,19 +132,12 @@ func (k k8sOrchestrator) Prepare(ctx context.Context, pipelineComponents []compo
 // Deploy will generate a pipeline based on the components provided
 func (k k8sOrchestrator) Deploy(ctx context.Context, basePipeline *tektonv1beta1api.Pipeline, pipelineComponents []components.Component, suffix string, dryRun bool) (*tektonv1beta1api.Pipeline, error) {
 	if len(pipelineComponents) == 0 {
-		return nil, errors.Errorf("%w", ErrNoTasks)
+		return nil, errors.Errorf("could not generate pipeline: %w", ErrNoTasks)
 	}
 
 	taskList := []*tektonv1beta1api.Task{}
 	for _, pipelineComponent := range pipelineComponents {
 		taskList = append(taskList, pipelineComponent.Manifest.(*tektonv1beta1api.Task))
-	}
-
-	for _, task := range taskList {
-		// TODO(?): revisit if we need this in the future
-		// fixTaskPrefixSuffix(task, prefix, suffix)
-		addAnchorParameter(task)
-		addAnchorResult(task)
 	}
 
 	// Sort tasks based on their component type
@@ -208,7 +147,7 @@ func (k k8sOrchestrator) Deploy(ctx context.Context, basePipeline *tektonv1beta1
 		return int(componentTypeA) - int(componentTypeB)
 	})
 
-	pipeline, err := k.generatePipeline(basePipeline, taskList)
+	pipeline, err := generatePipeline(basePipeline, taskList)
 	if err != nil && dryRun {
 		return pipeline, err
 	}
@@ -216,12 +155,28 @@ func (k k8sOrchestrator) Deploy(ctx context.Context, basePipeline *tektonv1beta1
 	return pipeline, k.clientset.Apply(ctx, pipeline, k.namespace, false)
 }
 
-func (k k8sOrchestrator) generatePipeline(pipeline *tektonv1beta1api.Pipeline, taskList []*tektonv1beta1api.Task) (*tektonv1beta1api.Pipeline, error) {
+// generatePipeline will generate a Tekton pipeline based on list of tasks
+// provided. it is assumed that the tasks are sorted based on the component
+// type, with the base component being the first one and the last components
+// being the consumers. the function will mainly work on generating the
+// parameter lists for the pipeline. each Tekton pipeline has a list of
+// parameters that it can accept using a pipelinerun object. These parameters
+// are then injected into the tasks by referencing them in the pipeline task
+// list.
+//
+//revive:disable:cyclomatic Makes no sense to split this up
+//revive:disable:cognitive-complexity Makes no sense to split this up
+func generatePipeline(pipeline *tektonv1beta1api.Pipeline, taskList []*tektonv1beta1api.Task) (*tektonv1beta1api.Pipeline, error) {
 	pipelineWorkspaces := map[string]struct{}{}
-	anchors := map[string][]string{}
+	anchors := map[components.ComponentType][]string{}
 
 	for _, task := range taskList {
-		componentType := task.Labels[components.LabelKey]
+		componentTypeStr := task.Labels[components.LabelKey]
+		componentType, err := components.ToComponentType(componentTypeStr)
+		if err != nil {
+			return nil, errors.Errorf("%s: task has invalid component type: %w", task.Name, err)
+		}
+
 		anchors[componentType] = append(anchors[componentType], task.Name)
 
 		// add task to pipeline tasks
@@ -250,40 +205,42 @@ func (k k8sOrchestrator) generatePipeline(pipeline *tektonv1beta1api.Pipeline, t
 
 		// add the task's parameters to the pipeline's parameters and
 		// reference them in the pipeline task parameters
-		pipelineTask.Params = make(tektonv1beta1api.Params, len(task.Spec.Params))
+		pipelineTask.Params = tektonv1beta1api.Params{}
 
-		for i, param := range task.Spec.Params {
-			pipelineTask.Params[i] = tektonv1beta1api.Param{
+		for _, param := range task.Spec.Params {
+			// unless we skip these parameters, we will end up adding them to
+			// the pipeline parameters over and over again. so we leave them
+			// for the end of the method.
+			if param.Name == "dracon_scan_id" || param.Name == "dracon_scan_start_time" || param.Name == "dracon_scan_tags" {
+				continue
+			}
+
+			newPipelineParam := tektonv1beta1api.Param{
 				Name:  param.Name,
 				Value: tektonv1beta1api.ParamValue{},
 			}
 
 			if param.Name == "anchors" {
-				anchorTargetComponentType := components.MustGetComponentType(componentType) - 1
+				anchorTargetComponentType := componentType - 1
 				values := []string{}
 
 				// get all the tasks that should be finished before this one starts
-				for _, anchorTarget := range anchors[anchorTargetComponentType.String()] {
+				for _, anchorTarget := range anchors[anchorTargetComponentType] {
 					values = append(values, fmt.Sprintf("$(tasks.%s.results.anchor)", anchorTarget))
 				}
 
-				pipelineTask.Params[i].Value.ArrayVal = values
-				pipelineTask.Params[i].Value.Type = tektonv1beta1api.ParamTypeArray
+				newPipelineParam.Value.ArrayVal = values
+				newPipelineParam.Value.Type = tektonv1beta1api.ParamTypeArray
 			} else {
+				newPipelineParam.Value.Type = param.Type
+
 				switch param.Type {
 				case tektonv1beta1api.ParamTypeArray:
-					pipelineTask.Params[i].Value.Type = param.Type
-					pipelineTask.Params[i].Value.ArrayVal = []string{fmt.Sprintf("$(params.%s)", param.Name)}
+					newPipelineParam.Value.ArrayVal = []string{fmt.Sprintf("$(params.%s)", param.Name)}
 				case tektonv1beta1api.ParamTypeString:
-					pipelineTask.Params[i].Value.Type = param.Type
-					pipelineTask.Params[i].Value.StringVal = fmt.Sprintf("$(params.%s)", param.Name)
-				case "":
-					return nil, errors.Errorf("parameter %s of task %s has no type set", param.Name, task.Name)
-				}
-
-				// ensure that the parameter type is always set
-				if param.Default != nil && param.Default.Type == "" {
-					param.Default.Type = param.Type
+					newPipelineParam.Value.StringVal = fmt.Sprintf("$(params.%s)", param.Name)
+				default:
+					return nil, errors.Errorf("parameter %s of task %s has no type set or is of unsupported type object", param.Name, task.Name)
 				}
 
 				// add parameter to pipeline parameters
@@ -294,11 +251,13 @@ func (k k8sOrchestrator) generatePipeline(pipeline *tektonv1beta1api.Pipeline, t
 					Default:     param.Default,
 				})
 			}
+
+			// add pipeline parameter to parameters passed to the task
+			pipelineTask.Params = append(pipelineTask.Params, newPipelineParam)
 		}
 
-		// add scan ID and scan time to all producers
-		if task.Labels[components.LabelKey] == components.Producer.String() {
-			addParamsAndEnvVars(&pipelineTask, anchors, task)
+		if err = addDraconParamsToTask(&pipelineTask, anchors[components.Base][0], task); err != nil {
+			return nil, err
 		}
 
 		// add task reference to pipeline's tasks
