@@ -15,21 +15,23 @@ spec:
   steps:
   - name: run-bandit
     imagePullPolicy: IfNotPresent
-    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/python-bandit/tool:{{ default "latest" .Values.dracon_os_component_version }}'
+    image: 'python:3.10-slim'
     script: |
+      pip3 install bandit
       bandit \
         --recursive \
         $(workspaces.output.path) \
         --format json \
         --output /scratch/out.json \
         || true
+      cat /scratch/out.json
     volumeMounts:
     - mountPath: /scratch
       name: scratch
 
   - name: produce-issues
     imagePullPolicy: IfNotPresent
-    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/python-bandit:{{ default "latest" .Values.dracon_os_component_version }}'
+    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/python-bandit:latest'
     command: ["/app/components/producers/python-bandit/python-bandit-parser"]
     args:
     - "-in=/scratch/out.json"

@@ -9,7 +9,8 @@ latest_tag=$(shell git tag --list --sort="-version:refname" | head -n 1)
 commits_since_latest_tag=$(shell git log --oneline $(latest_tag)..HEAD | wc -l)
 
 GO_TEST_PACKAGES=$(shell go list ./... | grep -v /vendor/)
-CONTAINER_REPO=europe-west1-docker.pkg.dev/oc-dracon-saas/demo/ocurity/dracon
+CONTAINER_REPO=ghcr.io/ocurity/dracon
+SOURCE_CODE_REPO=https://github.com/ocurity/dracon
 DRACON_VERSION=$(shell echo $(latest_tag)$$([ $(commits_since_latest_tag) -eq 0 ] || echo "-$$(git log -n 1 --pretty='format:%h')" )$$([ -z "$$(git status --porcelain=v1 2>/dev/null)" ] || echo "-dirty" ))
 TEKTON_VERSION=0.44.0
 TEKTON_DASHBOARD_VERSION=0.29.2
@@ -35,7 +36,7 @@ export
 ########################################
 ############# BUILD TARGETS ############
 ########################################
-.PHONY: components component-binaries protos build publish-component-containers publish-containers draconctl-image draconctl-image-publish clean-protos clean
+.PHONY: components component-binaries cmd/draconctl/bin protos build publish-component-containers publish-containers draconctl-image draconctl-image-publish clean-protos clean
 
 $(component_binariess):
 	CGO_ENABLED=0 ./scripts/build_component_binary.sh $@
@@ -47,11 +48,13 @@ $(component_containers): %/docker: %/bin
 
 components: $(component_containers)
 
-bin/cmd/draconctl:
+cmd/draconctl/bin:
 	CGO_ENABLED=0 go build -o bin/cmd/draconctl cmd/draconctl/main.go
 
-draconctl-image: bin/cmd/draconctl
-	$(DOCKER) build -t "${CONTAINER_REPO}/draconctl:${DRACON_VERSION}" -f containers/Dockerfile.draconctl .
+draconctl-image: cmd/draconctl/bin
+	$(DOCKER) build -t "${CONTAINER_REPO}/draconctl:${DRACON_VERSION}" \
+		$$([ "${SOURCE_CODE_REPO}" != "" ] && echo "--label=org.opencontainers.image.source=${SOURCE_CODE_REPO}" ) \
+		-f containers/Dockerfile.draconctl .
 
 draconctl-image-publish: draconctl-image
 	$(DOCKER) push "${CONTAINER_REPO}/draconctl:${DRACON_VERSION}"
@@ -77,7 +80,7 @@ publish-component-containers: $(component_containers_publish)
 
 publish-containers: publish-component-containers draconctl-image-publish
 
-$(example_pipeline_kustomizations): bin/cmd/draconctl
+$(example_pipeline_kustomizations): cmd/draconctl/bin
 	@echo "Generating templates for $$(dirname $@)"
 	@mkdir -p "$$(dirname $@)/templates"
 	@bin/cmd/draconctl pipelines build --out "$$(dirname $@)/templates/all.yaml" $$(dirname $@)
@@ -116,7 +119,7 @@ go-tests:
 	@mkdir -p tests/output
 	@go test -race -json -coverprofile tests/output/cover.out $(GO_TEST_PACKAGES)
 
-migration-tests: bin/cmd/draconctl
+migration-tests: cmd/draconctl/bin
 	cd tests/migrations/ && docker compose up --abort-on-container-exit --build --exit-code-from tester
 
 test: go-tests migration-tests
@@ -153,18 +156,8 @@ print-%:
 ########################################
 ########## DEPLOYMENT TARGETS ##########
 ########################################
-.PHONY: deploy-arangodb-crds deploy-arangodb dev-deploy deploy-elasticsearch deploy-mongodb deploy-pg deploy-tektoncd-pipeline tektoncd-pipeline-helm tektoncd-dashboard-helm
-
-deploy-arangodb-crds:
-	@helm upgrade arangodb-crds https://github.com/arangodb/kube-arangodb/releases/download/$(ARANGODB_VERSION)/kube-arangodb-crd-$(ARANGODB_VERSION).tgz \
-		--install
-
-deploy-arangodb: deploy-arangodb-crds
-	@helm upgrade arangodb-instance deploy/arangodb/ \
-		--install \
-		--namespace $(ARANGODB_NS) \
-		--create-namespace \
-		--values=deploy/arangodb/values.yaml
+.PHONY: deploy-nginx deploy-arangodb-crds deploy-arangodb-operator add-es-helm-repo deploy-elasticoperator \
+		tektoncd-dashboard-helm deploy-tektoncd-dashboard add-bitnami-repo dev-dracon dev-deploy dev-teardown
 
 deploy-nginx:
 	@helm upgrade nginx-ingress https://github.com/kubernetes/ingress-nginx/releases/download/helm-chart-$(NGINX_INGRESS_VERSION)/ingress-nginx-$(NGINX_INGRESS_VERSION).tgz \
@@ -172,6 +165,13 @@ deploy-nginx:
 		--namespace $(NGINX_INGRESS_NS) \
 		--create-namespace \
 		--set "controller.admissionWebhooks.enabled=false"
+
+deploy-arangodb-crds:
+	@helm upgrade arangodb-crds https://github.com/arangodb/kube-arangodb/releases/download/$(ARANGODB_VERSION)/kube-arangodb-crd-$(ARANGODB_VERSION).tgz \
+		--install
+
+deploy-arangodb-operator:
+	@helm install --generate-name https://github.com/arangodb/kube-arangodb/releases/download/1.2.40/kube-arangodb-1.2.40.tgz
 
 add-es-helm-repo:
 	@helm repo add elastic https://helm.elastic.co
@@ -183,37 +183,6 @@ deploy-elasticoperator: add-es-helm-repo
 		--namespace $(ES_NAMESPACE) \
 		--create-namespace \
 		--version=$(ES_OPERATOR_VERSION)
-
-deploy-elasticsearch: deploy-elasticoperator
-	@helm upgrade dracon-es deploy/elasticsearch/ \
-		--install \
-		--set version=$(ES_VERSION) \
-		--namespace $(DRACON_NS) \
-		--create-namespace
-
-deploy-kibana: deploy-elasticsearch
-	@helm upgrade dracon-kb deploy/kibana/ \
-		--install \
-		--set version=$(ES_VERSION) \
-		--set es_name=dracon-es-elasticsearch \
-		--namespace $(DRACON_NS) \
-		--version $(ES_VERSION)
-
-deploy-mongodb:
-	@helm upgrade consumer-mongodb https://charts.bitnami.com/bitnami/mongodb-$(MONGODB_VERSION).tgz \
-		--install \
-		--namespace $(DRACON_NS) \
-		--create-namespace \
-		--set "auth.usernames[0]=consumer-mongodb" \
-		--set "auth.passwords[0]=consumer-mongodb" \
-		--set "auth.databases[0]=consumer-mongodb"
-
-deploy-pg:
-	@helm upgrade pg https://charts.bitnami.com/bitnami/postgresql-$(PG_VERSION).tgz \
-		--install \
-		--namespace $(DRACON_NS) \
-		--create-namespace \
-		--values=deploy/enrichment-db/values.yaml
 
 deploy/tektoncd/pipeline/release-v$(TEKTON_VERSION).yaml:
 	@wget "https://storage.googleapis.com/tekton-releases/pipeline/previous/v$(TEKTON_VERSION)/release.yaml" -O $@
@@ -239,4 +208,28 @@ deploy-tektoncd-dashboard: tektoncd-dashboard-helm
 		--values ./deploy/tektoncd/dashboard/values.yaml \
 		--namespace $(TEKTON_NS)
 
-dev-deploy: deploy-nginx deploy-arangodb deploy-kibana deploy-mongodb deploy-pg deploy-tektoncd-pipeline deploy-tektoncd-dashboard
+add-bitnami-repo:
+	@helm repo add bitnami https://charts.bitnami.com/bitnami
+
+dev-dracon: deploy-elasticoperator deploy-arangodb-crds add-bitnami-repo
+	@echo "fetching dependencies if needed"
+	@helm dependency build ./deploy/dracon/chart
+	@echo "deploying dracon in dev mode"
+	@helm upgrade dracon ./deploy/dracon/chart \
+	 	  --install \
+		  --values ./deploy/dracon/values/dev.yaml \
+		  --create-namespace \
+		  --namespace $(DRACON_NS) \
+		  --set "enrichmentDB.migrations.image=$(CONTAINER_REPO)/draconctl:$(DRACON_VERSION)"
+		  --wait
+	@helm upgrade dracon-oss-components oci://ghcr.io/ocurity/dracon/charts/dracon-oss-components \
+		--install \
+		--namespace $(DRACON_NS) \
+		--version $$(echo "${DRACON_VERSION}" | sed 's/^v//')
+
+dev-infra: deploy-nginx deploy-tektoncd-pipeline deploy-tektoncd-dashboard
+
+dev-deploy: dev-infra dev-dracon
+
+dev-teardown:
+	@kind delete clusters dracon-demo

@@ -30,7 +30,9 @@ else
     "
     dockerfile_path=$(mktemp)
     printf "${dockerfile_template}" > "${dockerfile_path}"
-    docker build -t "${CONTAINER_REPO}/${executable_src_path}:${DRACON_VERSION}" -f "${dockerfile_path}" ./bin
+    docker build -t "${CONTAINER_REPO}/${executable_src_path}:${DRACON_VERSION}" \
+        $([ "${SOURCE_CODE_REPO}" != "" ] && echo "--label=org.opencontainers.image.source=${SOURCE_CODE_REPO}" ) \
+        -f "${dockerfile_path}" ./bin
 fi
 
 if make -C "${executable_src_path}" --no-print-directory --dry-run extras >/dev/null 2>&1

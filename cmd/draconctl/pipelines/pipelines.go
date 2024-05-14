@@ -18,6 +18,6 @@ func init() {
 }
 
 func RegisterPipelinesSubcommands(rootCmd *cobra.Command) {
-	pipelinesCmd.AddCommand(buildSubCmd)
+	pipelinesCmd.AddCommand(deploySubCmd)
 	rootCmd.AddCommand(pipelinesCmd)
 }

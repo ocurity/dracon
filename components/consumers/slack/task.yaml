@@ -18,7 +18,7 @@ spec:
   steps:
   - name: run-consumer
     imagePullPolicy: IfNotPresent
-    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/consumers/slack:{{ default "latest" .Values.dracon_os_component_version }}'
+    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/consumers/slack:latest'
     command: ["/app/components/consumers/slack/slack"]
     args: [
       "-in", "$(workspaces.output.path)/.dracon/enrichers/",

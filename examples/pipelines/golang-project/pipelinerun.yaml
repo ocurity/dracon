@@ -1,0 +1,30 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  generateName: dracon-golang-project-
+spec:
+  pipelineRef:
+    name: dracon-golang-project
+  params:
+  - name: git-clone-url
+    value: https://github.com/ocurity/e2e-monorepo.git
+  - name: git-clone-subdirectory
+    value: source-code
+  - name: enricher-aggregator-b64-signature-key
+  # THIS IS AN EXAMPLE, PLEASE USE A PROPERLY SECURED SECRET KEY IN PRODUCTION
+  # Corresponding public key for verification is MOt7TFuLyGB9yRN5mcIeAPa6jKoFglkwEwGBTOVLeXI=
+    value: Lvbo+wAsW8Y4ENBA+lAikOwGTYAIXCQ49eRMEwClv94w63tMW4vIYH3JE3mZwh4A9rqMqgWCWTATAYFM5Ut5cg==
+  - name: consumer-elasticsearch-url
+    value: http://dracon-es-http:9200
+  - name: consumer-mongodb-db-uri
+    value: mongodb://consumer-mongodb:consumer-mongodb@dracon-mongodb:27017/consumer-mongodb
+  workspaces:
+  - name: output
+    volumeClaimTemplate:
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 1Gi

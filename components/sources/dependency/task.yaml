@@ -22,7 +22,7 @@ spec:
       type: string
   steps:
     - name: generate-package
-      image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/sources/dependency:{{ default "latest" .Values.dracon_os_component_version }}'
+      image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/sources/dependency:latest'
       command: ["/app/components/sources/dependency/dependency"]
       args: 
       - "-purl"

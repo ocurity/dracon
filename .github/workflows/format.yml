@@ -20,10 +20,10 @@ jobs:
     - name: Check out code
       uses: actions/checkout@v4
 
-    - name: Setup Go 1.21.6
+    - name: Setup Go
       uses: actions/setup-go@v4
       with:
-        go-version: 1.21.6
+        go-version-file: go.mod
 
     - name: Format
       run: make install-go-fmt-tools install-md-fmt-tools fmt && test $(git diff -p | wc -l) -eq 0

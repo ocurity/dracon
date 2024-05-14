@@ -19,8 +19,9 @@ spec:
   steps:
   - name: run-pip-safety
     imagePullPolicy: IfNotPresent
-    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/python-pip-safety/tool:{{ default "latest" .Values.dracon_os_component_version }}'
+    image: 'python:3.10-slim'
     script: |
+      pip3 install safety
       set -x
       cd $(workspaces.output.path)
       touch "uber-reqs.txt"
@@ -36,7 +37,7 @@ spec:
       name: scratch
   - name: produce-issues
     imagePullPolicy: IfNotPresent
-    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/python-pip-safety:{{ default "latest" .Values.dracon_os_component_version }}'
+    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/python-pip-safety:latest'
     command: ["/app/components/producers/python-pip-safety/python-pip-safety-parser"]
     args:
     - "-in=/scratch/out.json"
