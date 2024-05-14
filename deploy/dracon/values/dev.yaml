@@ -41,7 +41,7 @@ tekton:
 enrichmentDB:
   migrations:
     enabled: true
-  connectionStr: postgresql://dracon:dracon@dracon-enrichment-db.dracon.svc.cluster.local?sslmode=disable
+  connectionStr: postgresql://dracon:dracon@dracon-enrichment-db?sslmode=disable
 
 global:
   image:
