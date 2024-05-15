@@ -24,14 +24,21 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Publish Docker images
         run: make publish-containers
-
+      - name: Publish Draconctl image
+        run: make draconctl-image-publish
+      - name: Setup Go
+        uses: actions/setup-go@v4
       - name: Publish component Helm package
         run: |
-          set -e;
-          DRACON_VERSION_SEMVER=$(sed 's/v//' <<< ${{ github.ref_name }});
-          make cmd/draconctl/bin; \
-          bin/cmd/draconctl components package --version ${{ github.ref_name }} --chart-version ${DRACON_VERSION_SEMVER} --name dracon-oss-components ./components; \
+          set -e
+          DRACON_VERSION_SEMVER=$(sed 's/v//' <<< ${{ github.ref_name }})
+
+          go install github.com/ocurity/dracon/cmd/draconctl@latest
+          ~/go/bin/draconctl components package --version ${{ github.ref_name }} --chart-version ${DRACON_VERSION_SEMVER} --name dracon-oss-components ./components;
+
+          helm package --version=${DRACON_VERSION_SEMVER} --app-version=${{ github.ref_name }} deploy/dracon/chart
+
           helm push dracon-oss-components-${DRACON_VERSION_SEMVER}.tgz oci://ghcr.io/ocurity/dracon/charts
+          helm push dracon-${DRACON_VERSION_SEMVER}.tgz oci://ghcr.io/ocurity/dracon/charts

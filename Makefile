@@ -56,6 +56,8 @@ draconctl-image: cmd/draconctl/bin
 
 draconctl-image-publish: draconctl-image
 	$(DOCKER) push "${CONTAINER_REPO}/draconctl:${DRACON_VERSION}"
+	$(DOCKER) tag "${CONTAINER_REPO}/draconctl:${DRACON_VERSION}" "${CONTAINER_REPO}/draconctl:latest"
+	$(DOCKER) push "${CONTAINER_REPO}/draconctl:latest"
 
 third_party/tektoncd/swagger-v$(TEKTON_VERSION).json:
 	@wget "https://raw.githubusercontent.com/tektoncd/pipeline/v$(TEKTON_VERSION)/pkg/apis/pipeline/v1beta1/swagger.json" -O $@
@@ -204,14 +206,15 @@ add-bitnami-repo:
 
 dev-dracon: deploy-elasticoperator deploy-arangodb-crds add-bitnami-repo
 	@echo "fetching dependencies if needed"
-	@helm dependency build ./deploy/dracon/chart
+	@helm dependency build ./deploy/dracon/chart 
 	@echo "deploying dracon in dev mode"
 	@helm upgrade dracon ./deploy/dracon/chart \
 	 	  --install \
 		  --values ./deploy/dracon/values/dev.yaml \
 		  --create-namespace \
-		  --namespace $(DRACON_NS) \
-		  --set "enrichmentDB.migrations.image=$(CONTAINER_REPO)/draconctl:$(DRACON_VERSION)"
+		  --namespace $(DRACON_NS)\
+		  --version $$(echo "${DRACON_VERSION}" | sed 's/^v//')\
+		  --set "enrichmentDB.migrations.image=$(CONTAINER_REPO)/draconctl:$(DRACON_VERSION)"\
 		  --wait
 	@helm upgrade dracon-oss-components oci://ghcr.io/ocurity/dracon/charts/dracon-oss-components \
 		--install \
