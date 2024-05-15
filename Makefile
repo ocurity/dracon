@@ -2,7 +2,6 @@ component_binariess=$(shell find ./components -name main.go | xargs -I'{}' sh -c
 component_containers=$(shell find ./components -name main.go | xargs -I'{}' sh -c 'echo $$(dirname {})/docker')
 component_kustomizations=$(shell find ./components -name kustomization.yaml | xargs -I'{}' sh -c 'echo $$(dirname {})/kustomization')
 component_containers_publish=$(component_containers:docker=publish)
-example_pipeline_kustomizations=$(shell find ./examples/pipelines -name kustomization.yaml | xargs -I'{}' sh -c 'echo $$(dirname {})/helm-templates')
 protos=$(shell find . -not -path './vendor/*' -name '*.proto')
 go_protos=$(protos:.proto=.pb.go)
 latest_tag=$(shell git tag --list --sort="-version:refname" | head -n 1)
@@ -70,7 +69,7 @@ $(go_protos): %.pb.go: %.proto
 
 protos: $(go_protos)
 
-build: components protos example-pipelines-helm-manifests
+build: components protos
 	@echo "done building"
 
 $(component_containers_publish): %/publish: %/docker
@@ -79,13 +78,6 @@ $(component_containers_publish): %/publish: %/docker
 publish-component-containers: $(component_containers_publish)
 
 publish-containers: publish-component-containers draconctl-image-publish
-
-$(example_pipeline_kustomizations): cmd/draconctl/bin
-	@echo "Generating templates for $$(dirname $@)"
-	@mkdir -p "$$(dirname $@)/templates"
-	@bin/cmd/draconctl pipelines build --out "$$(dirname $@)/templates/all.yaml" $$(dirname $@)
-
-example-pipelines-helm-manifests: $(example_pipeline_kustomizations)
 
 clean-protos:
 	@find . -not -path './vendor/*' -name '*.pb.go' -delete
