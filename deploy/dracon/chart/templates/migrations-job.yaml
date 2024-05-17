@@ -2,7 +2,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ include "dracon.fullname" . }}-migrations
+  name: {{ include "dracon.fullname" . }}-migrations-{{ .Values.enrichmentDB.migrations.suffix | default .Chart.Version }}
   labels:
     {{- include "dracon.labels" . | nindent 4 }}
   annotations:

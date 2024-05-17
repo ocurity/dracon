@@ -40,6 +40,7 @@ tekton:
 
 enrichmentDB:
   migrations:
+    suffix: ""
     enabled: true
   connectionStr: postgresql://dracon:dracon@dracon-enrichment-db?sslmode=disable
 

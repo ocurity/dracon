@@ -213,13 +213,12 @@ dev-dracon: deploy-elasticoperator deploy-arangodb-crds add-bitnami-repo
 		  --values ./deploy/dracon/values/dev.yaml \
 		  --create-namespace \
 		  --namespace $(DRACON_NS)\
-		  --version $$(echo "${DRACON_VERSION}" | sed 's/^v//')\
+		  --set "enrichmentDB.migrations.suffix=$$(echo "${DRACON_VERSION}" | sed 's/\./-/g')"\
 		  --set "enrichmentDB.migrations.image=$(CONTAINER_REPO)/draconctl:$(DRACON_VERSION)"\
 		  --wait
 	@helm upgrade dracon-oss-components oci://ghcr.io/ocurity/dracon/charts/dracon-oss-components \
 		--install \
 		--namespace $(DRACON_NS) \
-		--version $$(echo "${DRACON_VERSION}" | sed 's/^v//')
 
 dev-infra: deploy-nginx deploy-tektoncd-pipeline deploy-tektoncd-dashboard
 
