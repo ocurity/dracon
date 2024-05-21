@@ -36,10 +36,10 @@ export
 ########################################
 .PHONY: components component-binaries cmd/draconctl/bin protos build publish-component-containers publish-containers draconctl-image draconctl-image-publish clean-protos clean
 
-$(component_binariess):
+$(component_binaries):
 	CGO_ENABLED=0 ./scripts/build_component_binary.sh $@
 
-component-binaries: $(component_binariess)
+component-binaries: $(component_binaries)
 
 $(component_containers): %/docker: %/bin
 	./scripts/build_component_container.sh $@
