@@ -16,7 +16,7 @@ import (
 )
 
 func TestGatherTasks(t *testing.T) {
-	taskPaths, err := gatherTasks("testdata")
+	taskPaths, err := GatherTasks("testdata")
 	require.NoError(t, err)
 	require.EqualValues(t,
 		[]string{
@@ -30,7 +30,7 @@ func TestGatherTasks(t *testing.T) {
 		taskPaths,
 	)
 
-	taskPaths, err = gatherTasks("..")
+	taskPaths, err = GatherTasks("..")
 	require.NoError(t, err)
 	require.Empty(t, taskPaths)
 }
@@ -38,7 +38,7 @@ func TestGatherTasks(t *testing.T) {
 func TestCreateHelmPackage(t *testing.T) {
 	draconVersion := "v0.10.0"
 	semVer := "0.10.0"
-	taskList, err := loadTasks(
+	taskList, err := LoadTasks(
 		context.Background(),
 		[]string{
 			"testdata/base/task.yaml",

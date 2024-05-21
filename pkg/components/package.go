@@ -48,12 +48,12 @@ func Package(ctx context.Context, name, componentFolder string, draconVersion st
 		err = stderrors.Join(err, os.RemoveAll(tempFolder))
 	}()
 
-	taskPaths, err := gatherTasks(componentFolder)
+	taskPaths, err := GatherTasks(componentFolder)
 	if err != nil {
 		return errors.Errorf("could not discover tasks: %w", err)
 	}
 
-	taskList, err := loadTasks(ctx, taskPaths)
+	taskList, err := LoadTasks(ctx, taskPaths)
 	if err != nil {
 		return errors.Errorf("could not load tasks: %w", err)
 	}
@@ -79,7 +79,7 @@ func Package(ctx context.Context, name, componentFolder string, draconVersion st
 	return nil
 }
 
-func loadTasks(ctx context.Context, taskPaths []string) ([]*tektonv1beta1api.Task, error) {
+func LoadTasks(ctx context.Context, taskPaths []string) ([]*tektonv1beta1api.Task, error) {
 	taskList := []*tektonv1beta1api.Task{}
 	for _, taskFile := range taskPaths {
 		task, err := manifests.LoadTektonV1Beta1Task(ctx, ".", taskFile)
@@ -174,10 +174,10 @@ func constructPackage(helmFolder, name, version, draconVersion string, taskList 
 	return nil
 }
 
-// gatherTasks returns the paths of all the Tekton Tasks discovered
+// GatherTasks returns the paths of all the Tekton Tasks discovered
 //
 //revive:disable:cognitive-complexity High complexity score but easy to understand
-func gatherTasks(folder string) ([]string, error) {
+func GatherTasks(folder string) ([]string, error) {
 	taskPaths := []string{}
 
 	for _, componentType := range []string{"base", "sources", "producers", "enrichers", "consumers"} {
