@@ -9,7 +9,6 @@ import (
 	"github.com/ocurity/dracon/cmd/draconctl/components"
 	"github.com/ocurity/dracon/cmd/draconctl/migrations"
 	"github.com/ocurity/dracon/cmd/draconctl/pipelines"
-	draconLogger "github.com/ocurity/dracon/pkg/log"
 )
 
 var rootCmd = &cobra.Command{
@@ -25,7 +24,7 @@ func main() {
 	pipelines.RegisterPipelinesSubcommands(rootCmd)
 	migrations.RegisterMigrationsSubcommands(rootCmd)
 	components.RegisterComponentsSubcommands(rootCmd)
-	draconLogger.SetDefault(slog.LevelInfo, "", false)
+	slog.SetDefault(slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{})))
 	err := rootCmd.Execute()
 	if err != nil {
 		os.Exit(1)

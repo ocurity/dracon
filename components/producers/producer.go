@@ -10,16 +10,15 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"log"
 	"log/slog"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
 
-	v1 "github.com/ocurity/dracon/api/proto/v1"
+	draconapiv1 "github.com/ocurity/dracon/api/proto/v1"
+	"github.com/ocurity/dracon/components"
 
-	draconLogger "github.com/ocurity/dracon/pkg/log"
 	"github.com/ocurity/dracon/pkg/putil"
 )
 
@@ -30,34 +29,28 @@ var (
 	OutFile string
 	// Append flag will append to the outfile instead of overwriting, useful when there's multiple inresults.
 	Append bool
-	// Debug flag initializes the logger with a debug level
-	Debug bool
+	// debug flag initializes the logger with a debug level
+	debug bool
 )
 
 const (
 	sourceDir = "/workspace/output"
-
-	// EnvDraconStartTime Start Time of Dracon Scan in RFC3339.
-	EnvDraconStartTime = "DRACON_SCAN_TIME"
-	// EnvDraconScanID the ID of the dracon scan.
-	EnvDraconScanID = "DRACON_SCAN_ID"
-	// EnvDraconScanTags the tags of the dracon scan.
-	EnvDraconScanTags = "DRACON_SCAN_TAGS"
 )
 
 // ParseFlags will parse the input flags for the producer and perform simple validation.
 func ParseFlags() error {
 	flag.StringVar(&InResults, "in", "", "")
 	flag.StringVar(&OutFile, "out", "", "")
-	flag.BoolVar(&Debug, "debug", false, "turn on debug logging")
+	flag.BoolVar(&debug, "debug", false, "turn on debug logging")
 	flag.BoolVar(&Append, "append", false, "Append to output file instead of overwriting it")
 
 	flag.Parse()
-	if Debug {
-		draconLogger.SetDefault(slog.LevelDebug, os.Getenv(EnvDraconScanID), true)
-	} else {
-		draconLogger.SetDefault(slog.LevelInfo, os.Getenv(EnvDraconScanID), true)
+	logLevel := slog.LevelInfo
+	if debug {
+		logLevel = slog.LevelDebug
 	}
+	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: logLevel})).With("scanID", os.Getenv(components.EnvDraconScanID)))
+
 	if InResults == "" {
 		return fmt.Errorf("in is undefined")
 	}
@@ -123,28 +116,28 @@ func ParseMultiJSONMessages(in []byte) ([]interface{}, error) {
 // WriteDraconOut provides a generic method to write the resulting protobuf to the output file.
 func WriteDraconOut(
 	toolName string,
-	issues []*v1.Issue,
+	issues []*draconapiv1.Issue,
 ) error {
 	source := getSource()
-	cleanIssues := []*v1.Issue{}
+	cleanIssues := []*draconapiv1.Issue{}
 	for _, iss := range issues {
 		iss.Description = strings.ReplaceAll(iss.Description, sourceDir, ".")
 		iss.Title = strings.ReplaceAll(iss.Title, sourceDir, ".")
 		iss.Target = strings.ReplaceAll(iss.Target, sourceDir, ".")
 		iss.Source = source
 		cleanIssues = append(cleanIssues, iss)
-		log.Printf("found issue: %+v\n", iss)
+		slog.Info(fmt.Sprintf("found issue: %+v\n", iss))
 	}
-	scanStartTime := strings.TrimSpace(os.Getenv(EnvDraconStartTime))
+	scanStartTime := strings.TrimSpace(os.Getenv(components.EnvDraconStartTime))
 	if scanStartTime == "" {
 		scanStartTime = time.Now().UTC().Format(time.RFC3339)
 	}
-	scanUUUID := strings.TrimSpace(os.Getenv(EnvDraconScanID))
-	scanTagsStr := strings.TrimSpace(os.Getenv(EnvDraconScanTags))
+	scanUUUID := strings.TrimSpace(os.Getenv(components.EnvDraconScanID))
+	scanTagsStr := strings.TrimSpace(os.Getenv(components.EnvDraconScanTags))
 	scanTags := map[string]string{}
 	err := json.Unmarshal([]byte(scanTagsStr), &scanTags)
 	if err != nil {
-		log.Printf("scan with uuid %s does not have any tags, err:%s", scanUUUID, err)
+		slog.Error(fmt.Sprintf("scan does not have any tags, err:%s", err))
 	}
 
 	stat, err := os.Stat(OutFile)
@@ -163,7 +156,7 @@ func getSource() string {
 
 	dat, err := os.ReadFile(sourceMetaPath)
 	if err != nil {
-		log.Println(err)
+		slog.Error(err.Error())
 	}
 	return strings.TrimSpace(string(dat))
 }
