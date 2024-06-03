@@ -6,12 +6,13 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"os"
 	"path/filepath"
 
 	"golang.org/x/crypto/nacl/sign"
 
+	apiv1 "github.com/ocurity/dracon/api/proto/v1"
 	v1 "github.com/ocurity/dracon/api/proto/v1"
+	"github.com/ocurity/dracon/components/enrichers"
 	"github.com/ocurity/dracon/pkg/putil"
 )
 
@@ -24,17 +25,10 @@ var (
 	keyBytes  []byte
 )
 
-func lookupEnvOrString(key string, defaultVal string) string {
-	if val, ok := os.LookupEnv(key); ok {
-		return val
-	}
-	return defaultVal
-}
-
 // Aggregation Rules:
 // all k,v annotations get merged
 // if there's a key conflict keep the value of the one you saw first.
-func aggregateIssue(i *v1.EnrichedIssue, issues map[string]*v1.EnrichedIssue) map[string]*v1.EnrichedIssue {
+func aggregateIssue(i *apiv1.EnrichedIssue, issues map[string]*apiv1.EnrichedIssue) map[string]*apiv1.EnrichedIssue {
 	if _, ok := issues[i.RawIssue.Uuid]; ok { // do we already know about this Uuid?
 		for k, v := range i.Annotations { // if yes, merge known Uuid annotations with new annotations
 			if val, found := issues[i.RawIssue.Uuid].Annotations[k]; found {
@@ -74,13 +68,13 @@ func aggregateIssue(i *v1.EnrichedIssue, issues map[string]*v1.EnrichedIssue) ma
 }
 
 // signMessage uses Nacl.Sign to append a Base64 encoded signature of the whole message to the annotation named: "JSON-Message-Signature".
-func signMessage(i *v1.EnrichedIssue) (*v1.EnrichedIssue, error) {
+func signMessage(i *apiv1.EnrichedIssue) (*apiv1.EnrichedIssue, error) {
 	// if you have been instructed to sign results, then add the signature annotation
 	log.Println("signing message " + i.RawIssue.Title)
 	msg, err := json.Marshal(i)
 	if err != nil {
 		log.Printf("Error: could not serialise the message for signing")
-		return &v1.EnrichedIssue{}, nil
+		return &apiv1.EnrichedIssue{}, nil
 
 	}
 	if i.Annotations == nil {
@@ -90,33 +84,33 @@ func signMessage(i *v1.EnrichedIssue) (*v1.EnrichedIssue, error) {
 	return i, nil
 }
 
-func aggregateToolResponse(response *v1.EnrichedLaunchToolResponse, issues map[string]*v1.EnrichedIssue) map[string]*v1.EnrichedIssue {
+func aggregateToolResponse(response *apiv1.EnrichedLaunchToolResponse, issues map[string]*apiv1.EnrichedIssue) map[string]*apiv1.EnrichedIssue {
 	for _, i := range response.GetIssues() {
 		issues = aggregateIssue(i, issues)
 	}
 	return issues
 }
 
-func run() {
+func run() error {
 	results, err := putil.LoadEnrichedNonAggregatedToolResponse(readPath)
 	if err != nil {
-		log.Fatalf("could not load tool response from path %s , error:%v", readPath, err)
+		return fmt.Errorf("could not load tool response from path %s , error:%v", readPath, err)
 	}
 
 	if len(signKey) > 0 {
 		keyBytes, err = base64.StdEncoding.DecodeString(signKey)
 		if err != nil {
-			log.Fatalf("could not decode private key for signing")
+			return fmt.Errorf("could not decode private key for signing")
 		}
 	}
 	log.Printf("loaded %d, enriched but not aggregated tool responses\n", len(results))
-	issues := make(map[string]map[string]*v1.EnrichedIssue)
-	originalResponses := make(map[string]*v1.LaunchToolResponse)
+	issues := make(map[string]map[string]*apiv1.EnrichedIssue)
+	originalResponses := make(map[string]*apiv1.LaunchToolResponse)
 	for _, r := range results {
 		toolName := r.GetOriginalResults().GetToolName()
 		originalResponses[toolName] = r.GetOriginalResults()
 		if _, ok := issues[toolName]; !ok {
-			issues[toolName] = make(map[string]*v1.EnrichedIssue)
+			issues[toolName] = make(map[string]*apiv1.EnrichedIssue)
 		}
 		issues[toolName] = aggregateToolResponse(r, issues[toolName])
 	}
@@ -136,17 +130,18 @@ func run() {
 		if err := putil.WriteEnrichedResults(originalResponses[toolName], result,
 			filepath.Join(writePath, fmt.Sprintf("%s.enriched.aggregated.pb", toolName)),
 		); err != nil {
-			log.Fatal(err)
+			return err
 		}
 	}
+	return nil
 }
 
 func main() {
-	flag.StringVar(&readPath, "read_path", lookupEnvOrString("READ_PATH", ""), "where to find producer results")
-	flag.StringVar(&writePath, "write_path", lookupEnvOrString("WRITE_PATH", ""), "where to put tagged results")
-
-	flag.StringVar(&signKey, "signature_key", lookupEnvOrString("B64_SIGNATURE_KEY", ""), "where to put tagged results")
-
-	flag.Parse()
-	run()
+	flag.StringVar(&signKey, "signature_key", enrichers.LookupEnvOrString("B64_SIGNATURE_KEY", ""), "where to put tagged results")
+	if err := enrichers.ParseFlags(); err != nil {
+		log.Fatal(err)
+	}
+	if err := run(); err != nil {
+		log.Fatal(err)
+	}
 }

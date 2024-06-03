@@ -130,14 +130,14 @@ func WriteDraconOut(
 		cleanIssues = append(cleanIssues, iss)
 		slog.Debug(fmt.Sprintf("found issue: %+v\n", iss))
 	}
-	scanStartTime := strings.TrimSpace(os.Getenv(components.EnvDraconStartTime))
-	if scanStartTime == "" {
-		scanStartTime = time.Now().UTC().Format(time.RFC3339)
+	scanStartTime, err := time.Parse(time.RFC3339, strings.TrimSpace(os.Getenv(components.EnvDraconStartTime)))
+	if err != nil {
+		scanStartTime = time.Now().UTC()
 	}
 	scanUUUID := strings.TrimSpace(os.Getenv(components.EnvDraconScanID))
 	scanTagsStr := strings.TrimSpace(os.Getenv(components.EnvDraconScanTags))
 	scanTags := map[string]string{}
-	err := json.Unmarshal([]byte(scanTagsStr), &scanTags)
+	err = json.Unmarshal([]byte(scanTagsStr), &scanTags)
 	if err != nil {
 		slog.Error(fmt.Sprintf("scan does not have any tags, err:%s", err))
 	}
