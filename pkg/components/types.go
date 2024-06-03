@@ -134,7 +134,7 @@ func FromReference(ctx context.Context, ref string) (Component, error) {
 
 	task, err := manifests.LoadTektonV1Beta1Task(ctx, ".", ref)
 	if err != nil {
-		return zero, errors.Errorf("could not load reference: %w", err)
+		return zero, errors.Errorf("%s:could not load reference: %w", ref, err)
 	}
 
 	componentType, err := ValidateTask(task)
