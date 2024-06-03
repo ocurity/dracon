@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"strings"
@@ -18,6 +19,7 @@ import (
 
 	v1 "github.com/ocurity/dracon/api/proto/v1"
 
+	draconLogger "github.com/ocurity/dracon/pkg/log"
 	"github.com/ocurity/dracon/pkg/putil"
 )
 
@@ -28,6 +30,8 @@ var (
 	OutFile string
 	// Append flag will append to the outfile instead of overwriting, useful when there's multiple inresults.
 	Append bool
+	// Debug flag initializes the logger with a debug level
+	Debug bool
 )
 
 const (
@@ -45,9 +49,15 @@ const (
 func ParseFlags() error {
 	flag.StringVar(&InResults, "in", "", "")
 	flag.StringVar(&OutFile, "out", "", "")
+	flag.BoolVar(&Debug, "debug", false, "turn on debug logging")
 	flag.BoolVar(&Append, "append", false, "Append to output file instead of overwriting it")
 
 	flag.Parse()
+	if Debug {
+		draconLogger.SetDefault(slog.LevelDebug, os.Getenv(EnvDraconScanID), true)
+	} else {
+		draconLogger.SetDefault(slog.LevelInfo, os.Getenv(EnvDraconScanID), true)
+	}
 	if InResults == "" {
 		return fmt.Errorf("in is undefined")
 	}
