@@ -35,7 +35,6 @@ func ParseFlags() error {
 	if debug {
 		logLevel = slog.LevelDebug
 	}
-
 	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: logLevel})).With("scanID", os.Getenv(components.EnvDraconScanID)))
 	if len(inResults) < 1 {
 		return fmt.Errorf("in is undefined")

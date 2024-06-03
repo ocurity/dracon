@@ -17,6 +17,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	v1 "github.com/ocurity/dracon/api/proto/v1"
+	"github.com/ocurity/dracon/components/enrichers"
 	"github.com/ocurity/dracon/pkg/cyclonedx"
 )
 
@@ -66,9 +67,8 @@ func prepareIssue(t *testing.T) string {
 	// write sample raw issues in mktemp
 	out, _ := proto.Marshal(&orig)
 	require.NoError(t, os.WriteFile(dir+"/depsdevSAT.tagged.pb", out, 0o600))
-
-	readPath = dir
-	writePath = dir
+	enrichers.SetReadPathForTests(dir)
+	enrichers.SetWritePathForTests(dir)
 	return dir
 }
 
@@ -112,10 +112,10 @@ func TestParseIssuesDepsDevScoreCardInfoWritten(t *testing.T) {
 	scoreCardInfo = "true"
 	// run enricher
 	run()
-	assert.FileExists(t, dir+"/depsdevSAT.depsdev.enriched.pb", "file was not created")
+	assert.FileExists(t, dir+"/depsdevSAT.deps-dev.enriched.pb", "file was not created")
 
 	// load *enriched.pb
-	pbBytes, err := os.ReadFile(dir + "/depsdevSAT.depsdev.enriched.pb")
+	pbBytes, err := os.ReadFile(dir + "/depsdevSAT.deps-dev.enriched.pb")
 	require.NoError(t, err, "could not read enriched file")
 
 	res := v1.EnrichedLaunchToolResponse{}
@@ -152,10 +152,10 @@ func TestParseIssuesDepsDevExternalReferenceLinksWritten(t *testing.T) {
 
 	// run enricher
 	run()
-	assert.FileExists(t, dir+"/depsdevSAT.depsdev.enriched.pb", "file was not created")
+	assert.FileExists(t, dir+"/depsdevSAT.deps-dev.enriched.pb", "file was not created")
 
 	// load *enriched.pb
-	pbBytes, err := os.ReadFile(dir + "/depsdevSAT.depsdev.enriched.pb")
+	pbBytes, err := os.ReadFile(dir + "/depsdevSAT.deps-dev.enriched.pb")
 	require.NoError(t, err, "could not read enriched file")
 
 	res := v1.EnrichedLaunchToolResponse{}
@@ -195,10 +195,10 @@ func TestParseIssuesLicensesWritten(t *testing.T) {
 
 	// run enricher
 	run()
-	assert.FileExists(t, dir+"/depsdevSAT.depsdev.enriched.pb", "file was not created")
+	assert.FileExists(t, dir+"/depsdevSAT.deps-dev.enriched.pb", "file was not created")
 
 	// load *enriched.pb
-	pbBytes, err := os.ReadFile(dir + "/depsdevSAT.depsdev.enriched.pb")
+	pbBytes, err := os.ReadFile(dir + "/depsdevSAT.deps-dev.enriched.pb")
 	require.NoError(t, err, "could not read enriched file")
 	res := v1.EnrichedLaunchToolResponse{}
 	require.NoError(t, proto.Unmarshal(pbBytes, &res))
@@ -225,10 +225,10 @@ func TestParseIssuesLicensesWrittenACcurateLicenses(t *testing.T) {
 
 	run()
 
-	assert.FileExists(t, dir+"/depsdevSAT.depsdev.enriched.pb", "file was not created")
+	assert.FileExists(t, dir+"/depsdevSAT.deps-dev.enriched.pb", "file was not created")
 
 	// load *enriched.pb
-	pbBytes, err := os.ReadFile(dir + "/depsdevSAT.depsdev.enriched.pb")
+	pbBytes, err := os.ReadFile(dir + "/depsdevSAT.deps-dev.enriched.pb")
 	require.NoError(t, err, "could not read enriched file")
 
 	res := v1.EnrichedLaunchToolResponse{}

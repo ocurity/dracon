@@ -6,25 +6,21 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"log/slog"
 	"net/http"
 	"net/url"
-	"os"
-	"path/filepath"
-	"time"
 
 	cdx "github.com/CycloneDX/cyclonedx-go"
 	packageurl "github.com/package-url/packageurl-go"
 
 	v1 "github.com/ocurity/dracon/api/proto/v1"
+	"github.com/ocurity/dracon/components/enrichers"
 	"github.com/ocurity/dracon/pkg/cyclonedx"
-	"github.com/ocurity/dracon/pkg/putil"
 )
 
 const defaultAnnotation = "Enriched Licenses"
 
 var (
-	readPath           string
-	writePath          string
 	depsdevBaseURL     = "https://deps.dev"
 	licensesInEvidence string
 	scoreCardInfo      string
@@ -99,13 +95,6 @@ type Response struct {
 	Owners         []interface{} `json:"owners,omitempty"`
 	Version        Version       `json:"version,omitempty"`
 	DefaultVersion string        `json:"defaultVersion,omitempty"`
-}
-
-func lookupEnvOrString(key string, defaultVal string) string {
-	if val, ok := os.LookupEnv(key); ok {
-		return val
-	}
-	return defaultVal
 }
 
 func makeURL(component cdx.Component, api bool) (string, error) {
@@ -276,10 +265,10 @@ func enrichIssue(i *v1.Issue) (*v1.EnrichedIssue, error) {
 	return &enrichedIssue, nil
 }
 
-func run() {
-	res, err := putil.LoadTaggedToolResponse(readPath)
+func run() error {
+	res, err := enrichers.LoadData()
 	if err != nil {
-		log.Fatalf("could not load tool response from path %s , error:%v", readPath, err)
+		return err
 	}
 	if annotation == "" {
 		annotation = defaultAnnotation
@@ -289,48 +278,32 @@ func run() {
 		for _, i := range r.GetIssues() {
 			eI, err := enrichIssue(i)
 			if err != nil {
-				log.Println(err)
+				slog.Error(err.Error())
 				continue
 			}
 			enrichedIssues = append(enrichedIssues, eI)
 		}
-		if len(enrichedIssues) > 0 {
-			if err := putil.WriteEnrichedResults(r, enrichedIssues,
-				filepath.Join(writePath, fmt.Sprintf("%s.depsdev.enriched.pb", r.GetToolName())),
-			); err != nil {
-				log.Fatal(err)
-			}
-		} else {
-			log.Println("no enriched issues were created for", r.GetToolName())
-		}
-		if len(r.GetIssues()) > 0 {
-			scanStartTime := r.GetScanInfo().GetScanStartTime().AsTime()
-			if err := putil.WriteResults(
-				r.GetToolName(),
-				r.GetIssues(),
-				filepath.Join(writePath, fmt.Sprintf("%s.raw.pb", r.GetToolName())),
-				r.GetScanInfo().GetScanUuid(),
-				scanStartTime.Format(time.RFC3339),
-				r.GetScanInfo().GetScanTags(),
-			); err != nil {
-				log.Fatalf("could not write results: %s", err)
-			}
-		}
-
+		return enrichers.WriteData(&v1.EnrichedLaunchToolResponse{
+			OriginalResults: r,
+			Issues:          enrichedIssues,
+		}, "deps-dev")
 	}
+	return nil
 }
 
 func main() {
-	flag.StringVar(&readPath, "read_path", lookupEnvOrString("READ_PATH", ""), "where to find producer results")
-	flag.StringVar(&writePath, "write_path", lookupEnvOrString("WRITE_PATH", ""), "where to put enriched results")
-	flag.StringVar(&annotation, "annotation", lookupEnvOrString("ANNOTATION", defaultAnnotation), "what is the annotation this enricher will add to the issues, by default `Enriched Licenses`")
-	flag.StringVar(&scoreCardInfo, "scoreCardInfo", lookupEnvOrString("SCORECARD_INFO", "false"), "add security score card scan results from deps.dev to the components of the SBOM as properties")
-	flag.StringVar(&licensesInEvidence, "licensesInEvidence", lookupEnvOrString("LICENSES_IN_EVIDENCE", ""),
+	flag.StringVar(&annotation, "annotation", enrichers.LookupEnvOrString("ANNOTATION", defaultAnnotation), "what is the annotation this enricher will add to the issues, by default `Enriched Licenses`")
+	flag.StringVar(&scoreCardInfo, "scoreCardInfo", enrichers.LookupEnvOrString("SCORECARD_INFO", "false"), "add security score card scan results from deps.dev to the components of the SBOM as properties")
+	flag.StringVar(&licensesInEvidence, "licensesInEvidence", enrichers.LookupEnvOrString("LICENSES_IN_EVIDENCE", ""),
 		`If this flag is provided and set to "true", the enricher will populate the 'evidence' CycloneDX field with license information instead of the license field.
 	This means that the result conforms to the CycloneDX intention of providing accurate information when licensing information cannot be guaranteed to be accurate.
 	However, no tools currently support reading license information from evidence.
 	This is because deps.dev does not guarantee accurate licensing information for Go.
 	Enable this switch if you need to provide SBOM information for regulatory reasons.`)
-	flag.Parse()
-	run()
+	if err := enrichers.ParseFlags(); err != nil {
+		log.Fatal(err)
+	}
+	if err := run(); err != nil {
+		log.Fatal(err)
+	}
 }

@@ -6,7 +6,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"time"
 
 	"github.com/google/uuid"
 
@@ -47,13 +46,12 @@ func run() {
 			}
 			taggedIssues = append(taggedIssues, eI)
 		}
-		scanStartTime := r.GetScanInfo().GetScanStartTime().AsTime()
 		if err := putil.WriteResults(
 			r.GetToolName(),
 			taggedIssues,
 			filepath.Join(writePath, fmt.Sprintf("%s.tagged.pb", r.GetToolName())),
 			r.GetScanInfo().GetScanUuid(),
-			scanStartTime.Format(time.RFC3339),
+			r.GetScanInfo().GetScanStartTime().AsTime(),
 			r.GetScanInfo().GetScanTags(),
 		); err != nil {
 			log.Fatalf("could not write results: %s", err)
