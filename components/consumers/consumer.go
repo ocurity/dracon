@@ -5,9 +5,12 @@ package consumers
 import (
 	"flag"
 	"fmt"
+	"log/slog"
+	"os"
 
-	v1 "github.com/ocurity/dracon/api/proto/v1"
+	apiv1 "github.com/ocurity/dracon/api/proto/v1"
 
+	draconLogger "github.com/ocurity/dracon/pkg/log"
 	"github.com/ocurity/dracon/pkg/putil"
 )
 
@@ -24,16 +27,26 @@ var (
 	inResults string
 	// Raw represents if the non-enriched results should be used.
 	Raw bool
+	// Debug flag initializes the logger with a debug level
+	Debug bool
 )
 
 func init() {
 	flag.StringVar(&inResults, "in", "", "the directory where dracon producer/enricher outputs are")
 	flag.BoolVar(&Raw, "raw", false, "if the non-enriched results should be used")
+	flag.BoolVar(&Debug, "debug", false, "turn on debug logging")
+
 }
 
 // ParseFlags will parse the input flags for the consumer and perform simple validation.
 func ParseFlags() error {
 	flag.Parse()
+	if Debug {
+		draconLogger.SetDefault(slog.LevelDebug, os.Getenv(EnvDraconScanID), true)
+	} else {
+		draconLogger.SetDefault(slog.LevelInfo, os.Getenv(EnvDraconScanID), true)
+	}
+
 	if len(inResults) < 1 {
 		return fmt.Errorf("in is undefined")
 	}
@@ -41,11 +54,11 @@ func ParseFlags() error {
 }
 
 // LoadToolResponse loads raw results from producers.
-func LoadToolResponse() ([]*v1.LaunchToolResponse, error) {
+func LoadToolResponse() ([]*apiv1.LaunchToolResponse, error) {
 	return putil.LoadToolResponse(inResults)
 }
 
 // LoadEnrichedToolResponse loads enriched results from the enricher.
-func LoadEnrichedToolResponse() ([]*v1.EnrichedLaunchToolResponse, error) {
+func LoadEnrichedToolResponse() ([]*apiv1.EnrichedLaunchToolResponse, error) {
 	return putil.LoadEnrichedToolResponse(inResults)
 }
