@@ -48,9 +48,6 @@ postgresql:
     postgresPassword: ""
   fullnameOverride: ""
 
-tekton:
-  enabled: true
-
 # this section controls aspects of managing a database used to store enrichments
 # the database should use the Postgres dialect.
 enrichmentDB:
