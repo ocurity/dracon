@@ -111,6 +111,9 @@ go-tests:
 	@mkdir -p tests/output
 	@go test -race -json -coverprofile tests/output/cover.out $(GO_TEST_PACKAGES)
 
+go-cover: go-tests
+	@go tool cover -html=tests/output/cover.out -o=tests/output/cover.html && open tests/output/cover.html
+
 migration-tests: cmd/draconctl/bin
 	cd tests/migrations/ && docker compose up --abort-on-container-exit --build --exit-code-from tester
 
