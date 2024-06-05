@@ -92,7 +92,8 @@ clean: clean-protos clean-migrations-compose
 .PHONY: lint install-lint-tools tests go-tests fmt fmt-proto fmt-go install-go-fmt-tools migration-tests
 
 lint:
-	@reviewdog -fail-on-error -diff="git diff origin/main" -filter-mode=added
+# we need to redirect stderr to stdout because Github actions don't capture the stderr lolz
+	@reviewdog -fail-on-error -diff="git diff origin/main" -filter-mode=added 2>&1
 
 install-lint-tools:
 	@go install honnef.co/go/tools/cmd/staticcheck@latest
