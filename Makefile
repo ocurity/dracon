@@ -92,7 +92,7 @@ clean: clean-protos clean-migrations-compose
 .PHONY: lint install-lint-tools tests go-tests fmt fmt-proto fmt-go install-go-fmt-tools migration-tests
 
 lint:
-	@reviewdog -fail-on-error -diff="git diff origin/main" -filter-mode=added -tee
+	@reviewdog -fail-on-error -diff="git diff origin/main" -filter-mode=added
 
 install-lint-tools:
 	@go install honnef.co/go/tools/cmd/staticcheck@latest
