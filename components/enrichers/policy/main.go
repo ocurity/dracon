@@ -78,7 +78,11 @@ func run() error {
 			}
 			enrichedIssues = append(enrichedIssues, eI)
 		}
-		return enrichers.WriteData(enrichedIssues, r, "policy")
+
+		return enrichers.WriteData(&v1.EnrichedLaunchToolResponse{
+			OriginalResults: r,
+			Issues:          enrichedIssues,
+		}, "policy")
 	}
 	return nil
 }

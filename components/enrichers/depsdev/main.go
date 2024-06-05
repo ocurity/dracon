@@ -283,7 +283,10 @@ func run() error {
 			}
 			enrichedIssues = append(enrichedIssues, eI)
 		}
-		return enrichers.WriteData(enrichedIssues, r, "deps-dev")
+		return enrichers.WriteData(&v1.EnrichedLaunchToolResponse{
+			OriginalResults: r,
+			Issues:          enrichedIssues,
+		}, "deps-dev")
 	}
 	return nil
 }

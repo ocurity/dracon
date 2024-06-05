@@ -4,15 +4,14 @@ package enrichers
 import (
 	"flag"
 	"fmt"
-	"log"
 	"log/slog"
 	"os"
 	"path/filepath"
-	"time"
 
 	"github.com/go-errors/errors"
 
 	draconapiv1 "github.com/ocurity/dracon/api/proto/v1"
+	v1 "github.com/ocurity/dracon/api/proto/v1"
 	"github.com/ocurity/dracon/components"
 	"github.com/ocurity/dracon/pkg/putil"
 )
@@ -56,28 +55,29 @@ func LoadData() ([]*draconapiv1.LaunchToolResponse, error) {
 	return putil.LoadTaggedToolResponse(readPath)
 }
 
-func WriteData(enrichedIssues []*draconapiv1.EnrichedIssue, originalResults *draconapiv1.LaunchToolResponse, enricherName string) error {
-	if len(enrichedIssues) > 0 {
-		if err := putil.WriteEnrichedResults(originalResults, enrichedIssues,
-			filepath.Join(writePath, fmt.Sprintf("%s.%s.enriched.pb", originalResults.GetToolName(), enricherName)),
-		); err != nil {
-			return err
-		}
-	} else {
-		log.Println("no enriched issues were created for", originalResults.GetToolName())
+func WriteData(enrichedLaunchToolResponse *v1.EnrichedLaunchToolResponse, enricherName string) error {
+
+	if enrichedLaunchToolResponse == nil || len(enrichedLaunchToolResponse.Issues) == 0 {
+		return errors.Errorf("no enriched issues were created for %s", enrichedLaunchToolResponse.GetOriginalResults().GetToolName())
 	}
-	if len(originalResults.GetIssues()) > 0 {
-		scanStartTime := originalResults.GetScanInfo().GetScanStartTime().AsTime()
-		if err := putil.WriteResults(
-			originalResults.GetToolName(),
-			originalResults.GetIssues(),
-			filepath.Join(writePath, fmt.Sprintf("%s.raw.pb", originalResults.GetToolName())),
-			originalResults.GetScanInfo().GetScanUuid(),
-			scanStartTime.Format(time.RFC3339),
-			originalResults.GetScanInfo().GetScanTags(),
-		); err != nil {
-			return errors.Errorf("could not write results: %s", err)
-		}
+	if err := putil.WriteEnrichedResults(enrichedLaunchToolResponse.GetOriginalResults(), enrichedLaunchToolResponse.GetIssues(),
+		filepath.Join(writePath, fmt.Sprintf("%s.%s.enriched.pb", enrichedLaunchToolResponse.GetOriginalResults().GetToolName(), enricherName)),
+	); err != nil {
+		return err
+	}
+	if enrichedLaunchToolResponse.OriginalResults == nil || len(enrichedLaunchToolResponse.OriginalResults.GetIssues()) == 0 {
+		return errors.Errorf("original results is empty for %s", enrichedLaunchToolResponse.GetOriginalResults().GetToolName())
+	}
+	scanStartTime := enrichedLaunchToolResponse.GetOriginalResults().GetScanInfo().GetScanStartTime().AsTime()
+	if err := putil.WriteResults(
+		enrichedLaunchToolResponse.GetOriginalResults().GetToolName(),
+		enrichedLaunchToolResponse.GetOriginalResults().GetIssues(),
+		filepath.Join(writePath, fmt.Sprintf("%s.raw.pb", enrichedLaunchToolResponse.GetOriginalResults().GetToolName())),
+		enrichedLaunchToolResponse.GetOriginalResults().GetScanInfo().GetScanUuid(),
+		scanStartTime,
+		enrichedLaunchToolResponse.GetOriginalResults().GetScanInfo().GetScanTags(),
+	); err != nil {
+		return errors.Errorf("could not write results: %s", err)
 	}
 	return nil
 }
