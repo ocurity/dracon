@@ -5,6 +5,7 @@ import (
 
 	tektonv1beta1api "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1beta1"
 	tektonv1beta1fakeclient "github.com/tektoncd/pipeline/pkg/client/clientset/versioned/typed/pipeline/v1beta1/fake"
+	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/api/meta/testrestmapper"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -39,9 +40,9 @@ func NewSchemeAndCodecs() (*runtime.Scheme, *serializer.CodecFactory, error) {
 
 var _ k8s.ClientInterface = (*DraconClientSet)(nil)
 
-// ApplyHookType is the signature of the function that will be called to mock
-// an Apply invocation
-type ApplyHookType func(clientset ClientsetSubset, obj runtime.Object, namespace string, forceConflicts bool) error
+// ApplyHookType is the signature of the function that will be called to
+// examine the parameters that the apply function was called with.
+type ApplyHookType func(obj runtime.Object, namespace string, forceConflicts bool) error
 
 // ClientsetSubset is just the fake clientset struct
 type ClientsetSubset struct {
@@ -52,6 +53,7 @@ type ClientsetSubset struct {
 // DraconClientSet is a mock implementation of the `k8s.Clientset`
 type DraconClientSet struct {
 	ClientsetSubset
+	objectTracker  testing.ObjectTracker
 	discovery      *fakediscovery.FakeDiscovery
 	ApplyHook      ApplyHookType
 	MetaRESTMapper meta.RESTMapper
@@ -62,7 +64,7 @@ type DraconClientSet struct {
 // a correct response for all known types offered by the `k8s.ClientInterface`.
 func NewFakeTypedClient(objects ...runtime.Object) (DraconClientSet, error) {
 	return NewFakeTypedClientWithApplyHook(
-		func(_ ClientsetSubset, _ runtime.Object, _ string, _ bool) error { return nil },
+		func(_ runtime.Object, _ string, _ bool) error { return nil },
 		objects...,
 	)
 }
@@ -96,6 +98,7 @@ func NewFakeTypedClientWithApplyHook(applyHook ApplyHookType, objects ...runtime
 	})
 
 	return DraconClientSet{
+		objectTracker: objectTracker,
 		discovery: &fakediscovery.FakeDiscovery{
 			Fake: &fakeCoreK8sClient.Fake,
 			FakedServerVersion: &version.Info{
@@ -118,7 +121,16 @@ func NewFakeTypedClientWithApplyHook(applyHook ApplyHookType, objects ...runtime
 
 // Apply mocks the `kubectl apply`
 func (f DraconClientSet) Apply(_ context.Context, obj runtime.Object, namespace string, forceConflicts bool) error {
-	return f.ApplyHook(f.ClientsetSubset, obj, namespace, forceConflicts)
+	if err := f.ApplyHook(obj, namespace, forceConflicts); err != nil {
+		return err
+	}
+	gvk := obj.GetObjectKind().GroupVersionKind()
+	gvr, _ := meta.UnsafeGuessKindToResource(gvk)
+
+	if err := f.objectTracker.Create(gvr, obj, namespace); k8serrors.IsAlreadyExists(err) {
+		return f.objectTracker.Update(gvr, obj, namespace)
+	}
+	return nil
 }
 
 // RESTMapper returns an instance implementing the `meta.RESTMapper` interface
