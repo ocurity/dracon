@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log/slog"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -20,11 +21,10 @@ func main() {
 		ID:    "top-level",
 		Title: "Top-level Commands:",
 	})
-
 	pipelines.RegisterPipelinesSubcommands(rootCmd)
 	migrations.RegisterMigrationsSubcommands(rootCmd)
 	components.RegisterComponentsSubcommands(rootCmd)
-
+	slog.SetDefault(slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{})))
 	err := rootCmd.Execute()
 	if err != nil {
 		os.Exit(1)

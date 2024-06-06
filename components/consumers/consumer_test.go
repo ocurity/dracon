@@ -6,11 +6,11 @@ import (
 	"testing"
 	"time"
 
-	v1 "github.com/ocurity/dracon/api/proto/v1"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	draconapiv1 "github.com/ocurity/dracon/api/proto/v1"
+	"github.com/ocurity/dracon/components"
 	"github.com/ocurity/dracon/pkg/putil"
 )
 
@@ -23,7 +23,7 @@ func TestLoadToolResponse(t *testing.T) {
 
 	defer require.NoError(t, os.Remove(tmpFile.Name()))
 
-	issues := []*v1.Issue{
+	issues := []*draconapiv1.Issue{
 		{
 			Target:      "/dracon/source/foobar",
 			Title:       "/dracon/source/barfoo",
@@ -39,9 +39,9 @@ func TestLoadToolResponse(t *testing.T) {
 	scanTags, err := json.Marshal(tags)
 	assert.NoError(t, err)
 
-	require.NoError(t, os.Setenv(EnvDraconStartTime, timestamp))
-	require.NoError(t, os.Setenv(EnvDraconScanID, scanID))
-	require.NoError(t, os.Setenv(EnvDraconScanTags, string(scanTags)))
+	require.NoError(t, os.Setenv(components.EnvDraconStartTime, timestamp))
+	require.NoError(t, os.Setenv(components.EnvDraconScanID, scanID))
+	require.NoError(t, os.Setenv(components.EnvDraconScanTags, string(scanTags)))
 
 	resultTempDir := tmpFile.Name()
 	resultFile := "test-tool"

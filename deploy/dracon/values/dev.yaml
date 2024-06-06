@@ -7,6 +7,7 @@ kibana:
   enabled: true
   version: 8.3.2
   ingress:
+    enabled: true
     className: nginx
     host: kibana.dracon.localhost
     tlsEnabled: false
