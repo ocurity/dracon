@@ -7,6 +7,7 @@ import (
 	"time"
 
 	v1 "github.com/ocurity/dracon/api/proto/v1"
+	"github.com/ocurity/dracon/components"
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/stretchr/testify/assert"
@@ -25,8 +26,8 @@ func TestWriteDraconOut(t *testing.T) {
 
 	baseTime := time.Now().UTC()
 	timestamp := baseTime.Format(time.RFC3339)
-	require.NoError(t, os.Setenv(EnvDraconStartTime, timestamp))
-	require.NoError(t, os.Setenv(EnvDraconScanID, "ab3d3290-cd9f-482c-97dc-ec48bdfcc4de"))
+	require.NoError(t, os.Setenv(components.EnvDraconStartTime, timestamp))
+	require.NoError(t, os.Setenv(components.EnvDraconScanID, "ab3d3290-cd9f-482c-97dc-ec48bdfcc4de"))
 
 	OutFile = tmpFile.Name()
 	Append = false
@@ -66,8 +67,8 @@ func TestWriteDraconOutAppend(t *testing.T) {
 
 	baseTime := time.Now().UTC()
 	timestamp := baseTime.Format(time.RFC3339)
-	require.NoError(t, os.Setenv(EnvDraconStartTime, timestamp))
-	require.NoError(t, os.Setenv(EnvDraconScanID, "ab3d3290-cd9f-482c-97dc-ec48bdfcc4de"))
+	require.NoError(t, os.Setenv(components.EnvDraconStartTime, timestamp))
+	require.NoError(t, os.Setenv(components.EnvDraconScanID, "ab3d3290-cd9f-482c-97dc-ec48bdfcc4de"))
 
 	OutFile = tmpFile.Name()
 	Append = true
