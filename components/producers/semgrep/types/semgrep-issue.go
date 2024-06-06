@@ -33,4 +33,6 @@ type SemgrepResults struct {
 type Metavars struct{}
 
 // Metadata currently is empty, however, could represent semgrep issue metadata going forward.
-type Metadata struct{}
+type Metadata struct {
+	CWE interface{} `json:"cwe"` // Can be a []string but also just a string
+}

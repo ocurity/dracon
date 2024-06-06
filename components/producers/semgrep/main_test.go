@@ -107,3 +107,11 @@ func TestParseIssues(t *testing.T) {
 
 	assert.Equal(t, expectedIssue2, issues[1])
 }
+
+func TestHandleSemgrepCWE(t *testing.T) {
+	cwe := handleSemgrepCWE("CWE-123: Test")
+	assert.Equal(t, []int32{123}, cwe)
+
+	cweArray := handleSemgrepCWE([]interface{}{"CWE-123: Test", "CWE-456: Test"})
+	assert.Equal(t, []int32{123, 456}, cweArray)
+}
