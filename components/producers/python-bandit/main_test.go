@@ -52,6 +52,7 @@ func TestParseIssues(t *testing.T) {
 			Cve:            "",
 			Uuid:           "",
 			ContextSegment: &code,
+			Cwe:            []int32{78},
 		},
 		{
 			Target:         f.Name() + ":6",
@@ -65,6 +66,7 @@ func TestParseIssues(t *testing.T) {
 			Cve:            "",
 			Uuid:           "",
 			ContextSegment: &code,
+			Cwe:            []int32{78},
 		},
 	}
 
