@@ -29,10 +29,10 @@ func init() {
 }
 
 func inspectMigrations(cmd *cobra.Command, args []string) error {
-	if len(args) != 1 {
+	if migrationsCmdConfig.migratiosnPath == "" {
 		return fmt.Errorf("you need to provide a path to the migrations that will be applied")
 	}
-	dirFS := os.DirFS(args[0])
+	dirFS := os.DirFS(migrationsCmdConfig.migratiosnPath)
 
 	dbURL, err := db.ParseConnectionStr(migrationsCmdConfig.connStr)
 	if err != nil {

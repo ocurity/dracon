@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/package-url/packageurl-go"
+
 	v1 "github.com/ocurity/dracon/api/proto/v1"
 	"github.com/ocurity/dracon/components"
 
@@ -120,4 +122,30 @@ func TestParseMultiJSONMessages(t *testing.T) {
 		want[i] = x
 	}
 	assert.Equal(t, want[0].Foo, "bar")
+}
+
+func TestGetPURLTarget(t *testing.T) {
+	target := GetPURLTarget("deb", "debian", "curl", "7.68.0", nil, "")
+	require.Equal(t, "pkg:deb/debian/curl@7.68.0", target)
+
+	target = GetPURLTarget("bitbucket", "birkenfeld", "pygments-main", "244fd47e07d1014f0aed9c", nil, "")
+	require.Equal(t, "pkg:bitbucket/birkenfeld/pygments-main@244fd47e07d1014f0aed9c", target)
+
+	target = GetPURLTarget("docker", "customer", "dockerimage", "sha256:244fd47e07d1004f0aed9c", packageurl.Qualifiers{
+		{Key: "repository_url", Value: "gcr.io"},
+	}, "")
+	require.Equal(t, "pkg:docker/customer/dockerimage@sha256:244fd47e07d1004f0aed9c?repository_url=gcr.io", target)
+
+	target = GetPURLTarget("npm", "", "foobar", "12.3.1", nil, "")
+	require.Equal(t, "pkg:npm/foobar@12.3.1", target)
+
+	target = GetPURLTarget("pypi", "", "django", "1.11.1", nil, "")
+	require.Equal(t, "pkg:pypi/django@1.11.1", target)
+
+	target = GetPURLTarget("deb", "debian", "curl", "7.50.3-1", packageurl.Qualifiers{
+		{Key: "arch", Value: "i386"},
+		{Key: "distro", Value: "jessie"},
+	}, "")
+
+	require.Equal(t, "pkg:deb/debian/curl@7.50.3-1?arch=i386&distro=jessie", target)
 }

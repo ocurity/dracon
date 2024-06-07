@@ -4,7 +4,7 @@ package types
 type Vulnerability struct {
 	// Vulnerability_id                               string
 	PackageName                                string   `json:"package_name"`
-	VulnerableSpec                             string   `json:"vulnerable_spec"`
+	VulnerableSpec                             []string `json:"vulnerable_spec"`
 	AllVulnerableSpecs                         []string `json:"all_vulnerable_specs"`
 	AnalyzedVersion                            string   `json:"analyzed_version"`
 	Advisory                                   string   `json:"advisory"`
@@ -20,5 +20,5 @@ type Vulnerability struct {
 
 // Out represents the json output of a pip safety run.
 type Out struct {
-	Vulnerabilities []Vulnerability
+	Vulnerabilities []Vulnerability `json:"vulnerabilities"`
 }

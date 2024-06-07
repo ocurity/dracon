@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"log/slog"
 	"strings"
 
 	v1 "github.com/ocurity/dracon/api/proto/v1"
@@ -50,7 +51,7 @@ func parseResult(r *BanditResult) (*v1.Issue, error) {
 	for _, r := range r.LineRange {
 		rng = append(rng, fmt.Sprintf("%d", r))
 	}
-	iss := v1.Issue{
+	iss := &v1.Issue{
 		Target:      fmt.Sprintf("%s:%s", r.Filename, strings.Join(rng, "-")),
 		Type:        r.TestID,
 		Title:       r.TestName,
@@ -59,12 +60,16 @@ func parseResult(r *BanditResult) (*v1.Issue, error) {
 		Confidence:  v1.Confidence(v1.Confidence_value[fmt.Sprintf("CONFIDENCE_%s", r.IssueConfidence)]),
 		Description: fmt.Sprintf("%s\ncode:%s", r.IssueText, r.Code),
 	}
-	code, err := context.ExtractCode(&iss) // Bandit only extracts a small code sample, we think it's better to have more
+
+	// Extract the code snippet, if possible
+	code, err := context.ExtractCode(iss)
 	if err != nil {
-		return nil, err
+		slog.Warn("Failed to extract code snippet", "error", err)
+		code = ""
 	}
 	iss.ContextSegment = &code
-	return &iss, nil
+
+	return iss, nil
 }
 
 // BanditOut represents the output of a bandit run.

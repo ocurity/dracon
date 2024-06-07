@@ -22,12 +22,14 @@ spec:
       containers:
       - name: dracon-migrations
         image: {{ .Values.enrichmentDB.migrations.image | default (print .Values.global.image.registry "/ocurity/dracon/draconctl:" .Chart.AppVersion) }}
+        env:
+          - name: DRACONCTL_MIGRATIONS_PATH
+            value: "/etc/dracon/migrations/enrichment"
         command:
         - draconctl
         - migrations
         - apply
         - --url
         - {{.Values.enrichmentDB.connectionStr | quote}}
-        - /etc/dracon/migrations/enrichment
       serviceAccountName: {{ include "dracon.fullname" . }}-migrations
 {{ end }}

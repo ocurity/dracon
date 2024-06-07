@@ -13,7 +13,7 @@ func ValidateTask(task *tektonV1Beta1.Task) (ComponentType, error) {
 		return Base, errors.Errorf("%s: task does not have a component type label", task.Name)
 	}
 
-	componentType, err := ToComponentType(componentTypeLabel)
+	componentType, err := ParseComponentType(componentTypeLabel)
 	if err != nil {
 		return Base, errors.Errorf("%s: task has wrong component type: %w", task.Name, err)
 	}

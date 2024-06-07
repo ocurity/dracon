@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/ocurity/dracon/components/producers"
 	"github.com/ocurity/dracon/components/producers/python-pip-safety/types"
 
 	v1 "github.com/ocurity/dracon/api/proto/v1"
@@ -19,9 +20,9 @@ func TestParseIssues(t *testing.T) {
 	draconIssues := parseIssues(safetyIssues.Vulnerabilities)
 	expectedIssues := []*v1.Issue{
 		{
-			Target:      "aiohttp-jinja2:1.1.0",
+			Target:      "pkg:pypi/aiohttp-jinja2@1.1.0",
 			Type:        "Vulnerable Dependency",
-			Title:       "aiohttp-jinja2<1.1.1",
+			Title:       "aiohttp-jinja2[<1.1.1]",
 			Severity:    0,
 			Cvss:        0,
 			Confidence:  3,
@@ -30,9 +31,9 @@ func TestParseIssues(t *testing.T) {
 			Cve:         "CVE-2014-1402",
 		},
 		{
-			Target:      "aiohttp-jinja2:1.1.0",
+			Target:      "pkg:pypi/aiohttp-jinja2@1.1.0",
 			Type:        "Vulnerable Dependency",
-			Title:       "aiohttp-jinja2<1.1.1",
+			Title:       "aiohttp-jinja2[<1.1.1]",
 			Severity:    0,
 			Cvss:        0,
 			Confidence:  3,
@@ -41,9 +42,9 @@ func TestParseIssues(t *testing.T) {
 			Cve:         "CVE-2016-10745",
 		},
 		{
-			Target:      "aiohttp-jinja2:1.1.0",
+			Target:      "pkg:pypi/aiohttp-jinja2@1.1.0",
 			Type:        "Vulnerable Dependency",
-			Title:       "aiohttp-jinja2<1.1.1",
+			Title:       "aiohttp-jinja2[<1.1.1]",
 			Severity:    0,
 			Cvss:        0,
 			Confidence:  3,
@@ -224,7 +225,7 @@ const exampleOutput = `
             "ignored": {},
             "ignored_reason": null,
             "ignored_expires": null,
-            "vulnerable_spec": "<1.1.1",
+            "vulnerable_spec": ["<1.1.1"],
             "all_vulnerable_specs": [
                 "<1.1.1"
             ],
@@ -246,7 +247,7 @@ const exampleOutput = `
             "ignored": {},
             "ignored_reason": null,
             "ignored_expires": null,
-            "vulnerable_spec": "<1.1.1",
+            "vulnerable_spec": ["<1.1.1"],
             "all_vulnerable_specs": [
                 "<1.1.1"
             ],
@@ -268,7 +269,7 @@ const exampleOutput = `
             "ignored": {},
             "ignored_reason": null,
             "ignored_expires": null,
-            "vulnerable_spec": "<1.1.1",
+            "vulnerable_spec": ["<1.1.1"],
             "all_vulnerable_specs": [
                 "<1.1.1"
             ],
@@ -303,3 +304,8 @@ const exampleOutput = `
         }
     }
 }`
+
+func TestEndToEndCLIWithJSON(t *testing.T) {
+	err := producers.TestEndToEnd(t, "./examples/result.json", "./examples/result_safety.pb")
+	assert.NoError(t, err)
+}

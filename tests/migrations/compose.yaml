@@ -26,18 +26,20 @@ services:
     networks:
       - test-migrations
     entrypoint: /bin/bash
+    environment:
+      DRACONCTL_MIGRATIONS_PATH: /etc/dracon/migrations/enrichment
     command:
     - -c
     - |
       apt-get update && apt-get install -y jq &&
       echo "------------------------------ Starting tests ------------------------------" &&
-      /bin/draconctl migrations inspect --url postgres://postgres:password@postgres:5432?sslmode=disable --json /etc/dracon/migrations/enrichment | tee | jq -eM '. | select(.Version == 0)' &&
+      /bin/draconctl migrations inspect --url postgres://postgres:password@postgres:5432?sslmode=disable --json | tee | jq -eM '. | select(.Version == 0)' &&
       echo "------------------------------ Applying migrations ------------------------------" &&
-      /bin/draconctl migrations apply --url postgres://postgres:password@postgres:5432?sslmode=disable /etc/dracon/migrations/enrichment &&
-      /bin/draconctl migrations inspect --url postgres://postgres:password@postgres:5432?sslmode=disable --json /etc/dracon/migrations/enrichment | tee | jq -eM '. | select(.Version > 0)' &&
+      /bin/draconctl migrations apply --url postgres://postgres:password@postgres:5432?sslmode=disable &&
+      /bin/draconctl migrations inspect --url postgres://postgres:password@postgres:5432?sslmode=disable --json | tee | jq -eM '. | select(.Version > 0)' &&
       echo "------------------------------ Reverting migrations ------------------------------" &&
-      /bin/draconctl migrations revert --url postgres://postgres:password@postgres:5432?sslmode=disable /etc/dracon/migrations/enrichment &&
-      /bin/draconctl migrations inspect --url postgres://postgres:password@postgres:5432?sslmode=disable --json /etc/dracon/migrations/enrichment | tee | jq -eM '. | select(.Version == 0)'
+      /bin/draconctl migrations revert --url postgres://postgres:password@postgres:5432?sslmode=disable &&
+      /bin/draconctl migrations inspect --url postgres://postgres:password@postgres:5432?sslmode=disable --json | tee | jq -eM '. | select(.Version == 0)'
 
 networks:
   test-migrations:

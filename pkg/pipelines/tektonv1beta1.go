@@ -85,7 +85,7 @@ func (k k8sOrchestrator) Prepare(ctx context.Context, pipelineComponents []compo
 	}
 
 	for i, pipelineComponent := range pipelineComponents {
-		if pipelineComponent.OrchestrationType == components.Naive {
+		if pipelineComponent.OrchestrationType == components.OrchestrationTypeNaive {
 			if !pipelineComponent.Resolved || pipelineComponent.Manifest == nil {
 				return ErrNotResolved
 			}
@@ -99,7 +99,7 @@ func (k k8sOrchestrator) Prepare(ctx context.Context, pipelineComponents []compo
 			if err != nil {
 				return err
 			}
-		} else if pipelineComponent.OrchestrationType == components.ExternalHelm {
+		} else if pipelineComponent.OrchestrationType == components.OrchestrationTypeExternalHelm {
 			componentSet, exists := helmManagedComponents[pipelineComponent.Repository]
 			if !exists {
 				return errors.Errorf("no Helm release with name %s is deployed in the namespace %s (%s)", pipelineComponent.Repository, k.namespace, pipelineComponent.Name)
@@ -116,7 +116,7 @@ func (k k8sOrchestrator) Prepare(ctx context.Context, pipelineComponents []compo
 				return errors.Errorf("%s: task does not have a component type label", component.Name)
 			}
 
-			componentType, err := components.ToComponentType(componentTypeLabel)
+			componentType, err := components.ParseComponentType(componentTypeLabel)
 			if err != nil {
 				return errors.Errorf("%s: task has wrong component type: %w", component.Name, err)
 			}
@@ -142,9 +142,9 @@ func (k k8sOrchestrator) Deploy(ctx context.Context, basePipeline *tektonv1beta1
 
 	// Sort tasks based on their component type
 	slices.SortFunc(taskList, func(a *tektonv1beta1api.Task, b *tektonv1beta1api.Task) int {
-		componentTypeA := components.MustGetComponentType(a.Labels[components.LabelKey])
-		componentTypeB := components.MustGetComponentType(b.Labels[components.LabelKey])
-		return int(componentTypeA) - int(componentTypeB)
+		componentTypeA := components.MustParseComponentType(a.Labels[components.LabelKey])
+		componentTypeB := components.MustParseComponentType(b.Labels[components.LabelKey])
+		return components.ADifferenceFromB(componentTypeA, componentTypeB)
 	})
 
 	pipeline, err := generatePipeline(basePipeline, taskList)
@@ -172,7 +172,7 @@ func generatePipeline(pipeline *tektonv1beta1api.Pipeline, taskList []*tektonv1b
 
 	for _, task := range taskList {
 		componentTypeStr := task.Labels[components.LabelKey]
-		componentType, err := components.ToComponentType(componentTypeStr)
+		componentType, err := components.ParseComponentType(componentTypeStr)
 		if err != nil {
 			return nil, errors.Errorf("%s: task has invalid component type: %w", task.Name, err)
 		}
@@ -221,7 +221,7 @@ func generatePipeline(pipeline *tektonv1beta1api.Pipeline, taskList []*tektonv1b
 			}
 
 			if param.Name == "anchors" {
-				anchorTargetComponentType := componentType - 1
+				anchorTargetComponentType := components.GetPrevious(componentType)
 				values := []string{}
 
 				// get all the tasks that should be finished before this one starts

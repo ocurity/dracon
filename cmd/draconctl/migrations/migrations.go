@@ -33,6 +33,7 @@ var migrationsCmdConfig = struct {
 	migrationsTable string
 	runAsK8sJob     bool
 	timeout         int
+	migratiosnPath  string
 }{}
 
 var migrationsAsK8sJobConfig = struct {
@@ -72,6 +73,8 @@ func init() {
 	migrationsCmd.PersistentFlags().StringVarP(&migrationsAsK8sJobConfig.image, "image", "i", "", "Image to use containing draconctl binary to run command")
 	migrationsCmd.PersistentFlags().StringVar(&migrationsAsK8sJobConfig.ssa, "ssa-name", "draconctl", "Name to use for server-side apply")
 	// migrationsCmd.Flags().Bool("provide-password", false, "Provide the password via a console")
+	migrationsCmd.PersistentFlags().StringVar(&migrationsCmdConfig.migratiosnPath, "migrations-path", "", "path of where to find the migrations")
+
 }
 
 func RegisterMigrationsSubcommands(rootCmd *cobra.Command) {
@@ -208,6 +211,7 @@ func generateMigrationJob(cmdName string) *batchv1.Job {
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{
 						{
+							Env:   getEnvVars(),
 							Name:  "dracon-migrations",
 							Image: migrationsAsK8sJobConfig.image,
 							Args:  getCleanedUpArgs(cmdName, os.Args[1:]),
@@ -223,6 +227,13 @@ func generateMigrationJob(cmdName string) *batchv1.Job {
 	return &migrationJob
 }
 
+func getEnvVars() []corev1.EnvVar {
+	res := []corev1.EnvVar{{Name: "", Value: ""}}
+	if migrationsCmdConfig.migratiosnPath != "" {
+		res = []corev1.EnvVar{{Name: "DRACONCTL_MIGRATIONS_PATH", Value: migrationsCmdConfig.migratiosnPath}}
+	}
+	return res
+}
 func getCleanedUpArgs(cmdName string, args []string) []string {
 	cleanedUpPodArgs := []string{}
 	argsToRemove := map[string]bool{
