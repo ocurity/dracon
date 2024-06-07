@@ -117,9 +117,11 @@ func TestParseIssues(t *testing.T) {
 }
 
 func TestHandleSemgrepCWE(t *testing.T) {
-	cwe := handleSemgrepCWE("CWE-123: Test")
+	cwe, err := handleSemgrepCWE("CWE-123: Test")
+	require.NoError(t, err)
 	assert.Equal(t, []int32{123}, cwe)
 
-	cweArray := handleSemgrepCWE([]interface{}{"CWE-123: Test", "CWE-456: Test"})
+	cweArray, err := handleSemgrepCWE([]interface{}{"CWE-123: Test", "CWE-456: Test"})
+	require.NoError(t, err)
 	assert.Equal(t, []int32{123, 456}, cweArray)
 }
