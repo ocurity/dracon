@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"log/slog"
 
 	v1 "github.com/ocurity/dracon/api/proto/v1"
 	"github.com/ocurity/dracon/components/producers"
@@ -75,11 +76,15 @@ func parseOut(results types.TfSecOut) ([]*v1.Issue, error) {
 			Confidence:  v1.Confidence_CONFIDENCE_MEDIUM,
 			Description: string(description),
 		}
-		cs, err := context.ExtractCode(iss)
+
+		// Extract the code snippet, if possible
+		code, err := context.ExtractCode(iss)
 		if err != nil {
-			return nil, err
+			slog.Warn("Failed to extract code snippet", "error", err)
+			code = ""
 		}
-		iss.ContextSegment = &cs
+		iss.ContextSegment = &code
+
 		issues = append(issues, iss)
 	}
 	return issues, nil

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"log/slog"
 
 	v1 "github.com/ocurity/dracon/api/proto/v1"
 	"github.com/ocurity/dracon/components/producers/semgrep/types"
@@ -63,11 +64,15 @@ func parseIssues(out types.SemgrepResults) ([]*v1.Issue, error) {
 			Confidence:  v1.Confidence_CONFIDENCE_MEDIUM,
 			Description: fmt.Sprintf("%s\n extra lines: %s", r.Extra.Message, r.Extra.Lines),
 		}
-		cs, err := context.ExtractCode(iss)
+
+		// Extract the code snippet, if possible
+		code, err := context.ExtractCode(iss)
 		if err != nil {
-			return nil, err
+			slog.Warn("Failed to extract code snippet", "error", err)
+			code = ""
 		}
-		iss.ContextSegment = &cs
+		iss.ContextSegment = &code
+
 		issues = append(issues, iss)
 	}
 	return issues, nil

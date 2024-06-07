@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"log/slog"
 
 	v1 "github.com/ocurity/dracon/api/proto/v1"
 	"github.com/ocurity/dracon/components/producers"
@@ -80,13 +81,16 @@ func parseOut(results types.KICSOut) ([]*v1.Issue, error) {
 					file.ResourceName),
 				Description: string(description),
 			}
-			cs, err := context.ExtractCode(iss)
-			if err != nil {
-				return nil, err
-			}
-			iss.ContextSegment = &cs
-			issues = append(issues, iss)
 
+			// Extract the code snippet, if possible
+			code, err := context.ExtractCode(iss)
+			if err != nil {
+				slog.Warn("Failed to extract code snippet", "error", err)
+				code = ""
+			}
+			iss.ContextSegment = &code
+
+			issues = append(issues, iss)
 		}
 	}
 	return issues, nil
