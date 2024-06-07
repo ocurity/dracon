@@ -25,7 +25,11 @@ const exampleOutput = `
 			"extra": {
 				"message": "Use of this type presents a security risk: the encapsulated content should come from a trusted source, \nas it will be included verbatim in the template output.\nhttps://blogtitle.github.io/go-safe-html/\n", 
 				"metavars": {},
-				"metadata": {}, 
+				"metadata": {
+					"cwe": [
+						"CWE-89: Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')"
+					]
+				}, 
 				"severity": "WARNING", 
 				"lines": "\t\t\treturn template.HTML(revStr)"
 			}
@@ -48,7 +52,9 @@ const exampleOutput = `
 						}
 					}
 				},
-				"metadata": {},
+				"metadata": {
+					"cwe": "CWE-352: Cross-Site Request Forgery (CSRF)"
+				},
 				"severity": "WARNING",
 				"lines": "    insecure_server.add_insecure_port('[::]:{}'.format(flags.port))"
 			}
@@ -90,6 +96,7 @@ func TestParseIssues(t *testing.T) {
 		Confidence:     v1.Confidence_CONFIDENCE_MEDIUM,
 		Description:    "Use of this type presents a security risk: the encapsulated content should come from a trusted source, \nas it will be included verbatim in the template output.\nhttps://blogtitle.github.io/go-safe-html/\n\n extra lines: \t\t\treturn template.HTML(revStr)",
 		ContextSegment: &code,
+		Cwe:            []int32{89},
 	}
 
 	assert.Equal(t, expectedIssue, issues[0])
@@ -103,7 +110,18 @@ func TestParseIssues(t *testing.T) {
 		Confidence:     v1.Confidence_CONFIDENCE_MEDIUM,
 		Description:    "The gRPC server listening port is configured insecurely, this offers no encryption and authentication.\nPlease review and ensure that this is appropriate for the communication.  \n\n extra lines:     insecure_server.add_insecure_port('[::]:{}'.format(flags.port))",
 		ContextSegment: &code,
+		Cwe:            []int32{352},
 	}
 
 	assert.Equal(t, expectedIssue2, issues[1])
+}
+
+func TestHandleSemgrepCWE(t *testing.T) {
+	cwe, err := handleSemgrepCWE("CWE-123: Test")
+	require.NoError(t, err)
+	assert.Equal(t, []int32{123}, cwe)
+
+	cweArray, err := handleSemgrepCWE([]interface{}{"CWE-123: Test", "CWE-456: Test"})
+	require.NoError(t, err)
+	assert.Equal(t, []int32{123, 456}, cweArray)
 }
