@@ -24,15 +24,17 @@ $ draconctl migrations apply --url "postgres://postgres:postgres@postgres.dracon
 
 If you can directly access the database then you can apply migrations as follows:
 
-$ draconctl migrations apply --url "postgres://postgres:postgres@localhost:5432/?sslmode=disable" ./pkg/enrichment
+$ draconctl migrations apply --url "postgres://postgres:postgres@localhost:5432/?sslmode=disable" --migrations-path ./pkg/enrichment
+or
+$ DRACONCTL_MIGRATIONS_PATH=./pkg/enrichment draconctl migrations apply --url "postgres://postgres:postgres@localhost:5432/?sslmode=disable"
 `,
 }
 
 func applyMigrations(cmd *cobra.Command, args []string) error {
-	if len(args) != 1 {
+	if migrationsCmdConfig.migratiosnPath == "" {
 		return fmt.Errorf("you need to provide a path to the migrations that will be applied")
 	}
-	dirFS := os.DirFS(args[0])
+	dirFS := os.DirFS(migrationsCmdConfig.migratiosnPath)
 
 	dbURL, err := db.ParseConnectionStr(migrationsCmdConfig.connStr)
 	if err != nil {
