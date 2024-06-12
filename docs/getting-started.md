@@ -250,12 +250,13 @@ kubectl apply -n dracon -f deploy/dracon/serviceaccount.yaml
 kubectl apply -n dracon -f deploy/dracon/role.yaml
 kubectl apply -n dracon -f deploy/dracon/rolebinding.yaml
 make cmd/draconctl/bin
+
+export DRACONCTL_MIGRATIONS_PATH='/etc/dracon/migrations/enrichment'
 bin/cmd/draconctl migrations apply \
   --namespace dracon \
   --as-k8s-job \
   --image "${CONTAINER_REPO}/draconctl:${CUSTOM_DRACON_VERSION}" \
   --url "postgresql://dracon:dracon@dracon-enrichment-db.dracon.svc.cluster.local?sslmode=disable" \
-  /etc/dracon/migrations/enrichment
 ````
 
 ## Running one of the example pipelines
