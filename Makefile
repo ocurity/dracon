@@ -104,7 +104,7 @@ install-lint-tools:
 	@go install github.com/kisielk/errcheck@latest
 	@go install github.com/rhysd/actionlint/cmd/actionlint@latest
 	@go install github.com/client9/misspell/cmd/misspell@latest
-	@go install github.com/bufbuild/buf/cmd/buf@v1.28.1
+	@go install github.com/bufbuild/buf/cmd/buf@v1.32.2
 	@npm ci
 
 go-tests:
