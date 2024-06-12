@@ -1,0 +1,8 @@
+version: v2
+plugins:
+  - local: protoc-gen-go
+    out: .
+    opt: paths=source_relative
+inputs:
+  - proto_file: api/proto/v1/issue.proto
+  - proto_file: api/proto/v1/engine.proto
