@@ -30,6 +30,8 @@ message LaunchToolResponse {
   string tool_name = 2;
   // Issues discovered during the scan
   repeated dracon.v1.Issue issues = 3;
+  // The target of the scan
+  string scan_target = 4;
 }
 
 /*
