@@ -85,7 +85,7 @@ func (k k8sOrchestrator) Prepare(ctx context.Context, pipelineComponents []compo
 	}
 
 	for i, pipelineComponent := range pipelineComponents {
-		if pipelineComponent.OrchestrationType == components.Naive {
+		if pipelineComponent.OrchestrationType == components.OrchestrationTypeNaive {
 			if !pipelineComponent.Resolved || pipelineComponent.Manifest == nil {
 				return ErrNotResolved
 			}
@@ -99,7 +99,7 @@ func (k k8sOrchestrator) Prepare(ctx context.Context, pipelineComponents []compo
 			if err != nil {
 				return err
 			}
-		} else if pipelineComponent.OrchestrationType == components.ExternalHelm {
+		} else if pipelineComponent.OrchestrationType == components.OrchestrationTypeExternalHelm {
 			componentSet, exists := helmManagedComponents[pipelineComponent.Repository]
 			if !exists {
 				return errors.Errorf("no Helm release with name %s is deployed in the namespace %s (%s)", pipelineComponent.Repository, k.namespace, pipelineComponent.Name)
