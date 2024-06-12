@@ -225,3 +225,7 @@ dev-deploy: dev-infra dev-dracon
 
 dev-teardown:
 	@kind delete clusters dracon-demo
+
+generate-protos: install-lint-tools
+	@echo "Generating Protos"
+	@buf generate
