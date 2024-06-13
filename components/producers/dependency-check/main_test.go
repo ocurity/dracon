@@ -5,6 +5,7 @@ import (
 
 	v1 "github.com/ocurity/dracon/api/proto/v1"
 
+	"github.com/ocurity/dracon/components/producers"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/ocurity/dracon/components/producers"

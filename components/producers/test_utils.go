@@ -19,6 +19,7 @@ func TestEndToEnd(t *testing.T, inPath string, expectedPbPath string) error {
 		return err
 	}
 
+
 	// Create the command
 	cmd := exec.Command("go", "run", "./main.go", "-in", inPath, "-out", tempResultFile.Name())
 	err = cmd.Run()
