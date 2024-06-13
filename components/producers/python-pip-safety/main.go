@@ -13,6 +13,7 @@ import (
 
 func parseIssues(out []types.Vulnerability) []*v1.Issue {
 	issues := []*v1.Issue{}
+
 	for _, r := range out {
 		issues = append(issues, &v1.Issue{
 			Target:     producers.GetPURLTarget(packageurl.TypePyPi, "", r.PackageName, r.AnalyzedVersion, nil, ""),
