@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"log/slog"
 	"math"
 	"os"
 
@@ -80,8 +81,14 @@ func parseIssues(out []DependencyVulnerability) []*v1.Issue {
 			cvss = r.cvss3
 		}
 
+		// Ensure target is a valid pURL
+		purlTarget, err := producers.EnsureValidPURLTarget(r.target)
+		if err != nil {
+			slog.Error(fmt.Sprintf("Error parsing PURL: %s\n", err))
+		}
+
 		issues = append(issues, &v1.Issue{
-			Target:      r.target,
+			Target:      purlTarget,
 			Type:        "Vulnerable Dependency",
 			Title:       r.target,
 			Severity:    v1.Severity(v1.Severity_value[fmt.Sprintf("SEVERITY_%s", r.severity)]),
