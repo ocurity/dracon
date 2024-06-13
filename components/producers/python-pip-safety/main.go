@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/package-url/packageurl-go"
+
 	v1 "github.com/ocurity/dracon/api/proto/v1"
 	"github.com/ocurity/dracon/components/producers"
 	"github.com/ocurity/dracon/components/producers/python-pip-safety/types"
-	"github.com/package-url/packageurl-go"
 )
 
 func parseIssues(out []types.Vulnerability) []*v1.Issue {
