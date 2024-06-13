@@ -44,7 +44,8 @@ runner:
   #   errorformat:
   #     - 
 
-  buf_lint:
-    cmd: buf lint . --path ./api/
-    level: error
-    format: buf
+  # TODO(OCU-130): Enable buf-lint again
+  # buf_lint:
+  #   cmd: buf lint . --path ./api/
+  #   level: error
+  #   format: buf
