@@ -15,14 +15,14 @@ func TestComponentResolutionFromReference(t *testing.T) {
 		Name:              "producer-aggregator",
 		Reference:         "pkg:helm/dracon-oss-components/producer-aggregator",
 		Repository:        "dracon-oss-components",
-		OrchestrationType: ExternalHelm,
+		OrchestrationType: OrchestrationTypeExternalHelm,
 	}, dereferencedComponent)
 
 	dereferencedComponent, err = FromReference(context.Background(), "../../components/producers/golang-gosec")
 	require.NoError(t, err)
 	require.Equal(t, "producer-golang-gosec", dereferencedComponent.Name)
 	require.Equal(t, "../../components/producers/golang-gosec", dereferencedComponent.Reference)
-	require.Equal(t, Naive, dereferencedComponent.OrchestrationType)
+	require.Equal(t, OrchestrationTypeNaive, dereferencedComponent.OrchestrationType)
 	require.Equal(t, Producer, dereferencedComponent.Type)
 	require.Equal(t, true, dereferencedComponent.Resolved)
 	require.NotNil(t, dereferencedComponent.Manifest)
