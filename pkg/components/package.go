@@ -244,11 +244,11 @@ func addAnchorResult(task *tektonv1beta1api.Task) error {
 // entry will then be filled in the pipeline with the anchors of the tasks that
 // this task depends on.
 func addAnchorParameter(task *tektonv1beta1api.Task) error {
-	componentType, err := ToComponentType(task.Labels[LabelKey])
+	componentType, err := ParseComponentType(task.Labels[LabelKey])
 	if err != nil {
 		return errors.Errorf("%s: %w", task.Name, err)
 	}
-	if componentType < Producer {
+	if AGreaterThanB(Producer, componentType) {
 		return nil
 	}
 
@@ -274,7 +274,7 @@ func addAnchorParameter(task *tektonv1beta1api.Task) error {
 // allow it to pick the start time, pipeline UUID and any tags that have been given as parameter to
 // the pipeline so that the issues discovered can be annotated with these values.
 func addEnvVarsToTask(task *tektonv1beta1api.Task) error {
-	componentType, err := ToComponentType(task.Labels[LabelKey])
+	componentType, err := ParseComponentType(task.Labels[LabelKey])
 	if err != nil {
 		return errors.Errorf("%s: %w", task.Name, err)
 	}

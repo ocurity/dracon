@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"log/slog"
 
 	v1 "github.com/ocurity/dracon/api/proto/v1"
 	"github.com/ocurity/dracon/pkg/context"
@@ -50,11 +51,15 @@ func parseIssues(out *GoSecOut) ([]*v1.Issue, error) {
 			Confidence:  v1.Confidence(v1.Confidence_value[fmt.Sprintf("CONFIDENCE_%s", r.Confidence)]),
 			Description: r.Code,
 		}
+
+		// Extract the code snippet, if possible
 		code, err := context.ExtractCode(iss)
 		if err != nil {
-			return nil, err
+			slog.Warn("Failed to extract code snippet", "error", err)
+			code = ""
 		}
 		iss.ContextSegment = &code
+
 		issues = append(issues, iss)
 	}
 	return issues, nil

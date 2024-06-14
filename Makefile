@@ -104,12 +104,15 @@ install-lint-tools:
 	@go install github.com/kisielk/errcheck@latest
 	@go install github.com/rhysd/actionlint/cmd/actionlint@latest
 	@go install github.com/client9/misspell/cmd/misspell@latest
-	@go install github.com/bufbuild/buf/cmd/buf@v1.28.1
+	@go install github.com/bufbuild/buf/cmd/buf@v1.32.2
 	@npm ci
 
 go-tests:
 	@mkdir -p tests/output
 	@go test -race -json -coverprofile tests/output/cover.out $(GO_TEST_PACKAGES)
+
+go-cover: go-tests
+	@go tool cover -html=tests/output/cover.out -o=tests/output/cover.html && open tests/output/cover.html
 
 migration-tests: cmd/draconctl/bin
 	cd tests/migrations/ && docker compose up --abort-on-container-exit --build --exit-code-from tester
@@ -225,3 +228,7 @@ dev-deploy: dev-infra dev-dracon
 
 dev-teardown:
 	@kind delete clusters dracon-demo
+
+generate-protos: install-lint-tools
+	@echo "Generating Protos"
+	@buf generate

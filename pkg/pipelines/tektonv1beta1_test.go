@@ -109,7 +109,7 @@ func TestComponentPrepareChecks(t *testing.T) {
 			Reference:         "pkg:helm/dracon-oss-components/producer-aggregator",
 			Repository:        "dracon-oss-components",
 			Type:              components.ProducerAggregator,
-			OrchestrationType: components.ExternalHelm,
+			OrchestrationType: components.OrchestrationTypeExternalHelm,
 		},
 	}
 	require.NoError(t, orchestrator.Prepare(context.Background(), componentList))
@@ -120,7 +120,7 @@ func TestComponentPrepareChecks(t *testing.T) {
 		{
 			Name:              "producer-golang-gosec",
 			Reference:         "../../components/producers/golang-gosec",
-			OrchestrationType: components.Naive,
+			OrchestrationType: components.OrchestrationTypeNaive,
 			Resolved:          true,
 			Manifest:          componentList[0].Manifest,
 		},
