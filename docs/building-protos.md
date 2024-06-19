@@ -1,6 +1,7 @@
 # Building Protobufs
 
-We use [buf.build](https://buf.build/) to simplify compiling the various `.proto` files.
+We use [buf.build](https://buf.build/) to simplify compiling the various
+`.proto` files.
 You can install and compile the protos via:
 
 ```bash
