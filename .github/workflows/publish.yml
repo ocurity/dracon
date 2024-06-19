@@ -26,12 +26,14 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish Docker images
-        run: make publish-containers
+        run: |
+          make publish-containers
+          make draconctl-image-publish DRACON_VERSION=latest
 
       - name: Publish component Helm package
         run: |
-          set -e;
-          DRACON_VERSION_SEMVER=$(sed 's/v//' <<< ${{ github.ref_name }});
-          make cmd/draconctl/bin; \
-          bin/cmd/draconctl components package --version ${{ github.ref_name }} --chart-version ${DRACON_VERSION_SEMVER} --name dracon-oss-components ./components; \
+          set -e
+          DRACON_VERSION_SEMVER=$(sed 's/v//' <<< ${{ github.ref_name }})
+          make cmd/draconctl/bin
+          bin/cmd/draconctl components package --version ${{ github.ref_name }} --chart-version ${DRACON_VERSION_SEMVER} --name dracon-oss-components ./components
           helm push dracon-oss-components-${DRACON_VERSION_SEMVER}.tgz oci://ghcr.io/ocurity/dracon/charts
