@@ -29,7 +29,7 @@ require (
 	golang.org/x/crypto v0.18.0
 	golang.org/x/oauth2 v0.16.0
 	google.golang.org/api v0.156.0
-	google.golang.org/protobuf v1.33.0
+	google.golang.org/protobuf v1.34.1
 	gopkg.in/h2non/gock.v1 v1.1.2
 	helm.sh/helm/v3 v3.14.4
 	k8s.io/api v0.29.0

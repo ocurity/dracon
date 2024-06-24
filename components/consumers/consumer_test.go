@@ -30,7 +30,7 @@ func TestLoadToolResponse(t *testing.T) {
 			Description: "/dracon/source/example.yaml",
 		},
 	}
-	timestamp := time.Now().UTC().Format(time.RFC3339)
+	timestamp := time.Now().UTC()
 	scanID := "ab3d3290-cd9f-482c-97dc-ec48bdfcc4de"
 	tags := map[string]string{
 		"assetID":       "someID",
@@ -39,7 +39,7 @@ func TestLoadToolResponse(t *testing.T) {
 	scanTags, err := json.Marshal(tags)
 	assert.NoError(t, err)
 
-	require.NoError(t, os.Setenv(components.EnvDraconStartTime, timestamp))
+	require.NoError(t, os.Setenv(components.EnvDraconStartTime, timestamp.Format(time.RFC3339)))
 	require.NoError(t, os.Setenv(components.EnvDraconScanID, scanID))
 	require.NoError(t, os.Setenv(components.EnvDraconScanTags, string(scanTags)))
 

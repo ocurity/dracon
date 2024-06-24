@@ -17,6 +17,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	v1 "github.com/ocurity/dracon/api/proto/v1"
+	"github.com/ocurity/dracon/components/enrichers"
 )
 
 const (
@@ -71,9 +72,8 @@ func TestParseIssues(t *testing.T) {
 	out, err := proto.Marshal(&orig)
 	require.NoError(t, err)
 	require.NoError(t, os.WriteFile(dir+"/policySat.tagged.pb", out, 0o600))
-
-	readPath = dir
-	writePath = dir
+	enrichers.SetReadPathForTests(dir)
+	enrichers.SetWritePathForTests(dir)
 	policy = "cGFja2FnZSBleGFtcGxlLnBvbGljeVNhdAoKZGVmYXVsdCBhbGxvdyA6PSBmYWxzZQoKYWxsb3cgPXRydWUgewogICAgcHJpbnQoaW5wdXQpCiAgICBjaGVja19zZXZlcml0eQp9CgpjaGVja19zZXZlcml0eSB7CiAgICBpbnB1dC5zZXZlcml0eSA9PSAiU0VWRVJJVFlfTE9XIgp9CgpjaGVja19zZXZlcml0eSB7CiAgICBpbnB1dC5zZXZlcml0eSA9PSAiU0VWRVJJVFlfSElHSCIKfQpjaGVja19zZXZlcml0eSB7CiAgICBpbnB1dC5zZXZlcml0eSA9PSAiU0VWRVJJVFlfTUVESVVNIgp9Cg=="
 
 	// setup server

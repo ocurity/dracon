@@ -9,35 +9,26 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"os"
+	"log/slog"
 	"path/filepath"
 	"strings"
-	"time"
 
 	owners "github.com/hairyhenderson/go-codeowners"
 
+	apiv1 "github.com/ocurity/dracon/api/proto/v1"
 	v1 "github.com/ocurity/dracon/api/proto/v1"
-	"github.com/ocurity/dracon/pkg/putil"
+	"github.com/ocurity/dracon/components/enrichers"
 )
 
 const defaultAnnotation = "Owner"
 
 var (
-	readPath     string
-	writePath    string
 	repoBasePath string
 	annotation   string
 )
 
-func lookupEnvOrString(key string, defaultVal string) string {
-	if val, ok := os.LookupEnv(key); ok {
-		return val
-	}
-	return defaultVal
-}
-
-func enrichIssue(i *v1.Issue) (*v1.EnrichedIssue, error) {
-	enrichedIssue := v1.EnrichedIssue{}
+func enrichIssue(i *apiv1.Issue) (*apiv1.EnrichedIssue, error) {
+	enrichedIssue := apiv1.EnrichedIssue{}
 	annotations := map[string]string{}
 	targets := []string{}
 	if i.GetCycloneDXSBOM() != "" {
@@ -64,8 +55,7 @@ func enrichIssue(i *v1.Issue) (*v1.EnrichedIssue, error) {
 			annotations[fmt.Sprintf("Owner-%d", len(annotations))] = owner
 		}
 	}
-
-	enrichedIssue = v1.EnrichedIssue{
+	enrichedIssue = apiv1.EnrichedIssue{
 		RawIssue:    i,
 		Annotations: annotations,
 	}
@@ -73,55 +63,40 @@ func enrichIssue(i *v1.Issue) (*v1.EnrichedIssue, error) {
 	return &enrichedIssue, nil
 }
 
-func run() {
-	res, err := putil.LoadTaggedToolResponse(readPath)
+func run() error {
+	res, err := enrichers.LoadData()
 	if err != nil {
-		log.Fatalf("could not load tool response from path %s , error:%v", readPath, err)
+		return err
 	}
 	if annotation == "" {
 		annotation = defaultAnnotation
 	}
 	for _, r := range res {
-		enrichedIssues := []*v1.EnrichedIssue{}
+		enrichedIssues := []*apiv1.EnrichedIssue{}
 		for _, i := range r.GetIssues() {
 			eI, err := enrichIssue(i)
 			if err != nil {
-				log.Println(err)
+				slog.Error(err.Error())
 				continue
 			}
 			enrichedIssues = append(enrichedIssues, eI)
 		}
-		if len(enrichedIssues) > 0 {
-			if err := putil.WriteEnrichedResults(r, enrichedIssues,
-				filepath.Join(writePath, fmt.Sprintf("%s.depsdev.enriched.pb", r.GetToolName())),
-			); err != nil {
-				log.Fatal(err)
-			}
-		} else {
-			log.Println("no enriched issues were created for", r.GetToolName())
-		}
-		if len(r.GetIssues()) > 0 {
-			scanStartTime := r.GetScanInfo().GetScanStartTime().AsTime()
-			if err := putil.WriteResults(
-				r.GetToolName(),
-				r.GetIssues(),
-				filepath.Join(writePath, fmt.Sprintf("%s.raw.pb", r.GetToolName())),
-				r.GetScanInfo().GetScanUuid(),
-				scanStartTime.Format(time.RFC3339),
-				r.GetScanInfo().GetScanTags(),
-			); err != nil {
-				log.Fatalf("could not write results: %s", err)
-			}
-		}
-
+		return enrichers.WriteData(&v1.EnrichedLaunchToolResponse{
+			OriginalResults: r,
+			Issues:          enrichedIssues,
+		}, "codeowners")
 	}
+	return nil
 }
 
 func main() {
-	flag.StringVar(&readPath, "read_path", lookupEnvOrString("READ_PATH", ""), "where to find producer results")
-	flag.StringVar(&writePath, "write_path", lookupEnvOrString("WRITE_PATH", ""), "where to put enriched results")
-	flag.StringVar(&annotation, "annotation", lookupEnvOrString("ANNOTATION", defaultAnnotation), "what is the annotation this enricher will add to the issues, by default `Enriched Licenses`")
-	flag.StringVar(&repoBasePath, "repoBasePath", lookupEnvOrString("REPO_BASE_PATH", ""), `the base path of the repository, this is most likely an internally set variable`)
-	flag.Parse()
-	run()
+	flag.StringVar(&annotation, "annotation", enrichers.LookupEnvOrString("ANNOTATION", defaultAnnotation), "what is the annotation this enricher will add to the issues, by default `Enriched Licenses`")
+	flag.StringVar(&repoBasePath, "repoBasePath", enrichers.LookupEnvOrString("REPO_BASE_PATH", ""), `the base path of the repository, this is most likely an internally set variable`)
+
+	if err := enrichers.ParseFlags(); err != nil {
+		log.Fatal(err)
+	}
+	if err := run(); err != nil {
+		log.Fatal(err)
+	}
 }

@@ -44,17 +44,13 @@ func WriteResults(
 	issues []*v1.Issue,
 	outFile string,
 	scanUUID string,
-	scanStartTime string,
+	scanStartTime time.Time,
 	scanTags map[string]string,
 ) error {
 	if err := os.MkdirAll(filepath.Dir(outFile), os.ModePerm); err != nil {
 		return err
 	}
-	timeVal, err := time.Parse(time.RFC3339, scanStartTime)
-	if err != nil {
-		return err
-	}
-	timestamp := timestamppb.New(timeVal)
+	timestamp := timestamppb.New(scanStartTime)
 
 	scanInfo := v1.ScanInfo{
 		ScanUuid:      scanUUID,
