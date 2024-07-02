@@ -5,6 +5,7 @@ metadata:
   name: producer-dependency-check
   labels:
     v1.dracon.ocurity.com/component: producer
+    v1.dracon.ocurity.com/test-type: sca
 spec:
   volumes:
     - name: scratch

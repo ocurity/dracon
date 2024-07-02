@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"log/slog"
 	"strings"
 
 	v1 "github.com/ocurity/dracon/api/proto/v1"
@@ -99,9 +100,8 @@ func parseCombinedOut(results types.CombinedOut) []*v1.Issue {
 	for img, output := range results {
 		log.Printf("Parsing Combined Output for %s\n", img)
 		for _, res := range output.Results {
-			target := res.Target
 			for _, vuln := range res.Vulnerable {
-				issues = append(issues, parseResult(vuln, target))
+				issues = append(issues, parseResult(vuln))
 			}
 		}
 	}
@@ -111,10 +111,8 @@ func parseCombinedOut(results types.CombinedOut) []*v1.Issue {
 func parseSingleOut(results types.TrivyOut) []*v1.Issue {
 	issues := []*v1.Issue{}
 	for _, res := range results.Results {
-		target := res.Target
-
 		for _, vuln := range res.Vulnerable {
-			issues = append(issues, parseResult(vuln, target))
+			issues = append(issues, parseResult(vuln))
 		}
 	}
 	return issues
@@ -136,11 +134,16 @@ func TrivySeverityToDracon(severity string) v1.Severity {
 	}
 }
 
-func parseResult(r *types.TrivyVulnerability, target string) *v1.Issue {
+func parseResult(r *types.TrivyVulnerability) *v1.Issue {
+	purlTarget, err := producers.EnsureValidPURLTarget(r.PkgIdentifier.PURL)
+	if err != nil {
+		slog.Error(fmt.Sprintf("Error parsing PURL: %s\n", err))
+	}
+
 	return &v1.Issue{
-		Target:     target,
+		Target:     purlTarget,
 		Type:       "Container image vulnerability",
-		Title:      fmt.Sprintf("[%s][%s] %s", target, r.CVE, r.Title),
+		Title:      fmt.Sprintf("[%s] %s", r.CVE, r.Title),
 		Severity:   TrivySeverityToDracon(r.Severity),
 		Confidence: v1.Confidence_CONFIDENCE_UNSPECIFIED,
 		Cvss:       r.CVSS.Nvd.V3Score,

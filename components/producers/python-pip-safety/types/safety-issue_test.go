@@ -12,7 +12,7 @@ func TestUnmarshalJSON(t *testing.T) {
 	expectedOutput := Out{Vulnerabilities: []Vulnerability{
 		{
 			PackageName:        "aiohttp-jinja2",
-			VulnerableSpec:     "<1.1.1",
+			VulnerableSpec:     []string{"<1.1.1"},
 			AllVulnerableSpecs: []string{"<1.1.1"},
 			AnalyzedVersion:    "1.1.0",
 			Advisory:           "Aiohttp-jinja2 1.1.1 updates minimal supported 'Jinja2' version to 2.10.1 to include security fixes.",
@@ -26,7 +26,7 @@ func TestUnmarshalJSON(t *testing.T) {
 		},
 		{
 			PackageName:        "aiohttp-jinja2",
-			VulnerableSpec:     "<1.1.1",
+			VulnerableSpec:     []string{"<1.1.1"},
 			AllVulnerableSpecs: []string{"<1.1.1"},
 			AnalyzedVersion:    "1.1.0",
 			Advisory:           "Aiohttp-jinja2 1.1.1 updates minimal supported 'Jinja2' version to 2.10.1 to include security fixes.",
@@ -40,7 +40,7 @@ func TestUnmarshalJSON(t *testing.T) {
 		},
 		{
 			PackageName:        "aiohttp-jinja2",
-			VulnerableSpec:     "<1.1.1",
+			VulnerableSpec:     []string{"<1.1.1"},
 			AllVulnerableSpecs: []string{"<1.1.1"},
 			AnalyzedVersion:    "1.1.0",
 			Advisory:           "Aiohttp-jinja2 1.1.1 updates minimal supported 'Jinja2' version to 2.10.1 to include security fixes.",
@@ -54,7 +54,7 @@ func TestUnmarshalJSON(t *testing.T) {
 		},
 		{
 			PackageName:        "aiohttp",
-			VulnerableSpec:     "<3.7.4",
+			VulnerableSpec:     []string{"<3.7.4"},
 			AllVulnerableSpecs: []string{"<3.7.4"},
 			AnalyzedVersion:    "3.5.3",
 			Advisory:           "Aiohttp is an asynchronous HTTP client/server framework for asyncio and Python. In aiohttp before version 3.7.4 there is an open redirect vulnerability. A maliciously crafted link to an aiohttp-based web-server could redirect the browser to a different website. It is caused by a bug in the 'aiohttp.web_middlewares.normalize_path_middleware' middleware. This security problem has been fixed in 3.7.4. Upgrade your dependency using pip as follows \"pip install aiohttp >= 3.7.4\". If upgrading is not an option for you, a workaround can be to avoid using 'aiohttp.web_middlewares.normalize_path_middleware' in your applications. See CVE-2021-21330.",
@@ -68,7 +68,7 @@ func TestUnmarshalJSON(t *testing.T) {
 		},
 		{
 			PackageName:        "aiohttp",
-			VulnerableSpec:     "<3.8.0",
+			VulnerableSpec:     []string{"<3.8.0"},
 			AllVulnerableSpecs: []string{"<3.8.0"},
 			AnalyzedVersion:    "3.5.3",
 			Advisory:           "Aiohttp 3.8.0 adds validation of HTTP header keys and values to prevent header injection.\r\nhttps://github.com/aio-libs/aiohttp/issues/4818",
@@ -256,7 +256,7 @@ const exampleOutput = `
 			"ignored": {},
 			"ignored_reason": "",
 			"ignored_expires": "",
-			"vulnerable_spec": "<1.1.1",
+			"vulnerable_spec": ["<1.1.1"],
 			"all_vulnerable_specs": [
 				"<1.1.1"
 			],
@@ -278,7 +278,7 @@ const exampleOutput = `
 			"ignored": {},
 			"ignored_reason": "",
 			"ignored_expires": "",
-			"vulnerable_spec": "<1.1.1",
+			"vulnerable_spec": ["<1.1.1"],
 			"all_vulnerable_specs": [
 				"<1.1.1"
 			],
@@ -300,7 +300,7 @@ const exampleOutput = `
 			"ignored": {},
 			"ignored_reason": "",
 			"ignored_expires": "",
-			"vulnerable_spec": "<1.1.1",
+			"vulnerable_spec": ["<1.1.1"],
 			"all_vulnerable_specs": [
 				"<1.1.1"
 			],
@@ -322,7 +322,7 @@ const exampleOutput = `
 			"ignored": {},
 			"ignored_reason": "",
 			"ignored_expires": "",
-			"vulnerable_spec": "<3.7.4",
+			"vulnerable_spec": ["<3.7.4"],
 			"all_vulnerable_specs": [
 				"<3.7.4"
 			],
@@ -344,7 +344,7 @@ const exampleOutput = `
 			"ignored": {},
 			"ignored_reason": "",
 			"ignored_expires": "",
-			"vulnerable_spec": "<3.8.0",
+			"vulnerable_spec": ["<3.8.0"],
 			"all_vulnerable_specs": [
 				"<3.8.0"
 			],

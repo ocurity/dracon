@@ -4,18 +4,21 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"log/slog"
+	"math"
 	"os"
 
 	v1 "github.com/ocurity/dracon/api/proto/v1"
 
 	"github.com/ocurity/dracon/components/producers"
+	"github.com/ocurity/dracon/components/producers/dependency-check/types"
 )
 
 // DependencyVulnerability represents the Vulnerability block of Dependency check scan json output format.
 type DependencyVulnerability struct {
 	target      string
 	cvss3       float64
-	cwes        []interface{}
+	cwes        []string
 	notes       string
 	name        string
 	severity    string
@@ -27,46 +30,43 @@ type DependencyVulnerability struct {
 // UnmarshalJSON returns a list of Dependency Vulns from dependency check json.
 func UnmarshalJSON(jsonBytes []byte) []DependencyVulnerability {
 	var result []DependencyVulnerability
-	var v map[string]interface{}
+	var report types.DependencyCheckReport
+
 	if !json.Valid(jsonBytes) {
 		log.Fatal("Inputfile not valid JSON")
 	}
-	if err := json.Unmarshal(jsonBytes, &v); err != nil {
+	if err := json.Unmarshal(jsonBytes, &report); err != nil {
 		log.Fatal(err)
 	}
-	dependencies := v["dependencies"].([]interface{})
-	for _, dependency := range dependencies {
-		depmap := dependency.(map[string]interface{})
-		if vulns, ok := depmap["vulnerabilities"]; ok {
-			target := depmap["filePath"].(string)
-			for _, vuln := range vulns.([]interface{}) {
-				vv := vuln.(map[string]interface{})
-				cvss3 := 0.0
-				cvss2 := 0.0
-				cve := ""
-				if vv["source"].(string) == "NVD" {
-					cve = vv["name"].(string)
-				}
-				if vv["cvssv3"] != nil {
-					v3 := vv["cvssv3"].(map[string]interface{})
-					cvss3 = v3["baseScore"].(float64)
-				}
-				if vv["cvssv2"] != nil {
-					v2 := vv["cvssv2"].(map[string]interface{})
-					cvss2 = v2["score"].(float64)
-				}
-				result = append(result, DependencyVulnerability{
-					target:      target,
-					cvss3:       cvss3,
-					cwes:        vv["cwes"].([]interface{}),
-					notes:       vv["notes"].(string),
-					name:        vv["name"].(string),
-					severity:    vv["severity"].(string),
-					cvss2:       cvss2,
-					description: vv["description"].(string),
-					cve:         cve,
-				})
+
+	for _, dependency := range report.Dependencies {
+		var target string
+		if len(dependency.Packages) > 0 {
+			target = dependency.Packages[0].ID
+		} else {
+			target = dependency.FilePath
+		}
+
+		for _, vuln := range dependency.Vulnerabilities {
+			cvss3 := math.Max(vuln.Cvssv3.BaseScore, 0.0)
+			cvss2 := math.Max(vuln.Cvssv2.Score, 0.0)
+			cve := ""
+			if vuln.Source == "NVD" || vuln.Source == "OSSINDEX" {
+				cve = vuln.Name
 			}
+
+			result = append(result, DependencyVulnerability{
+				target: target,
+				cvss3:  cvss3,
+				cvss2:  cvss2,
+				cve:    cve,
+
+				cwes:        vuln.Cwes,
+				notes:       vuln.Notes,
+				name:        vuln.Name,
+				severity:    vuln.Severity,
+				description: vuln.Description,
+			})
 		}
 	}
 	return result
@@ -75,17 +75,24 @@ func UnmarshalJSON(jsonBytes []byte) []DependencyVulnerability {
 func parseIssues(out []DependencyVulnerability) []*v1.Issue {
 	issues := []*v1.Issue{}
 	for _, r := range out {
+		// Prefer CVSS v3 if available
 		cvss := r.cvss2
 		if r.cvss3 != 0.0 {
 			cvss = r.cvss3
 		}
+
+		// Ensure target is a valid pURL
+		purlTarget, err := producers.EnsureValidPURLTarget(r.target)
+		if err != nil {
+			slog.Error(fmt.Sprintf("Error parsing PURL: %s\n", err))
+		}
+
 		issues = append(issues, &v1.Issue{
-			Target:      r.target,
+			Target:      purlTarget,
 			Type:        "Vulnerable Dependency",
 			Title:       r.target,
 			Severity:    v1.Severity(v1.Severity_value[fmt.Sprintf("SEVERITY_%s", r.severity)]),
 			Cvss:        cvss,
-			Confidence:  v1.Confidence_CONFIDENCE_MEDIUM,
 			Description: r.description,
 			Cve:         r.cve,
 		})

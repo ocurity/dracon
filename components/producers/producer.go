@@ -19,6 +19,8 @@ import (
 	draconapiv1 "github.com/ocurity/dracon/api/proto/v1"
 	"github.com/ocurity/dracon/components"
 
+	"github.com/package-url/packageurl-go"
+
 	"github.com/ocurity/dracon/pkg/putil"
 )
 
@@ -126,7 +128,7 @@ func WriteDraconOut(
 		iss.Target = strings.ReplaceAll(iss.Target, sourceDir, ".")
 		iss.Source = source
 		cleanIssues = append(cleanIssues, iss)
-		slog.Info(fmt.Sprintf("found issue: %+v\n", iss))
+		slog.Debug(fmt.Sprintf("found issue: %+v\n", iss))
 	}
 	scanStartTime := strings.TrimSpace(os.Getenv(components.EnvDraconStartTime))
 	if scanStartTime == "" {
@@ -159,4 +161,22 @@ func getSource() string {
 		slog.Error(err.Error())
 	}
 	return strings.TrimSpace(string(dat))
+}
+
+// GetPURLTarget returns a purl target string for a given package.
+// This should be used as the `Issue.Target` field of SCA producers.
+//
+// Example: GetPURLTarget("deb", "debian", "curl", "7.68.0", nil, "")
+func GetPURLTarget(purlType string, namespace string, name string, version string, qualifiers packageurl.Qualifiers, subpath string) string {
+	return packageurl.NewPackageURL(purlType, namespace, name, version, qualifiers, subpath).ToString()
+}
+
+// EnsureValidPURLTarget takes a purl target string from an untrusted source, e.g. a tool output, and
+// ensures it is a valid purl target according to the packageurl-go library.
+func EnsureValidPURLTarget(purlTarget string) (string, error) {
+	instance, err := packageurl.FromString(purlTarget)
+	if err != nil {
+		return "", err
+	}
+	return instance.ToString(), nil
 }
