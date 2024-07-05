@@ -11,6 +11,9 @@ spec:
     type: string
     default: |
       rules: []
+  - name: producer-semgrep-config-value
+    type: string
+    default: auto
   volumes:
     - name: scratch
       emptyDir: {}
@@ -38,6 +41,7 @@ spec:
     - "scan"
     - "--config"
     - "/scratch/semgrep-rules.yaml"
+    - "--config=$(params.producer-semgrep-config-value)"
     - "--json"
     - "--output"
     - "/scratch/out.json"
