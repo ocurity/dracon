@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"log/slog"
+	"regexp"
 	"strconv"
 
 	v1 "github.com/ocurity/dracon/api/proto/v1"
@@ -11,6 +13,8 @@ import (
 
 	"github.com/ocurity/dracon/components/producers"
 )
+
+var CWERegex = regexp.MustCompile(`CWE-\d+`)
 
 func main() {
 	if err := producers.ParseFlags(); err != nil {
@@ -27,12 +31,29 @@ func main() {
 		log.Fatal(err)
 	}
 
+	// For each result, set the cwe manually
+	for _, res := range results.Vulnerable {
+		for _, vuln := range res.Vulnerabilities {
+			vuln.Cwe = getCWEFromTitle(vuln.Title)
+		}
+	}
+
 	if err := producers.WriteDraconOut(
 		"nancy",
 		parseOut(&results),
 	); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func getCWEFromTitle(title string) string {
+	// Input would look like the below
+	// [CVE-2023-26125] CWE-20: Improper Input Validation
+	matches := CWERegex.FindStringSubmatch(title)
+	if len(matches) > 0 {
+		return matches[0]
+	}
+	return ""
 }
 
 func parseOut(results *types.NancyOut) []*v1.Issue {
@@ -67,8 +88,14 @@ func parseResult(r *types.NancyVulnerabilities, target string) *v1.Issue {
 	if err != nil {
 		cvss = 0.0
 	}
+
+	purlTarget, err := producers.EnsureValidPURLTarget(target)
+	if err != nil {
+		slog.Error(fmt.Sprintf("Error parsing PURL: %s\n", err))
+	}
+
 	return &v1.Issue{
-		Target:     target,
+		Target:     purlTarget,
 		Type:       "Vulnerable Dependency",
 		Title:      r.Title,
 		Severity:   cvssToSeverity(r.CvssScore),
