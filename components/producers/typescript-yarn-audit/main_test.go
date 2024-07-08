@@ -3,8 +3,9 @@ package main
 import (
 	"testing"
 
-	"github.com/ocurity/dracon/components/producers"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/ocurity/dracon/components/producers"
 )
 
 func TestEndToEndCLIWithJSON(t *testing.T) {
