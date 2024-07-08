@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"strings"
 )
 
 // AdvisoryData represents a subset of the data returned in an advisoryData
@@ -23,6 +24,11 @@ type AdvisoryData struct {
 // NewAdvisoryData constructs an AdvisoryData from the npm Registry advisory at
 // the given URL.
 func NewAdvisoryData(url string) (*AdvisoryData, error) {
+	// GHSA need to be requested via GitHub API with API token
+	if strings.HasPrefix(url, "https://github.com") {
+		return nil, errors.New("GHSA advisories are not supported")
+	}
+
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
