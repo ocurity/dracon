@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	v1 "github.com/ocurity/dracon/api/proto/v1"
+	"github.com/ocurity/dracon/components/producers"
 	"github.com/ocurity/dracon/components/producers/golang-nancy/types"
 )
 
@@ -162,4 +163,9 @@ func TestGetCWEFromTitle(t *testing.T) {
 			require.Equal(t, tt.expected, cwe)
 		})
 	}
+}
+
+func TestEndToEndCLIWithJSON(t *testing.T) {
+	err := producers.TestEndToEnd(t, "./examples/result.json", "./examples/result.pb")
+	assert.NoError(t, err)
 }
