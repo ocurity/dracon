@@ -4,9 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 
 	v1 "github.com/ocurity/dracon/api/proto/v1"
+	"github.com/ocurity/dracon/components/producers"
 )
 
 func yarnToIssueSeverity(severity string) v1.Severity {
@@ -46,6 +48,8 @@ func (yl *yarnAuditLine) UnmarshalJSON(data []byte) error {
 		yl.Data = new(auditAdvisoryData)
 	case "auditAction":
 		yl.Data = new(auditActionData)
+	case "info":
+		// ignore
 	default:
 		log.Printf("Parsed unsupported type: %s", typ.Type)
 	}
@@ -74,13 +78,14 @@ func (audit *auditAdvisoryData) AsIssue() *v1.Issue {
 	targetName += audit.Advisory.ModuleName
 
 	return &v1.Issue{
-		Target:      targetName,
-		Type:        audit.Advisory.Cwe,
+		Target:      producers.GetPURLTarget("npm", "", audit.Advisory.ModuleName, audit.Advisory.Findings[0].Version, nil, ""),
+		Type:        strconv.Itoa(audit.Advisory.ID),
 		Title:       audit.Advisory.Title,
 		Severity:    yarnToIssueSeverity(audit.Advisory.Severity),
 		Confidence:  v1.Confidence_CONFIDENCE_HIGH,
 		Description: audit.Advisory.GetDescription(),
 		Cve:         strings.Join(audit.Advisory.Cves, ", "),
+		Cwe:         convertStringCWEtoInt(audit.Advisory.Cwe),
 	}
 }
 
@@ -120,7 +125,7 @@ type yarnAdvisory struct {
 	PatchedVersions    string            `json:"patched_versions"`
 	Updated            string            `json:"updated"`
 	Recommendation     string            `json:"recommendation"`
-	Cwe                string            `json:"cwe"`
+	Cwe                []string          `json:"cwe"`
 	FoundBy            *contact          `json:"found_by"`
 	Deleted            bool              `json:"deleted"`
 	ID                 int               `json:"id"`
@@ -216,4 +221,16 @@ func (r *YarnAuditReport) AsIssues() []*v1.Issue {
 	}
 
 	return issues
+}
+
+func convertStringCWEtoInt(cwe []string) []int32 {
+	var cweInts []int32
+	for _, c := range cwe {
+		if cweInt, err := strconv.Atoi(strings.TrimPrefix(c, "CWE-")); err == nil {
+			cweInts = append(cweInts, int32(cweInt))
+		} else {
+			log.Printf("Error converting CWE to int: %s", err)
+		}
+	}
+	return cweInts
 }
