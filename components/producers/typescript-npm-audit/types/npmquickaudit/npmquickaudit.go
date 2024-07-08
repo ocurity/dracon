@@ -10,11 +10,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"log/slog"
 	"reflect"
 	"strings"
 
 	v1 "github.com/ocurity/dracon/api/proto/v1"
+	"github.com/ocurity/dracon/components/producers"
 	atypes "github.com/ocurity/dracon/components/producers/typescript-npm-audit/types"
+	"github.com/package-url/packageurl-go"
 )
 
 // PrintableType package const, printed as part of the report or errors.
@@ -176,19 +179,19 @@ func (r *Report) AsIssues() []*v1.Issue {
 				description = fmt.Sprintf("Vulnerable versions: %s\nRecommendation: %s\nOverview: %s\nReferences: %s\n",
 					aData.VulnerableVersions, aData.Recommendation, aData.Overview, aData.References)
 			} else {
-				log.Printf("Failed to fetch NPM advisory data from %s (%v); issue will not contain advisory data\n",
-					a.URL, err)
+				if err.Error() == "GHSA advisories are not supported" {
+					slog.Info("GHSA advisories are not supported")
+				} else {
+					log.Printf("Failed to fetch NPM advisory data from %s (%v); issue will not contain advisory data\n",
+						a.URL, err)
+				}
 			}
 			description += fmt.Sprintf("NPM advisory URL: %s\n", a.URL)
 
-			var targetName string
-			if r.PackagePath != "" {
-				targetName = r.PackagePath + ":"
-			}
-			targetName += a.Package
-
 			issues = append(issues, &v1.Issue{
-				Target:      targetName,
+				Target: producers.GetPURLTarget(
+					packageurl.TypeNPM, "", a.Package, a.Range, nil, r.PackagePath,
+				),
 				Type:        "Vulnerable Dependency",
 				Title:       a.Title,
 				Severity:    v1.Severity(v1.Severity_value[fmt.Sprintf("SEVERITY_%s", strings.ToUpper(a.Severity))]),
