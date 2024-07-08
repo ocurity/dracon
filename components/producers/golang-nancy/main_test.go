@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	v1 "github.com/ocurity/dracon/api/proto/v1"
 	"github.com/ocurity/dracon/components/producers/golang-nancy/types"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestParseOut(t *testing.T) {
@@ -145,3 +146,20 @@ var exampleOutput = `{
 	]
   }
 `
+
+func TestGetCWEFromTitle(t *testing.T) {
+	tests := []struct {
+		title    string
+		expected string
+	}{
+		{"[CVE-2023-26125] CWE-20: Improper Input Validation", "CWE-20"},
+		{"[CVE-2022-24687] CWE-noinfo", ""},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.title, func(t *testing.T) {
+			cwe := getCWEFromTitle(tt.title)
+			require.Equal(t, tt.expected, cwe)
+		})
+	}
+}
