@@ -14,10 +14,11 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/package-url/packageurl-go"
+
 	v1 "github.com/ocurity/dracon/api/proto/v1"
 	"github.com/ocurity/dracon/components/producers"
 	atypes "github.com/ocurity/dracon/components/producers/typescript-npm-audit/types"
-	"github.com/package-url/packageurl-go"
 )
 
 // PrintableType package const, printed as part of the report or errors.
