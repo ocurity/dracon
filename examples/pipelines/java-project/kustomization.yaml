@@ -8,7 +8,6 @@ components:
   - pkg:helm/dracon-oss-components/producer-dependency-check
   - pkg:helm/dracon-oss-components/producer-java-findsecbugs
   - pkg:helm/dracon-oss-components/producer-aggregator
-  - pkg:helm/dracon-oss-components/enricher-policy
   - pkg:helm/dracon-oss-components/enricher-deduplication
   - pkg:helm/dracon-oss-components/enricher-aggregator
   - pkg:helm/dracon-oss-components/consumer-mongodb

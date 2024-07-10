@@ -7,7 +7,6 @@ components:
   - pkg:helm/dracon-oss-components/git-clone
   - pkg:helm/dracon-oss-components/producer-cdxgen
   - pkg:helm/dracon-oss-components/producer-aggregator
-  - pkg:helm/dracon-oss-components/enricher-policy
   - pkg:helm/dracon-oss-components/enricher-deduplication
   - pkg:helm/dracon-oss-components/enricher-aggregator
   - pkg:helm/dracon-oss-components/consumer-stdout-json
