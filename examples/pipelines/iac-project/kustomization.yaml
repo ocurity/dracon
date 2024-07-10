@@ -9,7 +9,6 @@ components:
   - pkg:helm/dracon-oss-components/producer-kics
   - pkg:helm/dracon-oss-components/producer-terraform-tfsec
   - pkg:helm/dracon-oss-components/producer-aggregator
-  - pkg:helm/dracon-oss-components/enricher-policy
   - pkg:helm/dracon-oss-components/enricher-deduplication
   - pkg:helm/dracon-oss-components/enricher-aggregator
   - pkg:helm/dracon-oss-components/consumer-mongodb
