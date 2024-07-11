@@ -191,6 +191,79 @@ func TestReadInFile(t *testing.T) {
 			}
 
 			assert.Equal(t, tt.want, got, "ReadInFile() = %v, want %v", got, tt.want)
+func TestGetFileTarget(t *testing.T) {
+	tests := []struct {
+		name     string
+		filePath string
+		want     string
+	}{
+		{
+			name:     "Test with UNIX path",
+			filePath: "/path/to/file.txt",
+			want:     "file:///path/to/file.txt:1-2",
+		},
+		{
+			name:     "Test with empty path",
+			filePath: "",
+			want:     "",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.want, GetFileTarget(tc.filePath, 1, 2))
+		})
+	}
+}
+
+func TestEnsureValidFileTarget(t *testing.T) {
+	tests := []struct {
+		name       string
+		fileTarget string
+		want       string
+		wantErr    bool
+	}{
+		{
+			name:       "Valid File URI",
+			fileTarget: "file:///path/to/file.txt:10-20",
+			want:       "file:///path/to/file.txt:10-20",
+			wantErr:    false,
+		},
+		{
+			name:       "Valid URI, root path",
+			fileTarget: "file:///file.txt:1-5",
+			want:       "file:///file.txt:1-5",
+			wantErr:    false,
+		},
+		{
+			name:       "Invalid URI scheme",
+			fileTarget: "http:///file.txt",
+			want:       "",
+			wantErr:    true,
+		},
+		{
+			name:       "Empty URL",
+			fileTarget: "",
+			want:       "",
+			wantErr:    true,
+		},
+		{
+			name:       "Missing range end",
+			fileTarget: "http:///file.txt:12",
+			want:       "",
+			wantErr:    true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			got, err := EnsureValidFileTarget(tc.fileTarget)
+			if tc.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tc.want, got)
+			}
 		})
 	}
 }
