@@ -21,6 +21,27 @@ type testJ struct {
 	Foo string
 }
 
+func TestWriteDraconOutEmpty(t *testing.T) {
+	tmpFile, err := os.CreateTemp("", "dracon-test")
+	require.NoError(t, err)
+	defer require.NoError(t, os.Remove(tmpFile.Name()))
+
+	OutFile = tmpFile.Name()
+	Append = false
+
+	err = WriteDraconOut("dracon-test", nil)
+	require.NoError(t, err)
+
+	pBytes, err := os.ReadFile(tmpFile.Name())
+	require.NoError(t, err)
+
+	res := v1.LaunchToolResponse{}
+	require.NoError(t, proto.Unmarshal(pBytes, &res))
+
+	assert.Equal(t, "dracon-test", res.GetToolName())
+	assert.Equal(t, 0, len(res.GetIssues()))
+}
+
 func TestWriteDraconOut(t *testing.T) {
 	tmpFile, err := os.CreateTemp("", "dracon-test")
 	require.NoError(t, err)

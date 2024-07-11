@@ -9,16 +9,14 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
-	"os"
 
 	cdx "github.com/CycloneDX/cyclonedx-go"
 	packageurl "github.com/package-url/packageurl-go"
 
 	v1 "github.com/ocurity/dracon/api/proto/v1"
 	"github.com/ocurity/dracon/components/enrichers"
-	"github.com/ocurity/dracon/pkg/cyclonedx"
-
 	"github.com/ocurity/dracon/components/enrichers/depsdev/types"
+	"github.com/ocurity/dracon/pkg/cyclonedx"
 )
 
 const defaultAnnotation = "Enriched Licenses"
@@ -29,13 +27,6 @@ var (
 	scoreCardInfo      string
 	annotation         string
 )
-
-func lookupEnvOrString(key string, defaultVal string) string {
-	if val, ok := os.LookupEnv(key); ok {
-		return val
-	}
-	return defaultVal
-}
 
 func makeURL(component cdx.Component, api bool) (string, error) {
 	instance, err := packageurl.FromString(component.PackageURL)
@@ -223,6 +214,7 @@ func run() error {
 			}
 			enrichedIssues = append(enrichedIssues, eI)
 		}
+
 		return enrichers.WriteData(&v1.EnrichedLaunchToolResponse{
 			OriginalResults: r,
 			Issues:          enrichedIssues,
