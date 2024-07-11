@@ -19,6 +19,8 @@ import (
 	v1 "github.com/ocurity/dracon/api/proto/v1"
 	"github.com/ocurity/dracon/components/enrichers"
 	"github.com/ocurity/dracon/pkg/cyclonedx"
+
+	"github.com/ocurity/dracon/components/enrichers/depsdev/types"
 )
 
 const (
@@ -78,15 +80,15 @@ func setup(t *testing.T) (string, *httptest.Server) {
 	dir := prepareIssue(t)
 
 	// setup server
-	response := Response{
-		Version: Version{
+	response := types.Response{
+		Version: types.Version{
 			Licenses: []string{license},
-			Projects: []Project{
+			Projects: []types.Project{
 				{
-					ScorecardV2: ScorecardV2{
+					ScorecardV2: types.ScorecardV2{
 						Date:  "irrelevant",
 						Score: 5.5,
-						Check: []Check{
+						Check: []types.Check{
 							{
 								Name:   "foo",
 								Score:  2,
