@@ -218,3 +218,51 @@ func TestAggregateIssues(t *testing.T) {
 		assert.True(t, found)
 	}
 }
+
+func TestAggregateIssuesHandlesNoIssues(t *testing.T) {
+	// prepare
+	indir, err := os.MkdirTemp("/tmp", "")
+	require.NoError(t, err)
+
+	outdir, err := os.MkdirTemp("/tmp", "")
+	require.NoError(t, err)
+
+	// Create mock input data
+	mockLaunchToolResponses := []*v1.EnrichedLaunchToolResponse{
+		{
+			Issues: []*v1.EnrichedIssue{},
+		},
+		{
+			Issues: []*v1.EnrichedIssue{},
+		},
+	}
+	for i, resp := range mockLaunchToolResponses {
+		// write sample enriched responses in mktemp
+		out, err := proto.Marshal(resp)
+		require.NoError(t, err)
+		require.NoError(t, os.WriteFile(fmt.Sprintf("%s/aggregatorSat%d.enriched.pb", indir, i), out, 0o600))
+	}
+
+	// Run the enricher
+	signKey = ""
+	readPath = indir
+	writePath = outdir
+	require.NoError(t, run())
+
+	// Check there is something in our output directory
+	files, err := os.ReadDir(outdir)
+	require.NoError(t, err)
+	assert.NotEmpty(t, files)
+	assert.Len(t, files, 1)
+
+	// Check that we have an EnrichedAggregatedResult with no issues
+	for _, f := range files {
+		encodedProto, err := os.ReadFile(fmt.Sprintf("%s/%s", outdir, f.Name()))
+		require.NoError(t, err)
+
+		output := &v1.EnrichedLaunchToolResponse{}
+		require.NoError(t, proto.Unmarshal(encodedProto, output))
+
+		assert.Empty(t, output.Issues)
+	}
+}

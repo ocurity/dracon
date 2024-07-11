@@ -169,44 +169,71 @@ func TestParseFlags(t *testing.T) {
 
 func TestWriteData(t *testing.T) {
 	enricherName := "tests-enricher"
-	// prepare
 	workdir, err := os.MkdirTemp("/tmp", "")
 	require.NoError(t, err)
 	require.NoError(t, os.Mkdir(filepath.Join(workdir, "raw"), 0755))
 
-	// test errors first
-	enrichedResponse := createObjects()
-	require.Error(t, WriteData(nil, enricherName))
+	tests := []struct {
+		name             string
+		enrichedResponse *draconv1.EnrichedLaunchToolResponse
+		expectError      bool
+	}{
+		{
+			name:             "happy path",
+			enrichedResponse: createObjects(),
+			expectError:      false,
+		},
+		{
+			name:             "nil enrichedResponse",
+			enrichedResponse: nil,
+			expectError:      true,
+		},
+		{
+			name:             "nil originalResults",
+			enrichedResponse: &draconv1.EnrichedLaunchToolResponse{OriginalResults: nil},
+			expectError:      true,
+		},
+		{
+			name: "no enriched issues while originalResults present",
+			enrichedResponse: &draconv1.EnrichedLaunchToolResponse{
+				OriginalResults: &draconv1.LaunchToolResponse{
+					Issues: []*draconv1.Issue{
+						{
+							Target: "target",
+						},
+					},
+				},
+			},
+			expectError: true,
+		},
+	}
 
-	enrichedResponse.Issues = []*draconv1.EnrichedIssue{}
-	require.Error(t, WriteData(enrichedResponse, enricherName))
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			SetWritePathForTests(workdir)
 
-	enrichedResponse = createObjects() // reset
+			err := WriteData(tc.enrichedResponse, enricherName)
 
-	enrichedResponse.OriginalResults.Issues = []*draconv1.Issue{}
-	require.Error(t, WriteData(enrichedResponse, enricherName))
+			if tc.expectError {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
 
-	enrichedResponse.OriginalResults = nil
-	require.Error(t, WriteData(enrichedResponse, enricherName))
+				er, err := putil.LoadEnrichedNonAggregatedToolResponse(workdir)
+				require.NoError(t, err)
+				opt := cmp.Comparer(func(x, y timestamppb.Timestamp) bool {
+					return x.Nanos == y.Nanos
+				})
 
-	// happy path
-	enrichedResponse = createObjects()
-	SetWritePathForTests(workdir)
-	require.NoError(t, WriteData(enrichedResponse, enricherName))
+				require.True(t, cmp.Equal([]*draconv1.EnrichedLaunchToolResponse{tc.enrichedResponse}, er, protocmp.Transform(), opt),
+					cmp.Diff([]*draconv1.EnrichedLaunchToolResponse{tc.enrichedResponse}, er, protocmp.Transform()))
 
-	require.NoError(t, err)
-	er, err := putil.LoadEnrichedNonAggregatedToolResponse(workdir)
-	require.NoError(t, err)
-	opt := cmp.Comparer(func(x, y timestamppb.Timestamp) bool {
-		return x.Nanos == y.Nanos
-	})
+				r, err := putil.LoadToolResponse(filepath.Join(workdir, fmt.Sprintf("%s.raw.pb", tc.enrichedResponse.GetOriginalResults().GetToolName())))
+				require.NoError(t, err)
 
-	require.True(t, cmp.Equal([]*draconv1.EnrichedLaunchToolResponse{enrichedResponse}, er, protocmp.Transform(), opt),
-		cmp.Diff([]*draconv1.EnrichedLaunchToolResponse{enrichedResponse}, er, protocmp.Transform()))
-
-	r, err := putil.LoadToolResponse(filepath.Join(workdir, fmt.Sprintf("%s.raw.pb", enrichedResponse.GetOriginalResults().GetToolName())))
-	require.NoError(t, err)
-
-	require.True(t, cmp.Equal([]*draconv1.LaunchToolResponse{enrichedResponse.OriginalResults}, r, protocmp.Transform(), opt),
-		cmp.Diff([]*draconv1.LaunchToolResponse{enrichedResponse.OriginalResults}, r, protocmp.Transform()))
+				require.True(t, cmp.Equal([]*draconv1.LaunchToolResponse{tc.enrichedResponse.OriginalResults}, r, protocmp.Transform(), opt),
+					cmp.Diff([]*draconv1.LaunchToolResponse{tc.enrichedResponse.OriginalResults}, r, protocmp.Transform()))
+			}
+		})
+	}
 }

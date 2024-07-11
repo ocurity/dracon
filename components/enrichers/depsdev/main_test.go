@@ -27,7 +27,7 @@ const (
 	license = "Foo License v0"
 )
 
-func genSampleIssue(t *testing.T) []*v1.Issue {
+func genSampleIssues(t *testing.T) []*v1.Issue {
 	id := uuid.New()
 
 	bom, err := os.ReadFile("./testdata/sampleSBOM.json")
@@ -49,12 +49,18 @@ func genSampleIssue(t *testing.T) []*v1.Issue {
 	return []*v1.Issue{rI}
 }
 
-func prepareIssue(t *testing.T) string {
+func prepareIssue(t *testing.T, produceEmptyIssues bool) string {
 	// prepare
 	dir, err := os.MkdirTemp("/tmp", "")
 	require.NoError(t, err)
 
-	rawIssues := genSampleIssue(t)
+	var rawIssues []*v1.Issue
+	if produceEmptyIssues {
+		rawIssues = []*v1.Issue{}
+	} else {
+		rawIssues = genSampleIssues(t)
+	}
+
 	id := uuid.New()
 	scanUUUID := id.String()
 	startTime, _ := time.Parse(time.RFC3339, time.Now().UTC().Format(time.RFC3339))
@@ -74,10 +80,9 @@ func prepareIssue(t *testing.T) string {
 	return dir
 }
 
-// TODO make this be the common setup method
-// todo add test for deps dev and scorecard stuff
-func setup(t *testing.T) (string, *httptest.Server) {
-	dir := prepareIssue(t)
+// TODO: add test for deps dev and scorecard stuff
+func setup(t *testing.T, produceEmptyIssues bool) (string, *httptest.Server) {
+	dir := prepareIssue(t, produceEmptyIssues)
 
 	// setup server
 	response := types.Response{
@@ -109,11 +114,12 @@ func setup(t *testing.T) (string, *httptest.Server) {
 }
 
 func TestParseIssuesDepsDevScoreCardInfoWritten(t *testing.T) {
-	dir, srv := setup(t)
+	dir, srv := setup(t, false)
 	defer srv.Close()
 	scoreCardInfo = "true"
+
 	// run enricher
-	run()
+	require.NoError(t, run())
 	assert.FileExists(t, dir+"/depsdevSAT.deps-dev.enriched.pb", "file was not created")
 
 	// load *enriched.pb
@@ -126,13 +132,13 @@ func TestParseIssuesDepsDevScoreCardInfoWritten(t *testing.T) {
 	expectedProperties := []cdx.Property{
 		{Name: "aquasecurity:trivy:PkgType", Value: "gomod"},
 		{Name: "ScorecardScore", Value: "5.500000"},
-		{Name: "ScorecardInfo", Value: "{\n\t\"date\": \"irrelevant\",\n\t\"repo\": {},\n\t\"scorecard\": {},\n\t\"check\": [\n\t\t{\n\t\t\t\"name\": \"foo\",\n\t\t\t\"documentation\": {},\n\t\t\t\"score\": 2,\n\t\t\t\"reason\": \"bar\"\n\t\t}\n\t],\n\t\"score\": 5.5\n}"},
+		{Name: "ScorecardInfo", Value: "{\n\t\"date\": \"irrelevant\",\n\t\"check\": [\n\t\t{\n\t\t\t\"name\": \"foo\",\n\t\t\t\"score\": 2,\n\t\t\t\"reason\": \"bar\"\n\t\t}\n\t],\n\t\"score\": 5.5\n}"},
 		{Name: "aquasecurity:trivy:PkgType", Value: "gomod"},
 		{Name: "ScorecardScore", Value: "5.500000"},
-		{Name: "ScorecardInfo", Value: "{\n\t\"date\": \"irrelevant\",\n\t\"repo\": {},\n\t\"scorecard\": {},\n\t\"check\": [\n\t\t{\n\t\t\t\"name\": \"foo\",\n\t\t\t\"documentation\": {},\n\t\t\t\"score\": 2,\n\t\t\t\"reason\": \"bar\"\n\t\t}\n\t],\n\t\"score\": 5.5\n}"},
+		{Name: "ScorecardInfo", Value: "{\n\t\"date\": \"irrelevant\",\n\t\"check\": [\n\t\t{\n\t\t\t\"name\": \"foo\",\n\t\t\t\"score\": 2,\n\t\t\t\"reason\": \"bar\"\n\t\t}\n\t],\n\t\"score\": 5.5\n}"},
 		{Name: "aquasecurity:trivy:PkgType", Value: "gomod"},
 		{Name: "ScorecardScore", Value: "5.500000"},
-		{Name: "ScorecardInfo", Value: "{\n\t\"date\": \"irrelevant\",\n\t\"repo\": {},\n\t\"scorecard\": {},\n\t\"check\": [\n\t\t{\n\t\t\t\"name\": \"foo\",\n\t\t\t\"documentation\": {},\n\t\t\t\"score\": 2,\n\t\t\t\"reason\": \"bar\"\n\t\t}\n\t],\n\t\"score\": 5.5\n}"},
+		{Name: "ScorecardInfo", Value: "{\n\t\"date\": \"irrelevant\",\n\t\"check\": [\n\t\t{\n\t\t\t\"name\": \"foo\",\n\t\t\t\"score\": 2,\n\t\t\t\"reason\": \"bar\"\n\t\t}\n\t],\n\t\"score\": 5.5\n}"},
 	}
 	//  ensure every component has a license attached to it
 	for _, finding := range res.Issues {
@@ -149,11 +155,11 @@ func TestParseIssuesDepsDevScoreCardInfoWritten(t *testing.T) {
 }
 
 func TestParseIssuesDepsDevExternalReferenceLinksWritten(t *testing.T) {
-	dir, srv := setup(t)
+	dir, srv := setup(t, false)
 	defer srv.Close()
 
 	// run enricher
-	run()
+	require.NoError(t, run())
 	assert.FileExists(t, dir+"/depsdevSAT.deps-dev.enriched.pb", "file was not created")
 
 	// load *enriched.pb
@@ -190,13 +196,13 @@ func TestParseIssuesDepsDevExternalReferenceLinksWritten(t *testing.T) {
 }
 
 func TestParseIssuesLicensesWritten(t *testing.T) {
-	dir, srv := setup(t)
+	dir, srv := setup(t, false)
 	defer srv.Close()
 
 	licensesInEvidence = "false"
 
 	// run enricher
-	run()
+	require.NoError(t, run())
 	assert.FileExists(t, dir+"/depsdevSAT.deps-dev.enriched.pb", "file was not created")
 
 	// load *enriched.pb
@@ -220,13 +226,12 @@ func TestParseIssuesLicensesWritten(t *testing.T) {
 	}
 }
 
-func TestParseIssuesLicensesWrittenACcurateLicenses(t *testing.T) {
-	dir, srv := setup(t)
+func TestParseIssuesLicensesWrittenAccurateLicenses(t *testing.T) {
+	dir, srv := setup(t, false)
 	defer srv.Close()
 	licensesInEvidence = "true"
 
-	run()
-
+	require.NoError(t, run())
 	assert.FileExists(t, dir+"/depsdevSAT.deps-dev.enriched.pb", "file was not created")
 
 	// load *enriched.pb
@@ -249,4 +254,21 @@ func TestParseIssuesLicensesWrittenACcurateLicenses(t *testing.T) {
 		}
 		assert.True(t, found)
 	}
+}
+
+func TestHandlesZeroFindings(t *testing.T) {
+	dir, srv := setup(t, true) // true means produce empty issues
+	defer srv.Close()
+
+	require.NoError(t, run())
+	assert.FileExists(t, dir+"/depsdevSAT.deps-dev.enriched.pb", "file was not created")
+
+	// load *enriched.pb
+	pbBytes, err := os.ReadFile(dir + "/depsdevSAT.deps-dev.enriched.pb")
+	require.NoError(t, err, "could not read enriched file")
+
+	res := v1.EnrichedLaunchToolResponse{}
+	require.NoError(t, proto.Unmarshal(pbBytes, &res))
+
+	assert.Empty(t, res.Issues)
 }

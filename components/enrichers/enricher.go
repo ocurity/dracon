@@ -58,18 +58,25 @@ func LoadData() ([]*draconV1.LaunchToolResponse, error) {
 
 // WriteData will write the enriched results to the write path.
 func WriteData(enrichedLaunchToolResponse *draconV1.EnrichedLaunchToolResponse, enricherName string) error {
-	if enrichedLaunchToolResponse == nil || len(enrichedLaunchToolResponse.Issues) == 0 {
-		return errors.Errorf("no enriched issues were created for %s", enrichedLaunchToolResponse.GetOriginalResults().GetToolName())
+	if enrichedLaunchToolResponse == nil {
+		return errors.New("enrichedLaunchToolResponse cannot be empty")
 	}
+	if enrichedLaunchToolResponse.OriginalResults == nil {
+		return errors.Errorf("original results is empty for %s", enrichedLaunchToolResponse.GetOriginalResults().GetToolName())
+	}
+	if len(enrichedLaunchToolResponse.OriginalResults.Issues) > 0 && len(enrichedLaunchToolResponse.Issues) == 0 {
+		return errors.Errorf("failed to enrich any issues even though %d original issues were present for %s", len(enrichedLaunchToolResponse.OriginalResults.Issues), enrichedLaunchToolResponse.GetOriginalResults().GetToolName())
+	}
+
+	// Write enriched results
 	if err := putil.WriteEnrichedResults(enrichedLaunchToolResponse.GetOriginalResults(), enrichedLaunchToolResponse.GetIssues(),
 		filepath.Join(writePath, fmt.Sprintf("%s.%s.enriched.pb", enrichedLaunchToolResponse.GetOriginalResults().GetToolName(), enricherName)),
 	); err != nil {
 		return err
 	}
-	if enrichedLaunchToolResponse.OriginalResults == nil || len(enrichedLaunchToolResponse.OriginalResults.GetIssues()) == 0 {
-		return errors.Errorf("original results is empty for %s", enrichedLaunchToolResponse.GetOriginalResults().GetToolName())
-	}
 	scanStartTime := enrichedLaunchToolResponse.GetOriginalResults().GetScanInfo().GetScanStartTime().AsTime()
+
+	// Write raw results
 	if err := putil.WriteResults(
 		enrichedLaunchToolResponse.GetOriginalResults().GetToolName(),
 		enrichedLaunchToolResponse.GetOriginalResults().GetIssues(),
@@ -80,6 +87,7 @@ func WriteData(enrichedLaunchToolResponse *draconV1.EnrichedLaunchToolResponse, 
 	); err != nil {
 		return errors.Errorf("could not write results: %s", err)
 	}
+
 	return nil
 }
 

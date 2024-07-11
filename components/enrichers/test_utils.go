@@ -4,10 +4,12 @@ import (
 	"os"
 	"testing"
 
-	v1 "github.com/ocurity/dracon/api/proto/v1"
 	"github.com/stretchr/testify/require"
+
+	draconv1 "github.com/ocurity/dracon/api/proto/v1"
 )
 
+// SetupIODirs creates temporary directories for input and output files
 func SetupIODirs(t *testing.T) (indir, outdir string) {
 	indir, err := os.MkdirTemp("/tmp", "")
 	require.NoError(t, err)
@@ -18,15 +20,16 @@ func SetupIODirs(t *testing.T) (indir, outdir string) {
 	return indir, outdir
 }
 
-func GetEmptyLaunchToolResponse(t *testing.T) []*v1.LaunchToolResponse {
-	return []*v1.LaunchToolResponse{
+// GetEmptyLaunchToolResponse returns a slice of LaunchToolResponse with no issues
+func GetEmptyLaunchToolResponse(_ *testing.T) []*draconv1.LaunchToolResponse {
+	return []*draconv1.LaunchToolResponse{
 		{
 			ToolName: "tool1",
-			Issues:   []*v1.Issue{},
+			Issues:   []*draconv1.Issue{},
 		},
 		{
 			ToolName: "tool2",
-			Issues:   []*v1.Issue{},
+			Issues:   []*draconv1.Issue{},
 		},
 	}
 }
