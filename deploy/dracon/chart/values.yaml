@@ -46,22 +46,20 @@ postgresql:
     password: ""
     database: ""
     postgresPassword: ""
+    querystringargs: ""
   fullnameOverride: ""
 
 # this section controls aspects of managing a database used to store enrichments
 # the database should use the Postgres dialect.
-enrichmentDB:
-  migrations:
-    # if set, a Job will be deployed that applies migrations to the enrichment database
-    # the Job will run as part of the post-install/post-upgrade hook
-    enabled: true
-    # image to use for applying the migrations
-    image: ""
+enrichment_db_migrations:
+  # if set, a Job will be deployed that applies migrations to the enrichment database
+  # the Job will run as part of the post-install/post-upgrade hook
+  enabled: true
+  # image to use for applying the migrations
+  migrationsImage: ""
   # connection string for the migrations and potentially other processes to connect to the
   # enrichment database
-  connectionStr: ""
 
-global:
-  image:
-    # registry to use for all 
-    registry: ""
+image:
+  # registry to use for all 
+  registry: ""

@@ -5,5 +5,8 @@ dependencies:
 - name: mongodb
   repository: https://charts.bitnami.com/bitnami
   version: 15.1.5
-digest: sha256:f5b463f7862318ed8de9439769a72f14320f271c72c80ec7a2a1f1b209959d7a
-generated: "2024-05-02T22:03:05.901032098+03:00"
+- name: enrichment-db-migrations
+  repository: file://../../enrichment-db-migrations/chart
+  version: 0.7.0
+digest: sha256:c38df8a4fdc32cc93962c87c8a7e8ef6da7fee48f03c0972b467691c124adfef
+generated: "2024-07-14T18:24:02.622213661+01:00"
