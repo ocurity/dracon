@@ -56,7 +56,7 @@ func parseIssues(out types.SemgrepResults) ([]*v1.Issue, error) {
 
 		sev := severityMap[r.Extra.Severity]
 		iss := &v1.Issue{
-			Target:      fmt.Sprintf("%s:%v-%v", r.Path, r.Start.Line, r.End.Line),
+			Target:      producers.GetFileTarget(r.Path, r.Start.Line, r.End.Line),
 			Type:        r.Extra.Message,
 			Title:       r.CheckID,
 			Severity:    sev,
