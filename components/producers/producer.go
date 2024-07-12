@@ -40,6 +40,8 @@ const (
 	sourceDir = "/workspace/output"
 )
 
+var fileTargetPattern = regexp.MustCompile(`^(.*?:.*?):(.*)$`)
+
 // ParseFlags will parse the input flags for the producer and perform simple validation.
 func ParseFlags() error {
 	flag.StringVar(&InResults, "in", "", "")
@@ -177,37 +179,50 @@ func GetFileTarget(filePath string, startLine int, endLine int) string {
 // e.g. a tool output, and ensures it is a valid file target.
 // file:///path/to/file.txt:10-20
 func EnsureValidFileTarget(fileTarget string) (string, error) {
-	pattern, err := regexp.Compile(`^(.*?:.*?):(.*)$`)
+	url, start, end, err := GetPartsFromFileTarget(fileTarget)
 	if err != nil {
 		return "", err
 	}
-	parts := pattern.FindStringSubmatch(fileTarget)
+
+	return fmt.Sprintf("%s:%d-%d", url.String(), start, end), nil
+}
+
+// GetPartsFromFileTarget takes a file target string and returns the parts.
+// file:///path/to/file.txt:10-20
+// Returns: url.URL, startLine, endLine, error
+func GetPartsFromFileTarget(fileTarget string) (*url.URL, int, int, error) {
+	parts := fileTargetPattern.FindStringSubmatch(fileTarget)
 	if len(parts) != 3 {
-		return "", fmt.Errorf("invalid file target format: %s; MUST be file://path/to/file:start-end", fileTarget)
+		return nil, 0, 0, fmt.Errorf("invalid file target format: %s; MUST be file://path/to/file:start-end", fileTarget)
 	}
 
 	// Ensure the file URI is correct
 	parsedURI, err := url.Parse(parts[1])
 	if err != nil {
-		return "", err
+		return nil, 0, 0, err
 	}
 	if parsedURI.Scheme != "file" {
-		return "", fmt.Errorf("invalid file target scheme: %s; MUST be file://", parsedURI.Scheme)
+		return nil, 0, 0, fmt.Errorf("invalid file target scheme: %s; MUST be file://", parsedURI.Scheme)
+	}
+
+	// Ensure the URI points to a file, not a directory
+	if filepath.Ext(parsedURI.Path) == "" {
+		return nil, 0, 0, fmt.Errorf("invalid file target path: %s; MUST point to a file", parsedURI.Path)
 	}
 
 	// Ensure the line range is correct
 	lineRange := strings.Split(parts[2], "-")
 	if len(lineRange) != 2 {
-		return "", fmt.Errorf("invalid line range format: %s; MUST be start-end", parts[1])
+		return nil, 0, 0, fmt.Errorf("invalid line range format: %s; MUST be start-end", parts[1])
 	}
 	start, err := strconv.Atoi(lineRange[0])
 	if err != nil {
-		return "", fmt.Errorf("invalid start line: %s; MUST be an integer", lineRange[0])
+		return nil, 0, 0, fmt.Errorf("invalid start line: %s; MUST be an integer", lineRange[0])
 	}
 	end, err := strconv.Atoi(lineRange[1])
 	if err != nil {
-		return "", fmt.Errorf("invalid end line: %s; MUST be an integer", lineRange[1])
+		return nil, 0, 0, fmt.Errorf("invalid end line: %s; MUST be an integer", lineRange[1])
 	}
 
-	return fmt.Sprintf("%s:%d-%d", parsedURI.String(), start, end), nil
+	return parsedURI, start, end, nil
 }

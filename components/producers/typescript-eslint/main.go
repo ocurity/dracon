@@ -64,7 +64,7 @@ func parseIssues(out []types.ESLintIssue) ([]*v1.Issue, error) {
 			}
 
 			// Extract the code snippet, if possible
-			code, err := context.ExtractCode(iss)
+			code, err := context.ExtractCodeFromFileTarget(iss.Target)
 			if err != nil {
 				slog.Warn("Failed to extract code snippet", "error", err)
 				code = ""

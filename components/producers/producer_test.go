@@ -102,10 +102,10 @@ func TestWriteDraconOutAppend(t *testing.T) {
 	assert.Equal(t, 3, len(res.GetIssues()))
 
 	for _, i := range []int{0, 1, 2} {
-		assert.Equal(t, fmt.Sprintf("target%d", i), res.GetIssues()[i].GetTarget())
-		assert.Equal(t, fmt.Sprintf("title%d", i), res.GetIssues()[i].GetTitle())
-		assert.Equal(t, fmt.Sprintf("desc%d", i), res.GetIssues()[i].GetDescription())
-		assert.Equal(t, fmt.Sprintf("cve%d", i), res.GetIssues()[i].GetCve())
+		require.Equal(t, fmt.Sprintf("target%d", i), res.GetIssues()[i].GetTarget())
+		require.Equal(t, fmt.Sprintf("title%d", i), res.GetIssues()[i].GetTitle())
+		require.Equal(t, fmt.Sprintf("desc%d", i), res.GetIssues()[i].GetDescription())
+		require.Equal(t, fmt.Sprintf("cve%d", i), res.GetIssues()[i].GetCve())
 	}
 }
 
@@ -211,7 +211,7 @@ func TestGetFileTarget(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			assert.Equal(t, tc.want, GetFileTarget(tc.filePath, 1, 2))
+			require.Equal(t, tc.want, GetFileTarget(tc.filePath, 1, 2))
 		})
 	}
 }
@@ -253,16 +253,28 @@ func TestEnsureValidFileTarget(t *testing.T) {
 			want:       "",
 			wantErr:    true,
 		},
+		{
+			name:       "Dir instead of file",
+			fileTarget: "file:///path/to/dir:10-20",
+			want:       "",
+			wantErr:    true,
+		},
+		{
+			name:       "Dir instead of file (trailing slash)",
+			fileTarget: "file:///path/to/dir/:10-20",
+			want:       "",
+			wantErr:    true,
+		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			got, err := EnsureValidFileTarget(tc.fileTarget)
 			if tc.wantErr {
-				assert.Error(t, err)
+				require.Error(t, err)
 			} else {
-				assert.NoError(t, err)
-				assert.Equal(t, tc.want, got)
+				require.NoError(t, err)
+				require.Equal(t, tc.want, got)
 			}
 		})
 	}

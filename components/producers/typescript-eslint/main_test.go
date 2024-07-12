@@ -45,7 +45,7 @@ or
 javascript`
 
 func TestParseIssues(t *testing.T) {
-	f, err := testutil.CreateFile("tfsec_tests_vuln_code", code)
+	f, err := testutil.CreateFile("tfsec_tests_vuln_code.js", code)
 	if err != nil {
 		t.Error(err)
 	}
