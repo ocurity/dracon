@@ -27,6 +27,21 @@ arangodb:
     className: nginx
     host: arangodb.dracon.localhost
 
+global:
+  image:
+    registry: kind-registry:5000/ocurity/dracon
+
+  postgresql:
+    enabled: true
+    auth:
+      username: dracon
+      password: dracon
+      database: dracon
+      postgresPassword: dracon
+      querystringargs: "sslmode=disable"
+    host: dracon-postgresql:5432
+
+# necessary duplication because postgres does not support global variables
 postgresql:
   enabled: true
   auth:
@@ -34,16 +49,13 @@ postgresql:
     password: dracon
     database: dracon
     postgresPassword: dracon
-  fullnameOverride: dracon-enrichment-db
+    querystringargs: "sslmode=disable"
+  host: dracon-postgresql:5432
 
 tekton:
   enabled: true
 
-enrichmentDB:
-  migrations:
-    enabled: true
-  connectionStr: postgresql://dracon:dracon@dracon-enrichment-db?sslmode=disable
+enrichment-db-migrations:
+  migrationsImage: ""
+  enabled: true
 
-global:
-  image:
-    registry: kind-registry:5000

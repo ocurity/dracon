@@ -1,0 +1,25 @@
+
+global:
+  postgresql:
+    enabled: true
+    auth:
+      username: dracon
+      password: dracon
+      database: dracon
+      postgresPassword: dracon
+      querystringargs: "sslmode=disable"
+    fullnameOverride: dracon-enrichment-db
+
+  image:
+    registry: kind-registry:5000
+
+# necessary duplication because postgrs does not support global variables
+postgresql:
+  enabled: true
+  auth:
+    username: dracon
+    password: dracon
+    database: dracon
+    postgresPassword: dracon
+    querystringargs: "sslmode=disable"
+  fullnameOverride: dracon-enrichment-db
