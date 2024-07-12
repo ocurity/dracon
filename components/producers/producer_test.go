@@ -191,6 +191,10 @@ func TestReadInFile(t *testing.T) {
 			}
 
 			assert.Equal(t, tt.want, got, "ReadInFile() = %v, want %v", got, tt.want)
+		})
+	}
+}
+
 func TestGetFileTarget(t *testing.T) {
 	tests := []struct {
 		name     string

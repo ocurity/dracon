@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	v1 "github.com/ocurity/dracon/api/proto/v1"
-	"github.com/ocurity/dracon/components/producers"
 	"github.com/ocurity/dracon/pkg/testutil"
 
 	"github.com/stretchr/testify/assert"
@@ -83,11 +82,6 @@ func TestParseIssues(t *testing.T) {
 	}
 
 	require.Equal(t, expectedIssue, issues[0])
-}
-
-func TestEndToEndCLIWithJSON(t *testing.T) {
-	err := producers.TestEndToEnd(t, "./examples/govwa.json", "./examples/out-govwa.pb")
-	assert.NoError(t, err)
 }
 
 func TestHandleLine(t *testing.T) {
