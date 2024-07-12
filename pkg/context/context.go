@@ -99,7 +99,7 @@ func ExtractCode(issueTarget string) (string, error) {
 
 	handle, err := os.Open(fileURL.Path)
 	if err != nil {
-		fmt.Println("context pkg could not open file in path %s, err: %w", fileURL.Path, err)
+		fmt.Printf("context pkg could not open file in path %s, err: %v", fileURL.Path, err)
 		return "", fmt.Errorf("context pkg could not open file in path %s, err: %w", fileURL.Path, err)
 	}
 

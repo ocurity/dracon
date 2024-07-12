@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"log/slog"
 
@@ -43,18 +42,22 @@ func parseIssues(out []types.ESLintIssue) ([]*v1.Issue, error) {
 	issues := []*v1.Issue{}
 	for _, r := range out {
 		for _, msg := range r.Messages {
+			// Convert the severity
 			sev := v1.Severity_SEVERITY_LOW
 			if msg.Severity == 1 {
 				sev = v1.Severity_SEVERITY_MEDIUM
 			} else if msg.Severity == 2 {
 				sev = v1.Severity_SEVERITY_HIGH
 			}
-			target := fmt.Sprintf("%s:%d", r.FilePath, msg.Line)
-			if msg.EndLine != 0 {
-				target = fmt.Sprintf("%s:%d-%d", r.FilePath, msg.Line, msg.EndLine)
+
+			// Ensure we always have a valid endLine
+			endLine := msg.EndLine
+			if endLine == 0 {
+				endLine = msg.Line
 			}
+
 			iss := &v1.Issue{
-				Target:      target,
+				Target:      producers.GetFileTarget(r.FilePath, msg.Line, endLine),
 				Type:        msg.RuleID,
 				Title:       msg.RuleID,
 				Severity:    sev,
@@ -64,7 +67,7 @@ func parseIssues(out []types.ESLintIssue) ([]*v1.Issue, error) {
 			}
 
 			// Extract the code snippet, if possible
-			code, err := context.ExtractCode(iss)
+			code, err := context.ExtractCode(iss.Target)
 			if err != nil {
 				slog.Warn("Failed to extract code snippet", "error", err)
 				code = ""
