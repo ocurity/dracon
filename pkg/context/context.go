@@ -14,6 +14,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/go-errors/errors"
+
 	v1 "github.com/ocurity/dracon/api/proto/v1"
 	"github.com/ocurity/dracon/components/producers"
 )
@@ -21,10 +23,12 @@ import (
 // DefaultLineRange controls how many lines of code context will be returned by default
 const DefaultLineRange = 10
 
-// DeprecatedExtractCode takes a path and line (or line range) for a vulnerable code segment and
+// ExtractCode takes a path and line (or line range) for a vulnerable code segment and
 // returns the DefaultLineRange lines above and the DefaultLineRange lines below the vulnerability.
 // It does not take into account end of function.
-func DeprecatedExtractCode(finding *v1.Issue) (string, error) {
+//
+// Deprecated: This should not be used. Use ExtractCodeFromFileTarget instead.
+func ExtractCode(finding *v1.Issue) (string, error) {
 	path := ""
 	lineRange := ""
 	lineFrom := 0
@@ -81,9 +85,9 @@ func DeprecatedExtractCode(finding *v1.Issue) (string, error) {
 	return strings.Join(lines, "\n"), nil
 }
 
-// ExtractCode takes a filepath target and returns the code snippet.
+// ExtractCodeFromFileTarget takes a filepath target and returns the code snippet.
 // It expects the target to be in the format of producers.GetFileTarget
-func ExtractCode(issueTarget string) (string, error) {
+func ExtractCodeFromFileTarget(issueTarget string) (string, error) {
 	fileURL, start, end, err := producers.GetPartsFromFileTarget(issueTarget)
 	if err != nil {
 		return "", err
@@ -99,9 +103,9 @@ func ExtractCode(issueTarget string) (string, error) {
 
 	handle, err := os.Open(fileURL.Path)
 	if err != nil {
-		fmt.Printf("context pkg could not open file in path %s, err: %v", fileURL.Path, err)
-		return "", fmt.Errorf("context pkg could not open file in path %s, err: %w", fileURL.Path, err)
+		return "", errors.Errorf("context pkg could not open file in path %s, err: %w", fileURL.Path, err)
 	}
+	defer handle.Close()
 
 	sc := bufio.NewScanner(handle)
 	pos := 0
@@ -111,6 +115,10 @@ func ExtractCode(issueTarget string) (string, error) {
 			lines = append(lines, sc.Text())
 		}
 		pos++
+
+		if pos >= end {
+			break
+		}
 	}
 
 	return strings.Join(lines, "\n"), nil

@@ -54,7 +54,7 @@ var gosecout = `
 }`
 
 func TestParseIssues(t *testing.T) {
-	f, err := testutil.CreateFile("gosec_tests_vuln_code", code)
+	f, err := testutil.CreateFile("gosec_tests_vuln_code.go", code)
 	require.NoError(t, err)
 	tempFileName := f.Name()
 
@@ -86,6 +86,42 @@ func TestParseIssues(t *testing.T) {
 }
 
 func TestEndToEndCLIWithJSON(t *testing.T) {
-	err := producers.TestEndToEnd(t, "./examples/input-small.json", "./examples/out-small.pb")
+	err := producers.TestEndToEnd(t, "./examples/govwa.json", "./examples/out-govwa.pb")
 	assert.NoError(t, err)
+}
+
+func TestHandleLine(t *testing.T) {
+	tc := []struct {
+		name          string
+		line          string
+		expectedStart int
+		expectedEnd   int
+	}{
+		{
+			name:          "line-line",
+			line:          "2-44",
+			expectedStart: 2,
+			expectedEnd:   44,
+		},
+		{
+			name:          "line",
+			line:          "2",
+			expectedStart: 2,
+			expectedEnd:   2,
+		},
+		{
+			name:          "invalid",
+			line:          "invalid",
+			expectedStart: 0,
+			expectedEnd:   0,
+		},
+	}
+
+	for _, tt := range tc {
+		t.Run(tt.name, func(t *testing.T) {
+			start, end := handleLine(tt.line)
+			assert.Equal(t, tt.expectedStart, start)
+			assert.Equal(t, tt.expectedEnd, end)
+		})
+	}
 }

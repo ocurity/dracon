@@ -39,11 +39,26 @@ func main() {
 	}
 }
 
+func handleLine(line string) (int, int) {
+	// can be both "line" or "line-line"
+	var start, end int
+	_, err := fmt.Sscanf(line, "%d-%d", &start, &end)
+	if err != nil {
+		_, err := fmt.Sscanf(line, "%d", &start)
+		if err != nil {
+			slog.Warn("Failed to parse line", "line", line)
+		}
+		end = start
+	}
+	return start, end
+}
+
 func parseIssues(out *GoSecOut) ([]*v1.Issue, error) {
 	issues := []*v1.Issue{}
 	for _, r := range out.Issues {
+		start, end := handleLine(r.Line)
 		iss := &v1.Issue{
-			Target:      producers.GetFileTarget(r.File, r.Line, r.Line),
+			Target:      producers.GetFileTarget(r.File, start, end),
 			Type:        r.RuleID,
 			Title:       r.Details,
 			Severity:    v1.Severity(v1.Severity_value[fmt.Sprintf("SEVERITY_%s", r.Severity)]),
@@ -54,7 +69,7 @@ func parseIssues(out *GoSecOut) ([]*v1.Issue, error) {
 		}
 
 		// Extract the code snippet, if possible
-		code, err := context.ExtractCode(iss.Target)
+		code, err := context.ExtractCodeFromFileTarget(iss.Target)
 		if err != nil {
 			slog.Warn("Failed to extract code snippet", "error", err)
 			code = ""
@@ -79,7 +94,7 @@ type GoSecIssue struct {
 	Details    string        `json:"details"`
 	File       string        `json:"file"`
 	Code       string        `json:"code"`
-	Line       int           `json:",string"`
+	Line       string        `json:"line"`
 	Column     string        `json:"column"`
 	CWE        GoSecIssueCWE `json:"cwe"`
 }

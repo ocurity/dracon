@@ -62,7 +62,7 @@ func parseResult(r *BanditResult) (*v1.Issue, error) {
 	}
 
 	// Extract the code snippet, if possible
-	code, err := context.DeprecatedExtractCode(iss)
+	code, err := context.ExtractCode(iss)
 	if err != nil {
 		slog.Warn("Failed to extract code snippet", "error", err)
 		code = ""

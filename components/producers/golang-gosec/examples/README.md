@@ -1,7 +1,9 @@
 # Examples
 
-## `input-small.json`
+## `govwa.json`
+
+Using [the govwa repo](https://github.com/0c34/govwa).
 
 ```bash
-go run ../main.go -in ./input-small.json -out ./out-small.pb
+go run ../main.go -in ./govwa.json -out ./out-govwa.pb
 ```
