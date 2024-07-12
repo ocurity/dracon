@@ -15,15 +15,16 @@ import (
 	"strings"
 
 	v1 "github.com/ocurity/dracon/api/proto/v1"
+	"github.com/ocurity/dracon/components/producers"
 )
 
 // DefaultLineRange controls how many lines of code context will be returned by default
 const DefaultLineRange = 10
 
-// ExtractCode takes a path and line (or line range) for a vulnerable code segment and
+// DeprecatedExtractCode takes a path and line (or line range) for a vulnerable code segment and
 // returns the DefaultLineRange lines above and the DefaultLineRange lines below the vulnerability.
 // It does not take into account end of function.
-func ExtractCode(finding *v1.Issue) (string, error) {
+func DeprecatedExtractCode(finding *v1.Issue) (string, error) {
 	path := ""
 	lineRange := ""
 	lineFrom := 0
@@ -77,5 +78,40 @@ func ExtractCode(finding *v1.Issue) (string, error) {
 		}
 		pos++
 	}
+	return strings.Join(lines, "\n"), nil
+}
+
+// ExtractCode takes a filepath target and returns the code snippet.
+// It expects the target to be in the format of producers.GetFileTarget
+func ExtractCode(issueTarget string) (string, error) {
+	fileURL, start, end, err := producers.GetPartsFromFileTarget(issueTarget)
+	if err != nil {
+		return "", err
+	}
+
+	// Expand the line range to include DefaultLineRange lines above and below
+	if start < DefaultLineRange {
+		start = 0
+	} else {
+		start = start - DefaultLineRange
+	}
+	end = end + DefaultLineRange
+
+	handle, err := os.Open(fileURL.Path)
+	if err != nil {
+		fmt.Println("context pkg could not open file in path %s, err: %w", fileURL.Path, err)
+		return "", fmt.Errorf("context pkg could not open file in path %s, err: %w", fileURL.Path, err)
+	}
+
+	sc := bufio.NewScanner(handle)
+	pos := 0
+	lines := []string{}
+	for sc.Scan() {
+		if start <= pos && pos < end {
+			lines = append(lines, sc.Text())
+		}
+		pos++
+	}
+
 	return strings.Join(lines, "\n"), nil
 }

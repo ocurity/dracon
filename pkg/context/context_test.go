@@ -27,7 +27,7 @@ func TestExtractCodeLineRange(t *testing.T) {
 		Description: "found sqli",
 		Source:      "",
 	}
-	codeRange, err := ExtractCode(&issue)
+	codeRange, err := DeprecatedExtractCode(&issue)
 	require.NoError(t, err)
 	require.Equal(t, strings.Join(strings.Split(code, "\n")[15-DefaultLineRange:18+DefaultLineRange], "\n"), codeRange)
 }
@@ -48,7 +48,7 @@ func TestExtractCodeLineRangeLessThanDefault(t *testing.T) {
 		Description: "found sqli",
 		Source:      "",
 	}
-	codeRange, err := ExtractCode(&issue)
+	codeRange, err := DeprecatedExtractCode(&issue)
 	require.NoError(t, err)
 	require.Equal(t, strings.Join(strings.Split(code, "\n")[:18+DefaultLineRange], "\n"), codeRange)
 }
@@ -68,7 +68,7 @@ func TestExtractCodeLine(t *testing.T) {
 		Description: "found sqli",
 		Source:      "",
 	}
-	codeRange, err := ExtractCode(&issue)
+	codeRange, err := DeprecatedExtractCode(&issue)
 	require.NoError(t, err)
 	require.Equal(t, strings.Join(strings.Split(code, "\n")[17-DefaultLineRange:17+DefaultLineRange], "\n"), codeRange)
 }
@@ -85,15 +85,15 @@ func TestExtractCodeInvalidTarget(t *testing.T) {
 		Description: "found sqli",
 		Source:      "",
 	}
-	_, err := ExtractCode(&issue)
+	_, err := DeprecatedExtractCode(&issue)
 	require.Error(t, err)
 
 	issue.Target = "192.168.1.1"
-	_, err = ExtractCode(&issue)
+	_, err = DeprecatedExtractCode(&issue)
 	require.Error(t, err)
 
 	issue.Target = "https://www.example.com?a=9-2"
-	_, err = ExtractCode(&issue)
+	_, err = DeprecatedExtractCode(&issue)
 	require.Error(t, err)
 }
 
