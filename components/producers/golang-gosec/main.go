@@ -63,6 +63,7 @@ func parseIssues(out *GoSecOut) ([]*v1.Issue, error) {
 			Title:       r.Details,
 			Severity:    v1.Severity(v1.Severity_value[fmt.Sprintf("SEVERITY_%s", r.Severity)]),
 			Cvss:        0.0,
+			Cwe:         []int32{r.CWE.ID},
 			Confidence:  v1.Confidence(v1.Confidence_value[fmt.Sprintf("CONFIDENCE_%s", r.Confidence)]),
 			Description: r.Code,
 		}
@@ -83,7 +84,6 @@ func parseIssues(out *GoSecOut) ([]*v1.Issue, error) {
 // GoSecOut represents the output of a GoSec run.
 type GoSecOut struct {
 	Issues []GoSecIssue `json:"Issues"`
-	// Stats  GoSecStats   `json:"Stats"`
 }
 
 // GoSecIssue represents a GoSec Result.
