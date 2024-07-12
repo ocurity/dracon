@@ -7,8 +7,10 @@ import (
 	"testing"
 
 	v1 "github.com/ocurity/dracon/api/proto/v1"
+	"github.com/ocurity/dracon/components/producers"
 	"github.com/ocurity/dracon/pkg/testutil"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -31,6 +33,10 @@ var gosecout = `
 		{
 			"severity": "MEDIUM",
 			"confidence": "HIGH",
+			"cwe": {
+				"id": "10",
+				"url": "https://cwe.mitre.org/data/definitions/10.html"
+			},
 			"rule_id": "G304",
 			"details": "Potential file inclusion via variable",
 			"file": "%s",
@@ -65,15 +71,21 @@ func TestParseIssues(t *testing.T) {
 	require.NoError(t, err)
 
 	expectedIssue := &v1.Issue{
-		Target:         fmt.Sprintf("%s:2", tempFileName),
+		Target:         fmt.Sprintf("file://%s:2-2", tempFileName),
 		Type:           "G304",
 		Title:          "Potential file inclusion via variable",
 		Severity:       v1.Severity_SEVERITY_MEDIUM,
 		Cvss:           0.0,
+		Cwe:            []int32{10},
 		Confidence:     v1.Confidence_CONFIDENCE_HIGH,
 		Description:    "ioutil.ReadFile(path)",
 		ContextSegment: &code,
 	}
 
-	require.Equal(t, []*v1.Issue{expectedIssue}, issues)
+	require.Equal(t, expectedIssue, issues[0])
+}
+
+func TestEndToEndCLIWithJSON(t *testing.T) {
+	err := producers.TestEndToEnd(t, "./examples/input-small.json", "./examples/out-small.pb")
+	assert.NoError(t, err)
 }
