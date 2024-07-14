@@ -44,4 +44,4 @@ jobs:
                        --app-version ${{ github.ref_name }}\
                        --version ${DRACON_VERSION_SEMVER}\
                        ./deploy/enrichment-db-migrations/chart
-          helm push dracon-enrichment-db-migrations oci://ghcr.io/ocurity/dracon/charts
+          helm push enrichment-db-migrations-${DRACON_VERSION_SEMVER}.tgz oci://ghcr.io/ocurity/dracon/charts
