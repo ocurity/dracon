@@ -2,21 +2,11 @@
 # the database should use the Postgres dialect.
 
 # image to use for applying the migrations
-migrationsImage: ""
 global:
   image:
     # registry to use for all 
     registry: ""
 
-enabled: true
-
 serviceAccount:
   create: false
 
-postgresql:
-  enabled: true
-  auth:
-    username: ""
-    password: ""
-    database: ""
-    postgresPassword: ""

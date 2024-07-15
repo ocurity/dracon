@@ -31,17 +31,6 @@ global:
   image:
     registry: kind-registry:5000/ocurity/dracon
 
-  postgresql:
-    enabled: true
-    auth:
-      username: dracon
-      password: dracon
-      database: dracon
-      postgresPassword: dracon
-      querystringargs: "sslmode=disable"
-    host: dracon-postgresql:5432
-
-# necessary duplication because postgres does not support global variables
 postgresql:
   enabled: true
   auth:
@@ -56,6 +45,12 @@ tekton:
   enabled: true
 
 enrichment-db-migrations:
-  migrationsImage: ""
   enabled: true
-
+  database:
+    auth:
+      username: dracon
+      password: dracon
+      database: dracon
+      postgresPassword: dracon
+      querystringargs: "sslmode=disable"
+    host: dracon-postgresql:5432

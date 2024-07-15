@@ -5,8 +5,3 @@ description: |
 type: application
 version: 0.7.0
 appVersion: 0.7.0
-dependencies:
-  - name: postgresql
-    version: 15.5.4
-    repository: https://charts.bitnami.com/bitnami
-    condition: postgres.enabled
