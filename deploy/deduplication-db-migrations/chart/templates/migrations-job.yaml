@@ -2,9 +2,9 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ include "enrichment_db_migrations.fullname" . }}
+  name: {{ include "deduplication_db_migrations.fullname" . }}
   labels:
-    {{- include "enrichment_db_migrations.labels" . | nindent 4 }}
+    {{- include "deduplication_db_migrations.labels" . | nindent 4 }}
   annotations:
     # This is what defines this resource as a hook. Without this line, the
     # job is considered part of the release.
@@ -16,7 +16,7 @@ spec:
     metadata:
       name: enrichment-db-migrations
       labels:
-        {{- include "enrichment_db_migrations.labels" . | nindent 8 }}
+        {{- include "deduplication_db_migrations.labels" . | nindent 8 }}
     spec:
       restartPolicy: Never
       containers:
@@ -31,5 +31,5 @@ spec:
         - apply
         - --url
         - "postgresql://{{ .Values.database.auth.username }}:{{ .Values.database.auth.password }}@{{ .Values.database.host }}/{{ .Values.database.auth.database }}?{{ .Values.database.auth.querystringargs}}"
-      serviceAccountName: {{ include "enrichment_db_migrations.fullname" . }}
+      serviceAccountName: {{ include "deduplication_db_migrations.fullname" . }}
 {{ end }}

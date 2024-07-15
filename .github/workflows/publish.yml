@@ -34,14 +34,20 @@ jobs:
         run: |
           set -e
           DRACON_VERSION_SEMVER=$(sed 's/v//' <<< ${{ github.ref_name }})
-          make cmd/draconctl/bin
-          # Package, Publish Components
-          bin/cmd/draconctl components package --version ${{ github.ref_name }} --chart-version ${DRACON_VERSION_SEMVER} --name dracon-oss-components ./components
-          helm push dracon-oss-components-${DRACON_VERSION_SEMVER}.tgz oci://ghcr.io/ocurity/dracon/charts
 
-          # Package, Publish Migrations
-          helm package -u\
-                       --app-version ${{ github.ref_name }}\
-                       --version ${DRACON_VERSION_SEMVER}\
+          # Package and Publish Migrations
+          # this must be the first step, because the migrations are a dependency of the components
+          # it is not set explicitly yet as a dependency, but it will be set soon
+          helm package --dependency-update \
+                       --app-version ${{ github.ref_name }} \
+                       --version ${DRACON_VERSION_SEMVER} \
                        ./deploy/enrichment-db-migrations/chart
           helm push enrichment-db-migrations-${DRACON_VERSION_SEMVER}.tgz oci://ghcr.io/ocurity/dracon/charts
+
+          make cmd/draconctl/bin
+          # Package and Publish Components
+          bin/cmd/draconctl components package --version ${{ github.ref_name }} \
+                                               --chart-version ${DRACON_VERSION_SEMVER} \
+                                               --name dracon-oss-components \
+                                               ./components
+          helm push dracon-oss-components-${DRACON_VERSION_SEMVER}.tgz oci://ghcr.io/ocurity/dracon/charts

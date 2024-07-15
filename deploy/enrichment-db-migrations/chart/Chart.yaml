@@ -1,7 +1,0 @@
-apiVersion: v2
-name: enrichment-db-migrations
-description: |
-  A Helm chart for Kubernetes containing the dracon migrations needed for Dracon pipelines to run. Please check the documentation for more information
-type: application
-version: 0.7.0
-appVersion: 0.7.0

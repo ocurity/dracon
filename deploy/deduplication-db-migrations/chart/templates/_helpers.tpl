@@ -1,7 +1,7 @@
 {{/*
 Expand the name of the chart.
 */}}
-{{- define "enrichment_db_migrations.name" -}}
+{{- define "deduplication_db_migrations.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
@@ -10,7 +10,7 @@ Create a default fully qualified app name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 If release name contains chart name it will be used as a full name.
 */}}
-{{- define "enrichment_db_migrations.fullname" -}}
+{{- define "deduplication_db_migrations.fullname" -}}
 {{- if .Values.fullnameOverride }}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
 {{- else }}
@@ -26,16 +26,16 @@ If release name contains chart name it will be used as a full name.
 {{/*
 Create chart name and version as used by the chart label.
 */}}
-{{- define "enrichment_db_migrations.chart" -}}
+{{- define "deduplication_db_migrations.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
 Common labels
 */}}
-{{- define "enrichment_db_migrations.labels" -}}
-helm.sh/chart: {{ include "enrichment_db_migrations.chart" . }}
-{{ include "enrichment_db_migrations.selectorLabels" . }}
+{{- define "deduplication_db_migrations.labels" -}}
+helm.sh/chart: {{ include "deduplication_db_migrations.chart" . }}
+{{ include "deduplication_db_migrations.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -45,17 +45,17 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{/*
 Selector labels
 */}}
-{{- define "enrichment_db_migrations.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "enrichment_db_migrations.name" . }}
+{{- define "deduplication_db_migrations.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "deduplication_db_migrations.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
 Create the name of the service account to use
 */}}
-{{- define "enrichment_db_migrations.serviceAccountName" -}}
+{{- define "deduplication_db_migrations.serviceAccountName" -}}
 {{- if .Values.serviceAccount.create }}
-{{- default (include "enrichment_db_migrations.fullname" .) .Values.serviceAccount.name }}
+{{- default (include "deduplication_db_migrations.fullname" .) .Values.serviceAccount.name }}
 {{- else }}
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}

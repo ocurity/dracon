@@ -50,10 +50,10 @@ postgresql:
     querystringargs: ""
   fullnameOverride: ""
 
-# this section controls aspects of managing a database used to store enrichments
+# this section controls aspects of managing a database used to store deduplication enrichments
 # the database should use the Postgres dialect.
-enrichment_db_migrations:
-  # if set, a Job will be deployed that applies migrations to the enrichment database
+deduplication-db-migrations:
+  # if set, a Job will be deployed that applies migrations to the deduplication database
   # the Job will run as part of the post-install/post-upgrade hook
   enabled: true
   database:

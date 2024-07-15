@@ -208,15 +208,14 @@ add-bitnami-repo:
 
 dev-dracon: deploy-elasticoperator deploy-arangodb-crds add-bitnami-repo
 	@echo "fetching dependencies if needed"
-	@echo "deploying dracon in dev mode"
-	@helm dependency update ./deploy/dracon/chart
 	@helm dependency build ./deploy/dracon/chart
+	@echo "deploying dracon in dev mode"
 	@helm upgrade dracon ./deploy/dracon/chart \
 	 	  --install \
 		  --values ./deploy/dracon/values/dev.yaml \
 		  --create-namespace \
 		  --namespace $(DRACON_NS) \
-		  --set "enrichment-db-migrations.image.tag=$(DRACON_VERSION)"
+		  --set "deduplication-db-migrations.image.tag=$(DRACON_VERSION)"
 		  --wait
 	@helm upgrade dracon-oss-components oci://ghcr.io/ocurity/dracon/charts/dracon-oss-components \
 		--install \
