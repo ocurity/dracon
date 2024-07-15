@@ -41,6 +41,7 @@ arangodb:
 postgresql:
   # if set, a PostgreSQL instance will be deployed
   enabled: true
+  host: ""
   auth:
     username: ""
     password: ""
@@ -55,10 +56,13 @@ enrichment_db_migrations:
   # if set, a Job will be deployed that applies migrations to the enrichment database
   # the Job will run as part of the post-install/post-upgrade hook
   enabled: true
-  # image to use for applying the migrations
-  migrationsImage: ""
-  # connection string for the migrations and potentially other processes to connect to the
-  # enrichment database
+  database:
+    host: ""
+    auth:
+      username: ""
+      password: ""
+      database: ""
+      querystringargs: ""
 
 image:
   # registry to use for all 

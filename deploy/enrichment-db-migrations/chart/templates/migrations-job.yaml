@@ -30,6 +30,6 @@ spec:
         - migrations
         - apply
         - --url
-        - "postgresql://{{ .Values.global.postgresql.auth.username }}:{{ .Values.global.postgresql.auth.password }}@{{ .Values.global.postgresql.host }}/{{ .Values.global.postgresql.auth.database }}?{{ .Values.global.postgresql.auth.querystringargs}}"
+        - "postgresql://{{ .Values.database.auth.username }}:{{ .Values.database.auth.password }}@{{ .Values.database.host }}/{{ .Values.database.auth.database }}?{{ .Values.database.auth.querystringargs}}"
       serviceAccountName: {{ include "enrichment_db_migrations.fullname" . }}
 {{ end }}
