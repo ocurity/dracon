@@ -149,3 +149,48 @@ func TestGetPURLTarget(t *testing.T) {
 
 	require.Equal(t, "pkg:deb/debian/curl@7.50.3-1?arch=i386&distro=jessie", target)
 }
+
+func TestReadInFile(t *testing.T) {
+	// Create a temporary file and write some data to it for the success case.
+	successContent := []byte("Hello, world!")
+	tmpfile, err := os.CreateTemp("", "example")
+	require.NoError(t, err, "Unable to create temporary file")
+	defer os.Remove(tmpfile.Name()) // clean up after
+
+	_, err = tmpfile.Write(successContent)
+	require.NoError(t, err, "Unable to write to temporary file")
+	require.NoError(t, tmpfile.Close(), "Unable to close temporary file")
+
+	tests := []struct {
+		name    string
+		file    string
+		want    []byte
+		wantErr bool
+	}{
+		{
+			name:    "Success",
+			file:    tmpfile.Name(),
+			want:    successContent,
+			wantErr: false,
+		},
+		{
+			name:    "File does not exist",
+			file:    "non_existent_file.txt",
+			want:    nil,
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			InResults = tt.file
+			got, err := ReadInFile()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ReadInFile() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			assert.Equal(t, tt.want, got, "ReadInFile() = %v, want %v", got, tt.want)
+		})
+	}
+}
