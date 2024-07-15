@@ -44,7 +44,7 @@ postgresql:
 tekton:
   enabled: true
 
-enrichment-db-migrations:
+deduplication-db-migrations:
   enabled: true
   database:
     auth:
