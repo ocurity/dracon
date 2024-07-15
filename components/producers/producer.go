@@ -3,7 +3,6 @@
 package producers
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -62,19 +61,13 @@ func ParseFlags() error {
 }
 
 // ReadInFile returns the contents of the file given by InResults.
-// TODO: replace with os.ReadFile
 func ReadInFile() ([]byte, error) {
-	file, err := os.Open(InResults)
+	data, err := os.ReadFile(InResults)
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
 
-	buffer := new(bytes.Buffer)
-	if _, err := buffer.ReadFrom(file); err != nil {
-		return nil, fmt.Errorf("could not read from buffer: %w", err)
-	}
-	return buffer.Bytes(), nil
+	return data, nil
 }
 
 // ParseMultiJSONMessages provides method to parse tool results in JSON format.
