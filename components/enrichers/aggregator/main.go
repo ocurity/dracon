@@ -6,12 +6,15 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"log/slog"
+	"os"
 	"path/filepath"
 
 	"golang.org/x/crypto/nacl/sign"
 
 	apiv1 "github.com/ocurity/dracon/api/proto/v1"
 	v1 "github.com/ocurity/dracon/api/proto/v1"
+	"github.com/ocurity/dracon/components"
 	"github.com/ocurity/dracon/components/enrichers"
 	"github.com/ocurity/dracon/pkg/putil"
 )
@@ -21,6 +24,7 @@ const signatureAnnotation = "JSON-Message-Signature"
 var (
 	readPath  string
 	writePath string
+	debug     bool
 	signKey   string
 	keyBytes  []byte
 )
@@ -137,9 +141,22 @@ func run() error {
 }
 
 func main() {
+	flag.StringVar(&readPath, "read_path", enrichers.LookupEnvOrString("READ_PATH", ""), "where to find producer results")
+	flag.StringVar(&writePath, "write_path", enrichers.LookupEnvOrString("WRITE_PATH", ""), "where to put enriched results")
+	flag.BoolVar(&debug, "debug", false, "turn on debug logging")
 	flag.StringVar(&signKey, "signature_key", enrichers.LookupEnvOrString("B64_SIGNATURE_KEY", ""), "where to put tagged results")
-	if err := enrichers.ParseFlags(); err != nil {
-		log.Fatal(err)
+
+	flag.Parse()
+	logLevel := slog.LevelInfo
+	if debug {
+		logLevel = slog.LevelDebug
+	}
+	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: logLevel})).With("scanID", os.Getenv(components.EnvDraconScanID)))
+	if readPath == "" {
+		log.Fatal("read_path is undefined")
+	}
+	if writePath == "" {
+		log.Fatal("write_path is undefined")
 	}
 	if err := run(); err != nil {
 		log.Fatal(err)
