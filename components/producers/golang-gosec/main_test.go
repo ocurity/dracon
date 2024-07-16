@@ -88,38 +88,38 @@ func TestParseIssues(t *testing.T) {
 // 	assert.NoError(t, err)
 // }
 
-// func TestHandleLine(t *testing.T) {
-// 	tc := []struct {
-// 		name          string
-// 		line          string
-// 		expectedStart int
-// 		expectedEnd   int
-// 	}{
-// 		{
-// 			name:          "line-line",
-// 			line:          "2-44",
-// 			expectedStart: 2,
-// 			expectedEnd:   44,
-// 		},
-// 		{
-// 			name:          "line",
-// 			line:          "2",
-// 			expectedStart: 2,
-// 			expectedEnd:   2,
-// 		},
-// 		{
-// 			name:          "invalid",
-// 			line:          "invalid",
-// 			expectedStart: 0,
-// 			expectedEnd:   0,
-// 		},
-// 	}
+func TestHandleLine(t *testing.T) {
+	tc := []struct {
+		name          string
+		line          string
+		expectedStart int
+		expectedEnd   int
+	}{
+		{
+			name:          "line-line",
+			line:          "2-44",
+			expectedStart: 2,
+			expectedEnd:   44,
+		},
+		{
+			name:          "line",
+			line:          "2",
+			expectedStart: 2,
+			expectedEnd:   2,
+		},
+		{
+			name:          "invalid",
+			line:          "invalid",
+			expectedStart: 0,
+			expectedEnd:   0,
+		},
+	}
 
-// 	for _, tt := range tc {
-// 		t.Run(tt.name, func(t *testing.T) {
-// 			start, end := handleLine(tt.line)
-// 			assert.Equal(t, tt.expectedStart, start)
-// 			assert.Equal(t, tt.expectedEnd, end)
-// 		})
-// 	}
-// }
+	for _, tt := range tc {
+		t.Run(tt.name, func(t *testing.T) {
+			start, end := handleLine(tt.line)
+			require.Equal(t, tt.expectedStart, start)
+			require.Equal(t, tt.expectedEnd, end)
+		})
+	}
+}
