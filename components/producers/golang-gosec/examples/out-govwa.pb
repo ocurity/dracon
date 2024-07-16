@@ -1,5 +1,5 @@
 
-Ö•Ù´é×ŠúgosecÔ
+æ—Ù´·ÑgosecÔ
 Efile:///home/flo/Desktop/Git/govwa/vulnerability/idor/idor.go:164-164G401#Use of weak cryptographic primitive 0:b163: func Md5Sum(text string) string {
 164: 	hasher := md5.New()
 165: 	hasher.Write([]byte(text))
