@@ -6,7 +6,7 @@ dependencies:
   repository: https://charts.bitnami.com/bitnami
   version: 15.1.5
 - name: enrichment-db-migrations
-  repository: file://../../enrichment-db-migrations/chart
-  version: 0.7.0
-digest: sha256:c38df8a4fdc32cc93962c87c8a7e8ef6da7fee48f03c0972b467691c124adfef
-generated: "2024-07-14T18:24:02.622213661+01:00"
+  repository: oci://ghcr.io/ocurity/dracon/charts
+  version: 0.20.3
+digest: sha256:c22861cb2a7caaad1972d34cf030f9ae9ea571f15f6ed6a3c4ca4c55511770d7
+generated: "2024-07-16T12:23:57.592988635+01:00"

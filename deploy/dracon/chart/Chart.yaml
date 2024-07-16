@@ -15,5 +15,5 @@ dependencies:
     repository: https://charts.bitnami.com/bitnami
     condition: mongodb.enabled
   - name: enrichment-db-migrations
-    version: 0.7.0
+    version: ~0.20
     repository: oci://ghcr.io/ocurity/dracon/charts
