@@ -208,7 +208,6 @@ add-bitnami-repo:
 
 dev-dracon: deploy-elasticoperator deploy-arangodb-crds add-bitnami-repo
 	@echo "fetching dependencies if needed"
-	@helm dependency build ./deploy/dracon/chart
 	@echo "deploying dracon in dev mode"
 	@helm dependency update ./deploy/dracon/chart
 	@helm dependency build ./deploy/dracon/chart
