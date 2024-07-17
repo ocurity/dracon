@@ -5,12 +5,6 @@ metadata:
   name: {{ include "deduplication_db_migrations.fullname" . }}
   labels:
     {{- include "deduplication_db_migrations.labels" . | nindent 4 }}
-  annotations:
-    # This is what defines this resource as a hook. Without this line, the
-    # job is considered part of the release.
-    "helm.sh/hook": post-install,post-upgrade
-    "helm.sh/hook-weight": "-5"
-    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded, hook-failed
 spec:
   template:
     metadata:
@@ -21,7 +15,7 @@ spec:
       restartPolicy: Never
       containers:
       - name: enrichment-db-migrations
-        image: "{{ .Values.global.image.registry }}/draconctl:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        image: "{{ default "ghcr.io/ocurity/dracon" .Values.image.registry }}/draconctl:{{ default .Chart.AppVersion .Values.image.tag }}"
         env:
           - name: DRACONCTL_MIGRATIONS_PATH
             value: "/etc/dracon/migrations/enrichment"
@@ -31,5 +25,6 @@ spec:
         - apply
         - --url
         - "postgresql://{{ .Values.database.auth.username }}:{{ .Values.database.auth.password }}@{{ .Values.database.host }}/{{ .Values.database.auth.database }}?{{ .Values.database.auth.querystringargs}}"
+        - ${DRACONCTL_MIGRATIONS_PATH}
       serviceAccountName: {{ include "deduplication_db_migrations.fullname" . }}
 {{ end }}
