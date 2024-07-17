@@ -1,6 +1,6 @@
 module github.com/ocurity/dracon
 
-go 1.22.2
+go 1.21.6
 
 require (
 	cloud.google.com/go/bigquery v1.57.1
@@ -12,6 +12,7 @@ require (
 	github.com/elastic/go-elasticsearch/v8 v8.3.0
 	github.com/go-errors/errors v1.4.2
 	github.com/golang-migrate/migrate/v4 v4.15.1
+	github.com/google/go-cmp v0.6.0
 	github.com/google/uuid v1.6.0
 	github.com/hairyhenderson/go-codeowners v0.4.0
 	github.com/jmoiron/sqlx v1.3.5
@@ -82,7 +83,6 @@ require (
 	github.com/google/cel-go v0.20.0 // indirect
 	github.com/google/flatbuffers v2.0.8+incompatible // indirect
 	github.com/google/gnostic-models v0.6.8 // indirect
-	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/google/go-containerregistry v0.19.0 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/s2a-go v0.1.7 // indirect
@@ -188,7 +188,7 @@ require (
 	github.com/spf13/afero v1.8.2 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
-	github.com/spf13/pflag v1.0.5 // indirect
+	github.com/spf13/pflag v1.0.5
 	github.com/subosito/gotenv v1.2.0 // indirect
 	go.uber.org/atomic v1.10.0 // indirect
 	golang.org/x/sys v0.16.0 // indirect
