@@ -42,7 +42,7 @@ jobs:
                        --app-version ${{ github.ref_name }} \
                        --version ${DRACON_VERSION_SEMVER} \
                        ./deploy/deduplication-db-migrations/chart
-          helm push enrichment-db-migrations-${DRACON_VERSION_SEMVER}.tgz oci://ghcr.io/ocurity/dracon/charts
+          helm push deduplication-db-migrations-${DRACON_VERSION_SEMVER}.tgz oci://ghcr.io/ocurity/dracon/charts
 
           make cmd/draconctl/bin
           # Package and Publish Components
