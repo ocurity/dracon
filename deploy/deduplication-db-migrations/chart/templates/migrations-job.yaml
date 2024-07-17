@@ -5,6 +5,11 @@ metadata:
   name: {{ include "deduplication_db_migrations.fullname" . }}
   labels:
     {{- include "deduplication_db_migrations.labels" . | nindent 4 }}
+  annotations:
+    # This is what defines this resource as a hook. Without this line, the
+    # job is considered part of the release.
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded,hook-failed
 spec:
   template:
     metadata:
