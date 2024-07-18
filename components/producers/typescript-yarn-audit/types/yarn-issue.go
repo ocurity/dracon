@@ -2,8 +2,9 @@ package types
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
-	"log"
+	"log/slog"
 	"strconv"
 	"strings"
 
@@ -51,7 +52,7 @@ func (yl *yarnAuditLine) UnmarshalJSON(data []byte) error {
 	case "info":
 		// ignore
 	default:
-		log.Printf("Parsed unsupported type: %s", typ.Type)
+		slog.Debug("Parsed unsupported type", "type", typ.Type)
 	}
 
 	type tmp yarnAuditLine // avoids infinite recursion
@@ -186,13 +187,18 @@ type YarnAuditReport struct {
 func NewReport(reportLines [][]byte) (*YarnAuditReport, []error) {
 	var report YarnAuditReport
 
-	var errors []error
+	var errs []error
 
 	for _, line := range reportLines {
+		if len(line) == 0 {
+			slog.Debug("Empty line, skipping")
+			continue
+		}
+
 		var auditLine yarnAuditLine
 		if err := json.Unmarshal(line, &auditLine); err != nil {
-			log.Printf("Error parsing JSON line '%s': %s\n", line, err)
-			errors = append(errors, err)
+			slog.Error("Error parsing JSON line", "line", line, "error", err)
+			errs = append(errs, err)
 		} else {
 			switch x := auditLine.Data.(type) {
 			case *auditSummaryData:
@@ -205,11 +211,16 @@ func NewReport(reportLines [][]byte) (*YarnAuditReport, []error) {
 		}
 	}
 
-	if report.AuditAdvisories != nil && len(report.AuditAdvisories) > 0 {
-		return &report, errors
+	if report.AuditSummary != nil && report.AuditSummary.TotalDependencies == 0 {
+		slog.Error("No dependencies found", "yarn_audit_summary", report.AuditSummary)
+		errs = append(errs, errors.New("no dependencies found"))
 	}
 
-	return nil, errors
+	if report.AuditAdvisories != nil && len(report.AuditAdvisories) > 0 {
+		return &report, errs
+	}
+
+	return nil, errs
 }
 
 // AsIssues returns the YarnAuditReport as Dracon v1.Issue list. Currently only converts the YarnAuditReport.AuditAdvisories.
@@ -229,7 +240,7 @@ func convertStringCWEtoInt(cwe []string) []int32 {
 		if cweInt, err := strconv.Atoi(strings.TrimPrefix(c, "CWE-")); err == nil {
 			cweInts = append(cweInts, int32(cweInt))
 		} else {
-			log.Printf("Error converting CWE to int: %s", err)
+			slog.Error("Error converting CWE to int", "error", err)
 		}
 	}
 	return cweInts
