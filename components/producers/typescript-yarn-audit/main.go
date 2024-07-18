@@ -24,12 +24,7 @@ func main() {
 
 	// Individual errors should already be printed to logs
 	if len(errors) > 0 {
-		errorMessage := "Errors creating Yarn Audit report: %d"
-		if report != nil {
-			log.Printf(errorMessage, len(errors))
-		} else {
-			log.Fatalf(errorMessage, len(errors))
-		}
+		log.Fatalf("Errors creating Yarn Audit report: %d", len(errors))
 	}
 
 	if report != nil {

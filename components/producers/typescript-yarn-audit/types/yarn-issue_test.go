@@ -437,3 +437,17 @@ Advisory URL: https://advisory.2.url
 		assert.Equal(t, expectedIssues[i].Cwe, issues[i].Cwe)
 	}
 }
+
+func TestHandlesNoDependencies(t *testing.T) {
+	missingDependenciesReport := [][]byte{
+		[]byte(`{"type":"info","data":"No lockfile found."}`),
+		[]byte(`{"type":"auditSummary","data":{"vulnerabilities":{"info":0,"low":0,"moderate":0,"high":0,"critical":0},"dependencies":0,"devDependencies":0,"optionalDependencies":0,"totalDependencies":0}}`),
+	}
+
+	report, errs := NewReport(missingDependenciesReport)
+
+	assert.Empty(t, report)
+	assert.Len(t, errs, 1)
+	assert.Equal(t, errs[0].Error(), "no dependencies found")
+
+}
