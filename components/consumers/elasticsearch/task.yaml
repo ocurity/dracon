@@ -9,7 +9,7 @@ spec:
   params:
     - name: consumer-elasticsearch-url
       type: string
-      default: "http://dracon-es-elasticsearch-es-http:9200"
+      default: "http://dracon-es-http.dracon.svc.cluster.local:9200"
     - name: consumer-elasticsearch-description-template
       type: string
       default: ""
