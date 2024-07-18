@@ -8,7 +8,7 @@ components:
   - pkg:helm/dracon-oss-components/producer-typescript-yarn-audit
   - pkg:helm/dracon-oss-components/producer-typescript-eslint
   - pkg:helm/dracon-oss-components/producer-aggregator
-  - pkg:helm/dracon-oss-components/enricher-deduplication
+  - pkg:helm/dracon-oss-components/enricher-codeowners
   - pkg:helm/dracon-oss-components/enricher-aggregator
   - pkg:helm/dracon-oss-components/consumer-mongodb
   - pkg:helm/dracon-oss-components/consumer-elasticsearch
