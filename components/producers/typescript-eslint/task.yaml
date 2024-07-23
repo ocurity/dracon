@@ -19,7 +19,7 @@ spec:
   steps:
   - name: run-eslint
     image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/typescript-eslint:latest'
-    command: ["/home/node/workspace/eslint-wrapper"]
+    command: ["/home/node/workspace/eslint-wrapper-parser"]
     args:
      - -t
      - $(workspaces.output.path)
