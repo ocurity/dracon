@@ -10,6 +10,7 @@ GO_TEST_PACKAGES=$(shell go list ./... | grep -v /vendor/)
 CONTAINER_REPO=ghcr.io/ocurity/dracon
 SOURCE_CODE_REPO=https://github.com/ocurity/dracon
 DRACON_VERSION=$(shell echo $(latest_tag)$$([ $(commits_since_latest_tag) -eq 0 ] || echo "-$$(git log -n 1 --pretty='format:%h')" )$$([ -z "$$(git status --porcelain=v1 2>/dev/null)" ] || echo "-dirty" ))
+DRACON_OSS_COMPONENTS_NAME=dracon-oss-components
 TEKTON_VERSION=0.44.0
 TEKTON_DASHBOARD_VERSION=0.29.2
 ARANGODB_VERSION=1.2.19
@@ -217,7 +218,7 @@ dev-dracon: deploy-elasticoperator deploy-arangodb-crds add-bitnami-repo
 		  --namespace $(DRACON_NS) \
 		  --set "deduplication-db-migrations.image.tag=$(DRACON_VERSION)"
 		  --wait
-	@helm upgrade dracon-oss-components oci://ghcr.io/ocurity/dracon/charts/dracon-oss-components \
+	@helm upgrade $(DRACON_OSS_COMPONENTS_NAME) oci://ghcr.io/ocurity/dracon/charts/$(DRACON_OSS_COMPONENTS_NAME) \
 		--install \
 		--namespace $(DRACON_NS) \
 		--version $$(echo "${DRACON_VERSION}" | sed 's/^v//')
@@ -228,6 +229,21 @@ dev-deploy: dev-infra dev-dracon
 
 dev-teardown:
 	@kind delete clusters dracon-demo
+
+dev-update-oss-components: cmd/draconctl/bin
+	@echo "Updating open-source components in local dracon instance..."
+	@make publish-component-containers CONTAINER_REPO=localhost:5000/ocurity/dracon
+	@./bin/cmd/draconctl components package \
+		--version $(DRACON_VERSION) \
+		--chart-version $(DRACON_VERSION) \
+		--name $(DRACON_OSS_COMPONENTS_NAME) \
+		./components
+	@helm upgrade $(DRACON_OSS_COMPONENTS_NAME) \
+		./$(DRACON_OSS_COMPONENTS_NAME)-$(DRACON_VERSION).tgz \
+		--install \
+		--namespace dracon \
+		--set container_registry=kind-registry:5000/ocurity/dracon
+	@echo "Done! Bumped version to $(DRACON_VERSION)"
 
 generate-protos: install-lint-tools
 	@echo "Generating Protos"
