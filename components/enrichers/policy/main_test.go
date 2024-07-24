@@ -157,7 +157,7 @@ func TestHandlesZeroFindings(t *testing.T) {
 	files, err := os.ReadDir(outdir)
 	require.NoError(t, err)
 	assert.NotEmpty(t, files)
-	assert.Len(t, files, 2)
+	assert.Len(t, files, 4)
 
 	// Check that both of them are EnrichedLaunchToolResponse
 	// and their Issue property is an empty list

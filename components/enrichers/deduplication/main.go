@@ -53,10 +53,13 @@ func run() error {
 			enrichedIssues = append(enrichedIssues, eI)
 			log.Printf("enriched issue '%s'", eI.GetRawIssue().GetUuid())
 		}
-		return enrichers.WriteData(&v1.EnrichedLaunchToolResponse{
+		err := enrichers.WriteData(&v1.EnrichedLaunchToolResponse{
 			OriginalResults: r,
 			Issues:          enrichedIssues,
 		}, "deduplication")
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
