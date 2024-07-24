@@ -6,7 +6,7 @@ components:
   - pkg:helm/dracon-oss-components/base
   - pkg:helm/dracon-oss-components/git-clone
   - pkg:helm/dracon-oss-components/producer-typescript-yarn-audit
-  - pkg:helm/dracon-oss-components/producer-typescript-eslint
+  - pkg:helm/dracon-oss-components/producer-semgrep
   - pkg:helm/dracon-oss-components/producer-aggregator
   - pkg:helm/dracon-oss-components/enricher-codeowners
   - pkg:helm/dracon-oss-components/enricher-aggregator
