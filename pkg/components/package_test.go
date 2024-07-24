@@ -124,29 +124,59 @@ version: %s
 }
 
 func TestImagePinning(t *testing.T) {
+	testCases := []struct {
+		name     string
+		image    string
+		expected string
+	}{
+		{
+			name:     "test_pinned_to_latest",
+			image:    "{{ default 'ghcr.io/ocurity/dracon' .Values.container_registry }}/components/enrichers/aggregator:latest",
+			expected: "{{ default 'ghcr.io/ocurity/dracon' .Values.container_registry }}/components/enrichers/aggregator:1.0.1",
+		},
+		{
+			name:     "test_pinned_to_some_version",
+			image:    "docker.io/library/buildpack-deps:stable-curl@sha256:3d5e59c47d5f82a769ad3f372cc9f86321e2e2905141bba974b75d3c08a53e8e",
+			expected: "docker.io/library/buildpack-deps:stable-curl@sha256:3d5e59c47d5f82a769ad3f372cc9f86321e2e2905141bba974b75d3c08a53e8e",
+		},
+		{
+			name:     "test_image_is_a_parameter",
+			image:    "$(taskName.param.some-image)",
+			expected: "$(taskName.param.some-image)",
+		},
+	}
+
+	// Initialize an empty slice for steps
+	var steps []tektonv1beta1api.Step
+
+	// Loop over the testCases slice
+	for _, testCase := range testCases {
+		// Create a step for each testCase and append to the steps slice
+		steps = append(steps, tektonv1beta1api.Step{
+			Name:  testCase.name,
+			Image: testCase.image,
+		})
+	}
+
+	// Create the task with the dynamically created steps
 	task := &tektonv1beta1api.Task{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "testImageFixing",
 		},
 		Spec: tektonv1beta1api.TaskSpec{
-			Steps: []tektonv1beta1api.Step{
-				{
-					Name:  "test_pinned_to_latest",
-					Image: "{{ default 'ghcr.io/ocurity/dracon' .Values.container_registry }}/components/enrichers/aggregator:latest",
-				},
-				{
-					Name:  "test_pinned_to_some_version",
-					Image: "docker.io/library/buildpack-deps:stable-curl@sha256:3d5e59c47d5f82a769ad3f372cc9f86321e2e2905141bba974b75d3c08a53e8e",
-				},
-				{
-					Name:  "test_image_is_a_parameter",
-					Image: "$(taskName.param.some-image)",
-				},
-			},
+			Steps: steps,
 		},
 	}
+
 	fixImageVersion(task, "1.0.1")
-	require.Equal(t, "{{ default 'ghcr.io/ocurity/dracon' .Values.container_registry }}/components/enrichers/aggregator:1.0.1", task.Spec.Steps[0].Image)
-	require.Equal(t, "docker.io/library/buildpack-deps:stable-curl@sha256:3d5e59c47d5f82a769ad3f372cc9f86321e2e2905141bba974b75d3c08a53e8e", task.Spec.Steps[1].Image)
-	require.Equal(t, "$(taskName.param.some-image)", task.Spec.Steps[2].Image)
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			for _, step := range task.Spec.Steps {
+				if step.Name == tc.name {
+					require.Equal(t, tc.expected, step.Image)
+				}
+			}
+		})
+	}
 }
