@@ -9,7 +9,8 @@ spec:
     name: dracon-typescript-project
   params:
   - name: git-clone-url
-    value: https://github.com/ocurity/e2e-monorepo.git
+    # TODO(OCU-154): Switch to ocurity/e2e-monorepo
+    value: https://github.com/appsecco/dvna.git
   workspaces:
   - name: output
     subPath: source-code
