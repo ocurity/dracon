@@ -1,0 +1,30 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  generateName: dracon-ghas-project-
+  namespace: dracon
+spec:
+  pipelineRef:
+    name: dracon-ghas-project
+  params:
+  - name: git-clone-url
+    value: https://github.com/ocurity/e2e-monorepo.git
+  - name: producer-github-code-scanning-repository-owner
+    value: ocurity
+  - name: producer-github-code-scanning-repository-name
+    value: e2e-monorepo
+  # Insert your GitHub Personal Access Token (PAT) here
+  # Note: Must have "Code scanning alerts" repository permissions (read).
+  - name: producer-github-code-scanning-github-token
+    value: github_pat_fake
+  workspaces:
+  - name: output
+    subPath: source-code
+    volumeClaimTemplate:
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 1Gi
