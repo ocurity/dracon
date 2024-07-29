@@ -22,7 +22,7 @@ spec:
   steps:
   - name: run-testsslsh
     image: docker.io/drwetter/testssl.sh:3.0
-    command: []
+    command: ["/home/testssl/testssl.sh"]
     args:
       - --jsonfile
       - /scratch/out.json
