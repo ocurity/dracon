@@ -40,7 +40,7 @@ spec:
         else 
           echo "$configFile" | base64 -d > configuration.xml
           zap.sh -cmd -silent -notel -quickout /zap/wrk/out.json -quickurl $(params.producer-zaproxy-target) -configFile configuration.xml
-          $(p..arams.producer-zaproxy-flags)
+          $(params.producer-zaproxy-flags)
         fi
       else 
         echo "$automation" | base64 -d > automation.yaml
