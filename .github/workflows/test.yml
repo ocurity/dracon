@@ -3,10 +3,10 @@ name: Test
 on:
   push:
     branches:
-    - main
+      - main
   pull_request:
     branches:
-    - main
+      - main
 
 permissions:
   # Grant the ability to checkout the repository
@@ -27,6 +27,9 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version-file: go.mod
+
+      - name: Install Go Test Tools
+        run: make install-go-test-tools
 
       - name: Run Go tests
         run: make go-tests
