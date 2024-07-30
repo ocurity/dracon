@@ -108,9 +108,12 @@ install-lint-tools:
 	@go install github.com/bufbuild/buf/cmd/buf@v1.32.2
 	@npm ci
 
+install-go-test-tools:
+	@go install gotest.tools/gotestsum@latest
+
 go-tests:
 	@mkdir -p tests/output
-	@go test -race -json -coverprofile tests/output/cover.out $(GO_TEST_PACKAGES)
+	@gotestsum --junitfile tests/output/unit-tests.xml -- -race -coverprofile tests/output/cover.out $(GO_TEST_PACKAGES)
 
 go-cover: go-tests
 	@go tool cover -html=tests/output/cover.out -o=tests/output/cover.html && open tests/output/cover.html
