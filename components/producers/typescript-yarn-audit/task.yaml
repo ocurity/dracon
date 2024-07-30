@@ -5,31 +5,33 @@ metadata:
   name: producer-typescript-yarn-audit
   labels:
     v1.dracon.ocurity.com/component: producer
+    v1.dracon.ocurity.com/test-type: sca
 spec:
   volumes:
-  - name: scratch
-    emptyDir: {}
+    - name: scratch
+      emptyDir: {}
   workspaces:
     - name: output
       description: The workspace containing the source-code to scan.
   steps:
-  - name: run-yarn-audit
-    imagePullPolicy: IfNotPresent
-    image: docker.io/node:lts
-    script: |
-      cd $(workspaces.output.path)
-      yarn audit --json --silent --no-progress > /scratch/out.json || true
-    volumeMounts:
-    - mountPath: /scratch
-      name: scratch
+    - name: run-yarn-audit
+      imagePullPolicy: IfNotPresent
+      image: docker.io/node:lts
+      script: |
+        cd $(workspaces.output.path)
+        yarn audit --json --silent --no-progress > /scratch/out.json || true
+      volumeMounts:
+        - mountPath: /scratch
+          name: scratch
 
-  - name: produce-issues
-    imagePullPolicy: IfNotPresent
-    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/typescript-eslint:latest'
-    command: ["/app/components/producers/typescript-yarn-audit/yarn-audit-parser"]
-    args:
-    - "-in=/scratch/out.json"
-    - "-out=$(workspaces.output.path)/.dracon/producers/typescript-eslint.pb"
-    volumeMounts:
-    - mountPath: /scratch
-      name: scratch
+    - name: produce-issues
+      imagePullPolicy: IfNotPresent
+      image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/typescript-eslint:latest'
+      command:
+        ["/app/components/producers/typescript-yarn-audit/yarn-audit-parser"]
+      args:
+        - "-in=/scratch/out.json"
+        - "-out=$(workspaces.output.path)/.dracon/producers/typescript-eslint.pb"
+      volumeMounts:
+        - mountPath: /scratch
+          name: scratch

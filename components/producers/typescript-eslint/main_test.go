@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	v1 "github.com/ocurity/dracon/api/proto/v1"
+	"github.com/ocurity/dracon/components/producers"
 	"github.com/ocurity/dracon/components/producers/typescript-eslint/types"
 	"github.com/ocurity/dracon/pkg/testutil"
 
@@ -45,7 +46,7 @@ or
 javascript`
 
 func TestParseIssues(t *testing.T) {
-	f, err := testutil.CreateFile("tfsec_tests_vuln_code", code)
+	f, err := testutil.CreateFile("tfsec_tests_vuln_code.js", code)
 	if err != nil {
 		t.Error(err)
 	}
@@ -58,7 +59,7 @@ func TestParseIssues(t *testing.T) {
 	require.NoError(t, err)
 
 	expectedIssue := &v1.Issue{
-		Target:         f.Name() + ":1-2",
+		Target:         fmt.Sprintf("file://%s:1-2", f.Name()),
 		Type:           "@typescript-eslint/explicit-module-boundary-types",
 		Title:          "@typescript-eslint/explicit-module-boundary-types",
 		Severity:       v1.Severity_SEVERITY_MEDIUM,
@@ -68,7 +69,7 @@ func TestParseIssues(t *testing.T) {
 		ContextSegment: &code,
 	}
 	issue2 := &v1.Issue{
-		Target:         f.Name() + ":3",
+		Target:         fmt.Sprintf("file://%s:3-3", f.Name()),
 		Type:           "jsdoc/require-jsdoc",
 		Title:          "jsdoc/require-jsdoc",
 		Severity:       v1.Severity_SEVERITY_MEDIUM,
@@ -79,4 +80,9 @@ func TestParseIssues(t *testing.T) {
 	}
 	assert.Equal(t, expectedIssue, issues[0])
 	assert.Equal(t, issue2, issues[1])
+}
+
+func TestEndToEndCLIWithJSON(t *testing.T) {
+	err := producers.TestEndToEnd(t, "./examples/dvna.json", "./examples/dvna.pb")
+	assert.NoError(t, err)
 }

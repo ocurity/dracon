@@ -63,7 +63,7 @@ var fullYarnJSONLines = [][]byte{
         "patched_versions": ">=5.0.1",
         "updated": "2021-09-23T15:45:50.000Z",
         "recommendation": "Upgrade to version 5.0.1 or later",
-        "cwe": "CWE-918",
+        "cwe": ["CWE-918"],
         "found_by": null,
         "deleted": null,
         "id": 1004946,
@@ -131,7 +131,7 @@ var fullYarnJSONLines = [][]byte{
         "patched_versions": ">=1.2.0",
         "updated": "2021-09-23T15:45:50.000Z",
         "recommendation": "Upgrade to version 1.2.0 or later",
-        "cwe": "CWE-920",
+        "cwe": ["CWE-920"],
         "found_by": null,
         "deleted": null,
         "id": 1004947,
@@ -275,7 +275,7 @@ func TestParseValidReportAdvisories(t *testing.T) {
 				PatchedVersions: ">=5.0.1",
 				Updated:         "2021-09-23T15:45:50.000Z",
 				Recommendation:  "Upgrade to version 5.0.1 or later",
-				Cwe:             "CWE-918",
+				Cwe:             []string{"CWE-918"},
 				FoundBy:         nil,
 				Deleted:         false,
 				ID:              1004946,
@@ -324,7 +324,7 @@ func TestParseValidReportAdvisories(t *testing.T) {
 				PatchedVersions: ">=1.2.0",
 				Updated:         "2021-09-23T15:45:50.000Z",
 				Recommendation:  "Upgrade to version 1.2.0 or later",
-				Cwe:             "CWE-920",
+				Cwe:             []string{"CWE-920"},
 				FoundBy:         nil,
 				Deleted:         false,
 				ID:              1004947,
@@ -389,8 +389,8 @@ func TestParseValidReportAsIssues(t *testing.T) {
 
 	expectedIssues := []*v1.Issue{
 		{
-			Target:     "advisory1Path: super-awesome-module",
-			Type:       "CWE-918",
+			Target:     "pkg:npm/super-awesome-module@5.0.0",
+			Type:       "1004946",
 			Title:      "ADVISORY 1 TITLE",
 			Severity:   v1.Severity_SEVERITY_MEDIUM,
 			Confidence: v1.Confidence_CONFIDENCE_HIGH,
@@ -403,10 +403,11 @@ References:
 Advisory URL: https://advisory.1.url
 `,
 			Cve: "CVE-2022-0001",
+			Cwe: []int32{918},
 		},
 		{
-			Target:     "advisory2Path: not-so-awesome-module",
-			Type:       "CWE-920",
+			Target:     "pkg:npm/not-so-awesome-module@1.1.0",
+			Type:       "1004947",
 			Title:      "ADVISORY 2 TITLE",
 			Severity:   v1.Severity_SEVERITY_LOW,
 			Confidence: v1.Confidence_CONFIDENCE_HIGH,
@@ -420,6 +421,7 @@ References:
 Advisory URL: https://advisory.2.url
 `,
 			Cve: "CVE-2022-0002",
+			Cwe: []int32{920},
 		},
 	}
 
@@ -432,5 +434,6 @@ Advisory URL: https://advisory.2.url
 		assert.Equal(t, expectedIssues[i].Confidence, issues[i].Confidence)
 		assert.Equal(t, expectedIssues[i].Description, issues[i].Description)
 		assert.Equal(t, expectedIssues[i].Cve, issues[i].Cve)
+		assert.Equal(t, expectedIssues[i].Cwe, issues[i].Cwe)
 	}
 }

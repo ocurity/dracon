@@ -56,7 +56,7 @@ func parseIssues(out types.SemgrepResults) ([]*v1.Issue, error) {
 
 		sev := severityMap[r.Extra.Severity]
 		iss := &v1.Issue{
-			Target:      fmt.Sprintf("%s:%v-%v", r.Path, r.Start.Line, r.End.Line),
+			Target:      producers.GetFileTarget(r.Path, r.Start.Line, r.End.Line),
 			Type:        r.Extra.Message,
 			Title:       r.CheckID,
 			Severity:    sev,
@@ -66,7 +66,7 @@ func parseIssues(out types.SemgrepResults) ([]*v1.Issue, error) {
 		}
 
 		// Extract the code snippet, if possible
-		code, err := context.ExtractCode(iss)
+		code, err := context.ExtractCodeFromFileTarget(iss.Target)
 		if err != nil {
 			slog.Warn("Failed to extract code snippet", "error", err)
 			code = ""

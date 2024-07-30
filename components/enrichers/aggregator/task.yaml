@@ -15,10 +15,6 @@ spec:
     - name: output
       description: The workspace containing the source-code to scan.
   steps:
-  - name: aggregate
-    image: docker.io/busybox:1.35.0
-    command: ["ls","-lah"]
-    args: ["$(workspaces.output.path)"]
   - name: aggregate-tagged-issues
     image:  '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/enrichers/aggregator:latest'
     command: ["/app/components/enrichers/aggregator/aggregator"]
