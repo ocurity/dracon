@@ -3,11 +3,11 @@ name: Lint
 on:
   pull_request_target:
     types:
-    - opened
-    - synchronize
-    - reopened
+      - opened
+      - synchronize
+      - reopened
     branches:
-    - main
+      - main
 
 permissions:
   # Grant the ability to checkout the repository
@@ -23,24 +23,24 @@ jobs:
       group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
       cancel-in-progress: true
     steps:
-    - name: Check out code
-      uses: actions/checkout@v4
+      - name: Check out code
+        uses: actions/checkout@v4
 
-    - name: Setup Go
-      uses: actions/setup-go@v4
-      with:
-        go-version-file: go.mod
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
 
-    - name: Setup node
-      uses: actions/setup-node@v4
+      - name: Setup node
+        uses: actions/setup-node@v4
 
-    - name: Setup reviewdog
-      run: go install github.com/reviewdog/reviewdog/cmd/reviewdog@latest
+      - name: Setup reviewdog
+        run: go install github.com/reviewdog/reviewdog/cmd/reviewdog@latest
 
-    - name: Install linters
-      run: make install-lint-tools
+      - name: Install linters
+        run: make install-lint-tools
 
-    - name: Lint
-      env:
-        REVIEWDOG_GITHUB_API_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-      run: make lint
+      - name: Lint
+        env:
+          REVIEWDOG_GITHUB_API_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+        run: make lint
