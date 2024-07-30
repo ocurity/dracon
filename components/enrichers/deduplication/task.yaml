@@ -20,4 +20,4 @@ spec:
     - name: ENRICHER_WRITE_PATH
       value: "$(workspaces.output.path)/.dracon/enrichers/deduplication"
     - name: ENRICHER_DB_CONNECTION
-      value: postgresql://{{default "dracon" .Values.postgresql.auth.username }}:{{default "dracon" .Values.postgresql.auth.password }}@{{ default "dracon-enrichment-db.dracon.svc" .Values.postgresql.host }}/{{default "dracon" .Values.postgresql.auth.database }}?{{default "sslmode=disable" .Values.postgresql.auth.querystringargs}}
+      value: postgresql://{{default "dracon" .Values.postgresql.auth.username }}:{{default "dracon" .Values.postgresql.auth.password }}@{{ default "dracon-enrichment-db" .Values.postgresql.host }}/{{default "dracon" .Values.postgresql.auth.database }}?{{default "sslmode=disable" .Values.postgresql.auth.querystringargs}}
