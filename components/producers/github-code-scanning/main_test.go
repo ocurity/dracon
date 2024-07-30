@@ -4,8 +4,9 @@ import (
 	"testing"
 
 	"github.com/google/go-github/v63/github"
-	v1 "github.com/ocurity/dracon/api/proto/v1"
 	"github.com/stretchr/testify/require"
+
+	v1 "github.com/ocurity/dracon/api/proto/v1"
 )
 
 func TestParseIssues(t *testing.T) {
