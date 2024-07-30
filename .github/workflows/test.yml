@@ -43,3 +43,9 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           format: golang
           file: tests/output/cover.out
+
+      - name: Test Summary
+        uses: test-summary/action@v2
+        with:
+          paths: "tests/output/*-tests.xml"
+        if: always()
