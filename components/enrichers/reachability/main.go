@@ -217,7 +217,7 @@ func parsePurl(purl string, patterns regexes) []string {
 // removeDuplicates removes duplicate strings from a slice.
 func removeDuplicates(elements []string) []string {
 	encountered := map[string]bool{}
-	result := []string{}
+	var result []string
 
 	for v := range elements {
 		if encountered[elements[v]] == true {
@@ -312,7 +312,7 @@ func run() {
 	}
 
 	for _, r := range res {
-		enrichedIssues := []*v1.EnrichedIssue{}
+		var enrichedIssues []*v1.EnrichedIssue
 		for _, i := range r.GetIssues() {
 			eI, err := enrichIssue(i, data, patterns)
 			if err != nil {
