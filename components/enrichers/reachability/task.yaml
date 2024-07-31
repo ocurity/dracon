@@ -1,0 +1,27 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: enricher-reachability
+  labels:
+    v1.dracon.ocurity.com/component: enricher
+spec:
+  params:
+  - name: enricher-reachability-atom-slice-file
+    type: string
+
+  workspaces:
+    - name: output
+      description: The workspace containing the source-code to scan.
+  steps:
+  - name: run-enricher
+    imagePullPolicy: IfNotPresent
+    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/enrichers/reachability:latest'
+    command: ["/app/components/enrichers/reachability/reachability"]
+    env:
+    - name: READ_PATH
+      value: $(workspaces.output.path)/.dracon/producers
+    - name: WRITE_PATH
+      value: "$(workspaces.output.path)/.dracon/enrichers/reachability"
+    - name: ATOM_SLICE
+      value: "$(params.enricher-reachability-atom-slice-file)"
