@@ -5,6 +5,7 @@ metadata:
   name: producer-terraform-tfsec
   labels:
     v1.dracon.ocurity.com/component: producer
+    v1.dracon.ocurity.com/test-type: sast
 spec:
   params:
   - name: producer-terraform-tfsec-flags
