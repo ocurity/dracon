@@ -30,7 +30,6 @@ spec:
     command: [trivy]
     args:
     - "$(params.producer-docker-trivy-flags[*])"
-    - -q
     - -f
     - $(params.producer-docker-trivy-format)
     - -o
