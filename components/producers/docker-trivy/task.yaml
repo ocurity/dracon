@@ -11,13 +11,19 @@ spec:
   - name: producer-docker-trivy-flags
     type: array
     default: []
+    description: Flags to pass to trivy. Optional.
   - name: producer-docker-trivy-target
     type: string
     default: "$(workspaces.output.path)"
+    description: The target to scan.
   - name: producer-docker-trivy-format
     type: string
+    default: json
+    description: The format to output the results in. Valid values are `json`, `sarif`, `cyclonedx`. Default `json`.
   - name: producer-docker-trivy-command
     type: string
+    default: image
+    description: The command to run trivy with. Default `image`.
   volumes:
     - name: scratch
       emptyDir: {}
