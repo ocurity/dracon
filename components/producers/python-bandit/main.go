@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"log/slog"
-	"strings"
 
 	v1 "github.com/ocurity/dracon/api/proto/v1"
 	"github.com/ocurity/dracon/pkg/context"
@@ -47,12 +46,8 @@ func main() {
 }
 
 func parseResult(r *BanditResult) (*v1.Issue, error) {
-	rng := []string{}
-	for _, r := range r.LineRange {
-		rng = append(rng, fmt.Sprintf("%d", r))
-	}
 	iss := &v1.Issue{
-		Target:      fmt.Sprintf("%s:%s", r.Filename, strings.Join(rng, "-")),
+		Target:      producers.GetFileTarget(r.Filename, int(r.LineNumber), int(r.LineRange[len(r.LineRange)-1])),
 		Type:        r.TestID,
 		Title:       r.TestName,
 		Severity:    v1.Severity(v1.Severity_value[fmt.Sprintf("SEVERITY_%s", r.IssueSeverity)]),
@@ -63,7 +58,7 @@ func parseResult(r *BanditResult) (*v1.Issue, error) {
 	}
 
 	// Extract the code snippet, if possible
-	code, err := context.ExtractCode(iss)
+	code, err := context.ExtractCodeFromFileTarget(iss.Target)
 	if err != nil {
 		slog.Warn("Failed to extract code snippet", "error", err)
 		code = ""
