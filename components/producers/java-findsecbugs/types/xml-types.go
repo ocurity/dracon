@@ -19,6 +19,8 @@ type method struct {
 	IsStatic   string       `xml:"isStatic,attr"`
 	SourceLine []SourceLine `xml:"SourceLine"`
 }
+
+// SourceLine represents a line in the source code.
 type SourceLine struct {
 	XMLName       xml.Name `xml:"SourceLine"`
 	Classname     string   `xml:"classname,attr"`
@@ -30,17 +32,21 @@ type SourceLine struct {
 	Sourcepath    string   `xml:"sourcepath,attr"`
 	Role          string   `xml:"role,attr"`
 }
+
 type class struct {
 	XMLName    xml.Name     `xml:"Class"`
 	Classname  string       `xml:"classname,attr"`
 	Role       string       `xml:"role,attr"`
 	SourceLine []SourceLine `xml:"SourceLine"`
 }
+
 type field struct {
 	XMLName    xml.Name     `xml:"Field"`
 	Classname  string       `xml:"classname,attr"`
 	SourceLine []SourceLine `xml:"SourceLine"`
 }
+
+// BugInstance represents a bug instance.
 type BugInstance struct {
 	XMLName      xml.Name     `xml:"BugInstance"`
 	Class        []class      `xml:"Class"`
@@ -55,6 +61,8 @@ type BugInstance struct {
 	Abbrev       string       `xml:"abbrev,attr"`
 	Category     string       `xml:"category,attr"`
 }
+
+// BugCollection represents a collection of bugs.
 type BugCollection struct {
 	XMLName     xml.Name      `xml:"BugCollection"`
 	Project     *project      `xml:"Project"`
