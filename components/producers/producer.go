@@ -118,7 +118,7 @@ func WriteDraconOut(
 	scanTags := map[string]string{}
 	err = json.Unmarshal([]byte(scanTagsStr), &scanTags)
 	if err != nil {
-		slog.Error(fmt.Sprintf("scan does not have any tags, err:%s", err))
+		slog.Debug("scan does not have any tags", "err", err)
 	}
 
 	stat, err := os.Stat(OutFile)
