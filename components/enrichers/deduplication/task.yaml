@@ -20,4 +20,4 @@ spec:
     - name: ENRICHER_WRITE_PATH
       value: "$(workspaces.output.path)/.dracon/enrichers/deduplication"
     - name: ENRICHER_DB_CONNECTION
-      value: "postgresql://dracon:dracon@dracon-enrichment-db.$(context.taskRun.namespace).svc?sslmode=disable"
+      value: "postgresql://dracon:dracon@dracon-enrichment-db?sslmode=disable"
