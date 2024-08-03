@@ -31,7 +31,7 @@ spec:
 
   - name: produce-issues
     imagePullPolicy: IfNotPresent
-    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/python-bandit:latest'
+    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/python-bandit:{{ .Chart.AppVersion }}'
     command: ["/app/components/producers/python-bandit/python-bandit-parser"]
     args:
     - "-in=/scratch/out.json"

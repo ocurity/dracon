@@ -24,7 +24,7 @@ spec:
   steps:
   - name: run-consumer
     imagePullPolicy: IfNotPresent
-    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/consumers/defectdojo:latest'
+    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/consumers/defectdojo:{{ .Chart.AppVersion }}'
     command: ["/app/components/consumers/defectdojo/defectdojo"]
     args: [
       "-in", "$(workspaces.output.path)/.dracon/enrichers/",
