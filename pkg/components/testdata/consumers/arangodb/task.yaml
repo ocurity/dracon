@@ -12,7 +12,7 @@ spec:
   steps:
   - name: run-consumer
     imagePullPolicy: IfNotPresent
-    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/consumers/arangodb:latest'
+    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/consumers/arangodb:{{ .Chart.AppVersion }}'
     command: ["/app/components/consumers/arangodb/arangodb"]
     args: [
       "-in", "$(workspaces.output.path)/.dracon/enrichers/",

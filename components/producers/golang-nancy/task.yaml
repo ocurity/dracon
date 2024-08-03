@@ -59,7 +59,7 @@ spec:
 
     - name: produce-issues
       imagePullPolicy: IfNotPresent
-      image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/golang-nancy:latest'
+      image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/golang-nancy:{{ .Chart.AppVersion }}'
       command: ["/app/components/producers/golang-nancy/golang-nancy-parser"]
       args:
         - "-in=/scratch/out.json"

@@ -23,7 +23,7 @@ spec:
   steps:
   - name: run-enricher
     imagePullPolicy: IfNotPresent
-    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/enrichers/depsdev:latest'
+    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/enrichers/depsdev:{{ .Chart.AppVersion }}'
     command: ["/app/components/enrichers/depsdev/depsdev"]
     env:
     - name: READ_PATH

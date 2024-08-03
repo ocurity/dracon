@@ -52,7 +52,7 @@ spec:
 
   - name: produce-issues
     imagePullPolicy: IfNotPresent
-    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/semgrep:latest'
+    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/semgrep:{{ .Chart.AppVersion }}'
     command: ["/app/components/producers/semgrep/semgrep-parser"]
     args:
     - "-in=/scratch/out.json"

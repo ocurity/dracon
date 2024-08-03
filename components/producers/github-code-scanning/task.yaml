@@ -26,7 +26,7 @@ spec:
   steps:
   - name: produce-issues
     imagePullPolicy: IfNotPresent
-    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/github-code-scanning:latest'
+    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/github-code-scanning:{{ .Chart.AppVersion }}'
     command: ["/app/components/producers/github-code-scanning/github-code-scanning-parser"]
     args:
     - "-in=/scratch/out.json"

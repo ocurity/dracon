@@ -53,7 +53,7 @@ spec:
 
   - name: produce-issues
     imagePullPolicy: IfNotPresent
-    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/zaproxy:latest'
+    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/zaproxy:{{ .Chart.AppVersion }}'
     command: ["/app/components/producers/zaproxy/zaproxy-parser"]
     args:
     - "-in=/scratch/out.json"

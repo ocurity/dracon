@@ -18,7 +18,7 @@ spec:
     args: ["$(workspaces.output.path)"]
     env: []
   - name: tag
-    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/tagger:latest'
+    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/tagger:{{ .Chart.AppVersion }}'
     command: ["/app/components/producers/aggregator/tagger"]
     env:
     - name: READ_PATH

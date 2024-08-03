@@ -16,7 +16,7 @@ spec:
       description: The workspace containing the source-code to scan.
   steps:
   - name: aggregate-tagged-issues
-    image:  '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/enrichers/aggregator:latest'
+    image:  '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/enrichers/aggregator:{{ .Chart.AppVersion }}'
     command: ["/app/components/enrichers/aggregator/aggregator"]
     env:
     - name: READ_PATH
