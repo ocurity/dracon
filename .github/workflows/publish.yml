@@ -27,7 +27,7 @@ jobs:
 
       - name: Publish Docker images
         run: |
-          make publish-containers
+          make -j 16 publish-containers
           make draconctl-image-publish DRACON_VERSION=latest
 
       - name: Publish component Helm package
