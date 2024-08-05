@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"log"
 
 	"github.com/ocurity/dracon/components/producers"
@@ -12,21 +13,18 @@ func main() {
 		log.Fatal(err)
 	}
 
-	inLines, err := producers.ReadLines()
+	inFile, err := producers.ReadInFile()
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	// Assumes one report per line
+	inLines := bytes.Split(inFile, []byte("\n"))
 	report, errors := types.NewReport(inLines)
 
 	// Individual errors should already be printed to logs
 	if len(errors) > 0 {
-		errorMessage := "Errors creating Yarn Audit report: %d"
-		if report != nil {
-			log.Printf(errorMessage, len(errors))
-		} else {
-			log.Fatalf(errorMessage, len(errors))
-		}
+		log.Fatalf("Errors creating Yarn Audit report: %d", len(errors))
 	}
 
 	if report != nil {

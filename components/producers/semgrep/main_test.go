@@ -25,7 +25,12 @@ const exampleOutput = `
 			"extra": {
 				"message": "Use of this type presents a security risk: the encapsulated content should come from a trusted source, \nas it will be included verbatim in the template output.\nhttps://blogtitle.github.io/go-safe-html/\n", 
 				"metavars": {},
-				"metadata": {}, 
+				"metadata": {
+					"cwe": [
+						"CWE-89: Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
+						"CWE-105: Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')"
+					]
+				}, 
 				"severity": "WARNING", 
 				"lines": "\t\t\treturn template.HTML(revStr)"
 			}
@@ -48,7 +53,9 @@ const exampleOutput = `
 						}
 					}
 				},
-				"metadata": {},
+				"metadata": {
+					"cwe": "CWE-352: Cross-Site Request Forgery (CSRF)"
+				},
 				"severity": "WARNING",
 				"lines": "    insecure_server.add_insecure_port('[::]:{}'.format(flags.port))"
 			}
@@ -68,7 +75,7 @@ var code = `q += ' LIMIT + %(limit)s '
             return [Student.from_raw(r) for r in results]`
 
 func TestParseIssues(t *testing.T) {
-	f, err := testutil.CreateFile("semgrep_tests_vuln_code", code)
+	f, err := testutil.CreateFile("semgrep_tests_vuln_code.py", code)
 	if err != nil {
 		t.Error(err)
 	}
@@ -82,7 +89,7 @@ func TestParseIssues(t *testing.T) {
 	require.NoError(t, err)
 
 	expectedIssue := &v1.Issue{
-		Target:         f.Name() + ":3-3",
+		Target:         fmt.Sprintf("file://%s:3-3", f.Name()),
 		Type:           "Use of this type presents a security risk: the encapsulated content should come from a trusted source, \nas it will be included verbatim in the template output.\nhttps://blogtitle.github.io/go-safe-html/\n",
 		Title:          "rules.go.xss.Go using template.HTML",
 		Severity:       v1.Severity_SEVERITY_MEDIUM,
@@ -90,12 +97,13 @@ func TestParseIssues(t *testing.T) {
 		Confidence:     v1.Confidence_CONFIDENCE_MEDIUM,
 		Description:    "Use of this type presents a security risk: the encapsulated content should come from a trusted source, \nas it will be included verbatim in the template output.\nhttps://blogtitle.github.io/go-safe-html/\n\n extra lines: \t\t\treturn template.HTML(revStr)",
 		ContextSegment: &code,
+		Cwe:            []int32{89, 105},
 	}
 
 	assert.Equal(t, expectedIssue, issues[0])
 
 	expectedIssue2 := &v1.Issue{
-		Target:         f.Name() + ":4-4",
+		Target:         fmt.Sprintf("file://%s:4-4", f.Name()),
 		Type:           "The gRPC server listening port is configured insecurely, this offers no encryption and authentication.\nPlease review and ensure that this is appropriate for the communication.  \n",
 		Title:          "rules.python.grpc.GRPC Insecure Port",
 		Severity:       v1.Severity_SEVERITY_MEDIUM,
@@ -103,6 +111,7 @@ func TestParseIssues(t *testing.T) {
 		Confidence:     v1.Confidence_CONFIDENCE_MEDIUM,
 		Description:    "The gRPC server listening port is configured insecurely, this offers no encryption and authentication.\nPlease review and ensure that this is appropriate for the communication.  \n\n extra lines:     insecure_server.add_insecure_port('[::]:{}'.format(flags.port))",
 		ContextSegment: &code,
+		Cwe:            []int32{352},
 	}
 
 	assert.Equal(t, expectedIssue2, issues[1])

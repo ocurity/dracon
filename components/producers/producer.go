@@ -3,16 +3,17 @@
 package producers
 
 import (
-	"bufio"
-	"bytes"
 	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
 	"io"
 	"log/slog"
+	"net/url"
 	"os"
 	"path/filepath"
+	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -39,6 +40,8 @@ const (
 	sourceDir = "/workspace/output"
 )
 
+var fileTargetPattern = regexp.MustCompile(`^(.*?:.*?):(.*)$`)
+
 // ParseFlags will parse the input flags for the producer and perform simple validation.
 func ParseFlags() error {
 	flag.StringVar(&InResults, "in", "", "")
@@ -62,38 +65,14 @@ func ParseFlags() error {
 	return nil
 }
 
-// ReadLines returns the lines of the contents of the file given by InResults.
-func ReadLines() (result [][]byte, err error) {
-	var file *os.File
-
-	file, err = os.Open(InResults)
-	if err != nil {
-		return nil, err
-	}
-	defer func() { err = errors.Join(err, file.Close()) }()
-
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		result = append(result, scanner.Bytes())
-	}
-
-	return result, err
-}
-
 // ReadInFile returns the contents of the file given by InResults.
-// TODO: replace with os.ReadFile
 func ReadInFile() ([]byte, error) {
-	file, err := os.Open(InResults)
+	data, err := os.ReadFile(InResults)
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
 
-	buffer := new(bytes.Buffer)
-	if _, err := buffer.ReadFrom(file); err != nil {
-		return nil, fmt.Errorf("could not read from buffer: %w", err)
-	}
-	return buffer.Bytes(), nil
+	return data, nil
 }
 
 // ParseMultiJSONMessages provides method to parse tool results in JSON format.
@@ -139,7 +118,7 @@ func WriteDraconOut(
 	scanTags := map[string]string{}
 	err = json.Unmarshal([]byte(scanTagsStr), &scanTags)
 	if err != nil {
-		slog.Error(fmt.Sprintf("scan does not have any tags, err:%s", err))
+		slog.Debug("scan does not have any tags", "err", err)
 	}
 
 	stat, err := os.Stat(OutFile)
@@ -171,12 +150,79 @@ func GetPURLTarget(purlType string, namespace string, name string, version strin
 	return packageurl.NewPackageURL(purlType, namespace, name, version, qualifiers, subpath).ToString()
 }
 
-// EnsureValidPURLTarget takes a purl target string from an untrusted source, e.g. a tool output, and
-// ensures it is a valid purl target according to the packageurl-go library.
+// EnsureValidPURLTarget takes a purl target string from an untrusted source,
+// e.g. a tool output, and ensures it is a valid purl target
 func EnsureValidPURLTarget(purlTarget string) (string, error) {
 	instance, err := packageurl.FromString(purlTarget)
 	if err != nil {
 		return "", err
 	}
 	return instance.ToString(), nil
+}
+
+// GetFileTarget returns a file target string for a given file path.
+// This should be used as the `Issue.Target` field of SAST producers.
+// The root of the `filePath` should be the root of the scanned code.
+//
+// Example: GetFileTarget("src/main.go", 10, 20)
+// Result: "file:///src/main.go:10-20"
+func GetFileTarget(filePath string, startLine int, endLine int) string {
+	if filePath == "" {
+		return ""
+	}
+	url := url.URL{Scheme: "file", Path: filePath}
+
+	return fmt.Sprintf("%s:%d-%d", url.String(), startLine, endLine)
+}
+
+// EnsureValidFileTarget takes a file target string from an untrusted source,
+// e.g. a tool output, and ensures it is a valid file target.
+// file:///path/to/file.txt:10-20
+func EnsureValidFileTarget(fileTarget string) (string, error) {
+	url, start, end, err := GetPartsFromFileTarget(fileTarget)
+	if err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf("%s:%d-%d", url.String(), start, end), nil
+}
+
+// GetPartsFromFileTarget takes a file target string and returns the parts.
+// file:///path/to/file.txt:10-20
+// Returns: url.URL, startLine, endLine, error
+func GetPartsFromFileTarget(fileTarget string) (*url.URL, int, int, error) {
+	parts := fileTargetPattern.FindStringSubmatch(fileTarget)
+	if len(parts) != 3 {
+		return nil, 0, 0, fmt.Errorf("invalid file target format: %s; MUST be file://path/to/file:start-end", fileTarget)
+	}
+
+	// Ensure the file URI is correct
+	parsedURI, err := url.Parse(parts[1])
+	if err != nil {
+		return nil, 0, 0, err
+	}
+	if parsedURI.Scheme != "file" {
+		return nil, 0, 0, fmt.Errorf("invalid file target scheme: %s; MUST be file://", parsedURI.Scheme)
+	}
+
+	// Ensure the URI points to a file, not a directory
+	if filepath.Ext(parsedURI.Path) == "" {
+		return nil, 0, 0, fmt.Errorf("invalid file target path: %s; MUST point to a file", parsedURI.Path)
+	}
+
+	// Ensure the line range is correct
+	lineRange := strings.Split(parts[2], "-")
+	if len(lineRange) != 2 {
+		return nil, 0, 0, fmt.Errorf("invalid line range format: %s; MUST be start-end", parts[1])
+	}
+	start, err := strconv.Atoi(lineRange[0])
+	if err != nil {
+		return nil, 0, 0, fmt.Errorf("invalid start line: %s; MUST be an integer", lineRange[0])
+	}
+	end, err := strconv.Atoi(lineRange[1])
+	if err != nil {
+		return nil, 0, 0, fmt.Errorf("invalid end line: %s; MUST be an integer", lineRange[1])
+	}
+
+	return parsedURI, start, end, nil
 }

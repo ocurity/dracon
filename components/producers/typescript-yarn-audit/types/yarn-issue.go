@@ -2,11 +2,14 @@ package types
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
-	"log"
+	"log/slog"
+	"strconv"
 	"strings"
 
 	v1 "github.com/ocurity/dracon/api/proto/v1"
+	"github.com/ocurity/dracon/components/producers"
 )
 
 func yarnToIssueSeverity(severity string) v1.Severity {
@@ -46,8 +49,10 @@ func (yl *yarnAuditLine) UnmarshalJSON(data []byte) error {
 		yl.Data = new(auditAdvisoryData)
 	case "auditAction":
 		yl.Data = new(auditActionData)
+	case "info":
+		// ignore
 	default:
-		log.Printf("Parsed unsupported type: %s", typ.Type)
+		slog.Debug("Parsed unsupported type", "type", typ.Type)
 	}
 
 	type tmp yarnAuditLine // avoids infinite recursion
@@ -74,13 +79,14 @@ func (audit *auditAdvisoryData) AsIssue() *v1.Issue {
 	targetName += audit.Advisory.ModuleName
 
 	return &v1.Issue{
-		Target:      targetName,
-		Type:        audit.Advisory.Cwe,
+		Target:      producers.GetPURLTarget("npm", "", audit.Advisory.ModuleName, audit.Advisory.Findings[0].Version, nil, ""),
+		Type:        strconv.Itoa(audit.Advisory.ID),
 		Title:       audit.Advisory.Title,
 		Severity:    yarnToIssueSeverity(audit.Advisory.Severity),
 		Confidence:  v1.Confidence_CONFIDENCE_HIGH,
 		Description: audit.Advisory.GetDescription(),
 		Cve:         strings.Join(audit.Advisory.Cves, ", "),
+		Cwe:         convertStringCWEtoInt(audit.Advisory.Cwe),
 	}
 }
 
@@ -120,7 +126,7 @@ type yarnAdvisory struct {
 	PatchedVersions    string            `json:"patched_versions"`
 	Updated            string            `json:"updated"`
 	Recommendation     string            `json:"recommendation"`
-	Cwe                string            `json:"cwe"`
+	Cwe                []string          `json:"cwe"`
 	FoundBy            *contact          `json:"found_by"`
 	Deleted            bool              `json:"deleted"`
 	ID                 int               `json:"id"`
@@ -181,13 +187,18 @@ type YarnAuditReport struct {
 func NewReport(reportLines [][]byte) (*YarnAuditReport, []error) {
 	var report YarnAuditReport
 
-	var errors []error
+	var errs []error
 
 	for _, line := range reportLines {
+		if len(line) == 0 {
+			slog.Debug("Empty line, skipping")
+			continue
+		}
+
 		var auditLine yarnAuditLine
 		if err := json.Unmarshal(line, &auditLine); err != nil {
-			log.Printf("Error parsing JSON line '%s': %s\n", line, err)
-			errors = append(errors, err)
+			slog.Error("Error parsing JSON line", "line", line, "error", err)
+			errs = append(errs, err)
 		} else {
 			switch x := auditLine.Data.(type) {
 			case *auditSummaryData:
@@ -200,11 +211,16 @@ func NewReport(reportLines [][]byte) (*YarnAuditReport, []error) {
 		}
 	}
 
-	if report.AuditAdvisories != nil && len(report.AuditAdvisories) > 0 {
-		return &report, errors
+	if report.AuditSummary != nil && report.AuditSummary.TotalDependencies == 0 {
+		slog.Error("No dependencies found", "yarn_audit_summary", report.AuditSummary)
+		errs = append(errs, errors.New("no dependencies found"))
 	}
 
-	return nil, errors
+	if report.AuditAdvisories != nil && len(report.AuditAdvisories) > 0 {
+		return &report, errs
+	}
+
+	return nil, errs
 }
 
 // AsIssues returns the YarnAuditReport as Dracon v1.Issue list. Currently only converts the YarnAuditReport.AuditAdvisories.
@@ -216,4 +232,16 @@ func (r *YarnAuditReport) AsIssues() []*v1.Issue {
 	}
 
 	return issues
+}
+
+func convertStringCWEtoInt(cwe []string) []int32 {
+	var cweInts []int32
+	for _, c := range cwe {
+		if cweInt, err := strconv.Atoi(strings.TrimPrefix(c, "CWE-")); err == nil {
+			cweInts = append(cweInts, int32(cweInt))
+		} else {
+			slog.Error("Error converting CWE to int", "error", err)
+		}
+	}
+	return cweInts
 }

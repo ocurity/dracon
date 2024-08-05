@@ -1,3 +1,0 @@
-The npm Registry should return JSON content in the response body.
-
-This file is part of a test that ensures correct behaviour if the response is not JSON-encoded.

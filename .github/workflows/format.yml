@@ -3,7 +3,7 @@ name: Format
 on:
   pull_request:
     branches:
-    - main
+      - main
 
 permissions:
   # Grant the ability to checkout the repository
@@ -17,13 +17,13 @@ jobs:
       group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
       cancel-in-progress: true
     steps:
-    - name: Check out code
-      uses: actions/checkout@v4
+      - name: Check out code
+        uses: actions/checkout@v4
 
-    - name: Setup Go
-      uses: actions/setup-go@v4
-      with:
-        go-version-file: go.mod
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
 
-    - name: Format
-      run: make install-go-fmt-tools install-md-fmt-tools fmt && test $(git diff -p | wc -l) -eq 0
+      - name: Format
+        run: make install-go-fmt-tools install-md-fmt-tools fmt && test $(git diff -p | wc -l) -eq 0

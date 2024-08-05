@@ -1,0 +1,39 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: producer-github-code-scanning
+  labels:
+    v1.dracon.ocurity.com/component: producer
+    v1.dracon.ocurity.com/test-type: sast
+spec:
+  params:
+  - name: producer-github-code-scanning-repository-owner
+    description: The owner of the repository to scan.
+    type: string
+  - name: producer-github-code-scanning-repository-name
+    description: The name of the repository to scan.
+    type: string
+  - name: producer-github-code-scanning-github-token
+    description: The GitHub token to use for scanning. Must have "Code scanning alerts" repository permissions (read).
+    type: string
+  volumes:
+    - name: scratch
+      emptyDir: {}
+  workspaces:
+    - name: output
+      description: The workspace containing the source-code to scan.
+  steps:
+  - name: produce-issues
+    imagePullPolicy: IfNotPresent
+    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/github-code-scanning:latest'
+    command: ["/app/components/producers/github-code-scanning/github-code-scanning-parser"]
+    args:
+    - "-in=/scratch/out.json"
+    - "-out=$(workspaces.output.path)/.dracon/producers/github-code-scanning.pb"
+    - "-github-token=$(params.producer-github-code-scanning-github-token)"
+    - "-repository-owner=$(params.producer-github-code-scanning-repository-owner)"
+    - "-repository-name=$(params.producer-github-code-scanning-repository-name)"
+    volumeMounts:
+    - mountPath: /scratch
+      name: scratch

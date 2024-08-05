@@ -11,13 +11,19 @@ spec:
   - name: producer-docker-trivy-flags
     type: array
     default: []
+    description: Flags to pass to trivy. Optional.
   - name: producer-docker-trivy-target
     type: string
     default: "$(workspaces.output.path)"
+    description: The target to scan.
   - name: producer-docker-trivy-format
     type: string
+    default: json
+    description: The format to output the results in. Valid values are `json`, `sarif`, `cyclonedx`. Default `json`.
   - name: producer-docker-trivy-command
     type: string
+    default: image
+    description: The command to run trivy with. Default `image`.
   volumes:
     - name: scratch
       emptyDir: {}
@@ -26,11 +32,10 @@ spec:
       description: The workspace containing the source-code to scan.
   steps:
   - name: run-trivy
-    image: docker.io/aquasec/trivy:0.37.1
+    image: docker.io/aquasec/trivy:0.54.1
     command: [trivy]
     args:
     - "$(params.producer-docker-trivy-flags[*])"
-    - -q
     - -f
     - $(params.producer-docker-trivy-format)
     - -o
@@ -44,7 +49,7 @@ spec:
   - name: produce-issues
     imagePullPolicy: IfNotPresent
     image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/docker-trivy:latest'
-    command: ["/app/components/producers/docker-trivy/trivy-parser"]
+    command: ["/app/components/producers/docker-trivy/docker-trivy-parser"]
     args:
     - "-format=$(params.producer-docker-trivy-format)"
     - "-in=/scratch/out.json"
