@@ -23,7 +23,37 @@ import (
 const (
 	// numFindings         = 20.
 	expectedNumFindings = 5 // we have 5 distinct uuids
+	defaultPolicy       = "cGFja2FnZSBleGFtcGxlLnBvbGljeVNhdAoKZGVmYXVsdCBhbGxvdyA6PSBmYWxzZQoKYWxsb3cgPXRydWUgewogICAgcHJpbnQoaW5wdXQpCiAgICBjaGVja19zZXZlcml0eQp9CgpjaGVja19zZXZlcml0eSB7CiAgICBpbnB1dC5zZXZlcml0eSA9PSAiU0VWRVJJVFlfTE9XIgp9CgpjaGVja19zZXZlcml0eSB7CiAgICBpbnB1dC5zZXZlcml0eSA9PSAiU0VWRVJJVFlfSElHSCIKfQpjaGVja19zZXZlcml0eSB7CiAgICBpbnB1dC5zZXZlcml0eSA9PSAiU0VWRVJJVFlfTUVESVVNIgp9Cg=="
 )
+
+func setupRegoServer(t *testing.T) *httptest.Server {
+	// setup server
+	expected := "{}"
+	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		type bod map[string]interface{}
+		var body bod
+
+		if strings.Contains(r.URL.String(), "/v1/policies") {
+			_, err := fmt.Fprintf(w, "{}")
+			require.NoError(t, err)
+		}
+
+		if strings.Contains(r.URL.String(), "/v1/data") {
+			require.NoError(t, json.NewDecoder(r.Body).Decode(&body))
+			if strings.Contains(fmt.Sprintf("%#v\n ", body), "SEVERITY_CRITICAL") {
+				_, err := fmt.Fprintf(w, "{\"result\":{\"allow\":false}}")
+				require.NoError(t, err)
+			} else {
+				_, err := fmt.Fprintf(w, "{\"result\":{\"allow\":true}}")
+				require.NoError(t, err)
+			}
+		}
+
+		_, err := fmt.Fprint(w, expected)
+		require.NoError(t, err)
+	}))
+	return svr
+}
 
 func genSampleIssues() []*v1.Issue {
 	sev := []v1.Severity{
@@ -51,9 +81,7 @@ func genSampleIssues() []*v1.Issue {
 }
 
 func TestParseIssues(t *testing.T) {
-	// prepare
-	dir, err := os.MkdirTemp("/tmp", "")
-	require.NoError(t, err)
+	indir, outdir := enrichers.SetupIODirs(t)
 
 	rawIssues := genSampleIssues()
 
@@ -71,41 +99,22 @@ func TestParseIssues(t *testing.T) {
 	// write sample raw issues in mktemp
 	out, err := proto.Marshal(&orig)
 	require.NoError(t, err)
-	require.NoError(t, os.WriteFile(dir+"/policySat.tagged.pb", out, 0o600))
-	enrichers.SetReadPathForTests(dir)
-	enrichers.SetWritePathForTests(dir)
+	require.NoError(t, os.WriteFile(indir+"/policySat.tagged.pb", out, 0o600))
+	enrichers.SetReadPathForTests(indir)
+	enrichers.SetWritePathForTests(outdir)
 	policy = "cGFja2FnZSBleGFtcGxlLnBvbGljeVNhdAoKZGVmYXVsdCBhbGxvdyA6PSBmYWxzZQoKYWxsb3cgPXRydWUgewogICAgcHJpbnQoaW5wdXQpCiAgICBjaGVja19zZXZlcml0eQp9CgpjaGVja19zZXZlcml0eSB7CiAgICBpbnB1dC5zZXZlcml0eSA9PSAiU0VWRVJJVFlfTE9XIgp9CgpjaGVja19zZXZlcml0eSB7CiAgICBpbnB1dC5zZXZlcml0eSA9PSAiU0VWRVJJVFlfSElHSCIKfQpjaGVja19zZXZlcml0eSB7CiAgICBpbnB1dC5zZXZlcml0eSA9PSAiU0VWRVJJVFlfTUVESVVNIgp9Cg=="
 
-	// setup server
-	expected := "{}"
-	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		type bod map[string]interface{}
-		var body bod
-
-		if strings.Contains(r.URL.String(), "/v1/policies") {
-			fmt.Fprintf(w, "{}")
-		}
-
-		if strings.Contains(r.URL.String(), "/v1/data") {
-			require.NoError(t, json.NewDecoder(r.Body).Decode(&body))
-			if strings.Contains(fmt.Sprintf("%#v\n ", body), "SEVERITY_CRITICAL") {
-				fmt.Fprintf(w, "{\"result\":{\"allow\":false}}")
-			} else {
-				fmt.Fprintf(w, "{\"result\":{\"allow\":true}}")
-			}
-		}
-
-		fmt.Fprint(w, expected)
-	}))
+	svr := setupRegoServer(t)
 	defer svr.Close()
+
 	regoServer = svr.URL
+	policy = defaultPolicy
+	require.NoError(t, run())
 
-	run()
-
-	assert.FileExists(t, dir+"/policySat.policy.enriched.pb", "file was not created")
+	assert.FileExists(t, outdir+"/policySat.policy.enriched.pb", "file was not created")
 
 	// load *enriched.pb
-	pbBytes, err := os.ReadFile(dir + "/policySat.policy.enriched.pb")
+	pbBytes, err := os.ReadFile(outdir + "/policySat.policy.enriched.pb")
 	require.NoError(t, err)
 
 	res := v1.EnrichedLaunchToolResponse{}
@@ -116,5 +125,53 @@ func TestParseIssues(t *testing.T) {
 		if finding.RawIssue.Severity != v1.Severity_SEVERITY_CRITICAL {
 			assert.Contains(t, fmt.Sprintf("%#v\n", finding.Annotations), "\"Policy Pass: example/policySat\":\"true\"")
 		}
+	}
+}
+
+func TestHandlesZeroFindings(t *testing.T) {
+	indir, outdir := enrichers.SetupIODirs(t)
+
+	mockLaunchToolResponses := enrichers.GetEmptyLaunchToolResponse(t)
+
+	for i, r := range mockLaunchToolResponses {
+		// Write sample enriched responses to indir
+		encodedProto, err := proto.Marshal(r)
+		require.NoError(t, err)
+		rwPermission600 := os.FileMode(0o600)
+
+		require.NoError(t, os.WriteFile(fmt.Sprintf("%s/input_%d_%s.tagged.pb", indir, i, r.ToolName), encodedProto, rwPermission600))
+	}
+
+	svr := setupRegoServer(t)
+	defer svr.Close()
+
+	// Launch the enricher
+	regoServer = svr.URL
+	enrichers.SetReadPathForTests(indir)
+	enrichers.SetWritePathForTests(outdir)
+	policy = defaultPolicy
+
+	require.NoError(t, run())
+
+	// Check there is something in our output directory
+	files, err := os.ReadDir(outdir)
+	require.NoError(t, err)
+	assert.NotEmpty(t, files)
+	assert.Len(t, files, 4)
+
+	// Check that both of them are EnrichedLaunchToolResponse
+	// and their Issue property is an empty list
+	for _, f := range files {
+		if strings.HasSuffix(f.Name(), ".raw.pb") {
+			continue
+		}
+
+		encodedProto, err := os.ReadFile(fmt.Sprintf("%s/%s", outdir, f.Name()))
+		require.NoError(t, err)
+
+		output := &v1.EnrichedLaunchToolResponse{}
+		require.NoError(t, proto.Unmarshal(encodedProto, output))
+
+		assert.Empty(t, output.Issues)
 	}
 }

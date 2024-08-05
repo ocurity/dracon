@@ -6,7 +6,7 @@ import (
 
 	v1 "github.com/ocurity/dracon/api/proto/v1"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 var invalidJSON = `Not a valid JSON object`
@@ -18,9 +18,9 @@ func TestParseInvalidJSON(t *testing.T) {
 		oneLine,
 	})
 
-	assert.Nil(t, report)
+	require.Nil(t, report)
 
-	assert.Len(t, err, 2)
+	require.Len(t, err, 2)
 }
 
 // In reality these would be single lines, but for readability in test these should also work.
@@ -193,12 +193,12 @@ func TestParseValidReportContainsAllSupportedFields(t *testing.T) {
 		fullYarnJSONLines,
 	)
 
-	assert.Nil(t, err)
-	assert.NotNil(t, report)
+	require.Nil(t, err)
+	require.NotNil(t, report)
 
-	assert.NotNil(t, report.AuditSummary)
-	assert.Len(t, report.AuditAdvisories, 2)
-	assert.Len(t, report.AuditActions, 1)
+	require.NotNil(t, report.AuditSummary)
+	require.Len(t, report.AuditAdvisories, 2)
+	require.Len(t, report.AuditActions, 1)
 }
 
 func TestParseValidReportSummary(t *testing.T) {
@@ -206,10 +206,10 @@ func TestParseValidReportSummary(t *testing.T) {
 		fullYarnJSONLines,
 	)
 
-	assert.Nil(t, err)
-	assert.NotNil(t, report)
+	require.Nil(t, err)
+	require.NotNil(t, report)
 
-	assert.NotNil(t, report.AuditSummary)
+	require.NotNil(t, report.AuditSummary)
 
 	expectedSummaryData := auditSummaryData{
 		Vulnerabilities: vulnerabilities{
@@ -225,7 +225,7 @@ func TestParseValidReportSummary(t *testing.T) {
 		TotalDependencies:    6274,
 	}
 
-	assert.True(t, reflect.DeepEqual(&expectedSummaryData, report.AuditSummary), report.AuditSummary)
+	require.True(t, reflect.DeepEqual(&expectedSummaryData, report.AuditSummary), report.AuditSummary)
 }
 
 func TestParseValidReportAdvisories(t *testing.T) {
@@ -233,10 +233,10 @@ func TestParseValidReportAdvisories(t *testing.T) {
 		fullYarnJSONLines,
 	)
 
-	assert.Nil(t, err)
-	assert.NotNil(t, report)
+	require.Nil(t, err)
+	require.NotNil(t, report)
 
-	assert.Len(t, report.AuditAdvisories, 2)
+	require.Len(t, report.AuditAdvisories, 2)
 
 	expectedAdvisories := []*auditAdvisoryData{
 		{
@@ -339,7 +339,7 @@ func TestParseValidReportAdvisories(t *testing.T) {
 		},
 	}
 
-	assert.True(t, reflect.DeepEqual(expectedAdvisories, report.AuditAdvisories), report.AuditAdvisories)
+	require.True(t, reflect.DeepEqual(expectedAdvisories, report.AuditAdvisories), report.AuditAdvisories)
 }
 
 func TestParseValidReportActions(t *testing.T) {
@@ -347,10 +347,10 @@ func TestParseValidReportActions(t *testing.T) {
 		fullYarnJSONLines,
 	)
 
-	assert.Nil(t, err)
-	assert.NotNil(t, report)
+	require.Nil(t, err)
+	require.NotNil(t, report)
 
-	assert.Len(t, report.AuditActions, 1)
+	require.Len(t, report.AuditActions, 1)
 
 	expectedActionData := auditActionData{
 		Cmd:        "action command",
@@ -372,7 +372,7 @@ func TestParseValidReportActions(t *testing.T) {
 		},
 	}
 
-	assert.True(t, reflect.DeepEqual(&expectedActionData, report.AuditActions[0]), report.AuditActions[0])
+	require.True(t, reflect.DeepEqual(&expectedActionData, report.AuditActions[0]), report.AuditActions[0])
 }
 
 func TestParseValidReportAsIssues(t *testing.T) {
@@ -380,12 +380,12 @@ func TestParseValidReportAsIssues(t *testing.T) {
 		fullYarnJSONLines,
 	)
 
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
-	assert.Len(t, report.AuditAdvisories, 2)
+	require.Len(t, report.AuditAdvisories, 2)
 
 	issues := report.AsIssues()
-	assert.Len(t, issues, 2)
+	require.Len(t, issues, 2)
 
 	expectedIssues := []*v1.Issue{
 		{
@@ -426,14 +426,28 @@ Advisory URL: https://advisory.2.url
 	}
 
 	for i := range expectedIssues {
-		assert.Equal(t, expectedIssues[i].Target, issues[i].Target)
-		assert.Equal(t, expectedIssues[i].Type, issues[i].Type)
-		assert.Equal(t, expectedIssues[i].Title, issues[i].Title)
-		assert.Equal(t, expectedIssues[i].Severity, issues[i].Severity)
-		assert.Equal(t, expectedIssues[i].Cvss, issues[i].Cvss)
-		assert.Equal(t, expectedIssues[i].Confidence, issues[i].Confidence)
-		assert.Equal(t, expectedIssues[i].Description, issues[i].Description)
-		assert.Equal(t, expectedIssues[i].Cve, issues[i].Cve)
-		assert.Equal(t, expectedIssues[i].Cwe, issues[i].Cwe)
+		require.Equal(t, expectedIssues[i].Target, issues[i].Target)
+		require.Equal(t, expectedIssues[i].Type, issues[i].Type)
+		require.Equal(t, expectedIssues[i].Title, issues[i].Title)
+		require.Equal(t, expectedIssues[i].Severity, issues[i].Severity)
+		require.Equal(t, expectedIssues[i].Cvss, issues[i].Cvss)
+		require.Equal(t, expectedIssues[i].Confidence, issues[i].Confidence)
+		require.Equal(t, expectedIssues[i].Description, issues[i].Description)
+		require.Equal(t, expectedIssues[i].Cve, issues[i].Cve)
+		require.Equal(t, expectedIssues[i].Cwe, issues[i].Cwe)
 	}
+}
+
+func TestHandlesNoDependencies(t *testing.T) {
+	missingDependenciesReport := [][]byte{
+		[]byte(`{"type":"info","data":"No lockfile found."}`),
+		[]byte(`{"type":"auditSummary","data":{"vulnerabilities":{"info":0,"low":0,"moderate":0,"high":0,"critical":0},"dependencies":0,"devDependencies":0,"optionalDependencies":0,"totalDependencies":0}}`),
+	}
+
+	report, errs := NewReport(missingDependenciesReport)
+
+	require.Empty(t, report)
+	require.Len(t, errs, 1)
+	require.Equal(t, errs[0].Error(), "no dependencies found")
+
 }

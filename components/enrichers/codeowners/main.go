@@ -16,7 +16,6 @@ import (
 	owners "github.com/hairyhenderson/go-codeowners"
 
 	apiv1 "github.com/ocurity/dracon/api/proto/v1"
-	v1 "github.com/ocurity/dracon/api/proto/v1"
 	"github.com/ocurity/dracon/components/enrichers"
 )
 
@@ -81,10 +80,14 @@ func run() error {
 			}
 			enrichedIssues = append(enrichedIssues, eI)
 		}
-		return enrichers.WriteData(&v1.EnrichedLaunchToolResponse{
+
+		err := enrichers.WriteData(&apiv1.EnrichedLaunchToolResponse{
 			OriginalResults: r,
 			Issues:          enrichedIssues,
 		}, "codeowners")
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }

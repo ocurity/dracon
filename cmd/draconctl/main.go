@@ -2,11 +2,12 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"log/slog"
 	"os"
+	"slices"
 	"strings"
 
+	"github.com/go-errors/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -16,14 +17,18 @@ import (
 	"github.com/ocurity/dracon/cmd/draconctl/pipelines"
 )
 
-var rootCmd = &cobra.Command{
-	Use:   "draconctl",
-	Short: "A CLI to manage all things related to Dracon",
-	PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
-		// You can bind cobra and viper in a few locations, but PersistencePreRunE on the root command works well
-		return initializeConfig(cmd)
-	},
-}
+var (
+	rootCmd = &cobra.Command{
+		Use:   "draconctl",
+		Short: "A CLI to manage all things related to Dracon",
+		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
+			// You can bind cobra and viper in a few locations, but PersistencePreRunE on the root command works well
+			return initializeConfig(cmd)
+		},
+	}
+	loggingFormat       string
+	supportedLogFormats = []string{"text", "json"}
+)
 
 func main() {
 	rootCmd.AddGroup(&cobra.Group{
@@ -38,6 +43,10 @@ func main() {
 	if err != nil {
 		os.Exit(1)
 	}
+}
+
+func init() {
+	rootCmd.PersistentFlags().StringVar(&loggingFormat, "log-format", "text", "The log format to use (supports 'text' for plain text and 'json' for JSON)")
 }
 
 func initializeConfig(cmd *cobra.Command) error {
@@ -58,13 +67,19 @@ func initializeConfig(cmd *cobra.Command) error {
 	// like --favorite-color which we fix in the bindFlags function
 	v.AutomaticEnv()
 
+	if !slices.Contains(supportedLogFormats, strings.ToLower(loggingFormat)) {
+		return errors.Errorf("unsupported log format %s, supported formats are %s", loggingFormat, supportedLogFormats)
+	} else if strings.ToLower(loggingFormat) == "json" {
+		slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{})))
+	}
+
 	// Bind the current command's flags to viper
 	cmd.Flags().VisitAll(func(f *pflag.Flag) {
 		// Apply the viper config value to the flag when the flag is not set and viper has a value
 		if !f.Changed && v.IsSet(f.Name) {
 			val := v.Get(f.Name)
 			if err := cmd.Flags().Set(f.Name, fmt.Sprintf("%v", val)); err != nil {
-				log.Println(err)
+				slog.Error(err.Error())
 			}
 		}
 	})

@@ -8,12 +8,9 @@ spec:
   pipelineRef:
     name: dracon-typescript-project
   params:
-  - name: repository_url
-    value: https://github.com/ocurity/e2e-monorepo.git
-  - name: b64-signature-key
-  # THIS IS AN EXAMPLE, PLEASE USE A PROPERLY SECURED SECRET KEY IN PRODUCTION
-  # Corresponding public key for verification is MOt7TFuLyGB9yRN5mcIeAPa6jKoFglkwEwGBTOVLeXI=
-    value: Lvbo+wAsW8Y4ENBA+lAikOwGTYAIXCQ49eRMEwClv94w63tMW4vIYH3JE3mZwh4A9rqMqgWCWTATAYFM5Ut5cg==
+  - name: git-clone-url
+    # TODO(OCU-154): Switch to ocurity/e2e-monorepo
+    value: https://github.com/appsecco/dvna.git
   workspaces:
   - name: output
     subPath: source-code

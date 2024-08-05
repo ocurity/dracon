@@ -8,9 +8,11 @@ metadata:
 spec:
   params:
     - name: consumer-slack-webhook
+      description: "The Slack webhook to send messages to. Follow this guide to generate: https://api.slack.com/messaging/webhooks"
       type: string
     - name: consumer-slack-message-template
       type: string
+      description: "The message template to use when sending messages to Slack. The following variables are available: <scanID>, <scanStartTime>, <numResults>, <newResults>"
       default: 'Dracon scan <scanID>, started at <scanStartTime>, completed with <numResults> findings, out of which, <newResults> new'
   workspaces:
     - name: output

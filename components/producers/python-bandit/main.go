@@ -59,6 +59,7 @@ func parseResult(r *BanditResult) (*v1.Issue, error) {
 		Cvss:        0.0,
 		Confidence:  v1.Confidence(v1.Confidence_value[fmt.Sprintf("CONFIDENCE_%s", r.IssueConfidence)]),
 		Description: fmt.Sprintf("%s\ncode:%s", r.IssueText, r.Code),
+		Cwe:         []int32{r.IssueCWE.ID},
 	}
 
 	// Extract the code snippet, if possible
@@ -92,6 +93,9 @@ type BanditResult struct {
 	MoreInfo        string   `json:"more_info"`
 	TestID          string   `json:"test_id"`
 	TestName        string   `json:"test_name"`
+	IssueCWE        struct {
+		ID int32 `json:"id"`
+	} `json:"issue_cwe"`
 }
 
 // // BanditMetric represents a Bandit Metric

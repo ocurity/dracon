@@ -19,19 +19,21 @@ spec:
       image: docker.io/node:lts
       script: |
         cd $(workspaces.output.path)
+        echo "Starting yarn audit command..."
         yarn audit --json --silent --no-progress > /scratch/out.json || true
+        echo "Done"
       volumeMounts:
         - mountPath: /scratch
           name: scratch
 
     - name: produce-issues
       imagePullPolicy: IfNotPresent
-      image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/typescript-eslint:latest'
+      image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/typescript-yarn-audit:latest'
       command:
-        ["/app/components/producers/typescript-yarn-audit/yarn-audit-parser"]
+        ["/app/components/producers/typescript-yarn-audit/typescript-yarn-audit-parser"]
       args:
         - "-in=/scratch/out.json"
-        - "-out=$(workspaces.output.path)/.dracon/producers/typescript-eslint.pb"
+        - "-out=$(workspaces.output.path)/.dracon/producers/typescript-yarn-audit.pb"
       volumeMounts:
         - mountPath: /scratch
           name: scratch
