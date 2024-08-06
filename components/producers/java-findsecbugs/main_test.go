@@ -18,7 +18,7 @@ func TestReadXML(t *testing.T) {
 
 	expectedIssues := make([]*v1.Issue, 8)
 	classIssue := &v1.Issue{
-		Target:      "com/h3xstream/findsecbugs/injection/BasicInjectionDetector.ClassLine.java:48-188",
+		Target:      "file://com/h3xstream/findsecbugs/injection/BasicInjectionDetector.ClassLine.java:48-188",
 		Type:        "PATH_TRAVERSAL_IN",
 		Title:       "Potential Path Traversal (file read)",
 		Severity:    v1.Severity_SEVERITY_MEDIUM,
@@ -28,19 +28,19 @@ func TestReadXML(t *testing.T) {
 	}
 	expectedIssues[0] = classIssue
 	methodIssue := proto.Clone(classIssue).(*v1.Issue)
-	methodIssue.Target = "com/h3xstream/findsecbugs/injection/BasicInjectionDetector.MethodLine.java:155-161"
+	methodIssue.Target = "file://com/h3xstream/findsecbugs/injection/BasicInjectionDetector.MethodLine.java:155-161"
 	expectedIssues[1] = methodIssue
 
 	sourceIssue0 := proto.Clone(methodIssue).(*v1.Issue)
-	sourceIssue0.Target = "com/h3xstream/findsecbugs/injection/BasicInjectionDetector.SourceLine0.java:155-155"
+	sourceIssue0.Target = "file://com/h3xstream/findsecbugs/injection/BasicInjectionDetector.SourceLine0.java:155-155"
 	expectedIssues[2] = sourceIssue0
 
 	sourceIssue1 := proto.Clone(sourceIssue0).(*v1.Issue)
-	sourceIssue1.Target = "com/h3xstream/findsecbugs/FindSecBugsGlobalConfig.SourceLine1.java:53-53"
+	sourceIssue1.Target = "file://com/h3xstream/findsecbugs/FindSecBugsGlobalConfig.SourceLine1.java:53-53"
 	expectedIssues[3] = sourceIssue1
 
 	classIssue = &v1.Issue{
-		Target:      "com/h3xstream/findsecbugs/injection/InjectionPoint.ClassLine.java:26-52",
+		Target:      "file://com/h3xstream/findsecbugs/injection/InjectionPoint.ClassLine.java:26-52",
 		Type:        "EI_EXPOSE_REP",
 		Title:       "May expose internal representation by returning reference to mutable object",
 		Severity:    v1.Severity_SEVERITY_LOW,
@@ -51,15 +51,15 @@ func TestReadXML(t *testing.T) {
 	expectedIssues[4] = classIssue
 
 	methodIssue1 := proto.Clone(classIssue).(*v1.Issue)
-	methodIssue1.Target = "com/h3xstream/findsecbugs/injection/InjectionPoint.MethodLine.java:39-39"
+	methodIssue1.Target = "file://com/h3xstream/findsecbugs/injection/InjectionPoint.MethodLine.java:39-39"
 	expectedIssues[5] = methodIssue1
 
 	fieldIssue := proto.Clone(classIssue).(*v1.Issue)
-	fieldIssue.Target = "com/h3xstream/findsecbugs/injection/InjectionPoint.FieldLine.java:-"
+	fieldIssue.Target = "file://com/h3xstream/findsecbugs/injection/InjectionPoint.FieldLine.java:0-0"
 	expectedIssues[6] = fieldIssue
 
 	sourceIssue2 := proto.Clone(classIssue).(*v1.Issue)
-	sourceIssue2.Target = "com/h3xstream/findsecbugs/injection/InjectionPoint.SourceLine1.java:39-40"
+	sourceIssue2.Target = "file://com/h3xstream/findsecbugs/injection/InjectionPoint.SourceLine1.java:39-40"
 	expectedIssues[7] = sourceIssue2
 
 	found := 0

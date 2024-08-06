@@ -1,0 +1,1050 @@
+{
+  "version": "2.1.0",
+  "$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
+  "runs": [
+    {
+      "tool": {
+        "extensions": [
+          {
+            "version": "4.6.0",
+            "name": "edu.umd.cs.findbugs.plugins.core",
+            "shortDescription": {
+              "text": "Core SpotBugs plugin"
+            },
+            "informationUri": "https://github.com/spotbugs",
+            "organization": "SpotBugs project"
+          },
+          {
+            "version": "",
+            "name": "com.h3xstream.findsecbugs",
+            "shortDescription": {
+              "text": "Find Security Bugs"
+            },
+            "informationUri": "https://find-sec-bugs.github.io",
+            "organization": "Find Security Bugs"
+          }
+        ],
+        "driver": {
+          "name": "SpotBugs",
+          "version": "4.6.0",
+          "language": "en",
+          "informationUri": "https://spotbugs.github.io/",
+          "rules": [
+            {
+              "id": "PATH_TRAVERSAL_IN",
+              "shortDescription": {
+                "text": "Potential Path Traversal (file read)."
+              },
+              "messageStrings": {
+                "default": {
+                  "text": "This API ({0}) reads a file whose location might be specified by user input."
+                }
+              },
+              "helpUri": "https://find-sec-bugs.github.io/bugs.htm#PATH_TRAVERSAL_IN",
+              "properties": {
+                "tags": ["SECURITY"]
+              }
+            },
+            {
+              "id": "PATH_TRAVERSAL_OUT",
+              "shortDescription": {
+                "text": "Potential Path Traversal (file write)."
+              },
+              "messageStrings": {
+                "default": {
+                  "text": "This API ({0}) writes to a file whose location might be specified by user input."
+                }
+              },
+              "helpUri": "https://find-sec-bugs.github.io/bugs.htm#PATH_TRAVERSAL_OUT",
+              "properties": {
+                "tags": ["SECURITY"]
+              }
+            },
+            {
+              "id": "INFORMATION_EXPOSURE_THROUGH_AN_ERROR_MESSAGE",
+              "shortDescription": {
+                "text": "Information Exposure Through An Error Message."
+              },
+              "messageStrings": {
+                "default": {
+                  "text": "Possible information exposure through an error message."
+                }
+              },
+              "helpUri": "https://find-sec-bugs.github.io/bugs.htm#INFORMATION_EXPOSURE_THROUGH_AN_ERROR_MESSAGE",
+              "properties": {
+                "tags": ["SECURITY"]
+              }
+            },
+            {
+              "id": "GROOVY_SHELL",
+              "shortDescription": {
+                "text": "Potential code injection when using GroovyShell."
+              },
+              "messageStrings": {
+                "default": {
+                  "text": "Potential code injection when using GroovyShell."
+                }
+              },
+              "helpUri": "https://find-sec-bugs.github.io/bugs.htm#GROOVY_SHELL",
+              "properties": {
+                "tags": ["SECURITY"]
+              }
+            },
+            {
+              "id": "SQL_INJECTION_JDBC",
+              "shortDescription": {
+                "text": "Potential JDBC Injection."
+              },
+              "messageStrings": {
+                "default": {
+                  "text": "This use of {0} can be vulnerable to SQL injection (with JDBC)."
+                }
+              },
+              "helpUri": "https://find-sec-bugs.github.io/bugs.htm#SQL_INJECTION_JDBC",
+              "properties": {
+                "tags": ["SECURITY"]
+              }
+            },
+            {
+              "id": "OBJECT_DESERIALIZATION",
+              "shortDescription": {
+                "text": "Object deserialization is used in {1}."
+              },
+              "messageStrings": {
+                "default": {
+                  "text": "Object deserialization is used in {0}."
+                }
+              },
+              "helpUri": "https://find-sec-bugs.github.io/bugs.htm#OBJECT_DESERIALIZATION",
+              "properties": {
+                "tags": ["SECURITY"]
+              }
+            },
+            {
+              "id": "LDAP_INJECTION",
+              "shortDescription": {
+                "text": "Potential LDAP Injection."
+              },
+              "messageStrings": {
+                "default": {
+                  "text": "This use of {0} can be vulnerable to LDAP injection."
+                }
+              },
+              "helpUri": "https://find-sec-bugs.github.io/bugs.htm#LDAP_INJECTION",
+              "properties": {
+                "tags": ["SECURITY"]
+              }
+            },
+            {
+              "id": "URLCONNECTION_SSRF_FD",
+              "shortDescription": {
+                "text": "URLConnection Server-Side Request Forgery (SSRF) and File Disclosure."
+              },
+              "messageStrings": {
+                "default": {
+                  "text": "This web server request could be used by an attacker to expose internal services and filesystem."
+                }
+              },
+              "helpUri": "https://find-sec-bugs.github.io/bugs.htm#URLCONNECTION_SSRF_FD",
+              "properties": {
+                "tags": ["SECURITY"]
+              }
+            },
+            {
+              "id": "XXE_SAXPARSER",
+              "shortDescription": {
+                "text": "XML parsing vulnerable to XXE (SAXParser)."
+              },
+              "messageStrings": {
+                "default": {
+                  "text": "The use of {0} (SAXParser) is vulnerable to XML External Entity attacks."
+                }
+              },
+              "helpUri": "https://find-sec-bugs.github.io/bugs.htm#XXE_SAXPARSER",
+              "properties": {
+                "tags": ["SECURITY"]
+              }
+            },
+            {
+              "id": "XXE_XMLSTREAMREADER",
+              "shortDescription": {
+                "text": "XML parsing vulnerable to XXE (XMLStreamReader)."
+              },
+              "messageStrings": {
+                "default": {
+                  "text": "The XML parsing is vulnerable to XML External Entity attacks."
+                }
+              },
+              "helpUri": "https://find-sec-bugs.github.io/bugs.htm#XXE_XMLSTREAMREADER",
+              "properties": {
+                "tags": ["SECURITY"]
+              }
+            },
+            {
+              "id": "XSS_SERVLET",
+              "shortDescription": {
+                "text": "Potential XSS in Servlet."
+              },
+              "messageStrings": {
+                "default": {
+                  "text": "This use of {0} could be vulnerable to XSS in the Servlet."
+                }
+              },
+              "helpUri": "https://find-sec-bugs.github.io/bugs.htm#XSS_SERVLET",
+              "properties": {
+                "tags": ["SECURITY"]
+              }
+            },
+            {
+              "id": "PREDICTABLE_RANDOM",
+              "shortDescription": {
+                "text": "Predictable pseudorandom number generator."
+              },
+              "messageStrings": {
+                "default": {
+                  "text": "This random generator ({0}) is predictable."
+                }
+              },
+              "helpUri": "https://find-sec-bugs.github.io/bugs.htm#PREDICTABLE_RANDOM",
+              "properties": {
+                "tags": ["SECURITY"]
+              }
+            },
+            {
+              "id": "XXE_DOCUMENT",
+              "shortDescription": {
+                "text": "XML parsing vulnerable to XXE (DocumentBuilder)."
+              },
+              "messageStrings": {
+                "default": {
+                  "text": "The use of {0} (DocumentBuilder) is vulnerable to XML External Entity attacks."
+                }
+              },
+              "helpUri": "https://find-sec-bugs.github.io/bugs.htm#XXE_DOCUMENT",
+              "properties": {
+                "tags": ["SECURITY"]
+              }
+            },
+            {
+              "id": "DESERIALIZATION_GADGET",
+              "shortDescription": {
+                "text": "This class could be used as deserialization gadget."
+              },
+              "messageStrings": {
+                "default": {
+                  "text": "This class could make application using serialization vulnerable."
+                }
+              },
+              "helpUri": "https://find-sec-bugs.github.io/bugs.htm#DESERIALIZATION_GADGET",
+              "properties": {
+                "tags": ["SECURITY"]
+              }
+            },
+            {
+              "id": "REDOS",
+              "shortDescription": {
+                "text": "Regex DOS (ReDOS)."
+              },
+              "messageStrings": {
+                "default": {
+                  "text": "The regular expression \"{0}\" is vulnerable to a denial of service attack (ReDOS)."
+                }
+              },
+              "helpUri": "https://find-sec-bugs.github.io/bugs.htm#REDOS",
+              "properties": {
+                "tags": ["SECURITY"]
+              }
+            },
+            {
+              "id": "UNENCRYPTED_SERVER_SOCKET",
+              "shortDescription": {
+                "text": "Unencrypted Server Socket."
+              },
+              "messageStrings": {
+                "default": {
+                  "text": "Unencrypted server socket (instead of SSLServerSocket)."
+                }
+              },
+              "helpUri": "https://find-sec-bugs.github.io/bugs.htm#UNENCRYPTED_SERVER_SOCKET",
+              "properties": {
+                "tags": ["SECURITY"]
+              }
+            },
+            {
+              "id": "CRLF_INJECTION_LOGS",
+              "shortDescription": {
+                "text": "Potential CRLF Injection for logs."
+              },
+              "messageStrings": {
+                "default": {
+                  "text": "This use of {0} might be used to include CRLF characters into log messages."
+                }
+              },
+              "helpUri": "https://find-sec-bugs.github.io/bugs.htm#CRLF_INJECTION_LOGS",
+              "properties": {
+                "tags": ["SECURITY"]
+              }
+            },
+            {
+              "id": "XXE_XMLREADER",
+              "shortDescription": {
+                "text": "XML parsing vulnerable to XXE (XMLReader)."
+              },
+              "messageStrings": {
+                "default": {
+                  "text": "The use of {0} (XMLReader) is vulnerable to XML External Entity attacks."
+                }
+              },
+              "helpUri": "https://find-sec-bugs.github.io/bugs.htm#XXE_XMLREADER",
+              "properties": {
+                "tags": ["SECURITY"]
+              }
+            },
+            {
+              "id": "XXE_DTD_TRANSFORM_FACTORY",
+              "shortDescription": {
+                "text": "XML parsing vulnerable to XXE (TransformerFactory)."
+              },
+              "messageStrings": {
+                "default": {
+                  "text": "The use of {0} (TransformerFactory) is vulnerable to XML External Entity attacks."
+                }
+              },
+              "helpUri": "https://find-sec-bugs.github.io/bugs.htm#XXE_DTD_TRANSFORM_FACTORY",
+              "properties": {
+                "tags": ["SECURITY"]
+              }
+            },
+            {
+              "id": "XXE_XSLT_TRANSFORM_FACTORY",
+              "shortDescription": {
+                "text": "XSLT parsing vulnerable to XXE (TransformerFactory)."
+              },
+              "messageStrings": {
+                "default": {
+                  "text": "The use of {0} is vulnerable to XSLT External Entity attacks."
+                }
+              },
+              "helpUri": "https://find-sec-bugs.github.io/bugs.htm#XXE_XSLT_TRANSFORM_FACTORY",
+              "properties": {
+                "tags": ["SECURITY"]
+              }
+            },
+            {
+              "id": "HARD_CODE_PASSWORD",
+              "shortDescription": {
+                "text": "Hard coded password."
+              },
+              "messageStrings": {
+                "default": {
+                  "text": "Hard coded password found."
+                }
+              },
+              "helpUri": "https://find-sec-bugs.github.io/bugs.htm#HARD_CODE_PASSWORD",
+              "properties": {
+                "tags": ["SECURITY"]
+              }
+            },
+            {
+              "id": "EXTERNAL_CONFIG_CONTROL",
+              "shortDescription": {
+                "text": "Potential external control of configuration."
+              },
+              "messageStrings": {
+                "default": {
+                  "text": "This use of {0} might be used to control configuration externally."
+                }
+              },
+              "helpUri": "https://find-sec-bugs.github.io/bugs.htm#EXTERNAL_CONFIG_CONTROL",
+              "properties": {
+                "tags": ["SECURITY"]
+              }
+            },
+            {
+              "id": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+              "shortDescription": {
+                "text": "Nonconstant string passed to execute or addBatch method on an SQL statement."
+              },
+              "messageStrings": {
+                "default": {
+                  "text": "{0} passes a nonconstant String to an execute or addBatch method on an SQL statement."
+                }
+              },
+              "helpUri": "https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+              "properties": {
+                "tags": ["SECURITY"]
+              }
+            },
+            {
+              "id": "SQL_PREPARED_STATEMENT_GENERATED_FROM_NONCONSTANT_STRING",
+              "shortDescription": {
+                "text": "A prepared statement is generated from a nonconstant String."
+              },
+              "messageStrings": {
+                "default": {
+                  "text": "A prepared statement is generated from a nonconstant String in {0}."
+                }
+              },
+              "helpUri": "https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#SQL_PREPARED_STATEMENT_GENERATED_FROM_NONCONSTANT_STRING",
+              "properties": {
+                "tags": ["SECURITY"]
+              }
+            },
+            {
+              "id": "WEAK_MESSAGE_DIGEST_MD5",
+              "shortDescription": {
+                "text": "MD2, MD4 and MD5 are weak hash functions."
+              },
+              "messageStrings": {
+                "default": {
+                  "text": "This API {0} (MDX) is not a recommended cryptographic hash function."
+                }
+              },
+              "helpUri": "https://find-sec-bugs.github.io/bugs.htm#WEAK_MESSAGE_DIGEST_MD5",
+              "properties": {
+                "tags": ["SECURITY"]
+              }
+            },
+            {
+              "id": "HTTPONLY_COOKIE",
+              "shortDescription": {
+                "text": "Cookie without the HttpOnly flag."
+              },
+              "messageStrings": {
+                "default": {
+                  "text": "Cookie without the HttpOnly flag could be read by a malicious script in the browser."
+                }
+              },
+              "helpUri": "https://find-sec-bugs.github.io/bugs.htm#HTTPONLY_COOKIE",
+              "properties": {
+                "tags": ["SECURITY"]
+              }
+            },
+            {
+              "id": "INSECURE_COOKIE",
+              "shortDescription": {
+                "text": "Cookie without the secure flag."
+              },
+              "messageStrings": {
+                "default": {
+                  "text": "Cookie without the secure flag could be sent in clear text if a HTTP URL is visited."
+                }
+              },
+              "helpUri": "https://find-sec-bugs.github.io/bugs.htm#INSECURE_COOKIE",
+              "properties": {
+                "tags": ["SECURITY"]
+              }
+            },
+            {
+              "id": "REQUESTDISPATCHER_FILE_DISCLOSURE",
+              "shortDescription": {
+                "text": "RequestDispatcher File Disclosure."
+              },
+              "messageStrings": {
+                "default": {
+                  "text": "RequestDispatcher populated with user controlled parameters."
+                }
+              },
+              "helpUri": "https://find-sec-bugs.github.io/bugs.htm#REQUESTDISPATCHER_FILE_DISCLOSURE",
+              "properties": {
+                "tags": ["SECURITY"]
+              }
+            },
+            {
+              "id": "UNVALIDATED_REDIRECT",
+              "shortDescription": {
+                "text": "Unvalidated Redirect."
+              },
+              "messageStrings": {
+                "default": {
+                  "text": "The following redirection could be used by an attacker to redirect users to a phishing website."
+                }
+              },
+              "helpUri": "https://find-sec-bugs.github.io/bugs.htm#UNVALIDATED_REDIRECT",
+              "properties": {
+                "tags": ["SECURITY"]
+              }
+            },
+            {
+              "id": "WEAK_MESSAGE_DIGEST_SHA1",
+              "shortDescription": {
+                "text": "SHA-1 is a weak hash function."
+              },
+              "messageStrings": {
+                "default": {
+                  "text": "This API {0} (SHA-1) is not a recommended cryptographic hash function."
+                }
+              },
+              "helpUri": "https://find-sec-bugs.github.io/bugs.htm#WEAK_MESSAGE_DIGEST_SHA1",
+              "properties": {
+                "tags": ["SECURITY"]
+              }
+            },
+            {
+              "id": "UNENCRYPTED_SOCKET",
+              "shortDescription": {
+                "text": "Unencrypted Socket."
+              },
+              "messageStrings": {
+                "default": {
+                  "text": "Unencrypted socket to {0} (instead of SSLSocket)."
+                }
+              },
+              "helpUri": "https://find-sec-bugs.github.io/bugs.htm#UNENCRYPTED_SOCKET",
+              "properties": {
+                "tags": ["SECURITY"]
+              }
+            },
+            {
+              "id": "EL_INJECTION",
+              "shortDescription": {
+                "text": "Potential code injection when using Expression Language (EL)."
+              },
+              "messageStrings": {
+                "default": {
+                  "text": "This use of {0} could be vulnerable to code injection (Expression Language)."
+                }
+              },
+              "helpUri": "https://find-sec-bugs.github.io/bugs.htm#EL_INJECTION",
+              "properties": {
+                "tags": ["SECURITY"]
+              }
+            },
+            {
+              "id": "URL_REWRITING",
+              "shortDescription": {
+                "text": "URL rewriting method."
+              },
+              "messageStrings": {
+                "default": {
+                  "text": "Method rewriting session ID into the URL."
+                }
+              },
+              "helpUri": "https://find-sec-bugs.github.io/bugs.htm#URL_REWRITING",
+              "properties": {
+                "tags": ["SECURITY"]
+              }
+            },
+            {
+              "id": "COMMAND_INJECTION",
+              "shortDescription": {
+                "text": "Potential Command Injection."
+              },
+              "messageStrings": {
+                "default": {
+                  "text": "This usage of {0} can be vulnerable to Command Injection."
+                }
+              },
+              "helpUri": "https://find-sec-bugs.github.io/bugs.htm#COMMAND_INJECTION",
+              "properties": {
+                "tags": ["SECURITY"]
+              }
+            },
+            {
+              "id": "DANGEROUS_PERMISSION_COMBINATION",
+              "shortDescription": {
+                "text": "Dangerous combination of permissions granted."
+              },
+              "messageStrings": {
+                "default": {
+                  "text": "Granting permission {0} on the target {1} in method {2} is dangerous."
+                }
+              },
+              "helpUri": "https://find-sec-bugs.github.io/bugs.htm#DANGEROUS_PERMISSION_COMBINATION",
+              "properties": {
+                "tags": ["SECURITY"]
+              }
+            },
+            {
+              "id": "BAD_HEXA_CONVERSION",
+              "shortDescription": {
+                "text": "Bad hexadecimal concatenation."
+              },
+              "messageStrings": {
+                "default": {
+                  "text": "Leading zeros are omitted in the concatenation increasing collision potential."
+                }
+              },
+              "helpUri": "https://find-sec-bugs.github.io/bugs.htm#BAD_HEXA_CONVERSION",
+              "properties": {
+                "tags": ["SECURITY"]
+              }
+            },
+            {
+              "id": "HARD_CODE_KEY",
+              "shortDescription": {
+                "text": "Hard coded key."
+              },
+              "messageStrings": {
+                "default": {
+                  "text": "Hard coded cryptographic key found."
+                }
+              },
+              "helpUri": "https://find-sec-bugs.github.io/bugs.htm#HARD_CODE_KEY",
+              "properties": {
+                "tags": ["SECURITY"]
+              }
+            },
+            {
+              "id": "STATIC_IV",
+              "shortDescription": {
+                "text": "Static IV."
+              },
+              "messageStrings": {
+                "default": {
+                  "text": "The initialization vector (IV) is not properly generated."
+                }
+              },
+              "helpUri": "https://find-sec-bugs.github.io/bugs.htm#STATIC_IV",
+              "properties": {
+                "tags": ["SECURITY"]
+              }
+            },
+            {
+              "id": "WEAK_TRUST_MANAGER",
+              "shortDescription": {
+                "text": "TrustManager that accept any certificates."
+              },
+              "messageStrings": {
+                "default": {
+                  "text": "TrustManager that accept any certificates makes communication vulnerable to a MITM attack."
+                }
+              },
+              "helpUri": "https://find-sec-bugs.github.io/bugs.htm#WEAK_TRUST_MANAGER",
+              "properties": {
+                "tags": ["SECURITY"]
+              }
+            },
+            {
+              "id": "CUSTOM_MESSAGE_DIGEST",
+              "shortDescription": {
+                "text": "Message digest is custom."
+              },
+              "messageStrings": {
+                "default": {
+                  "text": "{0} is a custom cryptographic hash function implementation."
+                }
+              },
+              "helpUri": "https://find-sec-bugs.github.io/bugs.htm#CUSTOM_MESSAGE_DIGEST",
+              "properties": {
+                "tags": ["SECURITY"]
+              }
+            },
+            {
+              "id": "SPRING_CSRF_UNRESTRICTED_REQUEST_MAPPING",
+              "shortDescription": {
+                "text": "Spring CSRF unrestricted RequestMapping."
+              },
+              "messageStrings": {
+                "default": {
+                  "text": "Unrestricted Spring\u0027s RequestMapping makes the method vulnerable to CSRF attacks."
+                }
+              },
+              "helpUri": "https://find-sec-bugs.github.io/bugs.htm#SPRING_CSRF_UNRESTRICTED_REQUEST_MAPPING",
+              "properties": {
+                "tags": ["SECURITY"]
+              }
+            },
+            {
+              "id": "SPRING_FILE_DISCLOSURE",
+              "shortDescription": {
+                "text": "Spring File Disclosure."
+              },
+              "messageStrings": {
+                "default": {
+                  "text": "ModelAndView populated with user controlled parameters."
+                }
+              },
+              "helpUri": "https://find-sec-bugs.github.io/bugs.htm#SPRING_FILE_DISCLOSURE",
+              "properties": {
+                "tags": ["SECURITY"]
+              }
+            },
+            {
+              "id": "SPRING_CSRF_PROTECTION_DISABLED",
+              "shortDescription": {
+                "text": "Spring CSRF protection disabled."
+              },
+              "messageStrings": {
+                "default": {
+                  "text": "Disabling Spring Security\u0027s CSRF protection is unsafe for standard web applications."
+                }
+              },
+              "helpUri": "https://find-sec-bugs.github.io/bugs.htm#SPRING_CSRF_PROTECTION_DISABLED",
+              "properties": {
+                "tags": ["SECURITY"]
+              }
+            },
+            {
+              "id": "UNSAFE_HASH_EQUALS",
+              "shortDescription": {
+                "text": "Unsafe hash equals."
+              },
+              "messageStrings": {
+                "default": {
+                  "text": "Unsafe comparison of hash that are susceptible to timing attack."
+                }
+              },
+              "helpUri": "https://find-sec-bugs.github.io/bugs.htm#UNSAFE_HASH_EQUALS",
+              "properties": {
+                "tags": ["SECURITY"]
+              }
+            },
+            {
+              "id": "ENTITY_LEAK",
+              "shortDescription": {
+                "text": "Unexpected property leak."
+              },
+              "messageStrings": {
+                "default": {
+                  "text": "Unexpected property could be leaked because a persistence class is directly exposed to the client."
+                }
+              },
+              "helpUri": "https://find-sec-bugs.github.io/bugs.htm#ENTITY_LEAK",
+              "properties": {
+                "tags": ["SECURITY"]
+              }
+            },
+            {
+              "id": "ENTITY_MASS_ASSIGNMENT",
+              "shortDescription": {
+                "text": "Mass assignment."
+              },
+              "messageStrings": {
+                "default": {
+                  "text": "The persistent objects could be exploited by attacker to read sensitive information."
+                }
+              },
+              "helpUri": "https://find-sec-bugs.github.io/bugs.htm#ENTITY_MASS_ASSIGNMENT",
+              "properties": {
+                "tags": ["SECURITY"]
+              }
+            },
+            {
+              "id": "SQL_INJECTION_SPRING_JDBC",
+              "shortDescription": {
+                "text": "Potential JDBC Injection (Spring JDBC)."
+              },
+              "messageStrings": {
+                "default": {
+                  "text": "This use of {0} can be vulnerable to SQL injection (with Spring JDBC)."
+                }
+              },
+              "helpUri": "https://find-sec-bugs.github.io/bugs.htm#SQL_INJECTION_SPRING_JDBC",
+              "properties": {
+                "tags": ["SECURITY"]
+              }
+            },
+            {
+              "id": "SSL_CONTEXT",
+              "shortDescription": {
+                "text": "Weak SSLContext."
+              },
+              "messageStrings": {
+                "default": {
+                  "text": "SSLContext needs to be compatible with TLS 1.2."
+                }
+              },
+              "helpUri": "https://find-sec-bugs.github.io/bugs.htm#SSL_CONTEXT",
+              "properties": {
+                "tags": ["SECURITY"]
+              }
+            },
+            {
+              "id": "WEAK_HOSTNAME_VERIFIER",
+              "shortDescription": {
+                "text": "HostnameVerifier that accept any signed certificates."
+              },
+              "messageStrings": {
+                "default": {
+                  "text": "HostnameVerifier that accept any signed certificates makes communication vulnerable to a MITM attack."
+                }
+              },
+              "helpUri": "https://find-sec-bugs.github.io/bugs.htm#WEAK_HOSTNAME_VERIFIER",
+              "properties": {
+                "tags": ["SECURITY"]
+              }
+            },
+            {
+              "id": "SPEL_INJECTION",
+              "shortDescription": {
+                "text": "Potential code injection when using Spring Expression."
+              },
+              "messageStrings": {
+                "default": {
+                  "text": "This use of {0} could be vulnerable to code injection (Spring Expression)."
+                }
+              },
+              "helpUri": "https://find-sec-bugs.github.io/bugs.htm#SPEL_INJECTION",
+              "properties": {
+                "tags": ["SECURITY"]
+              }
+            },
+            {
+              "id": "SQL_INJECTION_JPA",
+              "shortDescription": {
+                "text": "Potential SQL/JPQL Injection (JPA)."
+              },
+              "messageStrings": {
+                "default": {
+                  "text": "This use of {0} can be vulnerable to SQL/JPQL injection (with JPA)."
+                }
+              },
+              "helpUri": "https://find-sec-bugs.github.io/bugs.htm#SQL_INJECTION_JPA",
+              "properties": {
+                "tags": ["SECURITY"]
+              }
+            },
+            {
+              "id": "SQL_INJECTION_HIBERNATE",
+              "shortDescription": {
+                "text": "Potential SQL/HQL Injection (Hibernate)."
+              },
+              "messageStrings": {
+                "default": {
+                  "text": "This use of {0} can be vulnerable to SQL/HQL injection (with Hibernate)."
+                }
+              },
+              "helpUri": "https://find-sec-bugs.github.io/bugs.htm#SQL_INJECTION_HIBERNATE",
+              "properties": {
+                "tags": ["SECURITY"]
+              }
+            },
+            {
+              "id": "SCRIPT_ENGINE_INJECTION",
+              "shortDescription": {
+                "text": "Potential code injection when using Script Engine."
+              },
+              "messageStrings": {
+                "default": {
+                  "text": "This use of {0} can be vulnerable to code injection."
+                }
+              },
+              "helpUri": "https://find-sec-bugs.github.io/bugs.htm#SCRIPT_ENGINE_INJECTION",
+              "properties": {
+                "tags": ["SECURITY"]
+              }
+            },
+            {
+              "id": "JACKSON_UNSAFE_DESERIALIZATION",
+              "shortDescription": {
+                "text": "Unsafe Jackson deserialization configuration."
+              },
+              "messageStrings": {
+                "default": {
+                  "text": "Unsafe Jackson deserialization configuration used in {0} {1} {2}."
+                }
+              },
+              "helpUri": "https://find-sec-bugs.github.io/bugs.htm#JACKSON_UNSAFE_DESERIALIZATION",
+              "properties": {
+                "tags": ["SECURITY"]
+              }
+            },
+            {
+              "id": "FILE_UPLOAD_FILENAME",
+              "shortDescription": {
+                "text": "Tainted filename read."
+              },
+              "messageStrings": {
+                "default": {
+                  "text": "The filename read can be tampered with by the client."
+                }
+              },
+              "helpUri": "https://find-sec-bugs.github.io/bugs.htm#FILE_UPLOAD_FILENAME",
+              "properties": {
+                "tags": ["SECURITY"]
+              }
+            },
+            {
+              "id": "HTTP_RESPONSE_SPLITTING",
+              "shortDescription": {
+                "text": "Potential HTTP Response Splitting."
+              },
+              "messageStrings": {
+                "default": {
+                  "text": "This use of {0} might be used to include CRLF characters into HTTP headers."
+                }
+              },
+              "helpUri": "https://find-sec-bugs.github.io/bugs.htm#HTTP_RESPONSE_SPLITTING",
+              "properties": {
+                "tags": ["SECURITY"]
+              }
+            },
+            {
+              "id": "TEMPLATE_INJECTION_FREEMARKER",
+              "shortDescription": {
+                "text": "Potential template injection with Freemarker."
+              },
+              "messageStrings": {
+                "default": {
+                  "text": "Potential template injection with Freemarker template."
+                }
+              },
+              "helpUri": "https://find-sec-bugs.github.io/bugs.htm#TEMPLATE_INJECTION_FREEMARKER",
+              "properties": {
+                "tags": ["SECURITY"]
+              }
+            }
+          ]
+        }
+      },
+      "invocations": [
+        {
+          "exitCode": 1,
+          "exitSignalName": "ERROR,MISSING CLASS,BUGS FOUND",
+          "executionSuccessful": false
+        }
+      ],
+      "results": [
+        {
+          "ruleId": "PATH_TRAVERSAL_IN",
+          "ruleIndex": 0,
+          "message": {
+            "id": "default",
+            "text": "Potential Path Traversal (file read)",
+            "arguments": ["java/io/File.\u003cinit\u003e(Ljava/lang/String;)V"]
+          },
+          "level": "warning",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "antlr/ImportVocabTokenManager.java"
+                },
+                "region": {
+                  "startLine": 33
+                }
+              },
+              "logicalLocations": [
+                {
+                  "name": "new ImportVocabTokenManager(Grammar, String, String, Tool)",
+                  "kind": "function",
+                  "fullyQualifiedName": "new antlr.ImportVocabTokenManager(Grammar, String, String, Tool)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "ruleId": "PATH_TRAVERSAL_IN",
+          "ruleIndex": 0,
+          "message": {
+            "id": "default",
+            "text": "Potential Path Traversal (file read)",
+            "arguments": [
+              "java/io/File.\u003cinit\u003e(Ljava/lang/String;Ljava/lang/String;)V"
+            ]
+          },
+          "level": "warning",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "antlr/ImportVocabTokenManager.java"
+                },
+                "region": {
+                  "startLine": 36
+                }
+              },
+              "logicalLocations": [
+                {
+                  "name": "new ImportVocabTokenManager(Grammar, String, String, Tool)",
+                  "kind": "function",
+                  "fullyQualifiedName": "new antlr.ImportVocabTokenManager(Grammar, String, String, Tool)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "ruleId": "PATH_TRAVERSAL_IN",
+          "ruleIndex": 0,
+          "message": {
+            "id": "default",
+            "text": "Potential Path Traversal (file read)",
+            "arguments": ["java/io/File.\u003cinit\u003e(Ljava/lang/String;)V"]
+          },
+          "level": "warning",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "antlr/PreservingFileWriter.java"
+                },
+                "region": {
+                  "startLine": 27
+                }
+              },
+              "logicalLocations": [
+                {
+                  "name": "new PreservingFileWriter(String)",
+                  "kind": "function",
+                  "fullyQualifiedName": "new antlr.PreservingFileWriter(String)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "ruleId": "PATH_TRAVERSAL_IN",
+          "ruleIndex": 0,
+          "message": {
+            "id": "default",
+            "text": "Potential Path Traversal (file read)",
+            "arguments": ["java/io/File.\u003cinit\u003e(Ljava/lang/String;)V"]
+          },
+          "level": "warning",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "antlr/PreservingFileWriter.java"
+                },
+                "region": {
+                  "startLine": 32
+                }
+              },
+              "logicalLocations": [
+                {
+                  "name": "new PreservingFileWriter(String)",
+                  "kind": "function",
+                  "fullyQualifiedName": "new antlr.PreservingFileWriter(String)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "ruleId": "PATH_TRAVERSAL_IN",
+          "ruleIndex": 0,
+          "message": {
+            "id": "default",
+            "text": "Potential Path Traversal (file read)",
+            "arguments": ["java/io/File.\u003cinit\u003e(Ljava/lang/String;)V"]
+          },
+          "level": "warning",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "antlr/PreservingFileWriter.java"
+                },
+                "region": {
+                  "startLine": 43
+                }
+              },
+              "logicalLocations": [
+                {
+                  "name": "new PreservingFileWriter(String)",
+                  "kind": "function",
+                  "fullyQualifiedName": "new antlr.PreservingFileWriter(String)"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "originalUriBaseIds": {}
+    }
+  ]
+}

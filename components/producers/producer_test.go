@@ -228,6 +228,11 @@ func TestGetFileTarget(t *testing.T) {
 			want:     "file:///path/to/file.txt:1-2",
 		},
 		{
+			name:     "Test with relative path",
+			filePath: "./path/to/file.txt",
+			want:     "file:///path/to/file.txt:1-2",
+		},
+		{
 			name:     "Test with empty path",
 			filePath: "",
 			want:     "",

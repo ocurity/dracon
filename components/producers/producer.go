@@ -170,8 +170,11 @@ func GetFileTarget(filePath string, startLine int, endLine int) string {
 	if filePath == "" {
 		return ""
 	}
-	url := url.URL{Scheme: "file", Path: filePath}
 
+	// Handle varying prefixes
+	filePath = strings.TrimPrefix(filePath, ".") // Remove leading dot
+
+	url := url.URL{Scheme: "file", Path: filePath}
 	return fmt.Sprintf("%s:%d-%d", url.String(), startLine, endLine)
 }
 

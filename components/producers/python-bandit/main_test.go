@@ -24,7 +24,7 @@ var code = `q += ' LIMIT + %(limit)s '
             return [Student.from_raw(r) for r in results]`
 
 func TestParseIssues(t *testing.T) {
-	f, err := testutil.CreateFile("bandit_tests_vuln_code", code)
+	f, err := testutil.CreateFile("bandit_tests_vuln_code.py", code)
 	require.NoError(t, err)
 	defer func() { require.NoError(t, os.Remove(f.Name())) }()
 
@@ -41,7 +41,7 @@ func TestParseIssues(t *testing.T) {
 	}
 	expectedIssues := []*v1.Issue{
 		{
-			Target:         f.Name() + ":5",
+			Target:         fmt.Sprintf("file://%s:5-5", f.Name()),
 			Type:           "B404",
 			Title:          "blacklist",
 			Severity:       v1.Severity_SEVERITY_LOW,
@@ -55,7 +55,7 @@ func TestParseIssues(t *testing.T) {
 			Cwe:            []int32{78},
 		},
 		{
-			Target:         f.Name() + ":6",
+			Target:         fmt.Sprintf("file://%s:6-6", f.Name()),
 			Type:           "B603",
 			Title:          "subprocess_without_shell_equals_true",
 			Severity:       v1.Severity_SEVERITY_LOW,
