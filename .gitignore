@@ -6,4 +6,4 @@ bin
 .custom_image
 tests/output
 .vscode/
-deploy/dracon/charts
+deploy/dracon/chart/charts
