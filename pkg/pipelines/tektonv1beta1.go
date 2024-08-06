@@ -90,7 +90,7 @@ func (k k8sOrchestrator) Prepare(ctx context.Context, pipelineComponents []compo
 				return ErrNotResolved
 			}
 
-			err := components.ProcessTasks(components.NoImagePinning, pipelineComponent.Manifest.(*tektonv1beta1api.Task))
+			err := components.ProcessTasks(pipelineComponent.Manifest.(*tektonv1beta1api.Task))
 			if err != nil {
 				return err
 			}

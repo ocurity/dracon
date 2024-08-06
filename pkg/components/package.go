@@ -6,7 +6,6 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"strings"
 
 	"github.com/go-errors/errors"
 	tektonv1beta1api "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1beta1"
@@ -58,7 +57,7 @@ func Package(ctx context.Context, name, componentFolder string, draconVersion st
 		return errors.Errorf("could not load tasks: %w", err)
 	}
 
-	if err = ProcessTasks(draconVersion, taskList...); err != nil {
+	if err = ProcessTasks(taskList...); err != nil {
 		return errors.Errorf("could not process tasks: %w", err)
 	}
 
@@ -91,15 +90,10 @@ func LoadTasks(ctx context.Context, taskPaths []string) ([]*tektonv1beta1api.Tas
 	return taskList, nil
 }
 
-// NoImagePinning signals to the ProcessTasks function that the Task images
-// should not be modified.
-const NoImagePinning string = ""
-
 // ProcessTasks adds anchors, environment variables, parameters and any
 // extra infrastructure required for a Task to become a useful part of a
-// pipeline. If the draconVersion is set to any value other than
-// `NoImagePinning`, the tag of every Task image will be set to that version.
-func ProcessTasks(draconVersion string, taskList ...*tektonv1beta1api.Task) error {
+// pipeline.
+func ProcessTasks(taskList ...*tektonv1beta1api.Task) error {
 	for _, task := range taskList {
 		if err := addAnchorParameter(task); err != nil {
 			return err
@@ -109,9 +103,6 @@ func ProcessTasks(draconVersion string, taskList ...*tektonv1beta1api.Task) erro
 		}
 		if err := addEnvVarsToTask(task); err != nil {
 			return err
-		}
-		if draconVersion != NoImagePinning {
-			fixImageVersion(task, draconVersion)
 		}
 	}
 
@@ -316,18 +307,4 @@ func addEnvVarsToTask(task *tektonv1beta1api.Task) error {
 	}
 
 	return nil
-}
-
-// fixImageVersion replaces the image tag with the draconVersion
-func fixImageVersion(task *tektonv1beta1api.Task, draconVersion string) {
-	for i, step := range task.Spec.Steps {
-		// the image is the value of a parameter so we can't do much over her
-		if strings.HasPrefix("$(", step.Image) {
-			continue
-		}
-		if updatedImage, isSetToLatest := strings.CutSuffix(step.Image, ":latest"); isSetToLatest {
-			step.Image = updatedImage + ":" + draconVersion
-			task.Spec.Steps[i] = step
-		}
-	}
 }
