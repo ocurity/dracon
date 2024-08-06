@@ -10,7 +10,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 	tektonv1beta1api "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1beta1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/ocurity/dracon/pkg/manifests"
 )
@@ -51,13 +50,7 @@ func TestCreateHelmPackage(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	require.NoError(t, ProcessTasks(draconVersion, taskList...))
-	require.False(t, strings.HasSuffix(taskList[0].Spec.Steps[0].Image, draconVersion))
-	require.False(t, strings.HasSuffix(taskList[2].Spec.Steps[0].Image, draconVersion))
-	require.True(t, strings.HasSuffix(taskList[2].Spec.Steps[1].Image, draconVersion))
-	require.True(t, strings.HasSuffix(taskList[3].Spec.Steps[1].Image, draconVersion))
-	require.True(t, strings.HasSuffix(taskList[4].Spec.Steps[1].Image, draconVersion))
-	require.True(t, strings.HasSuffix(taskList[5].Spec.Steps[0].Image, draconVersion))
+	require.NoError(t, ProcessTasks(taskList...))
 	require.Len(t, taskList[2].Spec.Steps[1].Env, 3)
 	require.Equal(t, "DRACON_SCAN_TIME", taskList[2].Spec.Steps[1].Env[0].Name)
 	require.Equal(t, "DRACON_SCAN_ID", taskList[2].Spec.Steps[1].Env[1].Name)
@@ -120,63 +113,5 @@ version: %s
 		}
 
 		require.Equal(t, "anchor", task.Spec.Steps[len(task.Spec.Steps)-1].Name, "task %s has no anchor step", task.Name)
-	}
-}
-
-func TestImagePinning(t *testing.T) {
-	testCases := []struct {
-		name     string
-		image    string
-		expected string
-	}{
-		{
-			name:     "test_pinned_to_latest",
-			image:    "{{ default 'ghcr.io/ocurity/dracon' .Values.container_registry }}/components/enrichers/aggregator:latest",
-			expected: "{{ default 'ghcr.io/ocurity/dracon' .Values.container_registry }}/components/enrichers/aggregator:1.0.1",
-		},
-		{
-			name:     "test_pinned_to_some_version",
-			image:    "docker.io/library/buildpack-deps:stable-curl@sha256:3d5e59c47d5f82a769ad3f372cc9f86321e2e2905141bba974b75d3c08a53e8e",
-			expected: "docker.io/library/buildpack-deps:stable-curl@sha256:3d5e59c47d5f82a769ad3f372cc9f86321e2e2905141bba974b75d3c08a53e8e",
-		},
-		{
-			name:     "test_image_is_a_parameter",
-			image:    "$(taskName.param.some-image)",
-			expected: "$(taskName.param.some-image)",
-		},
-	}
-
-	// Initialize an empty slice for steps
-	var steps []tektonv1beta1api.Step
-
-	// Loop over the testCases slice
-	for _, testCase := range testCases {
-		// Create a step for each testCase and append to the steps slice
-		steps = append(steps, tektonv1beta1api.Step{
-			Name:  testCase.name,
-			Image: testCase.image,
-		})
-	}
-
-	// Create the task with the dynamically created steps
-	task := &tektonv1beta1api.Task{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "testImageFixing",
-		},
-		Spec: tektonv1beta1api.TaskSpec{
-			Steps: steps,
-		},
-	}
-
-	fixImageVersion(task, "1.0.1")
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			for _, step := range task.Spec.Steps {
-				if step.Name == tc.name {
-					require.Equal(t, tc.expected, step.Image)
-				}
-			}
-		})
 	}
 }
