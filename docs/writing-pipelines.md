@@ -68,7 +68,7 @@ We can manage this chart as any other Helm chart and install it with:
 
 ```bash
 helm upgrade go-pipeline ./go-pipeline --install \
-     --set "container_registry=kind-registry:5000/ocurity/dracon" \
+     --set "image.registry=kind-registry:5000/ocurity/dracon" \
      --set "dracon_os_component_version=$(make print-DRACON_VERSION)"
 ```
 

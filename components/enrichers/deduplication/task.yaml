@@ -12,7 +12,7 @@ spec:
   steps:
   - name: run-enricher
     imagePullPolicy: IfNotPresent
-    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/enrichers/deduplication:{{ .Chart.AppVersion }}'
+    image: '{{ default "ghcr.io/ocurity/dracon" .Values.image.registry }}/components/enrichers/deduplication:{{ .Chart.AppVersion }}'
     command: ["/app/components/enrichers/deduplication/deduplication"]
     env:
     - name: ENRICHER_READ_PATH

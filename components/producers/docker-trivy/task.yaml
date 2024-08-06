@@ -48,7 +48,7 @@ spec:
 
   - name: produce-issues
     imagePullPolicy: IfNotPresent
-    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/docker-trivy:{{ .Chart.AppVersion }}'
+    image: '{{ default "ghcr.io/ocurity/dracon" .Values.image.registry }}/components/producers/docker-trivy:{{ .Chart.AppVersion }}'
     command: ["/app/components/producers/docker-trivy/docker-trivy-parser"]
     args:
     - "-format=$(params.producer-docker-trivy-format)"

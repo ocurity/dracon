@@ -28,7 +28,7 @@ spec:
   steps:
   - name: produce-issues
     imagePullPolicy: IfNotPresent
-    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/dependency-track:{{ .Chart.AppVersion }}'
+    image: '{{ default "ghcr.io/ocurity/dracon" .Values.image.registry }}/components/producers/dependency-track:{{ .Chart.AppVersion }}'
     command: ["app/components/producers/dependency-track/dependency-track-parser"]
     args:
     - "-fetchVulnerabilities=$(params.producer-dependency-track-fetch-vulnerabilities)"

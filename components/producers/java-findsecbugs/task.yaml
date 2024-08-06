@@ -49,7 +49,7 @@ spec:
 
   - name: produce-issues
     imagePullPolicy: IfNotPresent
-    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/java-findsecbugs:{{ .Chart.AppVersion }}'
+    image: '{{ default "ghcr.io/ocurity/dracon" .Values.image.registry }}/components/producers/java-findsecbugs:{{ .Chart.AppVersion }}'
     command: ["/app/components/producers/java-findsecbugs/java-findsecbugs-parser"]
     args:
     - "-in=/scratch/out.xml"
