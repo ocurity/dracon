@@ -216,7 +216,7 @@ you can do so with the following slightly modified helm command
 helm upgrade ${CUSTOM_HELM_COMPONENT_PACKAGE_NAME} ./${CUSTOM_HELM_COMPONENT_PACKAGE_NAME}-${CUSTOM_DRACON_VERSION}.tgz \
   --install \
   --namespace dracon\
-  --set container_registry=kind-registry:5000/ocurity/dracon
+  --set image.registry=kind-registry:5000/ocurity/dracon
 ```
 
 After changes to your components you need to redeploy, you can do so as such:
@@ -233,7 +233,7 @@ helm upgrade ${CUSTOM_HELM_COMPONENT_PACKAGE_NAME} \
   ./${CUSTOM_HELM_COMPONENT_PACKAGE_NAME}-${CUSTOM_DRACON_VERSION}.tgz   \
   --install \
   --namespace dracon \
-  --set container_registry=kind-registry:5000/ocurity/dracon
+  --set image.registry=kind-registry:5000/ocurity/dracon
 ```
 
 ````

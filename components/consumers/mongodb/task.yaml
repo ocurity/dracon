@@ -22,7 +22,7 @@ spec:
   steps:
   - name: run-consumer
     imagePullPolicy: IfNotPresent
-    image: '{{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/consumers/mongodb:{{ .Chart.AppVersion }}'
+    image: '{{ default "ghcr.io/ocurity/dracon" .Values.image.registry }}/components/consumers/mongodb:{{ .Chart.AppVersion }}'
     command: ["/app/components/consumers/mongodb/mongodb"]
     args: [
       "-in", "$(workspaces.output.path)/.dracon/enrichers/",

@@ -215,12 +215,12 @@ dev-dracon: deploy-elasticoperator deploy-arangodb-crds add-bitnami-repo
 	@helm dependency build ./deploy/dracon/chart
 	@echo "deploying dracon in dev mode"
 	@helm upgrade dracon ./deploy/dracon/chart \
-	 	  --install \
-		  --values ./deploy/dracon/values/dev.yaml \
-		  --create-namespace \
-		  --namespace $(DRACON_NS) \
-		  --set "deduplication-db-migrations.image.tag=$(DRACON_VERSION)"
-		  --wait
+		--install \
+		--values ./deploy/dracon/values/dev.yaml \
+		--create-namespace \
+		--namespace $(DRACON_NS) \
+		--set "deduplication-db-migrations.image.tag=$(DRACON_VERSION)" \
+		--wait
 	@helm upgrade $(DRACON_OSS_COMPONENTS_NAME) oci://ghcr.io/ocurity/dracon/charts/$(DRACON_OSS_COMPONENTS_NAME) \
 		--install \
 		--namespace $(DRACON_NS) \
@@ -244,8 +244,8 @@ dev-update-oss-components: cmd/draconctl/bin
 	@helm upgrade $(DRACON_OSS_COMPONENTS_NAME) \
 		./$(DRACON_OSS_COMPONENTS_NAME)-$(DRACON_VERSION).tgz \
 		--install \
-		--namespace dracon \
-		--set container_registry=kind-registry:5000/ocurity/dracon
+		--namespace $(DRACON_NS) \
+		--values ./deploy/dracon/values/dev.yaml
 	@echo "Done! Bumped version to $(DRACON_VERSION)"
 
 generate-protos: install-lint-tools

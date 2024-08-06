@@ -36,7 +36,7 @@ spec:
 
   - name: produce-issues
     imagePullPolicy: IfNotPresent
-    image: {{ default "ghcr.io/ocurity/dracon" .Values.container_registry }}/components/producers/example-tool:{{ .Chart.AppVersion }}
+    image: {{ default "ghcr.io/ocurity/dracon" .Values.image.registry }}/components/producers/example-tool:{{ .Chart.AppVersion }}
     command: ["/app/components/producers/example-tool/example-tool-parser"]
     args:
     - "-in=/scratch/out.json"
