@@ -1,3 +1,6 @@
+# Developer vars
+# The following variables are used to define the developer environment
+# e.g. what are the test packages, or the latest tag, these are used by make targets that build things
 component_binaries=$(shell find ./components -name main.go | xargs -I'{}' sh -c 'echo $$(dirname {})/bin')
 component_containers=$(shell find ./components -name main.go | xargs -I'{}' sh -c 'echo $$(dirname {})/docker')
 component_containers_publish=$(component_containers:docker=publish)
@@ -5,12 +8,18 @@ protos=$(shell find . -not -path './vendor/*' -name '*.proto')
 go_protos=$(protos:.proto=.pb.go)
 latest_tag=$(shell git tag --list --sort="-version:refname" | head -n 1)
 commits_since_latest_tag=$(shell git log --oneline $(latest_tag)..HEAD | wc -l)
-
 GO_TEST_PACKAGES=$(shell go list ./... | grep -v /vendor/)
+
+# Deployment vars
+#  The following variables are used to define the deployment environment
+# e.g. what are the versions of the components, or the container registry, these are used by make targets that deploy things
 CONTAINER_REPO=ghcr.io/ocurity/dracon
 SOURCE_CODE_REPO=https://github.com/ocurity/dracon
-DRACON_VERSION=$(shell echo $(latest_tag)$$([ $(commits_since_latest_tag) -eq 0 ] || echo "-$$(git log -n 1 --pretty='format:%h')" )$$([ -z "$$(git status --porcelain=v1 2>/dev/null)" ] || echo "-dirty" ))
+DRACON_DEV_VERSION=$(shell echo $(latest_tag)$$([ $(commits_since_latest_tag) -eq 0 ] || echo "-$$(git log -n 1 --pretty='format:%h')" )$$([ -z "$$(git status --porcelain=v1 2>/dev/null)" ] || echo "-dirty" ))
+DRACON_VERSION=$(shell (echo $(CONTAINER_REPO) | grep -q '^ghcr' && echo $(latest_tag)) || echo $(DRACON_DEV_VERSION) )
 DRACON_OSS_COMPONENTS_NAME=dracon-oss-components
+DRACON_OSS_COMPONENTS_PACKAGE_URL=oci://ghcr.io/ocurity/dracon/charts/$(DRACON_OSS_COMPONENTS_NAME)
+
 TEKTON_VERSION=0.44.0
 TEKTON_DASHBOARD_VERSION=0.29.2
 ARANGODB_VERSION=1.2.19
@@ -156,7 +165,8 @@ print-%:
 ########## DEPLOYMENT TARGETS ##########
 ########################################
 .PHONY: deploy-nginx deploy-arangodb-crds deploy-arangodb-operator add-es-helm-repo deploy-elasticoperator \
-		tektoncd-dashboard-helm deploy-tektoncd-dashboard add-bitnami-repo dev-dracon dev-deploy dev-teardown
+		tektoncd-dashboard-helm deploy-tektoncd-dashboard add-bitnami-repo dev-dracon dev-deploy dev-teardown \
+		install install-oss-components deploy-cluster
 
 deploy-nginx:
 	@helm upgrade nginx-ingress https://github.com/kubernetes/ingress-nginx/releases/download/helm-chart-$(NGINX_INGRESS_VERSION)/ingress-nginx-$(NGINX_INGRESS_VERSION).tgz \
@@ -210,43 +220,80 @@ deploy-tektoncd-dashboard: tektoncd-dashboard-helm
 add-bitnami-repo:
 	@helm repo add bitnami https://charts.bitnami.com/bitnami
 
-dev-dracon: deploy-elasticoperator deploy-arangodb-crds add-bitnami-repo
+deploy-cluster:
+	@scripts/kind-with-registry.sh
+
+install: deploy-cluster deploy-elasticoperator deploy-arangodb-crds add-bitnami-repo
 	@echo "fetching dependencies if needed"
 	@helm dependency build ./deploy/dracon/chart
-	@echo "deploying dracon in dev mode"
+
+	@echo "deploying dracon"
 	@helm upgrade dracon ./deploy/dracon/chart \
+	 	  --install \
+		  --values ./deploy/dracon/values/dev.yaml \
+		  --create-namespace \
+		  --set "image.registry=$(CONTAINER_REPO)" \
+		  --namespace $(DRACON_NS) \
+		  --version $(DRACON_VERSION) \
+		  --wait
+
+	@echo "Applying migrations"
+	@helm upgrade deduplication-db-migrations ./deploy/deduplication-db-migrations/chart \
+		  --install \
+		  --values ./deploy/deduplication-db-migrations/values/dev.yaml \
+		  --create-namespace \
+		  --set "image.registry=$(CONTAINER_REPO)" \
+		  --namespace $(DRACON_NS) \
+		  --set "image.tag=$(DRACON_VERSION)" \
+		  --wait
+
+	@echo "Installing Components"
+	# we are setting the container repo on itself is so we can override the container repo and package url from other make targets
+	# e.g. when installing oss components from locally built components we want to make install with container_repo being kind-registry, and the package_url being the component tar.gz
+	$(MAKE) install-oss-components CONTAINER_REPO=$(CONTAINER_REPO) DRACON_OSS_COMPONENTS_PACKAGE_URL=$(DRACON_OSS_COMPONENTS_PACKAGE_URL)
+
+dev-deploy-oss-components:
+	@echo "Deploying components in local dracon instance"
+	$(MAKE) dev-build-oss-components CONTAINER_REPO=$(CONTAINER_REPO)
+	$(MAKE) install-oss-components CONTAINER_REPO=$(CONTAINER_REPO) DRACON_OSS_COMPONENTS_PACKAGE_URL=$(DRACON_OSS_COMPONENTS_PACKAGE_URL)
+
+install-oss-components:
+	@helm upgrade $(DRACON_OSS_COMPONENTS_NAME) \
+		$(DRACON_OSS_COMPONENTS_PACKAGE_URL) \
 		--install \
-		--values ./deploy/dracon/values/dev.yaml \
 		--create-namespace \
 		--namespace $(DRACON_NS) \
-		--set "deduplication-db-migrations.image.tag=$(DRACON_VERSION)" \
-		--wait
-	@helm upgrade $(DRACON_OSS_COMPONENTS_NAME) oci://ghcr.io/ocurity/dracon/charts/$(DRACON_OSS_COMPONENTS_NAME) \
-		--install \
-		--namespace $(DRACON_NS) \
-		--version $$(echo "${DRACON_VERSION}" | sed 's/^v//')
+		--set container_registry=$(CONTAINER_REPO)\
+		--values ./deploy/deduplication-db-migrations/values/dev.yaml
+	@echo "Done! Bumped version to $(DRACON_VERSION)"
 
-dev-infra: deploy-nginx deploy-tektoncd-pipeline deploy-tektoncd-dashboard
-
-dev-deploy: dev-infra dev-dracon
-
-dev-teardown:
-	@kind delete clusters dracon-demo
-
-dev-update-oss-components: cmd/draconctl/bin
+dev-build-oss-components: cmd/draconctl/bin
 	@echo "Updating open-source components in local dracon instance..."
-	@make publish-component-containers CONTAINER_REPO=localhost:5000/ocurity/dracon
+	$(eval CONTAINER_REPO:=localhost:5000/ocurity/dracon)
+
+	$(MAKE) -j 16 publish-component-containers CONTAINER_REPO=$(CONTAINER_REPO)
 	@./bin/cmd/draconctl components package \
 		--version $(DRACON_VERSION) \
 		--chart-version $(DRACON_VERSION) \
 		--name $(DRACON_OSS_COMPONENTS_NAME) \
 		./components
-	@helm upgrade $(DRACON_OSS_COMPONENTS_NAME) \
-		./$(DRACON_OSS_COMPONENTS_NAME)-$(DRACON_VERSION).tgz \
-		--install \
-		--namespace $(DRACON_NS) \
-		--values ./deploy/dracon/values/dev.yaml
-	@echo "Done! Bumped version to $(DRACON_VERSION)"
+
+dev-dracon:
+	$(eval CONTAINER_REPO:=localhost:5000/ocurity/dracon)
+	$(eval DRACON_OSS_COMPONENTS_PACKAGE_URL:=./$(DRACON_OSS_COMPONENTS_NAME)-$(DRACON_VERSION).tgz)
+	$(eval IN_CLUSTER_CONTAINER_REPO:=kind-registry:5000/ocurity/dracon)
+	
+	$(MAKE) -j 16 publish-containers CONTAINER_REPO=$(CONTAINER_REPO)
+	$(MAKE) -j 16 dev-build-oss-components CONTAINER_REPO=$(CONTAINER_REPO)
+
+	$(MAKE) install CONTAINER_REPO=$(IN_CLUSTER_CONTAINER_REPO) DRACON_OSS_COMPONENTS_PACKAGE_URL=$(DRACON_OSS_COMPONENTS_PACKAGE_URL)
+
+dev-infra: deploy-nginx deploy-tektoncd-pipeline deploy-tektoncd-dashboard
+
+dev-deploy: deploy-cluster dev-infra dev-dracon
+
+dev-teardown:
+	@kind delete clusters dracon-demo
 
 generate-protos: install-lint-tools
 	@echo "Generating Protos"
