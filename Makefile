@@ -11,7 +11,7 @@ commits_since_latest_tag=$(shell git log --oneline $(latest_tag)..HEAD | wc -l)
 GO_TEST_PACKAGES=$(shell go list ./... | grep -v /vendor/)
 
 # Deployment vars
-#  The following variables are used to define the deployment environment
+# The following variables are used to define the deployment environment
 # e.g. what are the versions of the components, or the container registry, these are used by make targets that deploy things
 CONTAINER_REPO=ghcr.io/ocurity/dracon
 SOURCE_CODE_REPO=https://github.com/ocurity/dracon
@@ -248,8 +248,8 @@ install: deploy-cluster deploy-elasticoperator deploy-arangodb-crds add-bitnami-
 		  --wait
 
 	@echo "Installing Components"
-	# we are setting the container repo on itself is so we can override the container repo and package url from other make targets
-	# e.g. when installing oss components from locally built components we want to make install with container_repo being kind-registry, and the package_url being the component tar.gz
+	# we are setting the container repo to it's own value so that we can override it from other make targets
+	# e.g. when installing oss components from locally built components, we want to `make install` with CONTAINER_REPO being the kind-registry, and the package_url being the component tar.gz
 	$(MAKE) install-oss-components CONTAINER_REPO=$(CONTAINER_REPO) DRACON_OSS_COMPONENTS_PACKAGE_URL=$(DRACON_OSS_COMPONENTS_PACKAGE_URL)
 
 dev-deploy-oss-components:
@@ -268,8 +268,8 @@ install-oss-components:
 	@echo "Done! Bumped version to $(DRACON_VERSION)"
 
 dev-build-oss-components: cmd/draconctl/bin
-	@echo "Updating open-source components in local dracon instance..."
-	$(eval CONTAINER_REPO:=localhost:5000/ocurity/dracon)
+	@echo "Building open-source components for local dracon instance..."
+	$(eval CONTAINER_REPO:=localhost:5000)
 
 	$(MAKE) -j 16 publish-component-containers CONTAINER_REPO=$(CONTAINER_REPO)
 	@./bin/cmd/draconctl components package \
@@ -279,9 +279,9 @@ dev-build-oss-components: cmd/draconctl/bin
 		./components
 
 dev-dracon:
-	$(eval CONTAINER_REPO:=localhost:5000/ocurity/dracon)
+	$(eval CONTAINER_REPO:=localhost:5000)
 	$(eval DRACON_OSS_COMPONENTS_PACKAGE_URL:=./$(DRACON_OSS_COMPONENTS_NAME)-$(DRACON_VERSION).tgz)
-	$(eval IN_CLUSTER_CONTAINER_REPO:=kind-registry:5000/ocurity/dracon)
+	$(eval IN_CLUSTER_CONTAINER_REPO:=kind-registry:5000)
 	
 	$(MAKE) -j 16 publish-containers CONTAINER_REPO=$(CONTAINER_REPO)
 	$(MAKE) -j 16 dev-build-oss-components CONTAINER_REPO=$(CONTAINER_REPO)
