@@ -223,7 +223,7 @@ add-bitnami-repo:
 deploy-cluster:
 	@scripts/kind-with-registry.sh
 
-install: deploy-cluster deploy-elasticoperator deploy-arangodb-crds add-bitnami-repo
+install: deploy-cluster dev-infra deploy-elasticoperator deploy-arangodb-crds add-bitnami-repo
 	@echo "fetching dependencies if needed"
 	@helm dependency build ./deploy/dracon/chart
 
@@ -263,7 +263,7 @@ install-oss-components:
 		--install \
 		--create-namespace \
 		--namespace $(DRACON_NS) \
-		--set container_registry=$(CONTAINER_REPO)\
+		--set image.registry=$(CONTAINER_REPO) \
 		--values ./deploy/deduplication-db-migrations/values/dev.yaml
 	@echo "Done! Bumped version to $(DRACON_VERSION)"
 
