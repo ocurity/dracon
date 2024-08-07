@@ -1,4 +1,12 @@
 
-global:
-  image:
-    registry: kind-registry:5000
+image:
+  registry: kind-registry:5000
+
+database:
+  auth:
+    username: dracon
+    password: dracon
+    database: dracon
+    postgresPassword: dracon
+    querystringargs: "sslmode=disable"
+  host: dracon-postgresql:5432

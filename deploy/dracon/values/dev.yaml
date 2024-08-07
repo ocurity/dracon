@@ -27,9 +27,8 @@ arangodb:
     className: nginx
     host: arangodb.dracon.localhost
 
-global:
-  image:
-    registry: kind-registry:5000/ocurity/dracon
+image:
+  registry: kind-registry:5000/ocurity/dracon
 
 postgresql:
   enabled: true
