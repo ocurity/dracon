@@ -1,0 +1,101 @@
+name: Dracon E2E Integration Test
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  e2e-integration-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.22'
+
+    - name: Install KiND
+      run: |
+        curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.20.0/kind-linux-amd64
+        chmod +x ./kind
+        sudo mv ./kind /usr/local/bin/kind
+
+    - name: Install kustomize
+      run: |
+        curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash
+        sudo mv kustomize /usr/local/bin/
+
+    - name: Install Helm
+      run: |
+        curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+    - name: Set up Docker
+      uses: docker/setup-buildx-action@v2
+
+    - name: Deploy development environment
+      run: make DRACON_DEV_VERSION="v0.0.0-integration" dev-deploy
+
+    - name: Build draconctl
+      run: make cmd/draconctl/bin
+
+    - name: Deploy pipeline
+      run: bin/cmd/draconctl pipelines deploy ./examples/pipelines/golang-project
+
+    - name: Run and wait for pipeline
+      run: |
+        #!/bin/bash
+        
+        output=$(kubectl create \
+          -n dracon \
+          -f ./examples/pipelines/golang-project/pipelinerun.yaml)
+        
+        pipelinerun_name=$(echo "$output" | awk '{print $1}' | cut -d'/' -f2)
+        
+        echo "Created PipelineRun: $pipelinerun_name"
+        
+        # Function to check PipelineRun status
+        check_status() {
+          kubectl get -n dracon pipelinerun/$pipelinerun_name -o jsonpath='{.status.conditions[?(@.type=="Succeeded")].status}'
+        }
+        
+        # Wait for the PipelineRun to complete
+        timeout=300  # 5 minutes in seconds
+        interval=10
+        elapsed=0
+        
+        while [ $elapsed -lt $timeout ]; do
+          status=$(check_status)
+          echo "Current status: $status"
+          
+          if [ "$status" == "True" ] || [ "$status" == "False" ]; then
+            break
+          fi
+          
+          sleep $interval
+          elapsed=$((elapsed + interval))
+        done
+        
+        if [ $elapsed -ge $timeout ]; then
+          echo "Timeout waiting for PipelineRun to complete"
+          kubectl get -n dracon pipelinerun/$pipelinerun_name -o yaml
+          exit 2
+        fi
+        
+        # Final status check
+        final_status=$(check_status)
+        echo "PipelineRun $pipelinerun_name finished with status: $final_status"
+        
+        if [ "$final_status" == "True" ]; then
+          echo "E2E Integration Test Passed: PipelineRun completed successfully"
+          exit 0
+        elif [ "$final_status" == "False" ]; then
+          echo "E2E Integration Test Failed: PipelineRun failed"
+          kubectl get -n dracon pipelinerun/$pipelinerun_name -o yaml
+          exit 1
+        else
+          echo "E2E Integration Test Inconclusive: Unexpected status"
+          kubectl get -n dracon pipelinerun/$pipelinerun_name -o yaml
+          exit 2
+        fi
