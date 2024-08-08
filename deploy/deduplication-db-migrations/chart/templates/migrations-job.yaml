@@ -32,7 +32,6 @@ spec:
         - apply
         - --url
         - "postgresql://{{ .Values.database.auth.username }}:{{ .Values.database.auth.password }}@{{ .Values.database.host }}/{{ .Values.database.auth.database }}?{{ .Values.database.auth.querystringargs}}"
-        - ${DRACONCTL_MIGRATIONS_PATH}
         resources:
           {{- toYaml .Values.resources | nindent 12 }}
       serviceAccountName: {{ include "deduplication_db_migrations.fullname" . }}
