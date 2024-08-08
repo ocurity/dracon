@@ -20,6 +20,9 @@ type Migrations struct {
 
 func (m *Migrations) ListAvailable(migrationsDir fs.FS) (*bindata.AssetSource, error) {
 	var assetNames []string
+	if _, err := fs.Stat(migrationsDir, "."); err != nil {
+		return nil, fmt.Errorf("could not find migrations directory: %w", err)
+	}
 	if err := fs.WalkDir(migrationsDir, ".", func(path string, info fs.DirEntry, err error) error {
 		if !info.IsDir() {
 			assetNames = append(assetNames, info.Name())
