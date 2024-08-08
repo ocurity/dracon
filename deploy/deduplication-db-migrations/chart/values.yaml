@@ -5,8 +5,10 @@
 image:
   # registry to use for all 
   registry: ""
+  pullPolicy: Always
 
 serviceAccount:
   create: false
 
 enabled: true
+resources: {}
