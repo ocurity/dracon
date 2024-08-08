@@ -64,7 +64,7 @@ func initializeConfig(cmd *cobra.Command) error {
 
 	// Bind to environment variables
 	// Works great for simple config names, but needs help for names
-	// like --favorite-color which we fix in the bindFlags function
+	// like --favorite-color which we fix in the visitall function
 	v.AutomaticEnv()
 
 	if !slices.Contains(supportedLogFormats, strings.ToLower(loggingFormat)) {
