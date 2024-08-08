@@ -18,7 +18,7 @@ var (
 )
 
 func main() {
-	flag.StringVar(&connStr, "db_connection", enrichers.LookupEnvOrString("ENRICHER_DB_CONNECTION", ""), "the database connection DSN")
+	flag.StringVar(&connStr, "db_connection", enrichers.LookupEnvOrString("DB_CONNECTION", ""), "the database connection DSN")
 	if err := enrichers.ParseFlags(); err != nil {
 		log.Fatal(err)
 	}
