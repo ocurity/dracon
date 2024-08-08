@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"os"
 
 	"github.com/golang-migrate/migrate/v4"
@@ -32,6 +33,7 @@ func inspectMigrations(cmd *cobra.Command, args []string) error {
 	if migrationsCmdConfig.migratiosnPath == "" {
 		return fmt.Errorf("you need to provide a path to the migrations that will be applied")
 	}
+	slog.Info("inspecting migrations", "migrations path:", migrationsCmdConfig.migratiosnPath)
 	dirFS := os.DirFS(migrationsCmdConfig.migratiosnPath)
 
 	dbURL, err := db.ParseConnectionStr(migrationsCmdConfig.connStr)
