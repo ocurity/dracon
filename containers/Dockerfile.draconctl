@@ -1,6 +1,8 @@
 ARG BASE_MIGRATION_IMAGE
 FROM ${BASE_MIGRATION_IMAGE:-scratch}
 
+LABEL org.opencontainers.image.description "Draconctl is a command line tool for interacting with Dracon, you can find documentation for it at github.com/ocurity/dracon"
+
 COPY ./bin/cmd/draconctl /bin/draconctl
 COPY ./pkg/enrichment/migrations /etc/dracon/migrations/enrichment
 
