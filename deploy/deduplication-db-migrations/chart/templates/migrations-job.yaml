@@ -13,13 +13,13 @@ metadata:
 spec:
   template:
     metadata:
-      name: enrichment-db-migrations
+      name: deduplication-db-migrations
       labels:
         {{- include "deduplication_db_migrations.labels" . | nindent 8 }}
     spec:
       restartPolicy: Never
       containers:
-      - name: enrichment-db-migrations
+      - name: deduplication-db-migrations
         # image.tag is set because you can't do helm upgrade and set the chart AppVersion manually
         image: "{{ default "ghcr.io/ocurity/dracon" .Values.image.registry }}/draconctl:{{ default .Chart.AppVersion .Values.image.tag }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
