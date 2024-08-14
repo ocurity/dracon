@@ -13,5 +13,6 @@ image:
 serviceAccount:
   create: false
 
+create_role: true
 enabled: true
 resources: {}
