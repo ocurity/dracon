@@ -216,7 +216,11 @@ func addAnchorResult(task *tektonv1beta1api.Task) error {
 	if hasLabel {
 		return nil
 	}
-
+	for _, step := range task.Spec.Steps {
+		if step.Name == "anchor" {
+			return nil
+		}
+	}
 	task.Spec.Results = append(task.Spec.Results, tektonv1beta1api.TaskResult{
 		Name:        "anchor",
 		Description: "An anchor to allow other tasks to depend on this task.",
@@ -248,7 +252,6 @@ func addAnchorParameter(task *tektonv1beta1api.Task) error {
 			return nil
 		}
 	}
-
 	task.Spec.Params = append(task.Spec.Params, tektonv1beta1api.ParamSpec{
 		Name:        "anchors",
 		Description: "A list of tasks that this task depends on",
@@ -272,39 +275,83 @@ func addEnvVarsToTask(task *tektonv1beta1api.Task) error {
 	if componentType != Producer {
 		return nil
 	}
+	scanIDFound := false
+	scanStartTimeFound := false
+	scanTagsFound := false
 
-	task.Spec.Params = append(task.Spec.Params, tektonv1beta1api.ParamSpecs{
-		{
-			Name: "dracon_scan_id",
-			Type: tektonv1beta1api.ParamTypeString,
-		},
-		{
-			Name: "dracon_scan_start_time",
-			Type: tektonv1beta1api.ParamTypeString,
-		},
-		{
-			Name: "dracon_scan_tags",
-			Type: tektonv1beta1api.ParamTypeString,
-		},
-	}...)
-
-	for i, step := range task.Spec.Steps {
-		step.Env = append(step.Env, []corev1.EnvVar{
+	for _, param := range task.Spec.Params {
+		if param.Name == "dracon_scan_id" {
+			scanIDFound = true
+		} else if param.Name == "dracon_scan_start_time" {
+			scanStartTimeFound = true
+		} else if param.Name == "dracon_scan_tags" {
+			scanTagsFound = true
+		}
+	}
+	if !scanIDFound {
+		task.Spec.Params = append(task.Spec.Params, tektonv1beta1api.ParamSpecs{
 			{
-				Name:  "DRACON_SCAN_TIME",
-				Value: "$(params.dracon_scan_start_time)",
-			},
-			{
-				Name:  "DRACON_SCAN_ID",
-				Value: "$(params.dracon_scan_id)",
-			},
-			{
-				Name:  "DRACON_SCAN_TAGS",
-				Value: "$(params.dracon_scan_tags)",
+				Name: "dracon_scan_id",
+				Type: tektonv1beta1api.ParamTypeString,
 			},
 		}...)
-		task.Spec.Steps[i] = step
+	}
+	if !scanStartTimeFound {
+		task.Spec.Params = append(task.Spec.Params, tektonv1beta1api.ParamSpecs{
+			{
+				Name: "dracon_scan_start_time",
+				Type: tektonv1beta1api.ParamTypeString,
+			},
+		}...)
+	}
+	if !scanTagsFound {
+		task.Spec.Params = append(task.Spec.Params, tektonv1beta1api.ParamSpecs{
+			{
+				Name: "dracon_scan_tags",
+				Type: tektonv1beta1api.ParamTypeString,
+			},
+		}...)
 	}
 
+	scanIDFound = false
+	scanStartTimeFound = false
+	scanTagsFound = false
+	for i, step := range task.Spec.Steps {
+		for _, envVar := range step.Env {
+			if envVar.Name == "DRACON_SCAN_TIME" {
+				scanStartTimeFound = true
+			} else if envVar.Name == "DRACON_SCAN_ID" {
+				scanIDFound = true
+			} else if envVar.Name == "DRACON_SCAN_TAGS" {
+				scanTagsFound = true
+			}
+		}
+		if !scanStartTimeFound {
+			step.Env = append(step.Env, []corev1.EnvVar{
+				{
+					Name:  "DRACON_SCAN_TIME",
+					Value: "$(params.dracon_scan_start_time)",
+				},
+			}...)
+		}
+		if !scanIDFound {
+			step.Env = append(step.Env, []corev1.EnvVar{
+				{
+					Name:  "DRACON_SCAN_ID",
+					Value: "$(params.dracon_scan_id)",
+				},
+			}...)
+		}
+		if !scanTagsFound {
+			step.Env = append(step.Env, []corev1.EnvVar{
+				{
+					Name:  "DRACON_SCAN_TAGS",
+					Value: "$(params.dracon_scan_tags)",
+				},
+			}...)
+		}
+
+		task.Spec.Steps[i] = step
+	}
 	return nil
 }
