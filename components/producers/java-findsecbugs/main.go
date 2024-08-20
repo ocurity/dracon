@@ -12,67 +12,9 @@ import (
 	v1 "github.com/ocurity/dracon/api/proto/v1"
 
 	"github.com/ocurity/dracon/components/producers"
+	"github.com/ocurity/dracon/components/producers/java-findsecbugs/types"
 	"github.com/ocurity/dracon/pkg/sarif"
 )
-
-type jar struct {
-	XMLName xml.Name `xml:"Jar"`
-}
-
-type project struct {
-	XMLName xml.Name `xml:"Project"`
-	Jar     *jar     `xml:"Jar"`
-}
-
-type method struct {
-	XMLName    xml.Name     `xml:"Method"`
-	Classname  string       `xml:"classname,attr"`
-	Name       string       `xml:"name,attr"`
-	Signature  string       `xml:"signature,attr"`
-	IsStatic   string       `xml:"isStatic,attr"`
-	SourceLine []sourceLine `xml:"SourceLine"`
-}
-type sourceLine struct {
-	XMLName       xml.Name `xml:"SourceLine"`
-	Classname     string   `xml:"classname,attr"`
-	Start         string   `xml:"start,attr"`
-	End           string   `xml:"end,attr"`
-	StartBytecode string   `xml:"startBytecode,attr"`
-	EndBytecode   string   `xml:"endBytecode,attr"`
-	Sourcefile    string   `xml:"sourcefile,attr"`
-	Sourcepath    string   `xml:"sourcepath,attr"`
-	Role          string   `xml:"role,attr"`
-}
-type class struct {
-	XMLName    xml.Name     `xml:"Class"`
-	Classname  string       `xml:"classname,attr"`
-	Role       string       `xml:"role,attr"`
-	SourceLine []sourceLine `xml:"SourceLine"`
-}
-type field struct {
-	XMLName    xml.Name     `xml:"Field"`
-	Classname  string       `xml:"classname,attr"`
-	SourceLine []sourceLine `xml:"SourceLine"`
-}
-type bugInstance struct {
-	XMLName      xml.Name     `xml:"BugInstance"`
-	Class        []class      `xml:"Class"`
-	Method       []method     `xml:"Method"`
-	SourceLine   []sourceLine `xml:"SourceLine"`
-	Field        []field      `xml:"Field"`
-	LongMessage  string       `xml:"LongMessage"`
-	ShortMessage string       `xml:"ShortMessage"`
-	Type         string       `xml:"type,attr"`
-	Priority     string       `xml:"priority,attr"`
-	Rank         string       `xml:"rank,attr"`
-	Abbrev       string       `xml:"abbrev,attr"`
-	Category     string       `xml:"category,attr"`
-}
-type bugCollection struct {
-	XMLName     xml.Name      `xml:"BugCollection"`
-	Project     *project      `xml:"Project"`
-	BugInstance []bugInstance `xml:"BugInstance"`
-}
 
 func loadXML(filename string) ([]byte, error) {
 	xmlFile, err := os.Open(filename)
@@ -91,7 +33,7 @@ func readXML(xmlFile []byte) []*v1.Issue {
 	*/
 
 	output := []*v1.Issue{}
-	var bugs bugCollection
+	var bugs types.BugCollection
 	if len(xmlFile) == 0 {
 		return output
 	}
@@ -128,9 +70,9 @@ func readXML(xmlFile []byte) []*v1.Issue {
 	return output
 }
 
-func parseLine(instance bugInstance, sourceLine sourceLine) *v1.Issue {
+func parseLine(instance types.BugInstance, sourceLine types.SourceLine) *v1.Issue {
 	return &v1.Issue{
-		Target:      fmt.Sprintf("%s:%s-%s", sourceLine.Sourcepath, sourceLine.Start, sourceLine.End),
+		Target:      producers.GetFileTarget(sourceLine.Sourcepath, sourceLine.Start, sourceLine.End),
 		Type:        instance.Type,
 		Severity:    normalizeRank(instance.Rank),
 		Cvss:        0.0,
