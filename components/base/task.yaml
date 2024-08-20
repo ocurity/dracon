@@ -12,9 +12,9 @@ spec:
     default: ""
   results:
   - name: dracon-scan-start-time
-    description: The scan start time
+    description: Start time of the scan.
   - name: dracon-scan-id
-    description: The scan unique id
+    description: Unique id of the scan.
   - name: dracon-scan-tags
     description: serialized map[string]string of tags for this scan
   steps:

@@ -6,7 +6,9 @@ metadata:
   labels:
     v1.dracon.ocurity.com/component: producer
     v1.dracon.ocurity.com/test-type: sca
+    v1.dracon.ocurity.com/language: golang
 spec:
+  description: Dependency scanner for Golang projects.
   params:
     - name: producer-golang-nancy-goImage
       type: string

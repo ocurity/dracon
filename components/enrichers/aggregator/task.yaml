@@ -6,6 +6,7 @@ metadata:
   labels:
     v1.dracon.ocurity.com/component: enricher-aggregator
 spec:
+  description: Combines multiple inputs into a single one.
   params:
   - name: enricher-aggregator-b64-signature-key
     description: An optional key to sign each aggregated result with

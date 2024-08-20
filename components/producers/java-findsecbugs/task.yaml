@@ -5,7 +5,9 @@ metadata:
   name: producer-java-findsecbugs
   labels:
     v1.dracon.ocurity.com/component: producer
+    v1.dracon.ocurity.com/language: java
 spec:
+  description: Generate a FindSecBugs report from source code.
   params:
   - name: producer-java-findsecbugs-extra-flags
     type: array

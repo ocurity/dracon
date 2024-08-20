@@ -5,7 +5,10 @@ metadata:
   name: producer-typescript-eslint
   labels:
     v1.dracon.ocurity.com/component: producer
+    v1.dracon.ocurity.com/test-type: sast
+    v1.dracon.ocurity.com/language: typescript
 spec:
+  description: Static analysis for javascript and typescript projects.
   params:
     - name: producer-typescript-eslint-config-js
       type: string

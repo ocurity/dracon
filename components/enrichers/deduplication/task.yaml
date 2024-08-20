@@ -6,6 +6,7 @@ metadata:
   labels:
     v1.dracon.ocurity.com/component: enricher
 spec:
+  description: Compares multiple inputs and removes duplicates.
   workspaces:
     - name: output
       description: The workspace containing the source-code to scan.

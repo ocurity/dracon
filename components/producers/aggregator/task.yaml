@@ -6,6 +6,7 @@ metadata:
   labels:
     v1.dracon.ocurity.com/component: producer-aggregator
 spec:
+  description: Combines multiple inputs into a single one.
   params: []
   results: []
   workspaces:

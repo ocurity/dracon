@@ -5,7 +5,9 @@ metadata:
   name: producer-semgrep
   labels:
     v1.dracon.ocurity.com/component: producer
+    v1.dracon.ocurity.com/test-type: sast
 spec:
+  description: Analyse source code using Semgrep to look for security issues.
   params:
   - name: producer-semgrep-rules-yaml
     type: string

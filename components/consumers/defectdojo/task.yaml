@@ -6,6 +6,7 @@ metadata:
   labels:
     v1.dracon.ocurity.com/component: consumer
 spec:
+  description: Pushes findings to a DefectDojo vulnerability management instance.
   params:
     - name: consumer-defectdojo-api-url
       type: string

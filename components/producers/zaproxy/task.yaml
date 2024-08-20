@@ -5,7 +5,9 @@ metadata:
   name: producer-zaproxy
   labels:
     v1.dracon.ocurity.com/component: producer
+    v1.dracon.ocurity.com/test-type: dast
 spec:
+  description: DAST scanner that analyses web applications for security issues.
   params:
   - name: producer-zaproxy-target
     type: string

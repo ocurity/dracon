@@ -6,6 +6,7 @@ metadata:
   labels:
     v1.dracon.ocurity.com/component: consumer
 spec:
+  description: Pushes findings to an Elasticsearch database.
   params:
     - name: consumer-elasticsearch-url
       type: string

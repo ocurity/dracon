@@ -7,6 +7,7 @@ metadata:
     v1.dracon.ocurity.com/component: producer
     v1.dracon.ocurity.com/test-type: sca
 spec:
+  description: Generate a Trivy report from a Docker image.
   params:
   - name: producer-docker-trivy-flags
     type: array
