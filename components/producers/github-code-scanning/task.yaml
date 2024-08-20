@@ -7,6 +7,7 @@ metadata:
     v1.dracon.ocurity.com/component: producer
     v1.dracon.ocurity.com/test-type: sast
 spec:
+  description: Retrieve a GitHub Code Scanning report from a GitHub repository.
   params:
   - name: producer-github-code-scanning-repository-owner
     description: The owner of the repository to scan.

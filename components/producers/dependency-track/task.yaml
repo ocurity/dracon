@@ -6,6 +6,7 @@ metadata:
   labels:
     v1.dracon.ocurity.com/component: producer
 spec:
+  description: Generate a Dependency-Track report from source code.
   params:
   - name: producer-dependency-track-project-id
     type: string

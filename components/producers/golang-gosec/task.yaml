@@ -5,7 +5,10 @@ metadata:
   name: producer-golang-gosec
   labels:
     v1.dracon.ocurity.com/component: producer
+    v1.dracon.ocurity.com/test-type: sast
+    v1.dracon.ocurity.com/language: golang
 spec:
+  description: Analyse Go source code to look for security issues.
   params:
   - name: producer-golang-gosec-flags
     type: array

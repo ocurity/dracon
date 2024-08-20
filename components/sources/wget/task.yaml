@@ -13,8 +13,7 @@ metadata:
     tekton.dev/tags: download
 
 spec:
-  description: >-
-    This source component is the dracon equivalent of the tekton wget component.
+  description: Download a file from a URL using wget.
   workspaces:
     - name: source-code-ws
       description: The generated file will be stored onto the volume backing this Workspace.

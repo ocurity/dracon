@@ -6,6 +6,7 @@ metadata:
   labels:
     v1.dracon.ocurity.com/component: producer
 spec:
+  description: Generate a CycloneDX SBOM from source code.
   params:
     - name: producer-cdxgen-flags
       type: array

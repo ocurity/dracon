@@ -6,6 +6,7 @@ metadata:
   labels:
     v1.dracon.ocurity.com/component: enricher
 spec:
+  description: Adds context from deps.dev for each third-party dependency.
   params:
   - name: enricher-depsdev-licenses-in-evidence
     type: string

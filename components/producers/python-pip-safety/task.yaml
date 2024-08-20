@@ -6,7 +6,9 @@ metadata:
   labels:
     v1.dracon.ocurity.com/component: producer
     v1.dracon.ocurity.com/test-type: sca
+    v1.dracon.ocurity.com/language: python
 spec:
+  description: Dependency scanner for Python projects.
   params:
   - name: producer-python-pip-safety-input-dependency-file
     type: string

@@ -6,6 +6,7 @@ metadata:
   labels:
     v1.dracon.ocurity.com/component: producer
 spec:
+  description: Generate a Terraform-Tfsec report from source code.
   params:
   - name: producer-terraform-tfsec-flags
     type: array

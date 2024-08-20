@@ -6,6 +6,7 @@ metadata:
   labels:
     v1.dracon.ocurity.com/component: producer
 spec:
+  description: Secret scanner for repositories.
   params:
     - name: producer-trufflehog-git-repository
       default: ""
