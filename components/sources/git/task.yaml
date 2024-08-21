@@ -67,7 +67,7 @@ spec:
     - name: git-clone-subdirectory
       description: Subdirectory inside the `output` Workspace to clone the repo into.
       type: string
-      default: ""
+      default: "source-code"
     - name: git-clone-sparseCheckoutDirectories
       description: Define the directory patterns to match or exclude when performing a sparse checkout.
       type: string
