@@ -29,7 +29,7 @@ spec:
       description: The workspace containing the source-code to scan.
   steps:
   - name: run-zap
-    image: docker.io/owasp/zap2docker-stable:2.12.0
+    image: ghcr.io/zaproxy/zaproxy:stable
     script: |
      #! /bin/bash
       set -ex
