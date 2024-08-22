@@ -3,6 +3,7 @@ package cyclonedx
 import (
 	"bytes"
 	"fmt"
+	"log/slog"
 	"strings"
 
 	cdx "github.com/CycloneDX/cyclonedx-go"
@@ -27,6 +28,12 @@ func ToDracon(inFile []byte, format string) ([]*v1.Issue, error) {
 	if err := decoder.Decode(bom); err != nil {
 		return issues, err
 	}
+	componentLen := 0
+	if bom.Components != nil {
+		componentLen = len(*bom.Components)
+	}
+	slog.Info(fmt.Sprintf("Successfully parsed CycloneDX BOM, recorded %d components", componentLen))
+
 	buf := new(bytes.Buffer)
 	// Encode the BOM
 	err := cdx.NewBOMEncoder(buf, cdx.BOMFileFormatJSON).SetPretty(false).Encode(bom)
