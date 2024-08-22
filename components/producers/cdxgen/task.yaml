@@ -5,6 +5,8 @@ metadata:
   name: producer-cdxgen
   labels:
     v1.dracon.ocurity.com/component: producer
+    v1.dracon.ocurity.com/test-type: sbom
+    v1.dracon.ocurity.com/language: all
 spec:
   description: Generate a CycloneDX SBOM from source code.
   params:
@@ -41,7 +43,8 @@ spec:
           value: $(params.producer-cdxgen-astgen-ignore-file-pattern)
         - name: ASTGEN_IGNORE_DIRS
           value: $(params.producer-cdxgen-astgen-ignore-dirs)
-      script: node /opt/cdxgen/bin/cdxgen.js -r -p -o /scratch/out.json $(workspaces.output.path)/ --spec-version 1.4
+      script: |
+        node /opt/cdxgen/bin/cdxgen.js -r -p -o /scratch/out.json $(workspaces.output.path)/ --spec-version 1.4
       volumeMounts:
         - mountPath: /scratch
           name: scratch
