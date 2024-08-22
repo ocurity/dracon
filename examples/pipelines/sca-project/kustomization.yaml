@@ -5,6 +5,7 @@ nameSuffix: -sca-project
 components:
   - pkg:helm/dracon-oss-components/base
   - pkg:helm/dracon-oss-components/producer-docker-trivy
+  - pkg:helm/dracon-oss-components/producer-dependency-check
   - pkg:helm/dracon-oss-components/producer-aggregator
   - pkg:helm/dracon-oss-components/enricher-codeowners
   - pkg:helm/dracon-oss-components/enricher-aggregator

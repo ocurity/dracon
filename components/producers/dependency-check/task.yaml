@@ -16,7 +16,7 @@ spec:
       description: The workspace containing the source-code to scan.
   steps:
   - name: run-dependency-check
-    image: docker.io/owasp/dependency-check:7.4.4
+    image: owasp/dependency-check:10.0.3
     command: [/usr/share/dependency-check/bin/dependency-check.sh]
     args:
     - -f
