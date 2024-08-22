@@ -4,8 +4,7 @@ kind: Kustomization
 nameSuffix: -dast-project
 components:
   - pkg:helm/dracon-oss-components/base
-  - pkg:helm/dracon-oss-components/git-clone
-  - pkg:helm/dracon-oss-components/producers/zaproxy
+  - pkg:helm/dracon-oss-components/producer-zaproxy
   - pkg:helm/dracon-oss-components/producer-aggregator
   - pkg:helm/dracon-oss-components/enricher-deduplication
   - pkg:helm/dracon-oss-components/enricher-aggregator
