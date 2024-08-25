@@ -2,10 +2,13 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
 	"encoding/base64"
 	"flag"
 	"fmt"
 	"log"
+	"log/slog"
+	"net/http"
 	"strings"
 
 	dtrack "github.com/DependencyTrack/client-go"
@@ -24,6 +27,8 @@ var (
 	projectUUID     string
 	client          *dtrack.Client
 	ownerAnnotation string
+	// used for debugging, turns off certificate and enables debug
+	debug bool
 )
 
 func main() {
@@ -32,6 +37,7 @@ func main() {
 	flag.StringVar(&projectName, "projectName", "", "dependency track project name")
 	flag.StringVar(&projectUUID, "projectUUID", "", "dependency track project name")
 	flag.StringVar(&projectVersion, "projectVersion", "", "dependency track project version")
+	flag.BoolVar(&debug, "debug", false, "setup client with no tls and enable debug")
 	flag.StringVar(
 		&ownerAnnotation,
 		"ownerAnnotation",
@@ -47,11 +53,40 @@ func main() {
 	if projectUUID == "" {
 		log.Fatal("project uuid is mandatory for dependency track")
 	}
-	c, err := dtrack.NewClient(authURL, dtrack.WithAPIKey(apiKey))
+	if authURL == "" {
+		log.Fatal("auth url is mandatory for dependency track")
+	}
+	if apiKey == "" {
+		log.Fatal("api key is mandatory for dependency track")
+	}
+	if projectName == "" {
+		log.Fatal("project name is mandatory for dependency track")
+	}
+	if projectVersion == "" {
+		log.Fatal("project version is mandatory for dependency track")
+	}
+
+	client, err := dtrack.NewClient(
+		authURL,
+		dtrack.WithHttpClient(
+			&http.Client{Transport: &http.Transport{
+				TLSClientConfig: &tls.Config{
+					InsecureSkipVerify: debug,
+				},
+			},
+			}),
+		dtrack.WithDebug(debug),
+		dtrack.WithAPIKey(apiKey),
+	)
 	if err != nil {
 		log.Panicf("could not instantiate client err: %#v\n", err)
 	}
-	client = c
+
+	abt, err := client.Metrics.LatestPortfolioMetrics(context.Background())
+	if err != nil {
+		log.Fatalf("cannot connect to Dependency Track at %s, err:'%v'", authURL, err)
+	}
+	slog.Info("connection to DT successful listed projects in instance", "projects", abt.Projects)
 	if consumers.Raw {
 		responses, err := consumers.LoadToolResponse()
 		if err != nil {
@@ -164,6 +199,7 @@ func addOwnersTags(owners []string) error {
 }
 
 func uploadBOM(bom string, projectVersion string) (string, error) {
+	slog.Info("uploading BOM to Dependency Track", "projectName", projectName, "projectVersion", projectVersion)
 	if projectVersion == "" {
 		projectVersion = "Unknown"
 	}
@@ -172,6 +208,7 @@ func uploadBOM(bom string, projectVersion string) (string, error) {
 		ProjectName:    projectName,
 		ProjectVersion: projectVersion,
 		ProjectUUID:    &uuid,
+		AutoCreate:     true,
 		BOM:            base64.StdEncoding.EncodeToString([]byte(bom)),
 	})
 	return string(token), err

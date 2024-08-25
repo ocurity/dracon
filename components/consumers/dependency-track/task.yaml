@@ -8,6 +8,7 @@ metadata:
 spec:
   description: Pushes findings to a Dependency-Track instance.
   params:
+    # Warning: at the time of writing this api-url is for the port 8081
     - name: consumer-dependency-track-api-url
       type: string
     - name: consumer-dependency-track-project-name
@@ -21,6 +22,9 @@ spec:
     - name: consumer-dependency-track-owner-annotation
       type: string
       default: "Owner"
+    - name: consumer-dependency-track-debug
+      type: string
+      default: "false"
   workspaces:
     - name: output
       description: The workspace containing the source-code to scan.
@@ -36,5 +40,6 @@ spec:
       "-projectName", "$(params.consumer-dependency-track-project-name)",
       "-projectVersion", "$(params.consumer-dependency-track-project-version)",
       "-projectUUID", "$(params.consumer-dependency-track-project-uuid)",
-      "-ownerAnnotation","$(params.consumer-dependency-track-owner-annotation)"
+      "-ownerAnnotation","$(params.consumer-dependency-track-owner-annotation)",
+      "-debug", "$(params.consumer-dependency-track-debug)"
     ]
