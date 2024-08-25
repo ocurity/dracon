@@ -38,7 +38,7 @@ func ForEach[T any](pageFetchFunc func(po PageOptions) (Page[T], error), handler
 			}
 		}
 
-		itemsSeen += page.TotalCount
+		itemsSeen += len(page.Items)
 		if len(page.Items) == 0 || itemsSeen >= page.TotalCount {
 			break
 		}

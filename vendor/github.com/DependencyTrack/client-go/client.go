@@ -3,13 +3,18 @@ package dtrack
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
+	"mime/multipart"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -35,7 +40,10 @@ type Client struct {
 	Finding           FindingService
 	License           LicenseService
 	Metrics           MetricsService
+	OIDC              OIDCService
+	Permission        PermissionService
 	Policy            PolicyService
+	PolicyCondition   PolicyConditionService
 	PolicyViolation   PolicyViolationService
 	Project           ProjectService
 	ProjectProperty   ProjectPropertyService
@@ -79,7 +87,10 @@ func NewClient(baseURL string, options ...ClientOption) (*Client, error) {
 	client.Finding = FindingService{client: &client}
 	client.License = LicenseService{client: &client}
 	client.Metrics = MetricsService{client: &client}
+	client.OIDC = OIDCService{client: &client}
+	client.Permission = PermissionService{client: &client}
 	client.Policy = PolicyService{client: &client}
+	client.PolicyCondition = PolicyConditionService{client: &client}
 	client.PolicyViolation = PolicyViolationService{client: &client}
 	client.Project = ProjectService{client: &client}
 	client.ProjectProperty = ProjectPropertyService{client: &client}
@@ -142,6 +153,19 @@ func withParams(params map[string]string) requestOption {
 	}
 }
 
+func withPathParams(params map[string]string) requestOption {
+	return func(req *http.Request) error {
+		if len(params) == 0 {
+			return nil
+		}
+
+		for k, v := range params {
+			req.URL.Path = strings.Replace(req.URL.Path, fmt.Sprintf("{%s}", k), v, -1)
+		}
+		return nil
+	}
+}
+
 func withBody(body interface{}) requestOption {
 	return func(req *http.Request) error {
 		if body == nil {
@@ -175,6 +199,29 @@ func withBody(body interface{}) requestOption {
 	}
 }
 
+func withMultiPart(body url.Values) requestOption {
+	return func(req *http.Request) error {
+		if body == nil {
+			return nil
+		}
+
+		var bodyBuf bytes.Buffer
+		multipartWriter := multipart.NewWriter(&bodyBuf)
+		for key, valueList := range body {
+			for _, value := range valueList {
+				fw, _ := multipartWriter.CreateFormField(key)
+				_, _ = fw.Write([]byte(value))
+			}
+		}
+
+		_ = multipartWriter.Close()
+		req.Body = io.NopCloser(&bodyBuf)
+		req.Header.Set("Content-Type", multipartWriter.FormDataContentType())
+
+		return nil
+	}
+}
+
 type Page[T any] struct {
 	Items      []T // Items on this page
 	TotalCount int // Total number of items
@@ -202,6 +249,13 @@ func withPageOptions(po PageOptions) requestOption {
 
 		req.URL.RawQuery = query.Encode()
 
+		return nil
+	}
+}
+
+func withAcceptContentType(contentType string) requestOption {
+	return func(req *http.Request) error {
+		req.Header.Set("Accept", contentType)
 		return nil
 	}
 }
@@ -294,6 +348,64 @@ func WithUserAgent(userAgent string) ClientOption {
 func WithTimeout(timeout time.Duration) ClientOption {
 	return func(c *Client) error {
 		c.httpClient.Timeout = timeout
+		return nil
+	}
+}
+
+// WithMTLS configures the http client to use client certificates
+func WithMTLS(caCertFile string, clientCertFile string, clientKeyFile string) ClientOption {
+	return func(c *Client) error {
+		caCert, err := os.ReadFile(caCertFile)
+		if err != nil {
+			return fmt.Errorf("failed to load ca cert file: %w", err)
+		}
+
+		certPool, _ := x509.SystemCertPool()
+		if certPool == nil {
+			certPool = x509.NewCertPool()
+		}
+
+		certPool.AppendCertsFromPEM(caCert)
+
+		keyPair, err := tls.LoadX509KeyPair(clientCertFile, clientKeyFile)
+		if err != nil {
+			return fmt.Errorf("failed to load client key pair: %w", err)
+		}
+
+		tlsConfig := &tls.Config{
+			RootCAs:      certPool,
+			Certificates: []tls.Certificate{keyPair},
+			MinVersion:   tls.VersionTLS12,
+		}
+
+		if c.httpClient.Transport == nil {
+			httpTransport := http.DefaultTransport.(*http.Transport)
+			httpTransport.TLSClientConfig = tlsConfig
+			c.httpClient.Transport = httpTransport
+			return nil
+		}
+
+		httpTransport, ok := c.httpClient.Transport.(*http.Transport)
+		if ok {
+			httpTransport.TLSClientConfig = tlsConfig
+			return nil
+		}
+
+		authTransport, ok := c.httpClient.Transport.(*authHeaderTransport)
+		if ok {
+			httpTransport = authTransport.transport.(*http.Transport)
+			httpTransport.TLSClientConfig = tlsConfig
+			return nil
+		}
+
+		return errors.New("could not set tls options")
+	}
+}
+
+// WithHttpClient overrides the default HttpClient.
+func WithHttpClient(client *http.Client) ClientOption {
+	return func(c *Client) error {
+		c.httpClient = client
 		return nil
 	}
 }

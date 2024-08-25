@@ -50,6 +50,11 @@ func (b *BOM) convert(specVersion SpecVersion) {
 	}
 	if specVersion < SpecVersion1_5 {
 		b.Annotations = nil
+		b.Formulation = nil
+	}
+	if specVersion < SpecVersion1_6 {
+		b.Declarations = nil
+		b.Definitions = nil
 	}
 
 	if b.Metadata != nil {
@@ -61,11 +66,19 @@ func (b *BOM) convert(specVersion SpecVersion) {
 			b.Metadata.Lifecycles = nil
 		}
 
+		if specVersion < SpecVersion1_6 {
+			b.Metadata.Manufacturer = nil
+		}
+
 		recurseComponent(b.Metadata.Component, componentConverter(specVersion))
 		convertLicenses(b.Metadata.Licenses, specVersion)
-		if b.Metadata.Tools != nil {
-			for i := range *b.Metadata.Tools {
-				convertTool(&(*b.Metadata.Tools)[i], specVersion)
+		convertTools(b.Metadata.Tools, specVersion)
+		convertOrganizationalEntity(b.Metadata.Manufacture, specVersion)
+		convertOrganizationalEntity(b.Metadata.Supplier, specVersion)
+
+		if b.Metadata.Authors != nil {
+			for i := range *b.Metadata.Authors {
+				convertOrganizationalContact(&(*b.Metadata.Authors)[i], specVersion)
 			}
 		}
 	}
@@ -80,6 +93,22 @@ func (b *BOM) convert(specVersion SpecVersion) {
 		for i := range *b.Services {
 			recurseService(&(*b.Services)[i], serviceConverter(specVersion))
 		}
+	}
+
+	if b.Vulnerabilities != nil {
+		convertVulnerabilities(b.Vulnerabilities, specVersion)
+	}
+
+	if b.Compositions != nil {
+		convertCompositions(b.Compositions, specVersion)
+	}
+
+	if b.ExternalReferences != nil {
+		convertExternalReferences(b.ExternalReferences, specVersion)
+	}
+
+	if b.Annotations != nil {
+		convertAnnotations(b.Annotations, specVersion)
 	}
 
 	b.SpecVersion = specVersion
@@ -110,7 +139,6 @@ func componentConverter(specVersion SpecVersion) func(*Component) {
 		}
 
 		if specVersion < SpecVersion1_3 {
-			c.Evidence = nil
 			c.Properties = nil
 		}
 
@@ -121,14 +149,74 @@ func componentConverter(specVersion SpecVersion) func(*Component) {
 			}
 		}
 
+		if specVersion < SpecVersion1_5 {
+			c.ModelCard = nil
+			c.Data = nil
+		}
+
+		if specVersion < SpecVersion1_6 {
+			c.SWHID = nil
+			c.OmniborID = nil
+			c.Manufacturer = nil
+			c.Authors = nil
+		}
+
 		if !specVersion.supportsComponentType(c.Type) {
 			c.Type = ComponentTypeApplication
 		}
+
 		convertExternalReferences(c.ExternalReferences, specVersion)
 		convertHashes(c.Hashes, specVersion)
 		convertLicenses(c.Licenses, specVersion)
+		convertEvidence(c, specVersion)
+		convertModelCard(c, specVersion)
+
 		if !specVersion.supportsScope(c.Scope) {
 			c.Scope = ""
+		}
+	}
+}
+
+func convertEvidence(c *Component, specVersion SpecVersion) {
+	if c.Evidence == nil {
+		return
+	}
+
+	if specVersion < SpecVersion1_3 {
+		c.Evidence = nil
+		return
+	}
+
+	if specVersion < SpecVersion1_5 {
+		c.Evidence.Identity = nil
+		c.Evidence.Occurrences = nil
+		c.Evidence.Callstack = nil
+		return
+	}
+
+	if specVersion < SpecVersion1_6 {
+		for i := range *c.Evidence.Occurrences {
+			occ := &(*c.Evidence.Occurrences)[i]
+
+			occ.Line = nil
+			occ.Offset = nil
+			occ.Symbol = ""
+			occ.AdditionalContext = ""
+		}
+	}
+
+	convertLicenses(c.Evidence.Licenses, specVersion)
+}
+
+func convertCompositions(comps *[]Composition, specVersion SpecVersion) {
+	if comps == nil {
+		return
+	}
+
+	for i := range *comps {
+		comp := &(*comps)[i]
+		if !specVersion.supportsCompositionAggregate(comp.Aggregate) {
+			comp.Aggregate = CompositionAggregateUnknown
 		}
 	}
 }
@@ -216,6 +304,135 @@ func convertLicenses(licenses *Licenses, specVersion SpecVersion) {
 			}
 		}
 	}
+
+	if specVersion < SpecVersion1_6 {
+		for i := range *licenses {
+			choice := &(*licenses)[i]
+			if choice.License == nil {
+				continue
+			}
+
+			choice.License.Acknowledgement = ""
+
+			if choice.License.Licensing == nil {
+				continue
+			}
+
+			if choice.License.Licensing.Licensor != nil {
+				convertOrganizationalEntity(choice.License.Licensing.Licensor.Organization, specVersion)
+			}
+			if choice.License.Licensing.Licensee != nil {
+				convertOrganizationalEntity(choice.License.Licensing.Licensee.Organization, specVersion)
+			}
+			if choice.License.Licensing.Purchaser != nil {
+				convertOrganizationalEntity(choice.License.Licensing.Purchaser.Organization, specVersion)
+			}
+		}
+	}
+}
+
+func convertOrganizationalEntity(org *OrganizationalEntity, specVersion SpecVersion) {
+	if org == nil {
+		return
+	}
+
+	if specVersion < SpecVersion1_5 {
+		org.BOMRef = ""
+
+		if org.Contact != nil {
+			for i := range *org.Contact {
+				convertOrganizationalContact(&(*org.Contact)[i], specVersion)
+			}
+		}
+	}
+
+	if specVersion < SpecVersion1_6 {
+		org.Address = nil
+	}
+}
+
+func convertOrganizationalContact(c *OrganizationalContact, specVersion SpecVersion) {
+	if c == nil {
+		return
+	}
+
+	if specVersion < SpecVersion1_5 {
+		c.BOMRef = ""
+	}
+}
+
+func convertModelCard(c *Component, specVersion SpecVersion) {
+	if c.ModelCard == nil {
+		return
+	}
+
+	if specVersion < SpecVersion1_6 {
+		if c.ModelCard.Considerations != nil {
+			c.ModelCard.Considerations.EnvironmentalConsiderations = nil
+		}
+	}
+}
+
+func convertVulnerabilities(vulns *[]Vulnerability, specVersion SpecVersion) {
+	if vulns == nil {
+		return
+	}
+
+	for i := range *vulns {
+		vuln := &(*vulns)[i]
+
+		convertTools(vuln.Tools, specVersion)
+
+		if specVersion < SpecVersion1_5 {
+			vuln.ProofOfConcept = nil
+			vuln.Rejected = ""
+			vuln.Workaround = ""
+		}
+
+		if specVersion < SpecVersion1_6 {
+			if vuln.Credits != nil {
+				if vuln.Credits.Organizations != nil {
+					for i := range *vuln.Credits.Organizations {
+						convertOrganizationalEntity(&(*vuln.Credits.Organizations)[i], specVersion)
+					}
+				}
+
+				if vuln.Credits.Individuals != nil {
+					for i := range *vuln.Credits.Individuals {
+						convertOrganizationalContact(&(*vuln.Credits.Individuals)[i], specVersion)
+					}
+				}
+			}
+		}
+
+		if vuln.Ratings != nil {
+			for j := range *vuln.Ratings {
+				rating := &(*vuln.Ratings)[j]
+				if !specVersion.supportsScoringMethod(rating.Method) {
+					rating.Method = ScoringMethodOther
+				}
+			}
+		}
+	}
+}
+
+func convertAnnotations(annotations *[]Annotation, specVersion SpecVersion) {
+	if annotations == nil {
+		return
+	}
+
+	if specVersion < SpecVersion1_6 {
+		for i := range *annotations {
+			ann := (*annotations)[i]
+
+			if ann.Annotator == nil {
+				continue
+			}
+
+			convertOrganizationalEntity(ann.Annotator.Organization, specVersion)
+			recurseService(ann.Annotator.Service, serviceConverter(specVersion))
+		}
+	}
 }
 
 // serviceConverter modifies a Service such that it adheres to a given SpecVersion.
@@ -229,7 +446,58 @@ func serviceConverter(specVersion SpecVersion) func(*Service) {
 			s.ReleaseNotes = nil
 		}
 
+		convertOrganizationalEntity(s.Provider, specVersion)
 		convertExternalReferences(s.ExternalReferences, specVersion)
+	}
+}
+
+// convertTools modifies a ToolsChoice such that it adheres to a given SpecVersion.
+func convertTools(tools *ToolsChoice, specVersion SpecVersion) {
+	if tools == nil {
+		return
+	}
+
+	if specVersion < SpecVersion1_5 {
+		convertedTools := make([]Tool, 0)
+		if tools.Components != nil {
+			for i := range *tools.Components {
+				tool := convertComponentToTool((*tools.Components)[i], specVersion)
+				if tool != nil {
+					convertedTools = append(convertedTools, *tool)
+				}
+			}
+			tools.Components = nil
+		}
+
+		if tools.Services != nil {
+			for i := range *tools.Services {
+				tool := convertServiceToTool((*tools.Services)[i], specVersion)
+				if tool != nil {
+					convertedTools = append(convertedTools, *tool)
+				}
+			}
+			tools.Services = nil
+		}
+
+		if len(convertedTools) > 0 {
+			if tools.Tools == nil {
+				tools.Tools = &convertedTools
+			} else {
+				*tools.Tools = append(*tools.Tools, convertedTools...)
+			}
+		}
+	}
+
+	if tools.Services != nil {
+		for i := range *tools.Services {
+			convertOrganizationalEntity((*tools.Services)[i].Provider, specVersion)
+		}
+	}
+
+	if tools.Tools != nil {
+		for i := range *tools.Tools {
+			convertTool(&(*tools.Tools)[i], specVersion)
+		}
 	}
 }
 
@@ -245,6 +513,40 @@ func convertTool(tool *Tool, specVersion SpecVersion) {
 
 	convertExternalReferences(tool.ExternalReferences, specVersion)
 	convertHashes(tool.Hashes, specVersion)
+}
+
+// convertComponentToTool converts a Component to a Tool for use in ToolsChoice.Tools.
+func convertComponentToTool(component Component, _ SpecVersion) *Tool {
+	tool := Tool{
+		Vendor:             component.Author,
+		Name:               component.Name,
+		Version:            component.Version,
+		Hashes:             component.Hashes,
+		ExternalReferences: component.ExternalReferences,
+	}
+
+	if component.Supplier != nil {
+		// There is no perfect 1:1 mapping for the Vendor field, but Supplier comes closest.
+		// https://github.com/CycloneDX/cyclonedx-go/issues/115#issuecomment-1688710539
+		tool.Vendor = component.Supplier.Name
+	}
+
+	return &tool
+}
+
+// convertServiceToTool converts a Service to a Tool for use in ToolsChoice.Tools.
+func convertServiceToTool(service Service, _ SpecVersion) *Tool {
+	tool := Tool{
+		Name:               service.Name,
+		Version:            service.Version,
+		ExternalReferences: service.ExternalReferences,
+	}
+
+	if service.Provider != nil {
+		tool.Vendor = service.Provider.Name
+	}
+
+	return &tool
 }
 
 func recurseComponent(component *Component, f func(c *Component)) {
@@ -307,6 +609,16 @@ func (sv SpecVersion) supportsComponentType(cType ComponentType) bool {
 	return false
 }
 
+func (sv SpecVersion) supportsCompositionAggregate(ca CompositionAggregate) bool {
+	switch ca {
+	case CompositionAggregateIncompleteFirstPartyOpenSourceOnly, CompositionAggregateIncompleteFirstPartyProprietaryOnly,
+		CompositionAggregateIncompleteThirdPartyOpenSourceOnly, CompositionAggregateIncompleteThirdPartyProprietaryOnly:
+		return sv >= SpecVersion1_5
+	}
+
+	return sv >= SpecVersion1_3
+}
+
 func (sv SpecVersion) supportsExternalReferenceType(ert ExternalReferenceType) bool {
 	switch ert {
 	case ERTypeAdversaryModel,
@@ -314,10 +626,15 @@ func (sv SpecVersion) supportsExternalReferenceType(ert ExternalReferenceType) b
 		ERTypeCertificationReport,
 		ERTypeCodifiedInfrastructure,
 		ERTypeComponentAnalysisReport,
+		ERTypeConfiguration,
 		ERTypeDistributionIntake,
 		ERTypeDynamicAnalysisReport,
+		ERTypeEvidence,
 		ERTypeExploitabilityStatement,
+		ERTypeFormulation,
+		ERTypeLog,
 		ERTypeMaturityReport,
+		ERTypeModelCard,
 		ERTypePentestReport,
 		ERTypeQualityMetrics,
 		ERTypeRiskAssessment,
@@ -348,6 +665,17 @@ func (sv SpecVersion) supportsScope(scope Scope) bool {
 		return sv >= SpecVersion1_0
 	case ScopeExcluded:
 		return sv >= SpecVersion1_2
+	}
+
+	return false
+}
+
+func (sv SpecVersion) supportsScoringMethod(method ScoringMethod) bool {
+	switch method {
+	case ScoringMethodCVSSv2, ScoringMethodCVSSv3, ScoringMethodCVSSv31, ScoringMethodOWASP, ScoringMethodOther:
+		return sv >= SpecVersion1_4
+	case ScoringMethodCVSSv4, ScoringMethodSSVC:
+		return sv >= SpecVersion1_5
 	}
 
 	return false

@@ -52,7 +52,7 @@ func (c *Copyright) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	if err := d.DecodeElement(&text, &start); err != nil {
 		return err
 	}
-	(*c).Text = text
+	c.Text = text
 	return nil
 }
 
@@ -94,6 +94,75 @@ func (d *Dependency) UnmarshalXML(dec *xml.Decoder, start xml.StartElement) erro
 	}
 
 	*d = dep
+	return nil
+}
+
+func (ev EnvironmentVariables) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+	if len(ev) == 0 {
+		return nil
+	}
+
+	err := e.EncodeToken(start)
+	if err != nil {
+		return err
+	}
+
+	for _, choice := range ev {
+		if choice.Property != nil && choice.Value != "" {
+			return fmt.Errorf("either property or value must be set, but not both")
+		}
+
+		if choice.Property != nil {
+			err = e.EncodeElement(choice.Property, xml.StartElement{Name: xml.Name{Local: "environmentVar"}})
+			if err != nil {
+				return err
+			}
+		} else if choice.Value != "" {
+			err = e.EncodeElement(choice.Value, xml.StartElement{Name: xml.Name{Local: "value"}})
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return e.EncodeToken(start.End())
+}
+
+func (ev *EnvironmentVariables) UnmarshalXML(d *xml.Decoder, _ xml.StartElement) error {
+	envVars := make([]EnvironmentVariableChoice, 0)
+
+	for {
+		token, err := d.Token()
+		if err != nil {
+			if errors.Is(err, io.EOF) {
+				break
+			}
+			return err
+		}
+
+		switch tokenType := token.(type) {
+		case xml.StartElement:
+			if tokenType.Name.Local == "value" {
+				var value string
+				err = d.DecodeElement(&value, &tokenType)
+				if err != nil {
+					return err
+				}
+				envVars = append(envVars, EnvironmentVariableChoice{Value: value})
+			} else if tokenType.Name.Local == "environmentVar" {
+				var property Property
+				err = d.DecodeElement(&property, &tokenType)
+				if err != nil {
+					return err
+				}
+				envVars = append(envVars, EnvironmentVariableChoice{Property: &property})
+			} else {
+				return fmt.Errorf("unknown element: %s", tokenType.Name.Local)
+			}
+		}
+	}
+
+	*ev = envVars
 	return nil
 }
 
@@ -161,6 +230,44 @@ func (l *Licenses) UnmarshalXML(d *xml.Decoder, _ xml.StartElement) error {
 	return nil
 }
 
+type mlDatasetChoiceRefXML struct {
+	Ref string `json:"-" xml:"ref"`
+}
+
+type mlDatasetChoiceXML struct {
+	Ref string `json:"-" xml:"ref"`
+	ComponentData
+}
+
+func (dc MLDatasetChoice) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+	if dc.Ref != "" {
+		return e.EncodeElement(mlDatasetChoiceRefXML{Ref: dc.Ref}, start)
+	} else if dc.ComponentData != nil {
+		return e.EncodeElement(dc.ComponentData, start)
+	}
+
+	return nil
+}
+
+func (dc *MLDatasetChoice) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	var choice mlDatasetChoiceXML
+	err := d.DecodeElement(&choice, &start)
+	if err != nil {
+		return err
+	}
+
+	if choice.Ref != "" {
+		dc.Ref = choice.Ref
+		return nil
+	}
+
+	if choice.ComponentData != (ComponentData{}) {
+		dc.ComponentData = &choice.ComponentData
+	}
+
+	return nil
+}
+
 func (sv SpecVersion) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return e.EncodeElement(sv.String(), start)
 }
@@ -185,8 +292,115 @@ func (sv *SpecVersion) UnmarshalXML(d *xml.Decoder, start xml.StartElement) erro
 		*sv = SpecVersion1_4
 	case SpecVersion1_5.String():
 		*sv = SpecVersion1_5
+	case SpecVersion1_6.String():
+		*sv = SpecVersion1_6
 	default:
 		return ErrInvalidSpecVersion
+	}
+
+	return nil
+}
+
+// toolsChoiceMarshalXML is a helper struct for marshalling ToolsChoice.
+type toolsChoiceMarshalXML struct {
+	LegacyTools *[]Tool      `json:"-" xml:"tool,omitempty"`
+	Components  *[]Component `json:"-" xml:"components>component,omitempty"`
+	Services    *[]Service   `json:"-" xml:"services>service,omitempty"`
+}
+
+// toolsChoiceUnmarshalXML is a helper struct for unmarshalling tools represented
+// as components and / or services. It is intended to be used with the streaming XML API.
+//
+//	<components>   <-- cursor should be here when unmarshalling this!
+//	  <component>
+//	    <name>foo</name>
+//	  </component>
+//	</components>
+type toolsChoiceUnmarshalXML struct {
+	Components *[]Component `json:"-" xml:"component,omitempty"`
+	Services   *[]Service   `json:"-" xml:"service,omitempty"`
+}
+
+func (tc ToolsChoice) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+	if tc.Tools != nil && (tc.Components != nil || tc.Services != nil) {
+		return fmt.Errorf("either a list of tools, or an object holding components and services can be used, but not both")
+	}
+
+	if tc.Tools != nil {
+		return e.EncodeElement(toolsChoiceMarshalXML{LegacyTools: tc.Tools}, start)
+	}
+
+	tools := toolsChoiceMarshalXML{
+		Components: tc.Components,
+		Services:   tc.Services,
+	}
+	if tools.Components != nil || tools.Services != nil {
+		return e.EncodeElement(tools, start)
+	}
+
+	return nil
+}
+
+func (tc *ToolsChoice) UnmarshalXML(d *xml.Decoder, _ xml.StartElement) error {
+	var components []Component
+	var services []Service
+	legacyTools := make([]Tool, 0)
+
+	for {
+		token, err := d.Token()
+		if err != nil {
+			if errors.Is(err, io.EOF) {
+				break
+			}
+			return err
+		}
+
+		switch tokenType := token.(type) {
+		case xml.StartElement:
+			if tokenType.Name.Local == "tool" {
+				var tool Tool
+				if err = d.DecodeElement(&tool, &tokenType); err != nil {
+					return err
+				}
+				legacyTools = append(legacyTools, tool)
+			} else if tokenType.Name.Local == "components" {
+				var foo toolsChoiceUnmarshalXML
+				if err = d.DecodeElement(&foo, &tokenType); err != nil {
+					return err
+				}
+				if foo.Components != nil {
+					components = *foo.Components
+				}
+			} else if tokenType.Name.Local == "services" {
+				var foo toolsChoiceUnmarshalXML
+				if err = d.DecodeElement(&foo, &tokenType); err != nil {
+					return err
+				}
+				if foo.Services != nil {
+					services = *foo.Services
+				}
+			} else {
+				return fmt.Errorf("unknown element: %s", tokenType.Name.Local)
+			}
+		}
+	}
+
+	choice := ToolsChoice{}
+	if len(legacyTools) > 0 && (len(components) > 0 || len(services) > 0) {
+		return fmt.Errorf("either a list of tools, or an object holding components and services can be used, but not both")
+	}
+	if len(components) > 0 {
+		choice.Components = &components
+	}
+	if len(services) > 0 {
+		choice.Services = &services
+	}
+	if len(legacyTools) > 0 {
+		choice.Tools = &legacyTools
+	}
+
+	if choice.Tools != nil || choice.Components != nil || choice.Services != nil {
+		*tc = choice
 	}
 
 	return nil
@@ -199,4 +413,5 @@ var xmlNamespaces = map[SpecVersion]string{
 	SpecVersion1_3: "http://cyclonedx.org/schema/bom/1.3",
 	SpecVersion1_4: "http://cyclonedx.org/schema/bom/1.4",
 	SpecVersion1_5: "http://cyclonedx.org/schema/bom/1.5",
+	SpecVersion1_6: "http://cyclonedx.org/schema/bom/1.6",
 }

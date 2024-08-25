@@ -2,7 +2,6 @@ package dtrack
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
 
 	"github.com/google/uuid"
@@ -52,42 +51,6 @@ type Analysis struct {
 	Response      AnalysisResponse      `json:"analysisResponse"`
 	Details       string                `json:"analysisDetails"`
 	Suppressed    bool                  `json:"isSuppressed"`
-}
-
-// findingAnalysis represents the Analysis object as returned by the findings API.
-// Instead of `analysisState`, the state of an analysis is provided as `state` field.
-// See https://github.com/DependencyTrack/dependency-track/blob/4.3.2/src/main/java/org/dependencytrack/model/Finding.java#L116
-type findingAnalysis struct {
-	Comments      []AnalysisComment     `json:"analysisComments"`
-	State         AnalysisState         `json:"analysisState"`
-	Justification AnalysisJustification `json:"analysisJustification"`
-	Response      AnalysisResponse      `json:"analysisResponse"`
-	Details       string                `json:"analysisDetails"`
-	StateAlias    AnalysisState         `json:"state"`
-	Suppressed    bool                  `json:"isSuppressed"`
-}
-
-func (a *Analysis) UnmarshalJSON(bytes []byte) error {
-	var fa findingAnalysis
-
-	if err := json.Unmarshal(bytes, &fa); err != nil {
-		return err
-	}
-
-	*a = Analysis{
-		Comments:      fa.Comments,
-		State:         fa.State,
-		Justification: fa.Justification,
-		Response:      fa.Response,
-		Details:       fa.Details,
-		Suppressed:    fa.Suppressed,
-	}
-
-	if fa.State == "" && fa.StateAlias != "" {
-		a.State = fa.StateAlias
-	}
-
-	return nil
 }
 
 type AnalysisComment struct {

@@ -9,9 +9,11 @@ import (
 )
 
 type Team struct {
-	UUID    uuid.UUID `json:"uuid,omitempty"`
-	Name    string    `json:"name,omitempty"`
-	APIKeys []APIKey  `json:"apiKeys,omitempty"`
+	UUID             uuid.UUID     `json:"uuid,omitempty"`
+	Name             string        `json:"name,omitempty"`
+	APIKeys          []APIKey      `json:"apiKeys,omitempty"`
+	Permissions      []Permission  `json:"permissions,omitempty"`
+	MappedOIDCGroups []OIDCMapping `json:"mappedOidcGroups,omitempty"`
 }
 
 type APIKey struct {
@@ -22,13 +24,13 @@ type TeamService struct {
 	client *Client
 }
 
-func (ts TeamService) Get(ctx context.Context, teamUUID uuid.UUID) (p Project, err error) {
+func (ts TeamService) Get(ctx context.Context, teamUUID uuid.UUID) (t Team, err error) {
 	req, err := ts.client.newRequest(ctx, http.MethodGet, fmt.Sprintf("/api/v1/team/%s", teamUUID))
 	if err != nil {
 		return
 	}
 
-	_, err = ts.client.doRequest(req, &p)
+	_, err = ts.client.doRequest(req, &t)
 	return
 }
 
@@ -56,5 +58,35 @@ func (ts TeamService) GenerateAPIKey(ctx context.Context, teamUUID uuid.UUID) (k
 	var apiKey APIKey
 	_, err = ts.client.doRequest(req, &apiKey)
 	key = apiKey.Key
+	return
+}
+
+func (ts TeamService) Create(ctx context.Context, team Team) (t Team, err error) {
+	req, err := ts.client.newRequest(ctx, http.MethodPut, "/api/v1/team", withBody(team))
+	if err != nil {
+		return
+	}
+
+	_, err = ts.client.doRequest(req, &t)
+	return
+}
+
+func (ts TeamService) Update(ctx context.Context, team Team) (t Team, err error) {
+	req, err := ts.client.newRequest(ctx, http.MethodPost, "/api/v1/team", withBody(team))
+	if err != nil {
+		return
+	}
+
+	_, err = ts.client.doRequest(req, &t)
+	return
+}
+
+func (ts TeamService) Delete(ctx context.Context, team Team) (err error) {
+	req, err := ts.client.newRequest(ctx, http.MethodDelete, "/api/v1/team", withBody(team))
+	if err != nil {
+		return
+	}
+
+	_, err = ts.client.doRequest(req, nil)
 	return
 }
