@@ -4,14 +4,16 @@ go 1.22.2
 
 require (
 	cloud.google.com/go/bigquery v1.57.1
-	github.com/CycloneDX/cyclonedx-go v0.7.2
-	github.com/DependencyTrack/client-go v0.8.0
+	github.com/CycloneDX/cyclonedx-go v0.9.0
+	github.com/DependencyTrack/client-go v0.13.0
 	github.com/andygrunwald/go-jira v1.15.1
 	github.com/avast/retry-go/v4 v4.3.3
 	github.com/aws/aws-sdk-go v1.17.7
 	github.com/elastic/go-elasticsearch/v8 v8.3.0
 	github.com/go-errors/errors v1.4.2
 	github.com/golang-migrate/migrate/v4 v4.15.1
+	github.com/google/go-cmp v0.6.0
+	github.com/google/go-github/v63 v63.0.0
 	github.com/google/uuid v1.6.0
 	github.com/hairyhenderson/go-codeowners v0.4.0
 	github.com/jmoiron/sqlx v1.3.5
@@ -22,7 +24,7 @@ require (
 	github.com/playwright-community/playwright-go v0.3900.1
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/viper v1.11.0
-	github.com/stretchr/testify v1.8.4
+	github.com/stretchr/testify v1.9.0
 	github.com/tektoncd/pipeline v0.57.0
 	github.com/trivago/tgo v1.0.7
 	go.mongodb.org/mongo-driver v1.10.0
@@ -30,7 +32,6 @@ require (
 	golang.org/x/oauth2 v0.16.0
 	google.golang.org/api v0.156.0
 	google.golang.org/protobuf v1.34.1
-	gopkg.in/h2non/gock.v1 v1.1.2
 	helm.sh/helm/v3 v3.14.4
 	k8s.io/api v0.29.0
 	k8s.io/apimachinery v0.29.0
@@ -82,9 +83,7 @@ require (
 	github.com/google/cel-go v0.20.0 // indirect
 	github.com/google/flatbuffers v2.0.8+incompatible // indirect
 	github.com/google/gnostic-models v0.6.8 // indirect
-	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/google/go-containerregistry v0.19.0 // indirect
-	github.com/google/go-github/v63 v63.0.0 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/s2a-go v0.1.7 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
@@ -175,7 +174,6 @@ require (
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/golang-jwt/jwt/v4 v4.5.0 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
-	github.com/h2non/parth v0.0.0-20190131123155-b4df798d6542 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
@@ -189,7 +187,7 @@ require (
 	github.com/spf13/afero v1.8.2 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
-	github.com/spf13/pflag v1.0.5 // indirect
+	github.com/spf13/pflag v1.0.5
 	github.com/subosito/gotenv v1.2.0 // indirect
 	go.uber.org/atomic v1.10.0 // indirect
 	golang.org/x/sys v0.16.0 // indirect

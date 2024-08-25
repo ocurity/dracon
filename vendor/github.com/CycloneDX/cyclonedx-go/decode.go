@@ -21,7 +21,6 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"io"
-	"io/ioutil"
 )
 
 type BOMDecoder interface {
@@ -41,7 +40,7 @@ type jsonBOMDecoder struct {
 
 // Decode implements the BOMDecoder interface.
 func (j jsonBOMDecoder) Decode(bom *BOM) error {
-	bytes, err := ioutil.ReadAll(j.reader)
+	bytes, err := io.ReadAll(j.reader)
 	if err != nil {
 		return err
 	}

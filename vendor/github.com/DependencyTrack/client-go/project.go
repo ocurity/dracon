@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/google/uuid"
 )
@@ -25,7 +26,12 @@ type Project struct {
 	Tags               []Tag             `json:"tags,omitempty"`
 	Active             bool              `json:"active"`
 	Metrics            ProjectMetrics    `json:"metrics"`
+	ParentRef          *ParentRef        `json:"parent,omitempty"`
 	LastBOMImport      int               `json:"lastBomImport"`
+}
+
+type ParentRef struct {
+	UUID uuid.UUID `json:"uuid,omitempty"`
 }
 
 type ProjectService struct {
@@ -54,6 +60,22 @@ func (ps ProjectService) GetAll(ctx context.Context, po PageOptions) (p Page[Pro
 	}
 
 	p.TotalCount = res.TotalCount
+	return
+}
+
+func (ps ProjectService) GetProjectsForName(ctx context.Context, name string, excludeInactive, onlyRoot bool) (p []Project, err error) {
+	params := map[string]string{
+		"name":            name,
+		"excludeInactive": strconv.FormatBool(excludeInactive),
+		"onlyRoot":        strconv.FormatBool(onlyRoot),
+	}
+
+	req, err := ps.client.newRequest(ctx, http.MethodGet, "/api/v1/project", withParams(params))
+	if err != nil {
+		return
+	}
+
+	_, err = ps.client.doRequest(req, &p)
 	return
 }
 
@@ -109,6 +131,29 @@ func (ps ProjectService) Lookup(ctx context.Context, name, version string) (p Pr
 	}
 
 	_, err = ps.client.doRequest(req, &p)
+	return
+}
+
+func (ps ProjectService) GetAllByTag(ctx context.Context, tag string, excludeInactive, onlyRoot bool, po PageOptions) (p Page[Project], err error) {
+	pathParams := map[string]string{
+		"tag": tag,
+	}
+	params := map[string]string{
+		"excludeInactive": strconv.FormatBool(excludeInactive),
+		"onlyRoot":        strconv.FormatBool(onlyRoot),
+	}
+
+	req, err := ps.client.newRequest(ctx, http.MethodGet, "/api/v1/project/tag/{tag}", withPathParams(pathParams), withParams(params), withPageOptions(po))
+	if err != nil {
+		return
+	}
+
+	res, err := ps.client.doRequest(req, &p.Items)
+	if err != nil {
+		return
+	}
+
+	p.TotalCount = res.TotalCount
 	return
 }
 
