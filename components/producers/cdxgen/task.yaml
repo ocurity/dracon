@@ -33,7 +33,7 @@ spec:
       description: The workspace containing the source-code to scan.
   steps:
     - name: run-cdxgen
-      image: ghcr.io/cyclonedx/cdxgen:v9.8.10
+      image: ghcr.io/cyclonedx/cdxgen:v10.9.5
       env:
         - name: FETCH_LICENSE
           value: $(params.producer-cdxgen-fetch-license)
@@ -43,8 +43,17 @@ spec:
           value: $(params.producer-cdxgen-astgen-ignore-file-pattern)
         - name: ASTGEN_IGNORE_DIRS
           value: $(params.producer-cdxgen-astgen-ignore-dirs)
-      script: |
-        node /opt/cdxgen/bin/cdxgen.js -r -p -o /scratch/out.json $(workspaces.output.path)/ --spec-version 1.4
+      command:
+        - node
+      args:
+        - /opt/cdxgen/bin/cdxgen.js
+        - -r
+        - -p
+        - -o
+        - /scratch/out.json
+        - $(workspaces.output.path)/
+        - --spec-version
+        - "1.5"
       volumeMounts:
         - mountPath: /scratch
           name: scratch
