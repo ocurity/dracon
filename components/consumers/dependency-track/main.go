@@ -28,7 +28,7 @@ var (
 	client          *dtrack.Client
 	ownerAnnotation string
 	// used for debugging, turns off certificate and enables debug
-	debug bool
+	debugDT bool
 )
 
 func main() {
@@ -37,7 +37,7 @@ func main() {
 	flag.StringVar(&projectName, "projectName", "", "dependency track project name")
 	flag.StringVar(&projectUUID, "projectUUID", "", "dependency track project name")
 	flag.StringVar(&projectVersion, "projectVersion", "", "dependency track project version")
-	flag.BoolVar(&debug, "debug", false, "setup client with no tls and enable debug")
+	flag.BoolVar(&debugDT, "debugDependencyTrackConnection", false, "setup client with no tls and enable debug")
 	flag.StringVar(
 		&ownerAnnotation,
 		"ownerAnnotation",
@@ -66,22 +66,22 @@ func main() {
 		log.Fatal("project version is mandatory for dependency track")
 	}
 
-	client, err := dtrack.NewClient(
+	c, err := dtrack.NewClient(
 		authURL,
 		dtrack.WithHttpClient(
 			&http.Client{Transport: &http.Transport{
 				TLSClientConfig: &tls.Config{
-					InsecureSkipVerify: debug,
+					InsecureSkipVerify: debugDT,
 				},
 			},
 			}),
-		dtrack.WithDebug(debug),
+		dtrack.WithDebug(debugDT),
 		dtrack.WithAPIKey(apiKey),
 	)
 	if err != nil {
 		log.Panicf("could not instantiate client err: %#v\n", err)
 	}
-
+	client = c
 	abt, err := client.Metrics.LatestPortfolioMetrics(context.Background())
 	if err != nil {
 		log.Fatalf("cannot connect to Dependency Track at %s, err:'%v'", authURL, err)
