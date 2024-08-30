@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	dtrack "github.com/DependencyTrack/client-go"
+	"github.com/go-errors/errors"
 	"github.com/google/uuid"
 
 	v1 "github.com/ocurity/dracon/api/proto/v1"
@@ -79,14 +80,14 @@ func main() {
 		dtrack.WithAPIKey(apiKey),
 	)
 	if err != nil {
-		log.Panicf("could not instantiate client err: %#v\n", err)
+		log.Fatalf("could not instantiate client err: %#v\n", err)
 	}
 	client = c
 	abt, err := client.Metrics.LatestPortfolioMetrics(context.Background())
 	if err != nil {
 		log.Fatalf("cannot connect to Dependency Track at %s, err:'%v'", authURL, err)
 	}
-	slog.Info("connection to DT successful listed projects in instance", "projects", abt.Projects)
+	slog.Info("Connection to DT successful, projects in instance:", "instance", abt.Projects)
 	if consumers.Raw {
 		responses, err := consumers.LoadToolResponse()
 		if err != nil {
@@ -115,8 +116,7 @@ func uploadBOMSFromEnriched(responses []*v1.EnrichedLaunchToolResponse) ([]strin
 			if issue.GetRawIssue().GetCycloneDXSBOM() != "" && bomIssue == nil {
 				bomIssue = issue
 			} else if bomIssue != nil && bomIssue.GetRawIssue().GetCycloneDXSBOM() != "" {
-				log.Printf("Tool response for tool %s is malformed, we expected a single issue with an SBOM as part of the tool, got something else instead",
-					res.GetOriginalResults().GetToolName())
+				slog.Error("tool:", res.GetOriginalResults().GetToolName(), "response is malformed, we expected a single issue with an SBOM as part of the tool, got something else instead")
 				continue
 			}
 		}
@@ -126,12 +126,11 @@ func uploadBOMSFromEnriched(responses []*v1.EnrichedLaunchToolResponse) ([]strin
 		}
 		token, err := uploadBOM(bomIssue.GetRawIssue().GetCycloneDXSBOM(), cdxbom.Metadata.Component.Version)
 		if err != nil {
-			log.Fatal("could not upload bom to dependency track, err:", err)
+			return tokens, errors.Errorf("could not upload bom to dependency track, err:%w", err)
 		}
-		log.Println("upload token is", token)
+		slog.Debug("upload", "token", token)
 		tokens = append(tokens, token)
 		if ownerAnnotation != "" {
-			log.Println("tagging owners")
 			owners := []string{}
 			for key, value := range bomIssue.Annotations {
 				if strings.Contains(key, ownerAnnotation) {
@@ -139,7 +138,7 @@ func uploadBOMSFromEnriched(responses []*v1.EnrichedLaunchToolResponse) ([]strin
 				}
 			}
 			if err := addOwnersTags(owners); err != nil {
-				log.Println("could not tag owners, err:", err)
+				slog.Error("could not tag owners", "err", err)
 			}
 		}
 	}
@@ -154,8 +153,7 @@ func uploadBOMsFromRaw(responses []*v1.LaunchToolResponse) ([]string, error) {
 			if *issue.CycloneDXSBOM != "" && bomIssue == nil {
 				bomIssue = issue
 			} else if bomIssue != nil && *bomIssue.CycloneDXSBOM != "" {
-				log.Printf("Tool response for tool %s is malformed, we expected a single issue with an SBOM as part of the tool, got multiple issues with sboms instead",
-					res.GetToolName())
+				slog.Error("tool:", res.GetToolName(), "response is malformed, we expected a single issue with an SBOM as part of the tool, got something else instead")
 				continue
 			}
 		}
@@ -165,9 +163,9 @@ func uploadBOMsFromRaw(responses []*v1.LaunchToolResponse) ([]string, error) {
 		}
 		token, err := uploadBOM(*bomIssue.CycloneDXSBOM, cdxbom.Metadata.Component.Version)
 		if err != nil {
-			log.Fatal("could not upload bod to dependency track, err:", err)
+			return tokens, errors.Errorf("could not upload bod to dependency track, err:%w", err)
 		}
-		log.Println("upload token is", token)
+		slog.Info("upload", "token", token)
 		tokens = append(tokens, token)
 	}
 	return tokens, nil
@@ -179,7 +177,7 @@ func addOwnersTags(owners []string) error {
 	uuid := uuid.MustParse(projectUUID)
 	project, err := client.Project.Get(context.Background(), uuid)
 	if err != nil {
-		log.Println("could not add project tags error getting project by uuid, err:", err)
+		slog.Error("could not add project tags error getting project by uuid", "err", err)
 		return err
 	}
 	for _, owner := range owners {
