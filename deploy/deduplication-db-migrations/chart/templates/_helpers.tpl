@@ -67,10 +67,9 @@ Create the name of the service account to use
 */}}
 
 {{- define "deduplication_db_migrations.imageName" -}}
-{{- if .Values.deduplication_db_migrations.image.repository }}
-{{- printf "%s:%s" .Values.deduplication_db_migrations.image.repository (.Values.image.tag | default .Chart.AppVersion )}}
+{{- if .Values.image.repository }}
+{{- printf "%s:%s" .Values.image.repository (.Values.image.tag | default .Chart.AppVersion )}}
 {{- else }}
 {{- printf "%s/%s:%s" (.Values.image.registry | default "ghcr.io/ocurity/dracon") "draconctl" (.Values.image.tag | default .Chart.AppVersion )}}
 {{- end }}
 {{- end }}
-
