@@ -41,5 +41,5 @@ spec:
       "-projectVersion", "$(params.consumer-dependency-track-project-version)",
       "-projectUUID", "$(params.consumer-dependency-track-project-uuid)",
       "-ownerAnnotation","$(params.consumer-dependency-track-owner-annotation)",
-      "-debug", "$(params.consumer-dependency-track-debug)"
+      "-debugDependencyTrackConnection", "$(params.consumer-dependency-track-debug)"
     ]
