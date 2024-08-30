@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"crypto/tls"
-	"encoding/base64"
 	"flag"
 	"fmt"
 	"log"
@@ -201,13 +200,16 @@ func uploadBOM(bom string, projectVersion string) (string, error) {
 	if projectVersion == "" {
 		projectVersion = "Unknown"
 	}
-	uuid := uuid.MustParse(projectUUID)
-	token, err := client.BOM.Upload(context.TODO(), dtrack.BOMUploadRequest{
+	projUUID, err := uuid.Parse(projectUUID)
+	if err != nil {
+		return "", err
+	}
+	token, err := client.BOM.PostBom(context.TODO(), dtrack.BOMUploadRequest{
 		ProjectName:    projectName,
 		ProjectVersion: projectVersion,
-		ProjectUUID:    &uuid,
+		ProjectUUID:    &projUUID,
 		AutoCreate:     true,
-		BOM:            base64.StdEncoding.EncodeToString([]byte(bom)),
+		BOM:            bom,
 	})
 	return string(token), err
 }
