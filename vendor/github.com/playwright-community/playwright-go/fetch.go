@@ -37,7 +37,7 @@ func (r *apiRequestImpl) NewContext(options ...APIRequestNewContextOptions) (API
 
 	channel, err := r.channel.Send("newRequest", options, overrides)
 	if err != nil {
-		return nil, fmt.Errorf("could not send message: %w", err)
+		return nil, err
 	}
 	return fromChannel(channel).(*apiRequestContextImpl), nil
 }
@@ -48,11 +48,20 @@ func newApiRequestImpl(pw *Playwright) *apiRequestImpl {
 
 type apiRequestContextImpl struct {
 	channelOwner
-	tracing *tracingImpl
+	tracing     *tracingImpl
+	closeReason *string
 }
 
-func (r *apiRequestContextImpl) Dispose() error {
-	_, err := r.channel.Send("dispose")
+func (r *apiRequestContextImpl) Dispose(options ...APIRequestContextDisposeOptions) error {
+	if len(options) == 1 {
+		r.closeReason = options[0].Reason
+	}
+	_, err := r.channel.Send("dispose", map[string]interface{}{
+		"reason": r.closeReason,
+	})
+	if errors.Is(err, ErrTargetClosed) {
+		return nil
+	}
 	return err
 }
 
@@ -82,6 +91,9 @@ func (r *apiRequestContextImpl) Fetch(urlOrRequest interface{}, options ...APIRe
 }
 
 func (r *apiRequestContextImpl) innerFetch(url string, request Request, options ...APIRequestContextFetchOptions) (APIResponse, error) {
+	if r.closeReason != nil {
+		return nil, fmt.Errorf("%w: %s", ErrTargetClosed, *r.closeReason)
+	}
 	overrides := map[string]interface{}{}
 	if url != "" {
 		overrides["url"] = url
@@ -117,7 +129,15 @@ func (r *apiRequestContextImpl) innerFetch(url string, request Request, options 
 			case string:
 				headersArray, ok := overrides["headers"].([]map[string]string)
 				if ok && isJsonContentType(headersArray) {
-					overrides["jsonData"] = v
+					if json.Valid([]byte(v)) {
+						overrides["jsonData"] = v
+					} else {
+						data, err := json.Marshal(v)
+						if err != nil {
+							return nil, fmt.Errorf("could not marshal data: %w", err)
+						}
+						overrides["jsonData"] = string(data)
+					}
 				} else {
 					overrides["postData"] = base64.StdEncoding.EncodeToString([]byte(v))
 				}
@@ -298,7 +318,7 @@ func (r *apiResponseImpl) Body() ([]byte, error) {
 		},
 	})
 	if err != nil {
-		if isSafeCloseError(err) {
+		if errors.Is(err, ErrTargetClosed) {
 			return nil, errors.New("response has been disposed")
 		}
 		return nil, err
@@ -404,7 +424,6 @@ func isJsonContentType(headers []map[string]string) bool {
 				}
 			}
 		}
-
 	}
 	return false
 }
