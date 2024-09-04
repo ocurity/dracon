@@ -1,7 +1,7 @@
 # Dracon
 
 [![Lint](https://github.com/ocurity/dracon/actions/workflows/lint.yml/badge.svg)](https://github.com/ocurity/dracon/actions/workflows/lint.yml)
-[![Run dracon](https://github.com/ocurity/dracon/actions/workflows/run_dracon.yml/badge.svg)](https://github.com/ocurity/dracon/actions/workflows/run_dracon.yml)
+[![Format](https://github.com/ocurity/dracon/actions/workflows/format.yml/badge.svg)](https://github.com/ocurity/dracon/actions/workflows/format.yml)
 [![Test](https://github.com/ocurity/dracon/actions/workflows/test.yml/badge.svg)](https://github.com/ocurity/dracon/actions/workflows/test.yml)
 [![Publish](https://github.com/ocurity/dracon/actions/workflows/publish.yml/badge.svg)](https://github.com/ocurity/dracon/actions/workflows/publish.yml)
 
@@ -16,7 +16,7 @@ By [Ocurity](https://ocurity.com)
 Security scanning,results unification and enrichment tool
 ([ASOC](https://www.gartner.com/reviews/market/application-security-orchestration-and-correlation-asoc-tools))
 
-* forked and rewritten from @thought-machine/dracon
+* forked and rewritten from [@thought-machine/dracon](https://github.com/thought-machine/dracon)
 
 Security pipelines on Kubernetes. The purpose of this project is to provide a
 scalable and flexible framework to execute arbitrary security scanning
@@ -67,24 +67,12 @@ flowchart LR
 
 ## Getting Started
 
-The [Getting started with KinD][tut-kind] tutorial explains how to get started
+The [Getting Started](docs/getting-started.md) tutorial explains how to get started
 with Dracon.
 You can also access our community contributed pipelines
-[here](https://github.com/ocurity/dracon-community-pipelines)
+[here](https://github.com/ocurity/dracon-community-pipelines).
 
-More tutorials:
-
-<!--lint disable maximum-line-length-->
-
-| Name                                                  | Description                                                          |
-| ----------------------------------------------------- | -------------------------------------------------------------------- |
-| [Getting started with KinD][tut-kind]                 | Quickstart guide on how to get started with Dracon using KinD        |
-| [Getting started with Please and K3D][tut-please-k3d] | Beginner guide on how to get started with Dracon using Please w/ K3D |
-| [Running our demo pipeline][tut-running-demos]        | End to end demo of running an example pipeline                       |
-
-<!--lint enable maximum-line-length-->
-
-### Announcements
+## Announcements
 
 This version of Dracon was announced at OWASP Appsec Dublin in 2023. Check out
 [the slides](docs/presentations/Global_AppSecDublin_Presentation.pdf) and
@@ -94,7 +82,7 @@ of the presentation.
 ## Support
 
 If you have questions, reach out to us by opening a new
-[issue](https://github.com/ocurity/dracon/issues/new) on Github.
+[issue](https://github.com/ocurity/dracon/issues/new) on GitHub.
 
 ## Development & Contributing
 
@@ -105,9 +93,3 @@ and [releasing](docs/contributers/RELEASES.md) guides on how to get started.
 
 Dracon is under the Apache 2.0 license. See the [LICENSE](LICENSE) file for
 details.
-
-[tut-kind]: docs/getting-started/kind.md
-
-[tut-please-k3d]: docs/getting-started/please-k3d.md
-
-[tut-running-demos]: docs/getting-started/tutorials/running-demos.md
