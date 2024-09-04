@@ -7,3 +7,4 @@ bin
 tests/output
 .vscode/
 deploy/dracon/chart/charts
+.idea/
