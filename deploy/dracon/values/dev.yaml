@@ -32,6 +32,8 @@ image:
 
 postgresql:
   enabled: true
+
+database:
   auth:
     username: dracon
     password: dracon
