@@ -3,7 +3,7 @@
 This guide will help to quickly setup Dracon on a Kubernetes cluster and get a
 pipeline running. The first step is to create a dev Kubernetes cluster in order
 to deploy Tekton. We suggest you use KiND to provision a local test cluster
-quickly. If you already have a K8s cluster then you can skip directly to the
+quickly. If you already have a Kubernetes cluster then, you can skip directly to the
 [Deploying Dracon dependencies](#deploying-dracon-dependencies) section.
 
 We support two ways of deploying Dracon.
@@ -24,11 +24,11 @@ You will need to have the following tools installed in your system:
 
 ## Setting up a [KinD](https://kind.sigs.k8s.io/) cluster
 
-KinD is is a tool for running local Kubernetes clusters using Docker container
+KinD is a tool for running local Kubernetes clusters using Docker container
 “nodes”.
 
 Create a KinD cluster named `dracon-demo` with its own Docker registry. You can
-use our Bash script or you can check for more info the
+use our Bash script, or you can check for more info the
 [official documentation](https://kind.sigs.k8s.io/docs/user/quick-start/#creating-a-cluster):
 
 ```bash
@@ -36,7 +36,7 @@ use our Bash script or you can check for more info the
 ```
 
 > :warning: **Warning 1:** make sure you can connect to the KiND control plane
-> before proceeding. some times it takes a bit for everything to get started.
+> before proceeding. Sometimes it takes a bit for everything to get started.
 
 ## Deploying Dracon dependencies
 
@@ -67,7 +67,7 @@ make dev-infra
 For Dracon pipelines to run, they usually require the following services:
 
 1. MongoDB
-2. Elastic Search
+2. Elasticsearch
 3. Kibana
 4. MongoDB
 5. Postgres
@@ -78,7 +78,7 @@ Kibana and the bitnami charts to deploy instances of PostgreSQL and MongoDB.
 If you run the command:
 
 ```bash
-make dev-dracon DRACON_VERSION=v0.13.0
+make dev-dracon DRACON_VERSION=v0.39.0
 ```
 
 You will deploy the Elastic Operator on the cluster and the Dracon Helm
@@ -102,30 +102,30 @@ and MongoDB. The values used are in the `deploy/dracon/values/dev.yaml` file.
 
 1. Expose the TektonCD Dashboard
 
-   ```bash
-     kubectl -n tekton-pipelines port-forward svc/tekton-dashboard 9097:9097
-   ```
+    ```bash
+    kubectl -n tekton-pipelines port-forward svc/tekton-dashboard 9097:9097
+    ```
 
 2. Expose the Kibana Dashboard.
 
    ```bash
-   # Use `kubectl port-forward ...` to access the Kibana UI:
-   kubectl -n dracon port-forward svc/dracon-kb-kibana-kb-http 5601:5601
-   # You can obtain the password by examining the 
-   # `dracon-es-elasticsearch-es-elastic-user` secret:
-   # The username is `elastic`.
-   kubectl -n dracon get secret dracon-es-elasticsearch-es-elastic-user \
-            -o=jsonpath='{.data.elastic}' | \
-            base64 -d &&\
-            echo
+    # Use `kubectl port-forward ...` to access the Kibana UI:
+    kubectl -n dracon port-forward svc/dracon-kb-kibana-kb-http 5601:5601
+    # You can obtain the password by examining the 
+    # `dracon-es-elasticsearch-es-elastic-user` secret:
+    # The username is `elastic`.
+    kubectl -n dracon get secret dracon-es-elasticsearch-es-elastic-user \
+      -o=jsonpath='{.data.elastic}' | \
+      base64 -d && \
+      echo
    ```
 
 3. Expose the Kibana Dashboard
 
-   ```bash
-   # Use `kubectl port-forward ...` to access the Kibana UI:
-   kubectl -n dracon port-forward svc/dracon-kb-kibana-kb-http 5601:5601
-   ```
+    ```bash
+    # Use `kubectl port-forward ...` to access the Kibana UI:
+    kubectl -n dracon port-forward svc/dracon-kb-kibana-kb-http 5601:5601
+    ```
 
    The username/password is the same as Kibana
 
@@ -145,8 +145,9 @@ as follows:
 helm upgrade \
   --install \
   --namespace dracon \
-  --version 0.8.0
-  dracon-oss-components\
+  --version 0.39.0 \
+  --values deploy/dracon/values/dev.yaml \
+  dracon-oss-components \
   oci://ghcr.io/ocurity/dracon/charts/dracon-oss-components 
 ```
 
@@ -167,15 +168,16 @@ are using, if you are using something else:
 make publish-component-containers CONTAINER_REPO=localhost:5000/ocurity/dracon
 ```
 
-\* Notice that the repo we are using is slightly different than the
+*Notice that the repo we are using is slightly different from the
 one we pushed the images in the previous step. That's because with local
 registries the registry is exposed on a port in localhost, however inside the
-KiND cluster, that's not the case. Instead the registry's host is
+KiND cluster, that's not the case. Instead, the registry's host is
 `kind-registry:5000`. This is also going to be important later when we will
 deploy the pipelines and their image repositories will also have to be set to
 this value.
-
-\*\*Make sure that you use the draconctl image that you pushed in the repository
+\
+\
+Make sure that you use the draconctl image that you pushed in the repository.*
 
 #### Using a different base image for your images
 
@@ -197,7 +199,7 @@ command:
 
 ```bash
 export CUSTOM_DRACON_VERSION=$(make print-DRACON_VERSION)
-export CUSTOM_HELM_COMPONENT_PACKAGE_NAME=
+export CUSTOM_HELM_COMPONENT_PACKAGE_NAME=my-custom-component
 make cmd/draconctl/bin
 bin/cmd/draconctl components package \
   --version ${CUSTOM_DRACON_VERSION} \
@@ -206,8 +208,11 @@ bin/cmd/draconctl components package \
   ./components
 helm upgrade ${CUSTOM_HELM_COMPONENT_PACKAGE_NAME} ./${CUSTOM_HELM_COMPONENT_PACKAGE_NAME}-${CUSTOM_DRACON_VERSION}.tgz \
   --install \
-  --namespace dracon
+  --namespace dracon \
+  --values deploy/dracon/values/dev.yaml
 ```
+
+Notice that you have to specify the name of a custom component via `CUSTOM_HELM_COMPONENT_PACKAGE_NAME`.
 
 If your custom components are local, you need to override the component registry
 you can do so with the following slightly modified helm command
@@ -215,14 +220,14 @@ you can do so with the following slightly modified helm command
 ```bash
 helm upgrade ${CUSTOM_HELM_COMPONENT_PACKAGE_NAME} ./${CUSTOM_HELM_COMPONENT_PACKAGE_NAME}-${CUSTOM_DRACON_VERSION}.tgz \
   --install \
-  --namespace dracon\
-  --set image.registry=kind-registry:5000/ocurity/dracon
+  --namespace dracon \
+  --set image.registry=kind-registry:5000/ocurity/dracon \
+  --values deploy/dracon/values/dev.yaml
 ```
 
 After changes to your components you need to redeploy, you can do so as such:
 
 ```bash
-
 export CUSTOM_DRACON_VERSION=$(make print-DRACON_VERSION)
 make publish-component-containers CONTAINER_REPO=localhost:5000/ocurity/dracon
 bin/cmd/draconctl components package   --version ${CUSTOM_DRACON_VERSION}   \
@@ -233,10 +238,10 @@ helm upgrade ${CUSTOM_HELM_COMPONENT_PACKAGE_NAME} \
   ./${CUSTOM_HELM_COMPONENT_PACKAGE_NAME}-${CUSTOM_DRACON_VERSION}.tgz   \
   --install \
   --namespace dracon \
-  --set image.registry=kind-registry:5000/ocurity/dracon
+  --set image.registry=kind-registry:5000/ocurity/dracon \
+  --values deploy/dracon/values/dev.yaml
 ```
 
-````
 ### Applying manually migrations
 
 There some migrations that should be applied to the postgres instance so that
@@ -257,7 +262,7 @@ bin/cmd/draconctl migrations apply \
   --as-k8s-job \
   --image "${CONTAINER_REPO}/draconctl:${CUSTOM_DRACON_VERSION}" \
   --url "postgresql://dracon:dracon@dracon-enrichment-db.dracon.svc.cluster.local?sslmode=disable" \
-````
+```
 
 ## Running one of the example pipelines
 
