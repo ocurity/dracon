@@ -67,8 +67,8 @@ flowchart LR
 
 ## Getting Started
 
-The [Getting Started](docs/getting-started.md) tutorial explains how to get started
-with Dracon.
+The [Getting Started](docs/getting-started.md) tutorial explains
+how to get started with Dracon.
 You can also access our community contributed pipelines
 [here](https://github.com/ocurity/dracon-community-pipelines).
 

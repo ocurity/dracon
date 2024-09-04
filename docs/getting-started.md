@@ -3,8 +3,8 @@
 This guide will help to quickly setup Dracon on a Kubernetes cluster and get a
 pipeline running. The first step is to create a dev Kubernetes cluster in order
 to deploy Tekton. We suggest you use KiND to provision a local test cluster
-quickly. If you already have a Kubernetes cluster then, you can skip directly to the
-[Deploying Dracon dependencies](#deploying-dracon-dependencies) section.
+quickly. If you already have a Kubernetes cluster then, you can skip directly
+to the [Deploying Dracon dependencies](#deploying-dracon-dependencies) section.
 
 We support two ways of deploying Dracon.
 
@@ -102,32 +102,32 @@ and MongoDB. The values used are in the `deploy/dracon/values/dev.yaml` file.
 
 1. Expose the TektonCD Dashboard
 
-    ```bash
-    kubectl -n tekton-pipelines port-forward svc/tekton-dashboard 9097:9097
-    ```
+```bash
+kubectl -n tekton-pipelines port-forward svc/tekton-dashboard 9097:9097
+```
 
 2. Expose the Kibana Dashboard.
 
-   ```bash
-    # Use `kubectl port-forward ...` to access the Kibana UI:
-    kubectl -n dracon port-forward svc/dracon-kb-kibana-kb-http 5601:5601
-    # You can obtain the password by examining the 
-    # `dracon-es-elasticsearch-es-elastic-user` secret:
-    # The username is `elastic`.
-    kubectl -n dracon get secret dracon-es-elasticsearch-es-elastic-user \
-      -o=jsonpath='{.data.elastic}' | \
-      base64 -d && \
-      echo
-   ```
+```bash
+# Use `kubectl port-forward ...` to access the Kibana UI:
+kubectl -n dracon port-forward svc/dracon-kb-kibana-kb-http 5601:5601
+# You can obtain the password by examining the 
+# `dracon-es-elasticsearch-es-elastic-user` secret:
+# The username is `elastic`.
+kubectl -n dracon get secret dracon-es-elasticsearch-es-elastic-user \
+  -o=jsonpath='{.data.elastic}' | \
+  base64 -d && \
+  echo
+```
 
 3. Expose the Kibana Dashboard
 
-    ```bash
-    # Use `kubectl port-forward ...` to access the Kibana UI:
-    kubectl -n dracon port-forward svc/dracon-kb-kibana-kb-http 5601:5601
-    ```
+```bash
+ # Use `kubectl port-forward ...` to access the Kibana UI:
+ kubectl -n dracon port-forward svc/dracon-kb-kibana-kb-http 5601:5601
+```
 
-   The username/password is the same as Kibana
+The username/password is the same as Kibana
 
 ### Deploy Dracon components
 
