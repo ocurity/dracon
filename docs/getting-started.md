@@ -191,6 +191,25 @@ these components have their own Makefiles. In those cases you can place a
 `.custom_image` file in the directory with the base image you wish to use and
 that will be picked up by the Makefile and build the container.
 
+#### Building images for non linux/amd64 architecture
+
+If you need your images to be built for non linux/amd64 architecture,
+you can supply the flag `CONTAINER_ARCH` for customisation.
+
+This can be passed to the make commands used to build images, for example:
+
+```bash
+make CONTAINER_ARCH=linux/arm64 components
+```
+or:
+```bash
+make CONTAINER_ARCH=linux/arm64 publish-containers
+```
+
+By default, when `CONTAINER_ARCH` is not supplied, `linux/amd64` is used.
+
+*\*Useful for Apple Silicon chips users.*
+
 #### Deploying your custom Dracon components Helm package
 
 You can package your components into a Helm package by running the following
