@@ -16,8 +16,6 @@ By [Ocurity](https://ocurity.com)
 Security scanning,results unification and enrichment tool
 ([ASOC](https://www.gartner.com/reviews/market/application-security-orchestration-and-correlation-asoc-tools))
 
-* forked and rewritten from [@thought-machine/dracon](https://github.com/thought-machine/dracon)
-
 Security pipelines on Kubernetes. The purpose of this project is to provide a
 scalable and flexible framework to execute arbitrary security scanning
 tools on code and infrastructure while processing the results in a versatile
