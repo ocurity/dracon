@@ -41,7 +41,11 @@ PROTOC=protoc
 
 # https://docs.docker.com/build/building/multi-platform/
 # Make sure to always build containers using AMD64 but allow to be overridden by users if need for cross-os compatibility.
-CONTAINER_ARCH=linux/amd64
+CONTAINER_OS_ARCH=linux/amd64
+# Allow to independently customise go OS and ARCH flags independently and following the standard practices.
+# Defaulting to linux/amd64 as per CONTAINER_OS_ARCH.
+GOOS=linux
+GOARCH=amd64
 
 export
 
@@ -51,12 +55,12 @@ export
 .PHONY: components component-binaries cmd/draconctl/bin protos build publish-component-containers publish-containers draconctl-image draconctl-image-publish clean-protos clean
 
 $(component_binaries):
-	CGO_ENABLED=0 ./scripts/build_component_binary.sh $@
+	CGO_ENABLED=0 GOOS=$(GOOS) GOARCH=$(GOARCH) ./scripts/build_component_binary.sh $@
 
 component-binaries: $(component_binaries)
 
 $(component_containers): %/docker: %/bin
-	./scripts/build_component_container.sh $@ $(CONTAINER_ARCH)
+	./scripts/build_component_container.sh $@ $(CONTAINER_OS_ARCH)
 
 components: $(component_containers)
 
@@ -67,7 +71,7 @@ draconctl-image: cmd/draconctl/bin
 	$(DOCKER) build -t "${CONTAINER_REPO}/draconctl:${DRACON_VERSION}" \
 		$$([ "${SOURCE_CODE_REPO}" != "" ] && echo "--label=org.opencontainers.image.source=${SOURCE_CODE_REPO}" ) \
 		-f containers/Dockerfile.draconctl . \
-		--platform=$(CONTAINER_ARCH)
+		--platform=$(CONTAINER_OS_ARCH)
 
 draconctl-image-publish: draconctl-image
 	$(DOCKER) push "${CONTAINER_REPO}/draconctl:${DRACON_VERSION}"

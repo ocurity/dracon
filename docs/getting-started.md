@@ -191,24 +191,38 @@ these components have their own Makefiles. In those cases you can place a
 `.custom_image` file in the directory with the base image you wish to use and
 that will be picked up by the Makefile and build the container.
 
-#### Building images for non linux/amd64 architecture
+#### Building binaries and images for non linux/amd64 architecture
+
+*\*Useful for Apple Silicon chips users.*
+
+###### Containers
 
 If you need your images to be built for non linux/amd64 architecture,
-you can supply the flag `CONTAINER_ARCH` for customisation.
+you can supply the flag `CONTAINER_OS_ARCH` for customisation of containers.
 
 This can be passed to the make commands used to build images, for example:
 
 ```bash
-make CONTAINER_ARCH=linux/arm64 components
+make CONTAINER_OS_ARCH=linux/arm64 components
 ```
 or:
 ```bash
-make CONTAINER_ARCH=linux/arm64 publish-containers
+make CONTAINER_OS_ARCH=linux/arm64 publish-containers
 ```
 
 By default, when `CONTAINER_ARCH` is not supplied, `linux/amd64` is used.
 
-*\*Useful for Apple Silicon chips users.*
+###### Binaries
+
+`GOOS` and `GOARCH` can be supplied for customisation of the go binaries.
+
+These can be passed to the make commands used to build binaries, for example:
+
+```bash
+make GOOS=linux GOARCH=arm64 component-binaries
+```
+
+By default, when no supplied, `linux` and `amd64` are the default.
 
 #### Deploying your custom Dracon components Helm package
 

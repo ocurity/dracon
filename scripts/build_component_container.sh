@@ -7,7 +7,7 @@ source ./scripts/util.sh
 # Sanity check for not arguments being passed.
 if [ "$#" -eq 0 ]
 then
-    util::error "No arguments to build. Expected two."
+    util::error "No arguments provided to build. Expected two."
     exit 1
 fi
 
@@ -25,9 +25,6 @@ fi
 
 dir_name="$1"
 build_architecture="$2"
-
-echo "$dir_name"
-echo "$build_architecture"
 
 executable=$(basename $(dirname $dir_name))
 
