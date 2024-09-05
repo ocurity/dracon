@@ -39,6 +39,10 @@ BASE_IMAGE=scratch
 DOCKER=docker
 PROTOC=protoc
 
+# https://docs.docker.com/build/building/multi-platform/
+# Make sure to always build containers using AMD64 but allow to be overridden by users if need for cross-os compatibility.
+CONTAINER_ARCH=linux/amd64
+
 export
 
 ########################################
@@ -52,7 +56,7 @@ $(component_binaries):
 component-binaries: $(component_binaries)
 
 $(component_containers): %/docker: %/bin
-	./scripts/build_component_container.sh $@
+	./scripts/build_component_container.sh $@ $(CONTAINER_ARCH)
 
 components: $(component_containers)
 
@@ -62,7 +66,8 @@ cmd/draconctl/bin:
 draconctl-image: cmd/draconctl/bin
 	$(DOCKER) build -t "${CONTAINER_REPO}/draconctl:${DRACON_VERSION}" \
 		$$([ "${SOURCE_CODE_REPO}" != "" ] && echo "--label=org.opencontainers.image.source=${SOURCE_CODE_REPO}" ) \
-		-f containers/Dockerfile.draconctl .
+		-f containers/Dockerfile.draconctl . \
+		--platform=$(CONTAINER_ARCH)
 
 draconctl-image-publish: draconctl-image
 	$(DOCKER) push "${CONTAINER_REPO}/draconctl:${DRACON_VERSION}"
