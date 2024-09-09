@@ -227,6 +227,10 @@ make GOOS=linux GOARCH=arm64 component-binaries
 
 By default, when no supplied, `linux` and `amd64` are the default.
 
+\**For Apple Silicon chips, you might want to use 
+`GOOS=darwin` and `GOARCH=arm64` when building binaries 
+locally for development.*
+
 #### Deploying your custom Dracon components Helm package
 
 You can package your components into a Helm package by running the following
