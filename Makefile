@@ -65,10 +65,12 @@ $(component_containers): %/docker: %/bin
 components: $(component_containers)
 
 cmd/draconctl/bin:
-	CGO_ENABLED=0 go build -o bin/cmd/draconctl cmd/draconctl/main.go
+	CGO_ENABLED=0 GOOS=$(GOOS) GOARCH=$(GOARCH) go build -o bin/cmd/$(GOOS)/$(GOARCH)/draconctl cmd/draconctl/main.go
 
 draconctl-image: cmd/draconctl/bin
 	$(DOCKER) build -t "${CONTAINER_REPO}/draconctl:${DRACON_VERSION}" \
+		--build-arg GOOS=$(GOOS) \
+		--build-arg GOARCH=$(GOARCH) \
 		$$([ "${SOURCE_CODE_REPO}" != "" ] && echo "--label=org.opencontainers.image.source=${SOURCE_CODE_REPO}" ) \
 		-f containers/Dockerfile.draconctl . \
 		--platform=$(CONTAINER_OS_ARCH)

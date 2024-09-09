@@ -19,6 +19,9 @@ echo "${1}" | grep -Eq ^components/consumers/.*$ && executable="${executable}" |
 executable_src_path=$(dirname "${1}")
 executable_path=$(dirname $(dirname "${1}"))/"${executable}"
 
-echo "building bin/${executable_path}/${executable}" > /dev/stderr
+# Customised bin per OS/ARCH.
+out_bin_path="bin/${executable_src_path}/$GOOS/$GOARCH/${executable}"
 
-go build -o "bin/${executable_src_path}/${executable}" "./${executable_src_path}/main.go"
+echo "building $out_bin_path" > /dev/stderr
+
+go build -o $out_bin_path "./${executable_src_path}/main.go"

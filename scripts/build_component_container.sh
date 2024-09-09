@@ -33,16 +33,16 @@ echo $dir_name | grep -Eq ^components/enrichers/.*$ && executable="${executable}
 echo $dir_name | grep -Eq ^components/consumers/.*$ && executable="${executable}" || true
 
 executable_src_path=$(dirname $dir_name)
-executable_path=$(dirname $dir_name)/"${executable}"
+executable_path=$(dirname $dir_name)/$build_architecture/"${executable}"
 
 if make -C "${executable_src_path}" --no-print-directory --dry-run container >/dev/null 2>&1
 then
     make -C "${executable_src_path}" --no-print-directory --quiet container CONTAINER_REPO="${CONTAINER_REPO}" DRACON_VERSION="${DRACON_VERSION}"
 else
     dockerfile_template="
-        FROM ${BASE_IMAGE:-scratch}                     \n
-        COPY ${executable_path} /app/${executable_path} \n
-        ENTRYPOINT ["/app/${executable_path}"]          \n
+        FROM ${BASE_IMAGE:-scratch}                \n
+        COPY ${executable_path} /app/${executable} \n
+        ENTRYPOINT ["/app/${executable}"]          \n
     "
     dockerfile_path=$(mktemp)
     printf "${dockerfile_template}" > "${dockerfile_path}"
