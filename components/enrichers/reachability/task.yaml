@@ -1,0 +1,47 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: enricher-reachability
+  labels:
+    v1.dracon.ocurity.com/component: enricher
+spec:
+  description: Performs a reachability check on a supplied repository using AppThreat/atom.
+  workspaces:
+    - name: output
+      description: The workspace containing the source-code to scan.
+  steps:
+  - name: run-cdxgen
+    imagePullPolicy: IfNotPresent
+    image: node:lts-alpine3.20@sha256:2d07db07a2df6830718ae2a47db6fedce6745f5bcd174c398f2acdda90a11c03
+    command:
+      - /bin/sh
+      - -c
+      - |
+        npm install -g @cyclonedx/cdxgen --omit=optional
+        cdxgen -t python --deep -o bom.json .
+
+  - name: run-atom
+    imagePullPolicy: IfNotPresent
+    image: ghcr.io/appthreat/atom:v2.0.18@sha256:893ed9ede9eea19540027faf72aa618e2b488192378f590fd2a1277b77712c1a
+    command:
+      - /bin/sh
+      - -c
+      - |
+        reachables \
+          -o app.atom \
+          -s reachables.json \
+          -l python \
+          .
+
+  - name: run-enricher
+    imagePullPolicy: IfNotPresent
+    image: '{{ default "ghcr.io/ocurity/dracon" .Values.image.registry }}/components/enrichers/reachability:{{ .Chart.AppVersion }}'
+    command: ["/app/components/enrichers/reachability/reachability"]
+    env:
+    - name: READ_PATH
+      value: $(workspaces.output.path)/.dracon/enrichers/reachability
+    - name: WRITE_PATH
+      value: $(workspaces.output.path)/.dracon/enrichers/reachability
+    - name: ATOM_FILE_PATH
+      value: $(workspaces.output.path)/.dracon/enrichers/reachables.json
