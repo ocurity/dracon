@@ -26,14 +26,14 @@ fi
 dir_name="$1"
 build_architecture="$2"
 
-executable=$(basename $(dirname $dir_name))
+executable=$(basename $(dirname ${dir_name}))
 
-echo $dir_name | grep -Eq ^components/producers/.*$ && executable="${executable}-parser" || true
-echo $dir_name | grep -Eq ^components/enrichers/.*$ && executable="${executable}" || true
-echo $dir_name | grep -Eq ^components/consumers/.*$ && executable="${executable}" || true
+echo ${dir_name} | grep -Eq ^components/producers/.*$ && executable="${executable}-parser" || true
+echo ${dir_name} | grep -Eq ^components/enrichers/.*$ && executable="${executable}" || true
+echo ${dir_name} | grep -Eq ^components/consumers/.*$ && executable="${executable}" || true
 
 executable_src_path=$(dirname $dir_name)
-executable_path=$(dirname $dir_name)/$build_architecture/"${executable}"
+executable_path=$(dirname $dir_name)/${build_architecture}/"${executable}"
 
 if make -C "${executable_src_path}" --no-print-directory --dry-run container >/dev/null 2>&1
 then
@@ -49,7 +49,7 @@ else
     docker build -t "${CONTAINER_REPO}/${executable_src_path}:${DRACON_VERSION}" \
         $([ "${SOURCE_CODE_REPO}" != "" ] && echo "--label=org.opencontainers.image.source=${SOURCE_CODE_REPO}" ) \
         -f "${dockerfile_path}" ./bin \
-        --platform=$build_architecture
+        --platform=${build_architecture}
 fi
 
 if make -C "${executable_src_path}" --no-print-directory --dry-run extras >/dev/null 2>&1

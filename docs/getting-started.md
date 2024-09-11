@@ -225,7 +225,7 @@ These can be passed to the make commands used to build binaries, for example:
 make GOOS=linux GOARCH=arm64 component-binaries
 ```
 
-By default, when no supplied, `linux` and `amd64` are the default.
+By default `linux` and `amd64` are used.
 
 \**For Apple Silicon chips, you might want to use
 `GOOS=darwin` and `GOARCH=arm64` when building binaries

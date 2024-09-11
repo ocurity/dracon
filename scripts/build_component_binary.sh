@@ -20,7 +20,7 @@ executable_src_path=$(dirname "${1}")
 executable_path=$(dirname $(dirname "${1}"))/"${executable}"
 
 # Customised bin per OS/ARCH.
-out_bin_path="bin/${executable_src_path}/$GOOS/$GOARCH/${executable}"
+out_bin_path="bin/${executable_src_path}/${GOOS}/${GOARCH}/${executable}"
 
 echo "building $out_bin_path" > /dev/stderr
 

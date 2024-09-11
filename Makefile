@@ -42,7 +42,7 @@ PROTOC=protoc
 # https://docs.docker.com/build/building/multi-platform/
 # Make sure to always build containers using AMD64 but allow to be overridden by users if need for cross-os compatibility.
 CONTAINER_OS_ARCH=linux/amd64
-# Allow to independently customise go OS and ARCH flags independently and following the standard practices.
+# Allow to independently customise go OS and ARCH flags.
 # Defaulting to linux/amd64 as per CONTAINER_OS_ARCH.
 GOOS=linux
 GOARCH=amd64
