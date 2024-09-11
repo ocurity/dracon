@@ -39,6 +39,14 @@ BASE_IMAGE=scratch
 DOCKER=docker
 PROTOC=protoc
 
+# https://docs.docker.com/build/building/multi-platform/
+# Make sure to always build containers using AMD64 but allow to be overridden by users if need for cross-os compatibility.
+CONTAINER_OS_ARCH=linux/amd64
+# Allow to independently customise go OS and ARCH flags.
+# Defaulting to linux/amd64 as per CONTAINER_OS_ARCH.
+GOOS=linux
+GOARCH=amd64
+
 export
 
 ########################################
@@ -47,22 +55,25 @@ export
 .PHONY: components component-binaries cmd/draconctl/bin protos build publish-component-containers publish-containers draconctl-image draconctl-image-publish clean-protos clean
 
 $(component_binaries):
-	CGO_ENABLED=0 ./scripts/build_component_binary.sh $@
+	CGO_ENABLED=0 GOOS=$(GOOS) GOARCH=$(GOARCH) ./scripts/build_component_binary.sh $@
 
 component-binaries: $(component_binaries)
 
 $(component_containers): %/docker: %/bin
-	./scripts/build_component_container.sh $@
+	./scripts/build_component_container.sh $@ $(CONTAINER_OS_ARCH)
 
 components: $(component_containers)
 
 cmd/draconctl/bin:
-	CGO_ENABLED=0 go build -o bin/cmd/draconctl cmd/draconctl/main.go
+	CGO_ENABLED=0 GOOS=$(GOOS) GOARCH=$(GOARCH) go build -o bin/cmd/$(GOOS)/$(GOARCH)/draconctl cmd/draconctl/main.go
 
 draconctl-image: cmd/draconctl/bin
 	$(DOCKER) build -t "${CONTAINER_REPO}/draconctl:${DRACON_VERSION}" \
+		--build-arg GOOS=$(GOOS) \
+		--build-arg GOARCH=$(GOARCH) \
 		$$([ "${SOURCE_CODE_REPO}" != "" ] && echo "--label=org.opencontainers.image.source=${SOURCE_CODE_REPO}" ) \
-		-f containers/Dockerfile.draconctl .
+		-f containers/Dockerfile.draconctl . \
+		--platform=$(CONTAINER_OS_ARCH)
 
 draconctl-image-publish: draconctl-image
 	$(DOCKER) push "${CONTAINER_REPO}/draconctl:${DRACON_VERSION}"
@@ -282,7 +293,7 @@ dev-dracon:
 	$(eval CONTAINER_REPO:=localhost:5000)
 	$(eval DRACON_OSS_COMPONENTS_PACKAGE_URL:=./$(DRACON_OSS_COMPONENTS_NAME)-$(DRACON_VERSION).tgz)
 	$(eval IN_CLUSTER_CONTAINER_REPO:=kind-registry:5000)
-	
+
 	$(MAKE) -j 16 publish-containers CONTAINER_REPO=$(CONTAINER_REPO)
 	$(MAKE) -j 16 dev-build-oss-components CONTAINER_REPO=$(CONTAINER_REPO)
 
