@@ -46,22 +46,31 @@ export
 .PHONY: components component-binaries cmd/draconctl/bin protos build publish-component-containers publish-containers draconctl-image draconctl-image-publish clean-protos clean
 
 $(component_binaries):
-	CGO_ENABLED=0 ./scripts/build_component_binary.sh $@
+	./scripts/build_component_binary.sh $@
 
 component-binaries: $(component_binaries)
 
 $(component_containers): %/docker: %/bin
+	$(eval GOOS:=linux)
+	$(eval GOARCH:=amd64)
 	./scripts/build_component_container.sh $@
 
 components: $(component_containers)
 
 cmd/draconctl/bin:
-	CGO_ENABLED=0 go build -o bin/cmd/draconctl cmd/draconctl/main.go
+	$(eval GOOS:=linux)
+	$(eval GOARCH:=amd64)
+	CGO_ENABLED=0 GOOS=$(GOOS) GOARCH=$(GOARCH) go build -o bin/cmd/$(GOOS)/$(GOARCH)/draconctl cmd/draconctl/main.go
 
 draconctl-image: cmd/draconctl/bin
+	$(eval GOOS:=linux)
+	$(eval GOARCH:=amd64)
 	$(DOCKER) build -t "${CONTAINER_REPO}/draconctl:${DRACON_VERSION}" \
+		--build-arg GOOS=$(GOOS) \
+		--build-arg GOARCH=$(GOARCH) \
 		$$([ "${SOURCE_CODE_REPO}" != "" ] && echo "--label=org.opencontainers.image.source=${SOURCE_CODE_REPO}" ) \
-		-f containers/Dockerfile.draconctl .
+		-f containers/Dockerfile.draconctl . \
+		--platform "$(GOOS)/$(GOARCH)"
 
 draconctl-image-publish: draconctl-image
 	$(DOCKER) push "${CONTAINER_REPO}/draconctl:${DRACON_VERSION}"
@@ -266,18 +275,30 @@ install-oss-components:
 		--values ./deploy/deduplication-db-migrations/values/dev.yaml
 	@echo "Done! Bumped version to $(DRACON_VERSION)"
 
-dev-build-oss-components: cmd/draconctl/bin
+dev-build-oss-components:
 	@echo "Building open-source components for local dracon instance..."
+	$(eval GOOS:=linux)
+	$(eval GOARCH:=amd64)
 	$(eval CONTAINER_REPO:=localhost:5000/ocurity/dracon)
+	$(eval TMP_DIR:=tmp)
 
+	@mkdir $(TMP_DIR)
+	$(MAKE) cmd/draconctl/bin
 	$(MAKE) -j 16 publish-component-containers CONTAINER_REPO=$(CONTAINER_REPO)
-	@./bin/cmd/draconctl components package \
-		--version $(DRACON_VERSION) \
-		--chart-version $(DRACON_VERSION) \
-		--name $(DRACON_OSS_COMPONENTS_NAME) \
-		./components
+	@docker run \
+		--platform $(GOOS)/$(GOARCH) \
+		-v ./components:/components \
+		-v ./tmp:/tmp \
+		$(CONTAINER_REPO)/draconctl:$(DRACON_VERSION) components package \
+			--version $(DRACON_VERSION) \
+			--chart-version $(DRACON_VERSION) \
+			--name $(DRACON_OSS_COMPONENTS_NAME) \
+			./components
+	@rm -r $(TMP_DIR)
 
 dev-dracon:
+	$(eval GOOS:=linux)
+	$(eval GOARCH:=amd64)
 	$(eval CONTAINER_REPO:=localhost:5000/ocurity/dracon)
 	$(eval DRACON_OSS_COMPONENTS_PACKAGE_URL:=./$(DRACON_OSS_COMPONENTS_NAME)-$(DRACON_VERSION).tgz)
 	$(eval IN_CLUSTER_CONTAINER_REPO:=kind-registry:5000/ocurity/dracon)
