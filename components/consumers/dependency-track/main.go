@@ -28,7 +28,8 @@ var (
 	client          *dtrack.Client
 	ownerAnnotation string
 	// used for debugging, turns off certificate and enables debug
-	debugDT bool
+	debugDTConnection string
+	debugDT           bool
 )
 
 func main() {
@@ -37,7 +38,7 @@ func main() {
 	flag.StringVar(&projectName, "projectName", "", "dependency track project name")
 	flag.StringVar(&projectUUID, "projectUUID", "", "dependency track project name")
 	flag.StringVar(&projectVersion, "projectVersion", "", "dependency track project version")
-	flag.BoolVar(&debugDT, "debugDependencyTrackConnection", false, "setup client with no tls and enable debug")
+	flag.StringVar(&debugDTConnection, "debugDependencyTrackConnection", "false", "setup client with no tls and enable debug")
 	flag.StringVar(
 		&ownerAnnotation,
 		"ownerAnnotation",
@@ -65,7 +66,10 @@ func main() {
 	if projectVersion == "" {
 		log.Fatal("project version is mandatory for dependency track")
 	}
-
+	if debugDTConnection == "true" {
+		debugDT = true
+		slog.Info("running in debug mode, skipping certificate verification and printing requests and responses")
+	}
 	c, err := dtrack.NewClient(
 		authURL,
 		dtrack.WithHttpClient(
