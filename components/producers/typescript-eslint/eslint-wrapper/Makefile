@@ -2,7 +2,6 @@
 
 CONTAINER_REPO=
 DRACON_VERSION=
-ESLINT_WRAPPER_BASE_IMAGE=$(shell test -e .custom_image && cat .custom_image || echo "node:lts")
 
 DOCKER=docker
 
