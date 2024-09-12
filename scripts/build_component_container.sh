@@ -3,6 +3,7 @@
 set -e;
 
 source ./scripts/util.sh
+containers_path=./containers
 
 if [ "$#" -eq 0 ]
 then
@@ -23,14 +24,22 @@ if make -C "${executable_src_path}" --no-print-directory --dry-run container >/d
 then
     make -C "${executable_src_path}" --no-print-directory --quiet container CONTAINER_REPO="${CONTAINER_REPO}" DRACON_VERSION="${DRACON_VERSION}"
 else
-    dockerfile_template="
-        FROM ${BASE_IMAGE:-scratch}                     \n
-        COPY ${executable_path} /app/${executable_path} \n
-        ENTRYPOINT ["/app/${executable_path}"]          \n
-    "
+    dockerfile_template=""
+    if [[ -v "${BASE_IMAGE+x}" && -n "${BASE_IMAGE+x}" ]]
+    then
+        echo "Using base image: ${BASE_IMAGE}"
+        dockerfile_template=$(cat "${containers_path}/Dockerfile.base.image")
+    else
+        BASE_IMAGE=''
+        dockerfile_template=$(cat "${containers_path}/Dockerfile.base")
+    fi
+
     dockerfile_path=$(mktemp)
     printf "${dockerfile_template}" > "${dockerfile_path}"
-    docker build -t "${CONTAINER_REPO}/${executable_src_path}:${DRACON_VERSION}" \
+    docker build \
+        --build-arg executable_path=${executable_path}\
+        --build-arg BASE_IMAGE=${BASE_IMAGE}\
+        -t "${CONTAINER_REPO}/${executable_src_path}:${DRACON_VERSION}" \
         $([ "${SOURCE_CODE_REPO}" != "" ] && echo "--label=org.opencontainers.image.source=${SOURCE_CODE_REPO}" ) \
         -f "${dockerfile_path}" ./bin
 fi

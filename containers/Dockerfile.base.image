@@ -1,0 +1,4 @@
+FROM ${BASE_IMAGE:-scratch}
+ARG executable_path
+COPY ${executable_path} /app/${executable_path}
+ENTRYPOINT ["/app/${executable_path}"]

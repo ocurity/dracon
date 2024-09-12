@@ -1,0 +1,15 @@
+FROM golang:alpine AS builder
+
+RUN apk update && \
+    apk upgrade && \
+    apk add --no-cache ca-certificates && \
+    update-ca-certificates
+
+FROM scratch
+
+ARG executable_path
+
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+
+COPY ${executable_path} /app/${executable_path}
+ENTRYPOINT ["/app/${executable_path}"]
