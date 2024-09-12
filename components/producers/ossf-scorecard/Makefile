@@ -2,7 +2,7 @@
 
 CONTAINER_REPO=
 DRACON_VERSION=
-OSSF_SCORECARD_SAFETY_BASE_IMAGE=$(shell test -e .custom_image && cat .custom_image || echo "alpine:latest")
+OSSF_SCORECARD_SAFETY_BASE_IMAGE="alpine:latest"
 
 DOCKER=docker
 
