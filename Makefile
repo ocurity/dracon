@@ -229,23 +229,23 @@ install: deploy-cluster dev-infra deploy-elasticoperator deploy-arangodb-crds ad
 
 	@echo "deploying dracon"
 	@helm upgrade dracon ./deploy/dracon/chart \
-	 	  --install \
-		  --values ./deploy/dracon/values/dev.yaml \
-		  --create-namespace \
-		  --set "image.registry=$(CONTAINER_REPO)" \
-		  --namespace $(DRACON_NS) \
-		  --version $(DRACON_VERSION) \
-		  --wait
+		--install \
+		--values ./deploy/dracon/values/dev.yaml \
+		--create-namespace \
+		--set "image.registry=$(CONTAINER_REPO)" \
+		--namespace $(DRACON_NS) \
+		--version $(DRACON_VERSION) \
+		--wait
 
 	@echo "Applying migrations"
 	@helm upgrade deduplication-db-migrations ./deploy/deduplication-db-migrations/chart \
-		  --install \
-		  --values ./deploy/deduplication-db-migrations/values/dev.yaml \
-		  --create-namespace \
-		  --set "image.registry=$(CONTAINER_REPO)" \
-		  --namespace $(DRACON_NS) \
-		  --set "image.tag=$(DRACON_VERSION)" \
-		  --wait
+		--install \
+		--values ./deploy/deduplication-db-migrations/values/dev.yaml \
+		--create-namespace \
+		--set "image.registry=$(CONTAINER_REPO)" \
+		--namespace $(DRACON_NS) \
+		--set "image.tag=$(DRACON_VERSION)" \
+		--wait
 
 	@echo "Installing Components"
 	# we are setting the container repo to it's own value so that we can override it from other make targets
@@ -269,7 +269,7 @@ install-oss-components:
 
 dev-build-oss-components: cmd/draconctl/bin
 	@echo "Building open-source components for local dracon instance..."
-	$(eval CONTAINER_REPO:=localhost:5000)
+	$(eval CONTAINER_REPO:=localhost:5000/ocurity/dracon)
 
 	$(MAKE) -j 16 publish-component-containers CONTAINER_REPO=$(CONTAINER_REPO)
 	@./bin/cmd/draconctl components package \
@@ -279,11 +279,11 @@ dev-build-oss-components: cmd/draconctl/bin
 		./components
 
 dev-dracon:
-	$(eval CONTAINER_REPO:=localhost:5000)
+	$(eval CONTAINER_REPO:=localhost:5000/ocurity/dracon)
 	$(eval DRACON_OSS_COMPONENTS_PACKAGE_URL:=./$(DRACON_OSS_COMPONENTS_NAME)-$(DRACON_VERSION).tgz)
-	$(eval IN_CLUSTER_CONTAINER_REPO:=kind-registry:5000)
-	
-	$(MAKE) -j 16 publish-containers CONTAINER_REPO=$(CONTAINER_REPO)
+	$(eval IN_CLUSTER_CONTAINER_REPO:=kind-registry:5000/ocurity/dracon)
+
+	$(MAKE) -j 16 draconctl-image-publish CONTAINER_REPO=$(CONTAINER_REPO)
 	$(MAKE) -j 16 dev-build-oss-components CONTAINER_REPO=$(CONTAINER_REPO)
 
 	$(MAKE) install CONTAINER_REPO=$(IN_CLUSTER_CONTAINER_REPO) DRACON_OSS_COMPONENTS_PACKAGE_URL=$(DRACON_OSS_COMPONENTS_PACKAGE_URL)
