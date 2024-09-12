@@ -21,4 +21,4 @@ executable_path=$(dirname $(dirname "${1}"))/"${executable}"
 
 echo "building bin/${executable_path}/${executable}" > /dev/stderr
 
-go build -o "bin/${executable_src_path}/${executable}" "./${executable_src_path}/main.go"
+GOOS=linux GOARCH=arm64 go build -o "bin/${executable_src_path}/${executable}" "./${executable_src_path}/main.go"
