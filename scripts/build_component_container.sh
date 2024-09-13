@@ -37,7 +37,7 @@ else
     dockerfile_path=$(mktemp)
     printf "${dockerfile_template}" > "${dockerfile_path}"
     docker build \
-        --platform linux/arm64 \
+        --platform "${GOOS}/${GOARCH}" \
         --build-arg EXECUTABLE_PATH=${executable_path} \
         --build-arg BASE_IMAGE=${BASE_IMAGE} \
         -t "${CONTAINER_REPO}/${executable_src_path}:${DRACON_VERSION}" \

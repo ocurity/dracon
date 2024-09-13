@@ -38,6 +38,11 @@ ARANGODB_NS=arangodb
 DOCKER=docker
 PROTOC=protoc
 
+# https://docs.docker.com/build/building/multi-platform/
+# Make sure to always build containers using AMD64 but allow to be overridden by users if need for cross-os compatibility.
+GOOS=linux
+GOARCH=amd64
+
 export
 
 ########################################
@@ -46,7 +51,7 @@ export
 .PHONY: components component-binaries cmd/draconctl/bin protos build publish-component-containers publish-containers draconctl-image draconctl-image-publish clean-protos clean
 
 $(component_binaries):
-	GOOS=linux GOARCH=arm64 CGO_ENABLED=0 ./scripts/build_component_binary.sh $@
+	GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=0 ./scripts/build_component_binary.sh $@
 
 component-binaries: $(component_binaries)
 
@@ -56,10 +61,10 @@ $(component_containers): %/docker: %/bin
 components: $(component_containers)
 
 cmd/draconctl/bin:
-	GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 go build -o bin/cmd/draconctl cmd/draconctl/main.go
+	GOOS=darwin GOARCH=$(shell go env GOARCH) CGO_ENABLED=0 go build -o bin/cmd/draconctl cmd/draconctl/main.go
 
 draconctl-image: cmd/draconctl/bin
-	$(DOCKER) build --platform linux/arm64 -t "${CONTAINER_REPO}/draconctl:${DRACON_VERSION}" \
+	$(DOCKER) build --platform $(GOOS)/$(GOARCH) -t "${CONTAINER_REPO}/draconctl:${DRACON_VERSION}" \
 		$$([ "${SOURCE_CODE_REPO}" != "" ] && echo "--label=org.opencontainers.image.source=${SOURCE_CODE_REPO}" ) \
 		-f containers/Dockerfile.draconctl .
 
