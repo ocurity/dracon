@@ -1,10 +1,13 @@
 ARG ESLINT_WRAPPER_BASE_IMAGE
 FROM ${ESLINT_WRAPPER_BASE_IMAGE:-node:lts}
 
+ARG GOOS
+ARG GOARCH
+
 WORKDIR /home/node/workspace
 COPY components/producers/typescript-eslint/eslint-wrapper/eslintrc.js /home/node/workspace
 COPY components/producers/typescript-eslint/eslint-wrapper/package.json /home/node/workspace
-COPY bin/components/producers/typescript-eslint/eslint-wrapper/eslint-wrapper-parser /home/node/workspace/
+COPY bin/components/producers/typescript-eslint/eslint-wrapper/${GOOS}/${GOARCH}/eslint-wrapper-parser /home/node/workspace/
 
 RUN npm uninstall --save bcrypt &&\
     npm install --save-dev \

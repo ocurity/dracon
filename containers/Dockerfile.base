@@ -1,15 +1,21 @@
 FROM golang:alpine AS builder
 
+ARG EXECUTABLE_SRC_PATH
+ARG EXECUTABLE_TARGET_PATH
+ENV EXECUTABLE_TARGET_PATH=${EXECUTABLE_TARGET_PATH}
+COPY ${EXECUTABLE_SRC_PATH} /app/${EXECUTABLE_TARGET_PATH}
+
 RUN apk update && \
     apk upgrade && \
     apk add --no-cache ca-certificates && \
-    update-ca-certificates
+    update-ca-certificates && \
+    ln -s /app/${EXECUTABLE_TARGET_PATH} /bin/component
 
 FROM scratch
 
-ARG executable_path
-
+ARG EXECUTABLE_TARGET_PATH
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+COPY --from=builder /app/${EXECUTABLE_TARGET_PATH} /app/${EXECUTABLE_TARGET_PATH}
+COPY --from=builder /bin/component /bin/component
 
-COPY ${executable_path} /app/${executable_path}
-ENTRYPOINT ["/app/${executable_path}"]
+ENTRYPOINT ["/bin/component"]
