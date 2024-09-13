@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"log/slog"
 	"strings"
 	"time"
 
@@ -14,33 +15,28 @@ import (
 	"github.com/ocurity/dracon/pkg/enumtransformers"
 	"github.com/ocurity/dracon/pkg/templating"
 
-	//  TODO: Support multiple versions of ES
 	elasticsearch "github.com/elastic/go-elasticsearch/v8"
 )
 
 var (
-	esUrls        string
-	esAddrs       []string
-	esIndex       string
+	esUrls  string
+	esAddrs []string
+	esIndex string
+
+	esAPIKey  string
+	esCloudID string
+
 	basicAuthUser string
 	basicAuthPass string
 	issueTemplate string
 )
 
-func init() {
-	flag.StringVar(&esUrls, "es-urls", "", "[OPTIONAL] URLs to connect to elasticsearch comma separated. Can also use env variable ELASTICSEARCH_URL")
-	flag.StringVar(&esIndex, "es-index", "", "the index in elasticsearch to push results to")
-	flag.StringVar(&basicAuthUser, "basic-auth-user", "", "[OPTIONAL] the basic auth username")
-	flag.StringVar(&basicAuthPass, "basic-auth-pass", "", "[OPTIONAL] the basic auth password")
-	flag.StringVar(&issueTemplate, "descriptionTemplate", "", "a Go Template string describing how to show Raw or Enriched issues")
-}
-
 func parseFlags() error {
 	if err := consumers.ParseFlags(); err != nil {
 		return err
 	}
-	if len(esIndex) < 1 {
-		return fmt.Errorf("es-index is undefined")
+	if len(esIndex) == 0 {
+		return fmt.Errorf("esIndex '%s' is undefined", esIndex)
 	}
 	if len(esUrls) > 0 {
 		for _, u := range strings.Split(esUrls, ",") {
@@ -51,6 +47,19 @@ func parseFlags() error {
 }
 
 func main() {
+	flag.StringVar(&esIndex, "esIndex", "", "the index in elasticsearch to push results to")
+	flag.StringVar(&issueTemplate, "descriptionTemplate", "", "a Go Template string describing how to show Raw or Enriched issues")
+
+	// es SaaS options
+	flag.StringVar(&esAPIKey, "esAPIKey", "", "the api key in elasticsearch to contact results to")
+	flag.StringVar(&esCloudID, "esCloudID", "", "the cloud id in elasticsearch to contact results to")
+
+	// es self-hosted options
+	flag.StringVar(&esUrls, "esURL", "", "[OPTIONAL] URLs to connect to elasticsearch comma separated. Can also use env variable ELASTICSEARCH_URL")
+	flag.StringVar(&basicAuthUser, "basic-auth-user", "", "[OPTIONAL] the basic auth username")
+	flag.StringVar(&basicAuthPass, "basic-auth-pass", "", "[OPTIONAL] the basic auth password")
+	flag.Parse()
+
 	if err := parseFlags(); err != nil {
 		log.Fatal(err)
 	}
@@ -61,15 +70,16 @@ func main() {
 	}
 
 	if consumers.Raw {
-		log.Print("Parsing Raw results")
+		slog.Debug("Parsing Raw results")
 		responses, err := consumers.LoadToolResponse()
 		if err != nil {
 			log.Fatal("could not load raw results, file malformed: ", err)
 		}
+		numIssues := 0
 		for _, res := range responses {
 			scanStartTime := res.GetScanInfo().GetScanStartTime().AsTime()
+			numIssues += len(res.GetIssues())
 			for _, iss := range res.GetIssues() {
-				log.Printf("Pushing %d, issues to es \n", len(responses))
 				b, err := getRawIssue(scanStartTime, res, iss)
 				if err != nil {
 					log.Fatal("Could not parse raw issue", err)
@@ -81,26 +91,29 @@ func main() {
 				}
 			}
 		}
+		slog.Info("Pushed", "numIssues", numIssues, "issues to Elasticsearch", "")
 	} else {
 		log.Print("Parsing Enriched results")
 		responses, err := consumers.LoadEnrichedToolResponse()
 		if err != nil {
 			log.Fatal("could not load enriched results, file malformed: ", err)
 		}
+		numIssues := 0
 		for _, res := range responses {
 			scanStartTime := res.GetOriginalResults().GetScanInfo().GetScanStartTime().AsTime()
+			numIssues += len(res.GetIssues())
 			for _, iss := range res.GetIssues() {
 				b, err := getEnrichedIssue(scanStartTime, res, iss)
 				if err != nil {
 					log.Fatal("Could not parse enriched issue", err)
 				}
 				res, err := es.Index(esIndex, bytes.NewBuffer(b))
-				log.Printf("%+v", res)
-				if err != nil {
-					log.Fatal("Could not push enriched issue", err)
+				if err != nil || res.IsError() {
+					log.Fatal("Could not push enriched issue", err, "received", res.StatusCode)
 				}
 			}
 		}
+		slog.Info("Pushed", "numIssues", numIssues, "issues to Elasticsearch", "")
 	}
 }
 
@@ -194,7 +207,12 @@ func getESClient() (*elasticsearch.Client, error) {
 		esConfig.Username = basicAuthUser
 		esConfig.Password = basicAuthPass
 	}
-
+	if esAPIKey != "" {
+		esConfig.APIKey = esAPIKey
+	}
+	if esCloudID != "" {
+		esConfig.CloudID = esCloudID
+	}
 	if len(esAddrs) > 0 {
 		esConfig.Addresses = esAddrs
 	}
@@ -217,11 +235,8 @@ func getESClient() (*elasticsearch.Client, error) {
 	if err := json.NewDecoder(res.Body).Decode(&info); err != nil {
 		return nil, err
 	}
-	switch info.Version.Number[0] {
-	case '8':
-		// noop - we support this version
-	default:
-		err = fmt.Errorf("unsupported ES Server version %s", info.Version.Number)
+	if info.Version.Number[0] != '8' {
+		return nil, fmt.Errorf("unsupported ES Server version %s", info.Version.Number)
 	}
 	return es, err
 }
