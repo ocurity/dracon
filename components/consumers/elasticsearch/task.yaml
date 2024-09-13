@@ -14,6 +14,18 @@ spec:
     - name: consumer-elasticsearch-description-template
       type: string
       default: ""
+    - name: consumer-elasticsearch-api-key
+      type: string
+      default: ""
+    - name: consumer-elasticsearch-index-name
+      type: string
+      default: ""
+    - name: consumer-elasticsearch-index
+      type: string
+      default: ""
+    - name: consumer-elasticsearch-cloud-id
+      type: string
+      default: ""
   workspaces:
     - name: output
       description: The workspace containing the source-code to scan.
@@ -22,11 +34,11 @@ spec:
     imagePullPolicy: IfNotPresent
     image: '{{ default "ghcr.io/ocurity/dracon" .Values.image.registry }}/components/consumers/elasticsearch:{{ .Chart.AppVersion }}'
     command: ["/app/components/consumers/elasticsearch/elasticsearch"]
-    env:
-    - name: ELASTICSEARCH_URL
-      value: "$(params.consumer-elasticsearch-url)"
     args: [
       "-in", "$(workspaces.output.path)/.dracon/enrichers/",
-      "-es-index", "dracon",
-      "-descriptionTemplate","$(params.consumer-elasticsearch-description-template)"
+      "-descriptionTemplate","$(params.consumer-elasticsearch-description-template)",
+      "-esIndex", "$(params.consumer-elasticsearch-index-name)",
+      "-esAPIKey", "$(params.consumer-elasticsearch-api-key)",
+      "-esURL", "$(params.consumer-elasticsearch-url)",
+      "-esCloudID", "$(params.consumer-elasticsearch-cloud-id)",
     ]
