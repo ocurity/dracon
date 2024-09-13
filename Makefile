@@ -46,7 +46,7 @@ export
 .PHONY: components component-binaries cmd/draconctl/bin protos build publish-component-containers publish-containers draconctl-image draconctl-image-publish clean-protos clean
 
 $(component_binaries):
-	CGO_ENABLED=0 ./scripts/build_component_binary.sh $@
+	GOOS=linux GOARCH=arm64 CGO_ENABLED=0 ./scripts/build_component_binary.sh $@
 
 component-binaries: $(component_binaries)
 
@@ -56,10 +56,10 @@ $(component_containers): %/docker: %/bin
 components: $(component_containers)
 
 cmd/draconctl/bin:
-	CGO_ENABLED=0 go build -o bin/cmd/draconctl cmd/draconctl/main.go
+	GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 go build -o bin/cmd/draconctl cmd/draconctl/main.go
 
 draconctl-image: cmd/draconctl/bin
-	$(DOCKER) build -t "${CONTAINER_REPO}/draconctl:${DRACON_VERSION}" \
+	$(DOCKER) build --platform linux/arm64 -t "${CONTAINER_REPO}/draconctl:${DRACON_VERSION}" \
 		$$([ "${SOURCE_CODE_REPO}" != "" ] && echo "--label=org.opencontainers.image.source=${SOURCE_CODE_REPO}" ) \
 		-f containers/Dockerfile.draconctl .
 
