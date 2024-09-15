@@ -176,7 +176,8 @@ KiND cluster, that's not the case. Instead, the registry's host is
 deploy the pipelines and their image repositories will also have to be set to
 this value.*
 
-*\*\*Make sure that you use the draconctl image that you pushed in the repository.*
+*\*\*Make sure that you use the draconctl image that you pushed
+in the repository.*
 
 #### Using a different base image for your images
 

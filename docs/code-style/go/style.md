@@ -1,9 +1,9 @@
 # Smithy Go Style Guide
 
-- [Introduction](#introduction)
-- [Guidelines](#guidelines)
-  - [Pointers to Interfaces](#pointers-to-interfaces)
-  - [Don't Panic](#dont-panic)
+* [Introduction](#introduction)
+* [Guidelines](#guidelines)
+  * [Pointers to Interfaces](#pointers-to-interfaces)
+  * [Don't Panic](#dont-panic)
 
 ## Introduction
 
@@ -111,7 +111,7 @@ func main() {
 ### Don't Panic
 
 Code running in production must avoid panics. Panics are a major source of
-[cascading failures](https://en.wikipedia.org/wiki/Cascading_failure). 
+[cascading failures](https://en.wikipedia.org/wiki/Cascading_failure).
 If an error occurs, the function must return an error and
 allow the caller to decide how to handle it.
 
@@ -155,11 +155,11 @@ func main() {
 </td></tr>
 </tbody></table>
 
-Panic/recover is not an error handling strategy. 
+Panic/recover is not an error handling strategy.
 A program must panic only when
-something irrecoverable happens such as a nil dereference. 
+something irrecoverable happens such as a nil dereference.
 An exception to this is
-program initialization: bad things at program startup that 
+program initialization: bad things at program startup that
 should abort the program may cause panic.
 
 ```go
@@ -204,5 +204,5 @@ is excellent to report such extreme issues and make
 sure that the team is notified to resolve the root cause.
 
 [It's useful to see the stacktrace at the moment
-of a process panicking](https://yourbasic.org/golang/recover-from-panic/). 
+of a process panicking](https://yourbasic.org/golang/recover-from-panic/).
 Logs, Traces and Metrics should be enriched with the latter.
