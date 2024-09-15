@@ -15,7 +15,7 @@
     ]
   },
   "devDependencies": {
-    "remark-cli": "^12.0.0",
+    "remark-cli": "^12.0.1",
     "remark-lint-list-item-indent": "^4.0.0",
     "remark-lint-no-shell-dollars": "^4.0.0",
     "remark-preset-lint-consistent": "^6.0.0",
