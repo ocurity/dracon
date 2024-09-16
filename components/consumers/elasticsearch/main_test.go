@@ -11,7 +11,6 @@ import (
 
 	v1 "github.com/ocurity/dracon/api/proto/v1"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -55,21 +54,21 @@ func TestEsPushBasicAuth(t *testing.T) {
 
 		if r.Method == http.MethodGet {
 			uname, pass, ok := r.BasicAuth()
-			assert.Equal(t, uname, "foo")
-			assert.Equal(t, pass, "bar")
-			assert.Equal(t, ok, true)
+			require.Equal(t, uname, "foo")
+			require.Equal(t, pass, "bar")
+			require.Equal(t, ok, true)
 
 			_, err = w.Write([]byte(info))
 			require.NoError(t, err)
 		} else if r.Method == http.MethodPost {
 			// assert non authed operation (write results to index)
-			assert.Equal(t, buf.String(), string(esIn))
-			assert.Equal(t, r.RequestURI, "/"+esIndex+"/_doc")
+			require.Equal(t, buf.String(), string(esIn))
+			require.Equal(t, r.RequestURI, "/"+esIndex+"/_doc")
 
 			uname, pass, ok := r.BasicAuth()
-			assert.Equal(t, uname, "foo")
-			assert.Equal(t, pass, "bar")
-			assert.Equal(t, ok, true)
+			require.Equal(t, uname, "foo")
+			require.Equal(t, pass, "bar")
+			require.Equal(t, ok, true)
 
 			_, err = w.Write([]byte(want))
 			require.NoError(t, err)
@@ -99,14 +98,50 @@ func TestEsPush(t *testing.T) {
 			_, err = w.Write([]byte(info))
 		} else if r.Method == http.MethodPost {
 			// assert non authed operation (write results to index)
-			assert.Equal(t, buf.String(), string(esIn))
-			assert.Equal(t, r.RequestURI, "/"+esIndex+"/_doc")
+			require.Equal(t, buf.String(), string(esIn))
+			require.Equal(t, r.RequestURI, "/"+esIndex+"/_doc")
 			_, err = w.Write([]byte(want))
 		}
 		require.NoError(t, err)
 	}))
 	defer esStub.Close()
 	os.Setenv("ELASTICSEARCH_URL", esStub.URL)
+	client, err := getESClient()
+	require.NoError(t, err)
+	_, err = client.Index(esIndex, bytes.NewBuffer(esIn))
+	require.NoError(t, err)
+}
+func TestEsPushAPIKey(t *testing.T) {
+	esIndex = "dracon-es-test"
+
+	esStub := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		buf := new(bytes.Buffer)
+		_, err := buf.ReadFrom(r.Body)
+		require.NoError(t, err)
+
+		w.Header().Set("X-Elastic-Product", "Elasticsearch")
+		w.WriteHeader(http.StatusOK)
+
+		require.Equal(t, r.Header.Get("Authorization"), "APIKey foo")
+
+		if r.Method == http.MethodGet {
+			_, err = w.Write([]byte(info))
+			require.NoError(t, err)
+		} else if r.Method == http.MethodPost {
+			// assert non authed operation (write results to index)
+			require.Equal(t, buf.String(), string(esIn))
+			require.Equal(t, r.RequestURI, "/"+esIndex+"/_doc")
+
+			_, err = w.Write([]byte(want))
+			require.NoError(t, err)
+		}
+	}))
+	defer esStub.Close()
+	os.Setenv("ELASTICSEARCH_URL", esStub.URL)
+
+	// apikey ops
+	esAPIKey = "foo"
+	esCloudID = esStub.Config.Addr
 	client, err := getESClient()
 	require.NoError(t, err)
 	_, err = client.Index(esIndex, bytes.NewBuffer(esIn))
