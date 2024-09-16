@@ -70,6 +70,10 @@ type APIRequestContextDeleteOptions struct {
 	// Request timeout in milliseconds. Defaults to `30000` (30 seconds). Pass `0` to disable timeout.
 	Timeout *float64 `json:"timeout"`
 }
+type APIRequestContextDisposeOptions struct {
+	// The reason to be reported to the operations interrupted by the context disposal.
+	Reason *string `json:"reason"`
+}
 type APIRequestContextFetchOptions struct {
 	// Allows to set post data of the request. If the data parameter is an object, it will be serialized to json string
 	// and `content-type` header will be set to `application/json` if not explicitly set. Otherwise the `content-type`
@@ -283,6 +287,10 @@ type NameValue struct {
 	Name string `json:"name"`
 	// Value of the header.
 	Value string `json:"value"`
+}
+type BrowserCloseOptions struct {
+	// The reason to be reported to the operations interrupted by the browser closure.
+	Reason *string `json:"reason"`
 }
 type BrowserNewContextOptions struct {
 	// Whether to automatically download all the attachments. Defaults to `true` where all the downloads are accepted.
@@ -581,6 +589,18 @@ type Script struct {
 	// Raw script content. Optional.
 	Content *string `json:"content"`
 }
+type BrowserContextClearCookiesOptions struct {
+	// Only removes cookies with the given domain.
+	Domain interface{} `json:"domain"`
+	// Only removes cookies with the given name.
+	Name interface{} `json:"name"`
+	// Only removes cookies with the given path.
+	Path interface{} `json:"path"`
+}
+type BrowserContextCloseOptions struct {
+	// The reason to be reported to the operations interrupted by the context closure.
+	Reason *string `json:"reason"`
+}
 type Cookie struct {
 	Name   string `json:"name"`
 	Value  string `json:"value"`
@@ -622,6 +642,15 @@ type Geolocation struct {
 	Longitude float64 `json:"longitude"`
 	// Non-negative accuracy value. Defaults to `0`.
 	Accuracy *float64 `json:"accuracy"`
+}
+type BrowserContextUnrouteAllOptions struct {
+	// Specifies whether to wait for already running handlers and what to do if they throw errors:
+	//  - `default` - do not wait for current handler calls (if any) to finish, if unrouted handler throws, it may
+	//   result in unhandled error
+	//  - `wait` - wait for current handler calls (if any) to finish
+	//  - `ignoreErrors` - do not wait for current handler calls (if any) to finish, all errors thrown by the handlers
+	//   after unrouting are silently caught
+	Behavior *UnrouteBehavior `json:"behavior"`
 }
 type BrowserContextExpectConsoleMessageOptions struct {
 	// Receives the [ConsoleMessage] object and resolves to truthy value when the waiting should resolve.
@@ -683,10 +712,11 @@ type BrowserTypeConnectOverCDPOptions struct {
 	Timeout *float64 `json:"timeout"`
 }
 type BrowserTypeLaunchOptions struct {
+	// **NOTE** Use custom browser args at your own risk, as some of them may break Playwright functionality.
 	// Additional arguments to pass to the browser instance. The list of Chromium flags can be found
 	// [here].
 	//
-	// [here]: http://peter.sh/experiments/chromium-command-line-switches/
+	// [here]: https://peter.sh/experiments/chromium-command-line-switches/
 	Args []string `json:"args"`
 	// Browser distribution channel.  Supported values are "chrome", "chrome-beta", "chrome-dev", "chrome-canary",
 	// "msedge", "msedge-beta", "msedge-dev", "msedge-canary". Read more about using
@@ -698,6 +728,10 @@ type BrowserTypeLaunchOptions struct {
 	ChromiumSandbox *bool `json:"chromiumSandbox"`
 	// **Chromium-only** Whether to auto-open a Developer Tools panel for each tab. If this option is `true`, the
 	// “headless” option will be set `false`.
+	//
+	// Deprecated: Use [debugging tools] instead.
+	//
+	// [debugging tools]: https://playwright.dev/docs/debug
 	Devtools *bool `json:"devtools"`
 	// If specified, accepted downloads are downloaded into this directory. Otherwise, temporary directory is created and
 	// is deleted when browser is closed. In either case, the downloads are deleted when the browser context they were
@@ -748,10 +782,11 @@ type BrowserTypeLaunchOptions struct {
 type BrowserTypeLaunchPersistentContextOptions struct {
 	// Whether to automatically download all the attachments. Defaults to `true` where all the downloads are accepted.
 	AcceptDownloads *bool `json:"acceptDownloads"`
+	// **NOTE** Use custom browser args at your own risk, as some of them may break Playwright functionality.
 	// Additional arguments to pass to the browser instance. The list of Chromium flags can be found
 	// [here].
 	//
-	// [here]: http://peter.sh/experiments/chromium-command-line-switches/
+	// [here]: https://peter.sh/experiments/chromium-command-line-switches/
 	Args []string `json:"args"`
 	// When using [Page.Goto], [Page.Route], [Page.WaitForURL], [Page.ExpectRequest], or [Page.ExpectResponse] it takes
 	// the base URL in consideration by using the [`URL()`]
@@ -785,6 +820,10 @@ type BrowserTypeLaunchPersistentContextOptions struct {
 	DeviceScaleFactor *float64 `json:"deviceScaleFactor"`
 	// **Chromium-only** Whether to auto-open a Developer Tools panel for each tab. If this option is `true`, the
 	// “headless” option will be set `false`.
+	//
+	// Deprecated: Use [debugging tools] instead.
+	//
+	// [debugging tools]: https://playwright.dev/docs/debug
 	Devtools *bool `json:"devtools"`
 	// If specified, accepted downloads are downloaded into this directory. Otherwise, temporary directory is created and
 	// is deleted when browser is closed. In either case, the downloads are deleted when the browser context they were
@@ -798,6 +837,11 @@ type BrowserTypeLaunchPersistentContextOptions struct {
 	ExecutablePath *string `json:"executablePath"`
 	// An object containing additional HTTP headers to be sent with every request. Defaults to none.
 	ExtraHttpHeaders map[string]string `json:"extraHTTPHeaders"`
+	// Firefox user preferences. Learn more about the Firefox user preferences at
+	// [`about:config`].
+	//
+	// [`about:config`]: https://support.mozilla.org/en-US/kb/about-config-editor-firefox
+	FirefoxUserPrefs map[string]interface{} `json:"firefoxUserPrefs"`
 	// Emulates `forced-colors` media feature, supported values are `active`, `none`. See [Page.EmulateMedia] for
 	// more details. Passing `no-override` resets emulation to system defaults. Defaults to `none`.
 	ForcedColors *ForcedColors `json:"forcedColors"`
@@ -923,6 +967,10 @@ type BrowserTypeLaunchPersistentContextOptions struct {
 	// [viewport emulation]: https://playwright.dev/docs/emulation#viewport
 	Viewport *Size `json:"viewport"`
 }
+type ClockInstallOptions struct {
+	// Time to initialize with, current system time by default.
+	Time interface{} `json:"time"`
+}
 type ConsoleMessageLocation struct {
 	// URL of the resource.
 	URL string `json:"url"`
@@ -974,7 +1022,8 @@ type ElementHandleClickOptions struct {
 	// [actionability]: https://playwright.dev/docs/actionability
 	Force *bool `json:"force"`
 	// Modifier keys to press. Ensures that only these modifiers are pressed during the operation, and then restores
-	// current modifiers back. If not specified, currently pressed modifiers are used.
+	// current modifiers back. If not specified, currently pressed modifiers are used. "ControlOrMeta" resolves to
+	// "Control" on Windows and Linux and to "Meta" on macOS.
 	Modifiers []KeyboardModifier `json:"modifiers"`
 	// Actions that initiate navigations are waiting for these navigations to happen and for pages to start loading. You
 	// can opt out of waiting via setting this flag. You would only need this option in the exceptional cases such as
@@ -1002,7 +1051,8 @@ type ElementHandleDblclickOptions struct {
 	// [actionability]: https://playwright.dev/docs/actionability
 	Force *bool `json:"force"`
 	// Modifier keys to press. Ensures that only these modifiers are pressed during the operation, and then restores
-	// current modifiers back. If not specified, currently pressed modifiers are used.
+	// current modifiers back. If not specified, currently pressed modifiers are used. "ControlOrMeta" resolves to
+	// "Control" on Windows and Linux and to "Meta" on macOS.
 	Modifiers []KeyboardModifier `json:"modifiers"`
 	// Actions that initiate navigations are waiting for these navigations to happen and for pages to start loading. You
 	// can opt out of waiting via setting this flag. You would only need this option in the exceptional cases such as
@@ -1039,7 +1089,8 @@ type ElementHandleHoverOptions struct {
 	// [actionability]: https://playwright.dev/docs/actionability
 	Force *bool `json:"force"`
 	// Modifier keys to press. Ensures that only these modifiers are pressed during the operation, and then restores
-	// current modifiers back. If not specified, currently pressed modifiers are used.
+	// current modifiers back. If not specified, currently pressed modifiers are used. "ControlOrMeta" resolves to
+	// "Control" on Windows and Linux and to "Meta" on macOS.
 	Modifiers []KeyboardModifier `json:"modifiers"`
 	// Actions that initiate navigations are waiting for these navigations to happen and for pages to start loading. You
 	// can opt out of waiting via setting this flag. You would only need this option in the exceptional cases such as
@@ -1105,6 +1156,10 @@ type ElementHandleScreenshotOptions struct {
 	// screenshots of high-dpi devices will be twice as large or even larger.
 	// Defaults to `"device"`.
 	Scale *ScreenshotScale `json:"scale"`
+	// Text of the stylesheet to apply while making the screenshot. This is where you can hide dynamic elements, make
+	// elements invisible or change their properties to help you creating repeatable screenshots. This stylesheet pierces
+	// the Shadow DOM and applies to the inner frames.
+	Style *string `json:"style"`
 	// Maximum time in milliseconds. Defaults to `30000` (30 seconds). Pass `0` to disable timeout. The default value can
 	// be changed by using the [BrowserContext.SetDefaultTimeout] or [Page.SetDefaultTimeout] methods.
 	Timeout *float64 `json:"timeout"`
@@ -1174,7 +1229,8 @@ type ElementHandleTapOptions struct {
 	// [actionability]: https://playwright.dev/docs/actionability
 	Force *bool `json:"force"`
 	// Modifier keys to press. Ensures that only these modifiers are pressed during the operation, and then restores
-	// current modifiers back. If not specified, currently pressed modifiers are used.
+	// current modifiers back. If not specified, currently pressed modifiers are used. "ControlOrMeta" resolves to
+	// "Control" on Windows and Linux and to "Meta" on macOS.
 	Modifiers []KeyboardModifier `json:"modifiers"`
 	// Actions that initiate navigations are waiting for these navigations to happen and for pages to start loading. You
 	// can opt out of waiting via setting this flag. You would only need this option in the exceptional cases such as
@@ -1313,7 +1369,8 @@ type FrameClickOptions struct {
 	// [actionability]: https://playwright.dev/docs/actionability
 	Force *bool `json:"force"`
 	// Modifier keys to press. Ensures that only these modifiers are pressed during the operation, and then restores
-	// current modifiers back. If not specified, currently pressed modifiers are used.
+	// current modifiers back. If not specified, currently pressed modifiers are used. "ControlOrMeta" resolves to
+	// "Control" on Windows and Linux and to "Meta" on macOS.
 	Modifiers []KeyboardModifier `json:"modifiers"`
 	// Actions that initiate navigations are waiting for these navigations to happen and for pages to start loading. You
 	// can opt out of waiting via setting this flag. You would only need this option in the exceptional cases such as
@@ -1344,7 +1401,8 @@ type FrameDblclickOptions struct {
 	// [actionability]: https://playwright.dev/docs/actionability
 	Force *bool `json:"force"`
 	// Modifier keys to press. Ensures that only these modifiers are pressed during the operation, and then restores
-	// current modifiers back. If not specified, currently pressed modifiers are used.
+	// current modifiers back. If not specified, currently pressed modifiers are used. "ControlOrMeta" resolves to
+	// "Control" on Windows and Linux and to "Meta" on macOS.
 	Modifiers []KeyboardModifier `json:"modifiers"`
 	// Actions that initiate navigations are waiting for these navigations to happen and for pages to start loading. You
 	// can opt out of waiting via setting this flag. You would only need this option in the exceptional cases such as
@@ -1536,7 +1594,8 @@ type FrameHoverOptions struct {
 	// [actionability]: https://playwright.dev/docs/actionability
 	Force *bool `json:"force"`
 	// Modifier keys to press. Ensures that only these modifiers are pressed during the operation, and then restores
-	// current modifiers back. If not specified, currently pressed modifiers are used.
+	// current modifiers back. If not specified, currently pressed modifiers are used. "ControlOrMeta" resolves to
+	// "Control" on Windows and Linux and to "Meta" on macOS.
 	Modifiers []KeyboardModifier `json:"modifiers"`
 	// Actions that initiate navigations are waiting for these navigations to happen and for pages to start loading. You
 	// can opt out of waiting via setting this flag. You would only need this option in the exceptional cases such as
@@ -1630,8 +1689,12 @@ type FrameIsVisibleOptions struct {
 	Timeout *float64 `json:"timeout"`
 }
 type FrameLocatorOptions struct {
-	// Matches elements containing an element that matches an inner locator. Inner locator is queried against the outer
-	// one. For example, `article` that has `text=Playwright` matches `<article><div>Playwright</div></article>`.
+	// Narrows down the results of the method to those which contain elements matching this relative locator. For example,
+	// `article` that has `text=Playwright` matches `<article><div>Playwright</div></article>`.
+	// Inner locator **must be relative** to the outer locator and is queried starting with the outer locator match, not
+	// the document root. For example, you can find `content` that has `div` in
+	// `<article><content><div>Playwright</div></content></article>`. However, looking for `content` that has `article
+	// div` will fail, because the inner locator must be relative and should not use any elements outside the `content`.
 	// Note that outer and inner locators must belong to the same frame. Inner locator must not contain [FrameLocator]s.
 	Has Locator `json:"has"`
 	// Matches elements that do not contain an element that matches an inner locator. Inner locator is queried against the
@@ -1737,7 +1800,8 @@ type FrameTapOptions struct {
 	// [actionability]: https://playwright.dev/docs/actionability
 	Force *bool `json:"force"`
 	// Modifier keys to press. Ensures that only these modifiers are pressed during the operation, and then restores
-	// current modifiers back. If not specified, currently pressed modifiers are used.
+	// current modifiers back. If not specified, currently pressed modifiers are used. "ControlOrMeta" resolves to
+	// "Control" on Windows and Linux and to "Meta" on macOS.
 	Modifiers []KeyboardModifier `json:"modifiers"`
 	// Actions that initiate navigations are waiting for these navigations to happen and for pages to start loading. You
 	// can opt out of waiting via setting this flag. You would only need this option in the exceptional cases such as
@@ -1951,8 +2015,12 @@ type FrameLocatorGetByTitleOptions struct {
 	Exact *bool `json:"exact"`
 }
 type FrameLocatorLocatorOptions struct {
-	// Matches elements containing an element that matches an inner locator. Inner locator is queried against the outer
-	// one. For example, `article` that has `text=Playwright` matches `<article><div>Playwright</div></article>`.
+	// Narrows down the results of the method to those which contain elements matching this relative locator. For example,
+	// `article` that has `text=Playwright` matches `<article><div>Playwright</div></article>`.
+	// Inner locator **must be relative** to the outer locator and is queried starting with the outer locator match, not
+	// the document root. For example, you can find `content` that has `div` in
+	// `<article><content><div>Playwright</div></content></article>`. However, looking for `content` that has `article
+	// div` will fail, because the inner locator must be relative and should not use any elements outside the `content`.
 	// Note that outer and inner locators must belong to the same frame. Inner locator must not contain [FrameLocator]s.
 	Has Locator `json:"has"`
 	// Matches elements that do not contain an element that matches an inner locator. Inner locator is queried against the
@@ -2031,7 +2099,8 @@ type LocatorClickOptions struct {
 	// [actionability]: https://playwright.dev/docs/actionability
 	Force *bool `json:"force"`
 	// Modifier keys to press. Ensures that only these modifiers are pressed during the operation, and then restores
-	// current modifiers back. If not specified, currently pressed modifiers are used.
+	// current modifiers back. If not specified, currently pressed modifiers are used. "ControlOrMeta" resolves to
+	// "Control" on Windows and Linux and to "Meta" on macOS.
 	Modifiers []KeyboardModifier `json:"modifiers"`
 	// Actions that initiate navigations are waiting for these navigations to happen and for pages to start loading. You
 	// can opt out of waiting via setting this flag. You would only need this option in the exceptional cases such as
@@ -2059,7 +2128,8 @@ type LocatorDblclickOptions struct {
 	// [actionability]: https://playwright.dev/docs/actionability
 	Force *bool `json:"force"`
 	// Modifier keys to press. Ensures that only these modifiers are pressed during the operation, and then restores
-	// current modifiers back. If not specified, currently pressed modifiers are used.
+	// current modifiers back. If not specified, currently pressed modifiers are used. "ControlOrMeta" resolves to
+	// "Control" on Windows and Linux and to "Meta" on macOS.
 	Modifiers []KeyboardModifier `json:"modifiers"`
 	// Actions that initiate navigations are waiting for these navigations to happen and for pages to start loading. You
 	// can opt out of waiting via setting this flag. You would only need this option in the exceptional cases such as
@@ -2135,8 +2205,12 @@ type LocatorFillOptions struct {
 	Timeout *float64 `json:"timeout"`
 }
 type LocatorFilterOptions struct {
-	// Matches elements containing an element that matches an inner locator. Inner locator is queried against the outer
-	// one. For example, `article` that has `text=Playwright` matches `<article><div>Playwright</div></article>`.
+	// Narrows down the results of the method to those which contain elements matching this relative locator. For example,
+	// `article` that has `text=Playwright` matches `<article><div>Playwright</div></article>`.
+	// Inner locator **must be relative** to the outer locator and is queried starting with the outer locator match, not
+	// the document root. For example, you can find `content` that has `div` in
+	// `<article><content><div>Playwright</div></content></article>`. However, looking for `content` that has `article
+	// div` will fail, because the inner locator must be relative and should not use any elements outside the `content`.
 	// Note that outer and inner locators must belong to the same frame. Inner locator must not contain [FrameLocator]s.
 	Has Locator `json:"has"`
 	// Matches elements that do not contain an element that matches an inner locator. Inner locator is queried against the
@@ -2243,7 +2317,8 @@ type LocatorHoverOptions struct {
 	// [actionability]: https://playwright.dev/docs/actionability
 	Force *bool `json:"force"`
 	// Modifier keys to press. Ensures that only these modifiers are pressed during the operation, and then restores
-	// current modifiers back. If not specified, currently pressed modifiers are used.
+	// current modifiers back. If not specified, currently pressed modifiers are used. "ControlOrMeta" resolves to
+	// "Control" on Windows and Linux and to "Meta" on macOS.
 	Modifiers []KeyboardModifier `json:"modifiers"`
 	// Actions that initiate navigations are waiting for these navigations to happen and for pages to start loading. You
 	// can opt out of waiting via setting this flag. You would only need this option in the exceptional cases such as
@@ -2307,8 +2382,12 @@ type LocatorIsVisibleOptions struct {
 	Timeout *float64 `json:"timeout"`
 }
 type LocatorLocatorOptions struct {
-	// Matches elements containing an element that matches an inner locator. Inner locator is queried against the outer
-	// one. For example, `article` that has `text=Playwright` matches `<article><div>Playwright</div></article>`.
+	// Narrows down the results of the method to those which contain elements matching this relative locator. For example,
+	// `article` that has `text=Playwright` matches `<article><div>Playwright</div></article>`.
+	// Inner locator **must be relative** to the outer locator and is queried starting with the outer locator match, not
+	// the document root. For example, you can find `content` that has `div` in
+	// `<article><content><div>Playwright</div></content></article>`. However, looking for `content` that has `article
+	// div` will fail, because the inner locator must be relative and should not use any elements outside the `content`.
 	// Note that outer and inner locators must belong to the same frame. Inner locator must not contain [FrameLocator]s.
 	Has Locator `json:"has"`
 	// Matches elements that do not contain an element that matches an inner locator. Inner locator is queried against the
@@ -2377,6 +2456,10 @@ type LocatorScreenshotOptions struct {
 	// screenshots of high-dpi devices will be twice as large or even larger.
 	// Defaults to `"device"`.
 	Scale *ScreenshotScale `json:"scale"`
+	// Text of the stylesheet to apply while making the screenshot. This is where you can hide dynamic elements, make
+	// elements invisible or change their properties to help you creating repeatable screenshots. This stylesheet pierces
+	// the Shadow DOM and applies to the inner frames.
+	Style *string `json:"style"`
 	// Maximum time in milliseconds. Defaults to `30000` (30 seconds). Pass `0` to disable timeout. The default value can
 	// be changed by using the [BrowserContext.SetDefaultTimeout] or [Page.SetDefaultTimeout] methods.
 	Timeout *float64 `json:"timeout"`
@@ -2446,7 +2529,8 @@ type LocatorTapOptions struct {
 	// [actionability]: https://playwright.dev/docs/actionability
 	Force *bool `json:"force"`
 	// Modifier keys to press. Ensures that only these modifiers are pressed during the operation, and then restores
-	// current modifiers back. If not specified, currently pressed modifiers are used.
+	// current modifiers back. If not specified, currently pressed modifiers are used. "ControlOrMeta" resolves to
+	// "Control" on Windows and Linux and to "Meta" on macOS.
 	Modifiers []KeyboardModifier `json:"modifiers"`
 	// Actions that initiate navigations are waiting for these navigations to happen and for pages to start loading. You
 	// can opt out of waiting via setting this flag. You would only need this option in the exceptional cases such as
@@ -2571,7 +2655,24 @@ type LocatorAssertionsToContainTextOptions struct {
 	// Whether to use `element.innerText` instead of `element.textContent` when retrieving DOM node text.
 	UseInnerText *bool `json:"useInnerText"`
 }
+type LocatorAssertionsToHaveAccessibleDescriptionOptions struct {
+	// Whether to perform case-insensitive match. “ignoreCase” option takes precedence over the corresponding regular
+	// expression flag if specified.
+	IgnoreCase *bool `json:"ignoreCase"`
+	// Time to retry the assertion for in milliseconds. Defaults to `5000`.
+	Timeout *float64 `json:"timeout"`
+}
+type LocatorAssertionsToHaveAccessibleNameOptions struct {
+	// Whether to perform case-insensitive match. “ignoreCase” option takes precedence over the corresponding regular
+	// expression flag if specified.
+	IgnoreCase *bool `json:"ignoreCase"`
+	// Time to retry the assertion for in milliseconds. Defaults to `5000`.
+	Timeout *float64 `json:"timeout"`
+}
 type LocatorAssertionsToHaveAttributeOptions struct {
+	// Whether to perform case-insensitive match. “ignoreCase” option takes precedence over the corresponding regular
+	// expression flag if specified.
+	IgnoreCase *bool `json:"ignoreCase"`
 	// Time to retry the assertion for in milliseconds. Defaults to `5000`.
 	Timeout *float64 `json:"timeout"`
 }
@@ -2592,6 +2693,10 @@ type LocatorAssertionsToHaveIdOptions struct {
 	Timeout *float64 `json:"timeout"`
 }
 type LocatorAssertionsToHaveJSPropertyOptions struct {
+	// Time to retry the assertion for in milliseconds. Defaults to `5000`.
+	Timeout *float64 `json:"timeout"`
+}
+type LocatorAssertionsToHaveRoleOptions struct {
 	// Time to retry the assertion for in milliseconds. Defaults to `5000`.
 	Timeout *float64 `json:"timeout"`
 }
@@ -2701,7 +2806,8 @@ type PageClickOptions struct {
 	// [actionability]: https://playwright.dev/docs/actionability
 	Force *bool `json:"force"`
 	// Modifier keys to press. Ensures that only these modifiers are pressed during the operation, and then restores
-	// current modifiers back. If not specified, currently pressed modifiers are used.
+	// current modifiers back. If not specified, currently pressed modifiers are used. "ControlOrMeta" resolves to
+	// "Control" on Windows and Linux and to "Meta" on macOS.
 	Modifiers []KeyboardModifier `json:"modifiers"`
 	// Actions that initiate navigations are waiting for these navigations to happen and for pages to start loading. You
 	// can opt out of waiting via setting this flag. You would only need this option in the exceptional cases such as
@@ -2723,6 +2829,8 @@ type PageClickOptions struct {
 	Trial *bool `json:"trial"`
 }
 type PageCloseOptions struct {
+	// The reason to be reported to the operations interrupted by the page closure.
+	Reason *string `json:"reason"`
 	// Defaults to `false`. Whether to run the
 	// [before unload] page handlers.
 	//
@@ -2739,7 +2847,8 @@ type PageDblclickOptions struct {
 	// [actionability]: https://playwright.dev/docs/actionability
 	Force *bool `json:"force"`
 	// Modifier keys to press. Ensures that only these modifiers are pressed during the operation, and then restores
-	// current modifiers back. If not specified, currently pressed modifiers are used.
+	// current modifiers back. If not specified, currently pressed modifiers are used. "ControlOrMeta" resolves to
+	// "Control" on Windows and Linux and to "Meta" on macOS.
 	Modifiers []KeyboardModifier `json:"modifiers"`
 	// Actions that initiate navigations are waiting for these navigations to happen and for pages to start loading. You
 	// can opt out of waiting via setting this flag. You would only need this option in the exceptional cases such as
@@ -2977,7 +3086,8 @@ type PageHoverOptions struct {
 	// [actionability]: https://playwright.dev/docs/actionability
 	Force *bool `json:"force"`
 	// Modifier keys to press. Ensures that only these modifiers are pressed during the operation, and then restores
-	// current modifiers back. If not specified, currently pressed modifiers are used.
+	// current modifiers back. If not specified, currently pressed modifiers are used. "ControlOrMeta" resolves to
+	// "Control" on Windows and Linux and to "Meta" on macOS.
 	Modifiers []KeyboardModifier `json:"modifiers"`
 	// Actions that initiate navigations are waiting for these navigations to happen and for pages to start loading. You
 	// can opt out of waiting via setting this flag. You would only need this option in the exceptional cases such as
@@ -3071,8 +3181,12 @@ type PageIsVisibleOptions struct {
 	Timeout *float64 `json:"timeout"`
 }
 type PageLocatorOptions struct {
-	// Matches elements containing an element that matches an inner locator. Inner locator is queried against the outer
-	// one. For example, `article` that has `text=Playwright` matches `<article><div>Playwright</div></article>`.
+	// Narrows down the results of the method to those which contain elements matching this relative locator. For example,
+	// `article` that has `text=Playwright` matches `<article><div>Playwright</div></article>`.
+	// Inner locator **must be relative** to the outer locator and is queried starting with the outer locator match, not
+	// the document root. For example, you can find `content` that has `div` in
+	// `<article><content><div>Playwright</div></content></article>`. However, looking for `content` that has `article
+	// div` will fail, because the inner locator must be relative and should not use any elements outside the `content`.
 	// Note that outer and inner locators must belong to the same frame. Inner locator must not contain [FrameLocator]s.
 	Has Locator `json:"has"`
 	// Matches elements that do not contain an element that matches an inner locator. Inner locator is queried against the
@@ -3108,6 +3222,8 @@ type PagePdfOptions struct {
 	Landscape *bool `json:"landscape"`
 	// Paper margins, defaults to none.
 	Margin *Margin `json:"margin"`
+	// Whether or not to embed the document outline into the PDF. Defaults to `false`.
+	Outline *bool `json:"outline"`
 	// Paper ranges to print, e.g., '1-5, 8, 11-13'. Defaults to the empty string, which means print all pages.
 	PageRanges *string `json:"pageRanges"`
 	// The file path to save the PDF to. If “path” is a relative path, then it is resolved relative to the current working
@@ -3120,6 +3236,8 @@ type PagePdfOptions struct {
 	PrintBackground *bool `json:"printBackground"`
 	// Scale of the webpage rendering. Defaults to `1`. Scale amount must be between 0.1 and 2.
 	Scale *float64 `json:"scale"`
+	// Whether or not to generate tagged (accessible) PDF. Defaults to `false`.
+	Tagged *bool `json:"tagged"`
 	// Paper width, accepts values labeled with units.
 	Width *string `json:"width"`
 }
@@ -3141,6 +3259,14 @@ type PageQuerySelectorOptions struct {
 	// When true, the call requires selector to resolve to a single element. If given selector resolves to more than one
 	// element, the call throws an exception.
 	Strict *bool `json:"strict"`
+}
+type PageAddLocatorHandlerOptions struct {
+	// By default, after calling the handler Playwright will wait until the overlay becomes hidden, and only then
+	// Playwright will continue with the action/assertion that triggered the handler. This option allows to opt-out of
+	// this behavior, so that overlay can stay visible after the handler has run.
+	NoWaitAfter *bool `json:"noWaitAfter"`
+	// Specifies the maximum number of times this handler should be called. Unlimited by default.
+	Times *int `json:"times"`
 }
 type PageReloadOptions struct {
 	// Maximum operation time in milliseconds, defaults to 30 seconds, pass `0` to disable timeout. The default value can
@@ -3211,6 +3337,10 @@ type PageScreenshotOptions struct {
 	// screenshots of high-dpi devices will be twice as large or even larger.
 	// Defaults to `"device"`.
 	Scale *ScreenshotScale `json:"scale"`
+	// Text of the stylesheet to apply while making the screenshot. This is where you can hide dynamic elements, make
+	// elements invisible or change their properties to help you creating repeatable screenshots. This stylesheet pierces
+	// the Shadow DOM and applies to the inner frames.
+	Style *string `json:"style"`
 	// Maximum time in milliseconds. Defaults to `30000` (30 seconds). Pass `0` to disable timeout. The default value can
 	// be changed by using the [BrowserContext.SetDefaultTimeout] or [Page.SetDefaultTimeout] methods.
 	Timeout *float64 `json:"timeout"`
@@ -3289,7 +3419,8 @@ type PageTapOptions struct {
 	// [actionability]: https://playwright.dev/docs/actionability
 	Force *bool `json:"force"`
 	// Modifier keys to press. Ensures that only these modifiers are pressed during the operation, and then restores
-	// current modifiers back. If not specified, currently pressed modifiers are used.
+	// current modifiers back. If not specified, currently pressed modifiers are used. "ControlOrMeta" resolves to
+	// "Control" on Windows and Linux and to "Meta" on macOS.
 	Modifiers []KeyboardModifier `json:"modifiers"`
 	// Actions that initiate navigations are waiting for these navigations to happen and for pages to start loading. You
 	// can opt out of waiting via setting this flag. You would only need this option in the exceptional cases such as
@@ -3355,6 +3486,15 @@ type PageUncheckOptions struct {
 	//
 	// [actionability]: https://playwright.dev/docs/actionability
 	Trial *bool `json:"trial"`
+}
+type PageUnrouteAllOptions struct {
+	// Specifies whether to wait for already running handlers and what to do if they throw errors:
+	//  - `default` - do not wait for current handler calls (if any) to finish, if unrouted handler throws, it may
+	//   result in unhandled error
+	//  - `wait` - wait for current handler calls (if any) to finish
+	//  - `ignoreErrors` - do not wait for current handler calls (if any) to finish, all errors thrown by the handlers
+	//   after unrouting are silently caught
+	Behavior *UnrouteBehavior `json:"behavior"`
 }
 type Size struct {
 	// page width in pixels.
@@ -3510,6 +3650,9 @@ type PageAssertionsToHaveTitleOptions struct {
 	Timeout *float64 `json:"timeout"`
 }
 type PageAssertionsToHaveURLOptions struct {
+	// Whether to perform case-insensitive match. “ignoreCase” option takes precedence over the corresponding regular
+	// expression flag if specified.
+	IgnoreCase *bool `json:"ignoreCase"`
 	// Time to retry the assertion for in milliseconds. Defaults to `5000`.
 	Timeout *float64 `json:"timeout"`
 }
@@ -3632,8 +3775,9 @@ type SelectorsRegisterOptions struct {
 	ContentScript *bool `json:"contentScript"`
 }
 type TracingStartOptions struct {
-	// If specified, the trace is going to be saved into the file with the given name inside the “tracesDir” folder
-	// specified in [BrowserType.Launch].
+	// If specified, intermediate trace files are going to be saved into the files with the given name prefix inside the
+	// “tracesDir” folder specified in [BrowserType.Launch]. To specify the final trace zip file name, you need to pass
+	// `path` option to [Tracing.Stop] instead.
 	Name *string `json:"name"`
 	// Whether to capture screenshots during tracing. Screenshots are used to build a timeline preview.
 	Screenshots *bool `json:"screenshots"`
@@ -3647,8 +3791,9 @@ type TracingStartOptions struct {
 	Title *string `json:"title"`
 }
 type TracingStartChunkOptions struct {
-	// If specified, the trace is going to be saved into the file with the given name inside the “tracesDir” folder
-	// specified in [BrowserType.Launch].
+	// If specified, intermediate trace files are going to be saved into the files with the given name prefix inside the
+	// “tracesDir” folder specified in [BrowserType.Launch]. To specify the final trace zip file name, you need to pass
+	// `path` option to [Tracing.StopChunk] instead.
 	Name *string `json:"name"`
 	// Trace name to be shown in the Trace Viewer.
 	Title *string `json:"title"`
@@ -3672,6 +3817,11 @@ type HttpCredentials struct {
 	Password string `json:"password"`
 	// Restrain sending http credentials on specific origin (scheme://host:port).
 	Origin *string `json:"origin"`
+	// This option only applies to the requests sent from corresponding [APIRequestContext] and does not affect requests
+	// sent from the browser. `always` - `Authorization` header with basic authentication credentials will be sent with
+	// the each API request. `'unauthorized` - the credentials are only sent when 401 (Unauthorized) response with
+	// `WWW-Authenticate` header is received. Defaults to `unauthorized`.
+	Send *HttpCredentialsSend `json:"send"`
 }
 type Proxy struct {
 	// Proxy to be used for all requests. HTTP and SOCKS proxies are supported, for example `http://myproxy.com:3128` or

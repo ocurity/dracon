@@ -25,7 +25,7 @@ func (b *browserTypeImpl) Launch(options ...BrowserTypeLaunchOptions) (Browser, 
 	}
 	channel, err := b.channel.Send("launch", options, overrides)
 	if err != nil {
-		return nil, fmt.Errorf("could not send message: %w", err)
+		return nil, err
 	}
 	browser := fromChannel(channel).(*browserImpl)
 	b.didLaunchBrowser(browser)
@@ -81,12 +81,13 @@ func (b *browserTypeImpl) LaunchPersistentContext(userDataDir string, options ..
 	}
 	channel, err := b.channel.Send("launchPersistentContext", options, overrides)
 	if err != nil {
-		return nil, fmt.Errorf("could not send message: %w", err)
+		return nil, err
 	}
 	context := fromChannel(channel).(*browserContextImpl)
 	b.didCreateContext(context, option, tracesDir)
 	return context, nil
 }
+
 func (b *browserTypeImpl) Connect(wsEndpoint string, options ...BrowserTypeConnectOptions) (Browser, error) {
 	overrides := map[string]interface{}{
 		"wsEndpoint": wsEndpoint,
@@ -97,9 +98,15 @@ func (b *browserTypeImpl) Connect(wsEndpoint string, options ...BrowserTypeConne
 		return nil, err
 	}
 	jsonPipe := fromChannel(pipe.(map[string]interface{})["pipe"]).(*jsonPipe)
-	connection := newConnection(jsonPipe.Close, localUtils)
-	connection.isRemote = true
-	var browser *browserImpl
+	connection := newConnection(jsonPipe, localUtils)
+
+	playwright, err := connection.Start()
+	if err != nil {
+		return nil, err
+	}
+	playwright.setSelectors(b.playwright.Selectors)
+	browser := fromChannel(playwright.initializer["preLaunchedBrowser"]).(*browserImpl)
+	browser.shouldCloseConnectionOnClose = true
 	pipeClosed := func() {
 		for _, context := range browser.Contexts() {
 			pages := context.Pages()
@@ -109,21 +116,10 @@ func (b *browserTypeImpl) Connect(wsEndpoint string, options ...BrowserTypeConne
 			context.(*browserContextImpl).onClose()
 		}
 		browser.onClose()
-		connection.cleanup(errMsgBrowserClosed)
+		connection.cleanup()
 	}
 	jsonPipe.On("closed", pipeClosed)
-	connection.onmessage = func(message map[string]interface{}) error {
-		if err := jsonPipe.Send(message); err != nil {
-			pipeClosed()
-			return err
-		}
-		return nil
-	}
-	jsonPipe.On("message", connection.Dispatch)
-	playwright := connection.Start()
-	playwright.setSelectors(b.playwright.Selectors)
-	browser = fromChannel(playwright.initializer["preLaunchedBrowser"]).(*browserImpl)
-	browser.shouldCloseConnectionOnClose = true
+
 	b.didLaunchBrowser(browser)
 	return browser, nil
 }
