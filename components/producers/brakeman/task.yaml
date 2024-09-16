@@ -1,0 +1,52 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: producer-brakeman
+  labels:
+    v1.dracon.ocurity.com/component: producer
+    v1.dracon.ocurity.com/test-type: sast
+    v1.dracon.ocurity.com/language: brakeman
+spec:
+  description: Analyse Ruby source code usign brakeman to look for security issues.
+  params:
+  - name: producer-brakeman-flags
+    type: array
+    default:
+    - "--run-all-checks"
+    - "--skip-libs"
+  volumes:
+    - name: scratch
+      emptyDir: {}
+  workspaces:
+    - name: output
+      description: The workspace containing the source-code to scan.
+  steps:
+  - name: run-brakeman
+    image: presidentbeef/brakeman:v6.2.1.1
+    command: [/usr/src/app/bin/brakeman]
+    args:
+    - "$(params.producer-brakeman-flags[*])"
+    - "--format"
+    - "json"
+    - "--force-scan"
+    - "--output"
+    - "/scratch/out.json"
+    - "-q"
+    - "--path"
+    - "$(workspaces.output.path)/source-code/"
+    - "--no-exit-on-error"
+    - "--no-exit-on-warn"
+    volumeMounts:
+    - mountPath: /scratch
+      name: scratch
+  - name: produce-issues
+    imagePullPolicy: IfNotPresent
+    image: '{{ default "ghcr.io/ocurity/dracon" .Values.image.registry }}/components/producers/brakeman:{{ .Chart.AppVersion }}'
+    command: ["/app/components/producers/brakeman/brakeman-parser"]
+    args:
+    - "-in=/scratch/out.json"
+    - "-out=$(workspaces.output.path)/.dracon/producers/brakeman.pb"
+    volumeMounts:
+    - mountPath: /scratch
+      name: scratch
