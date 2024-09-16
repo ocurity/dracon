@@ -34,7 +34,6 @@ PG_VERSION=11.9.8
 DRACON_NS=dracon
 TEKTON_NS=tekton-pipelines
 ARANGODB_NS=arangodb
-BASE_IMAGE=scratch
 
 DOCKER=docker
 PROTOC=protoc
@@ -47,22 +46,31 @@ export
 .PHONY: components component-binaries cmd/draconctl/bin protos build publish-component-containers publish-containers draconctl-image draconctl-image-publish clean-protos clean
 
 $(component_binaries):
-	CGO_ENABLED=0 ./scripts/build_component_binary.sh $@
+	./scripts/build_component_binary.sh $@
 
 component-binaries: $(component_binaries)
 
 $(component_containers): %/docker: %/bin
+	$(eval GOOS:=linux)
+	$(eval GOARCH:=amd64)
 	./scripts/build_component_container.sh $@
 
 components: $(component_containers)
 
 cmd/draconctl/bin:
-	CGO_ENABLED=0 go build -o bin/cmd/draconctl cmd/draconctl/main.go
+	$(eval GOOS:=linux)
+	$(eval GOARCH:=amd64)
+	CGO_ENABLED=0 GOOS=$(GOOS) GOARCH=$(GOARCH) go build -o bin/cmd/$(GOOS)/$(GOARCH)/draconctl cmd/draconctl/main.go
 
 draconctl-image: cmd/draconctl/bin
+	$(eval GOOS:=linux)
+	$(eval GOARCH:=amd64)
 	$(DOCKER) build -t "${CONTAINER_REPO}/draconctl:${DRACON_VERSION}" \
+		--build-arg GOOS=$(GOOS) \
+		--build-arg GOARCH=$(GOARCH) \
 		$$([ "${SOURCE_CODE_REPO}" != "" ] && echo "--label=org.opencontainers.image.source=${SOURCE_CODE_REPO}" ) \
-		-f containers/Dockerfile.draconctl .
+		-f containers/Dockerfile.draconctl . \
+		--platform "$(GOOS)/$(GOARCH)"
 
 draconctl-image-publish: draconctl-image
 	$(DOCKER) push "${CONTAINER_REPO}/draconctl:${DRACON_VERSION}"
@@ -229,23 +237,23 @@ install: deploy-cluster dev-infra deploy-elasticoperator deploy-arangodb-crds ad
 
 	@echo "deploying dracon"
 	@helm upgrade dracon ./deploy/dracon/chart \
-	 	  --install \
-		  --values ./deploy/dracon/values/dev.yaml \
-		  --create-namespace \
-		  --set "image.registry=$(CONTAINER_REPO)" \
-		  --namespace $(DRACON_NS) \
-		  --version $(DRACON_VERSION) \
-		  --wait
+		--install \
+		--values ./deploy/dracon/values/dev.yaml \
+		--create-namespace \
+		--set "image.registry=$(CONTAINER_REPO)" \
+		--namespace $(DRACON_NS) \
+		--version $(DRACON_VERSION) \
+		--wait
 
 	@echo "Applying migrations"
 	@helm upgrade deduplication-db-migrations ./deploy/deduplication-db-migrations/chart \
-		  --install \
-		  --values ./deploy/deduplication-db-migrations/values/dev.yaml \
-		  --create-namespace \
-		  --set "image.registry=$(CONTAINER_REPO)" \
-		  --namespace $(DRACON_NS) \
-		  --set "image.tag=$(DRACON_VERSION)" \
-		  --wait
+		--install \
+		--values ./deploy/deduplication-db-migrations/values/dev.yaml \
+		--create-namespace \
+		--set "image.registry=$(CONTAINER_REPO)" \
+		--namespace $(DRACON_NS) \
+		--set "image.tag=$(DRACON_VERSION)" \
+		--wait
 
 	@echo "Installing Components"
 	# we are setting the container repo to it's own value so that we can override it from other make targets
@@ -267,23 +275,35 @@ install-oss-components:
 		--values ./deploy/deduplication-db-migrations/values/dev.yaml
 	@echo "Done! Bumped version to $(DRACON_VERSION)"
 
-dev-build-oss-components: cmd/draconctl/bin
+dev-build-oss-components:
 	@echo "Building open-source components for local dracon instance..."
-	$(eval CONTAINER_REPO:=localhost:5000)
+	$(eval GOOS:=linux)
+	$(eval GOARCH:=amd64)
+	$(eval CONTAINER_REPO:=localhost:5000/ocurity/dracon)
+	$(eval TMP_DIR:=tmp)
 
+	@mkdir $(TMP_DIR)
+	$(MAKE) cmd/draconctl/bin
 	$(MAKE) -j 16 publish-component-containers CONTAINER_REPO=$(CONTAINER_REPO)
-	@./bin/cmd/draconctl components package \
-		--version $(DRACON_VERSION) \
-		--chart-version $(DRACON_VERSION) \
-		--name $(DRACON_OSS_COMPONENTS_NAME) \
-		./components
+	@docker run \
+		--platform $(GOOS)/$(GOARCH) \
+		-v ./components:/components \
+		-v ./tmp:/tmp \
+		$(CONTAINER_REPO)/draconctl:$(DRACON_VERSION) components package \
+			--version $(DRACON_VERSION) \
+			--chart-version $(DRACON_VERSION) \
+			--name $(DRACON_OSS_COMPONENTS_NAME) \
+			./components
+	@rm -r $(TMP_DIR)
 
 dev-dracon:
-	$(eval CONTAINER_REPO:=localhost:5000)
+	$(eval GOOS:=linux)
+	$(eval GOARCH:=amd64)
+	$(eval CONTAINER_REPO:=localhost:5000/ocurity/dracon)
 	$(eval DRACON_OSS_COMPONENTS_PACKAGE_URL:=./$(DRACON_OSS_COMPONENTS_NAME)-$(DRACON_VERSION).tgz)
-	$(eval IN_CLUSTER_CONTAINER_REPO:=kind-registry:5000)
-	
-	$(MAKE) -j 16 publish-containers CONTAINER_REPO=$(CONTAINER_REPO)
+	$(eval IN_CLUSTER_CONTAINER_REPO:=kind-registry:5000/ocurity/dracon)
+
+	$(MAKE) -j 16 draconctl-image-publish CONTAINER_REPO=$(CONTAINER_REPO)
 	$(MAKE) -j 16 dev-build-oss-components CONTAINER_REPO=$(CONTAINER_REPO)
 
 	$(MAKE) install CONTAINER_REPO=$(IN_CLUSTER_CONTAINER_REPO) DRACON_OSS_COMPONENTS_PACKAGE_URL=$(DRACON_OSS_COMPONENTS_PACKAGE_URL)

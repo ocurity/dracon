@@ -176,8 +176,8 @@ KiND cluster, that's not the case. Instead, the registry's host is
 deploy the pipelines and their image repositories will also have to be set to
 this value.*
 
-*\*\*Make sure that you use the draconctl image that you pushed
-in the repository.*
+*\*\*Make sure that you use the draconctl image that you pushed in the
+repository.*
 
 #### Using a different base image for your images
 
@@ -191,6 +191,45 @@ There are some components that require extra components or special treatment and
 these components have their own Makefiles. In those cases you can place a
 `.custom_image` file in the directory with the base image you wish to use and
 that will be picked up by the Makefile and build the container.
+
+#### Building binaries and images for non linux/amd64 architecture
+
+*\*Useful for Apple Silicon chips users.*
+
+###### Containers
+
+If you need your images to be built for non linux/amd64 architecture,
+you can supply the flag `CONTAINER_OS_ARCH` for customisation of containers.
+
+This can be passed to the make commands used to build images, for example:
+
+```bash
+make CONTAINER_OS_ARCH=linux/arm64 components
+```
+
+or:
+
+```bash
+make CONTAINER_OS_ARCH=linux/arm64 publish-containers
+```
+
+By default, when `CONTAINER_ARCH` is not supplied, `linux/amd64` is used.
+
+###### Binaries
+
+`GOOS` and `GOARCH` can be supplied for customisation of the go binaries.
+
+These can be passed to the make commands used to build binaries, for example:
+
+```bash
+make GOOS=linux GOARCH=arm64 component-binaries
+```
+
+By default `linux` and `amd64` are used.
+
+\**For Apple Silicon chips, you might want to use
+`GOOS=darwin` and `GOARCH=arm64` when building binaries
+locally for development.*
 
 #### Deploying your custom Dracon components Helm package
 
