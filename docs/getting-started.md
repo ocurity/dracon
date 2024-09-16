@@ -165,7 +165,7 @@ cluster, but make sure that you replace the URL with the registry URL that you
 are using, if you are using something else:
 
 ```bash
-make publish-component-containers CONTAINER_REPO=localhost:5000/ocurity/dracon
+make publish-component-containers CONTAINER_REPO=localhost:5000/ocurity/dracon DRACON_VERSION=0.39.0
 ```
 
 *\*Notice that the repo we are using is slightly different from the
