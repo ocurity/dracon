@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	baseTestdataPath = "../test/testdata"
+	baseTestdataPath = "./test/testdata"
 
 	banditRawFileName      = "bandit.raw.pb"
 	banditEnrichedFileName = "bandit.reachability.enriched.pb"

@@ -13,7 +13,7 @@ kibana:
     tlsEnabled: false
 
 mongodb:
-  enabled: true
+  enabled: false
   auth:
     enabled: true
     usernames: ["consumer-mongodb"]
@@ -21,7 +21,7 @@ mongodb:
     databases: ["consumer-mongodb"]
 
 arangodb:
-  enabled: true
+  enabled: false
   version: 3.7.10
   ingress:
     className: nginx

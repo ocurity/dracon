@@ -76,11 +76,13 @@ func NewReader(atomFilePath string, purlParser *purl.Parser) (*Reader, error) {
 }
 
 // Read deserialises the json content of the provided atom file into Reachables format.
-func (r *Reader) Read() (*Response, error) {
+func (r *Reader) Read(ctx context.Context) (*Response, error) {
 	b, err := os.ReadFile(r.atomFilePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read atom file: %w", err)
 	}
+
+	logging.FromContext(ctx).Debug("sample atom file contents", slog.String("payload", string(b)))
 
 	var res Response
 	if err := json.Unmarshal(b, &res); err != nil {
