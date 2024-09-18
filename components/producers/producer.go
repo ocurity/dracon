@@ -123,6 +123,12 @@ func WriteDraconOut(
 
 	stat, err := os.Stat(OutFile)
 	if Append && err == nil && stat.Size() > 0 {
+		slog.Info(
+			"appending",
+			slog.Int("issues", len(cleanIssues)),
+			slog.String("tool", toolName),
+			slog.String("to", OutFile),
+		)
 		return putil.AppendResults(cleanIssues, OutFile)
 	}
 	return putil.WriteResults(toolName, cleanIssues, OutFile, scanUUUID, scanStartTime, scanTags)
