@@ -1,0 +1,22 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  generateName: dracon-snyk-project-
+spec:
+  pipelineRef:
+    name: dracon-snyk-project
+  params:
+  - name: producer-snyk-docker-api-key
+    value: ""
+  - name: producer-snyk-docker-image
+    value: ubuntu
+  workspaces:
+  - name: output
+    volumeClaimTemplate:
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 1Gi
