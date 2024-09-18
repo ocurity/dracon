@@ -1,6 +1,29 @@
 {
 	"runs": [{
-		"results": [{
+		"results": [
+			{
+				"level": "error",
+				"locations": [{
+					"physicalLocation": {
+						"artifactLocation": {
+							"uri": "main.go"
+						},
+						"region": {
+							"snippet": {
+								"text": "r := rand.New(rand.NewSource(time.Now().UnixNano()))"
+							},
+							"sourceLanguage": "go",
+							"startColumn": 7,
+							"startLine": 83
+						}
+					}
+				}],
+				"message": {
+					"text": "[test for missing endLine, common in some tools]"
+				},
+				"ruleId": "G404"
+			},
+			{
 				"level": "error",
 				"locations": [{
 					"physicalLocation": {

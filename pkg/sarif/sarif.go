@@ -199,6 +199,8 @@ func parseOut(run sarif.Run, rules map[string]*sarif.ReportingDescriptor, toolNa
 					}
 					if loc.PhysicalLocation.Region.EndLine != nil {
 						el = fmt.Sprintf("%d", *loc.PhysicalLocation.Region.EndLine)
+					} else {
+						el = sl
 					}
 					target = fmt.Sprintf("%s:%s-%s", uri, sl, el)
 				} else {

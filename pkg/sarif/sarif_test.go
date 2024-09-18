@@ -30,6 +30,14 @@ func Test_ParseOut(t *testing.T) {
 		{
 			Target:      "main.go:83-83",
 			Type:        "G404",
+			Title:       "[test for missing endLine, common in some tools]",
+			Severity:    v1.Severity_SEVERITY_HIGH,
+			Confidence:  v1.Confidence_CONFIDENCE_UNSPECIFIED,
+			Description: "Message: [test for missing endLine, common in some tools]",
+		},
+		{
+			Target:      "main.go:83-83",
+			Type:        "G404",
 			Title:       "Use of weak random number generator (math/rand instead of crypto/rand)",
 			Severity:    v1.Severity_SEVERITY_HIGH,
 			Confidence:  v1.Confidence_CONFIDENCE_UNSPECIFIED,
