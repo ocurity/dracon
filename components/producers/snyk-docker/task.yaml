@@ -1,0 +1,57 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: producer-snyk-docker
+  labels:
+    v1.dracon.ocurity.com/component: producer
+    v1.dracon.ocurity.com/test-type: sast
+    v1.dracon.ocurity.com/language: docker
+spec:
+  params:
+  - name: producer-snyk-docker-api-key
+    type: string
+  - name: producer-snyk-docker-image
+    type: string
+  description: Run Snyk For docker
+  volumes:
+    - name: scratch
+      emptyDir: {}
+  workspaces:
+    - name: output
+      description: The workspace containing the source-code to scan.
+  steps:
+  - name: run-snyk
+    imagePullPolicy: IfNotPresent
+    env:
+      - name: SNYK_INTEGRATION_VERSION
+        value: docker
+
+    image: 'snyk/snyk:docker'
+    script: |
+      set +xe
+      echo "authenticating to snyk"
+      snyk auth $(params.producer-snyk-docker-api-key)
+      echo "running snyk container test"
+      snyk container test --sarif-file=/scratch/snyk.out --docker $(params.producer-snyk-docker-image) 
+      exitCode=$?
+      if [[ $exitCode -ne 0 && $exitCode -ne 1 ]]; then
+        echo "Snyk failed with exit code $exitCode"
+        exit $exitCode
+      else
+        echo "Snyk completed successfully! exitcode $exitCode"
+      fi
+    volumeMounts:
+    - mountPath: /scratch
+      name: scratch
+
+  - name: produce-issues
+    imagePullPolicy: IfNotPresent
+    image: '{{ default "ghcr.io/ocurity/dracon" .Values.image.registry }}/components/producers/snyk:{{ .Chart.AppVersion }}'
+    command: ["/app/components/producers/snyk/snyk-parser"]
+    args:
+    - "-in=/scratch/snyk.out"
+    - "-out=$(workspaces.output.path)/.dracon/producers/snyk.pb"
+    volumeMounts:
+    - mountPath: /scratch
+      name: scratch
