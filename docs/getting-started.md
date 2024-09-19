@@ -3,15 +3,16 @@
 This guide will help to quickly setup Dracon on a Kubernetes cluster and get a
 pipeline running. The first step is to create a dev Kubernetes cluster in order
 to deploy Tekton. We suggest you use KiND to provision a local test cluster
-quickly. If you already have a Kubernetes cluster then, you can skip directly
-to the [Deploying Dracon dependencies](#deploying-dracon-dependencies) section.
+quickly. If you already have a Kubernetes cluster then, you can follow the
+steps highlighted on [Setup Dracon on another Kubernetes engine (Not recommended)](./setup-dracon-in-custom-k8s-engine.md).
 
-We support two ways of deploying Dracon.
+We support two ways of deploying Dracon:
 
-1. Using the Helm packages that we distribute
-2. Using your local copy of this repository
-
-The 2nd option is useful when you are developing components or new functionality
+1. Using the Helm packages that we distribute, like shown in this document.
+2. Using your local copy of this repository.
+   Useful when you are developing components or new functionality.
+   Please see [Custom Components](./custom-components.md)
+   to learn more about this.
 
 ## Tools you will need
 
@@ -21,69 +22,41 @@ You will need to have the following tools installed in your system:
 2. [kustomize](https://kubectl.docs.kubernetes.io/installation/kustomize/)
 3. [Docker](https://docs.docker.com/engine/install/)
 4. [Helm](https://helm.sh/docs/intro/install/)
+5. [Go](https://go.dev/)
 
-## Setting up a [KinD](https://kind.sigs.k8s.io/) cluster
+## Deploying an example pipeline with Dracon
 
-KinD is a tool for running local Kubernetes clusters using Docker container
-“nodes”.
+Following the steps below, we'll deploy an example Golang project
+pipeline which will:
 
-Create a KinD cluster named `dracon-demo` with its own Docker registry. You can
-use our Bash script, or you can check for more info the
-[official documentation](https://kind.sigs.k8s.io/docs/user/quick-start/#creating-a-cluster):
+* Clone a Golang repository.
+  This can be changed by updating the `git-clone-url`
+  parameter in [pipelinerun.yaml](../examples/pipelines/golang-project)
+* Scan the repository with [gosec](https://github.com/securego/gosec)
+  and [nancy](https://github.com/sonatype-nexus-community/nancy)
+* Enrich the findings with CODEOWNERS annotation
+* Report the enriched results on [MongoDB](https://github.com/mongodb/mongo)
+  and [ElasticSearch](https://github.com/elastic/elasticsearch)
 
-```bash
-./scripts/kind-with-registry.sh
-```
+### Set up Dracon and its dependencies
 
-> :warning: **Warning 1:** make sure you can connect to the KiND control plane
-> before proceeding. Sometimes it takes a bit for everything to get started.
+You can set up Dracon and its dependencies by executing `make install`.
 
-## Deploying Dracon dependencies
+This command will:
 
-Dracon dependencies are split into two categories:
+* spin up a Kubernetes cluster in Docker using [KinD](https://kind.sigs.k8s.io/).
+  TBD - if not KIND
+* deploy Dracon dependencies and Custom Resource Definitions (CRDs).
+  Most of these dependencies are required by the example pipelines:
+  * MongoDB
+  * Elasticsearch
+  * Kibana
+  * MongoDB
+  * Postgres
 
-1. Dependencies that the system can't work without
-2. Dependencies that the system doesn't need but are probably needed by most
-   pipelines.
+All the dependencies are built using dracon's current [latest release](https://github.com/ocurity/dracon/tags).
 
-The dependency that Dracon can't function without is Tekton and for many users
-it is a good idea to deploy the Tekton Dashboard too for better visibility into
-what's happening on the cluster. We offer a simple way of deploying these along
-with an Nginx ingress controller with the command:
-
-```bash
-make dev-infra
-```
-
-## Deploying Dracon
-
-### Deploying Dracon Pipeline dependencies using Helm packages
-
-1. Deploy the Helm packages
-
-> :warning: **Warning 2:** make sure that you have all the needed tools
-> listed in the previous section installed in your system
-
-For Dracon pipelines to run, they usually require the following services:
-
-1. MongoDB
-2. Elasticsearch
-3. Kibana
-4. MongoDB
-5. Postgres
-
-We use the Elastic Operator to spin up managed instances of Elasticsearch and
-Kibana and the bitnami charts to deploy instances of PostgreSQL and MongoDB.
-
-If you run the command:
-
-```bash
-make dev-dracon DRACON_VERSION=v0.39.0
-```
-
-You will deploy the Elastic Operator on the cluster and the Dracon Helm
-package. Depending on the capabilities of your workstation this will probably
-take a couple of minutes, it's perfect time to go get a cup of coffee ;).
+This will take a while, so we invite you to go and grab a coffee!
 
 ```text
    )  (
@@ -97,227 +70,85 @@ take a couple of minutes, it's perfect time to go get a cup of coffee ;).
 
 `espresso cup by @ptzianos`
 
-The Dracon Helm package lists as dependencies the Bitnami charts for Postgres
-and MongoDB. The values used are in the `deploy/dracon/values/dev.yaml` file.
+### Deploy a pipeline
 
-1. Expose the TektonCD Dashboard
+For example, we can deploy a pipeline for the `golang-project`.
 
-```bash
-kubectl -n tekton-pipelines port-forward svc/tekton-dashboard 9097:9097
+You can do so by executing `./bin/cmd/path/to/draconctl ./examples/pipelines/golang-project`.
+
+### Execute a pipeline
+
+You can execute `kubectl create -n dracon -f ./examples/pipelines/golang-project/pipelinerun.yaml`.
+
+### Watch the pipeline execute
+
+You can follow the progress of the pipeline by checking
+`Pods`,`PipelineRuns` and `TaskRuns` on `dracon`'s namespace.
+
+Pipelines (`PipelineRuns`) are executed by multiple Tasks (`TaskRuns`)
+which are deployed in containers running in pods.
+
+You can monitor the status of a pipeline by executing:
+
+```shell
+kubectl get pipelineruns -w -n dracon
+NAME                          SUCCEEDED   REASON    STARTTIME   COMPLETIONTIME
+dracon-golang-project-7hqmc   True        Succeeded 24m         14m
 ```
 
-2. Expose the Kibana Dashboard.
+And of its tasks by executing:
 
-```bash
-# Use `kubectl port-forward ...` to access the Kibana UI:
-kubectl -n dracon port-forward svc/dracon-kb-kibana-kb-http 5601:5601
-# You can obtain the password by examining the 
-# `dracon-es-elasticsearch-es-elastic-user` secret:
-# The username is `elastic`.
-kubectl -n dracon get secret dracon-es-elasticsearch-es-elastic-user \
-  -o=jsonpath='{.data.elastic}' | \
-  base64 -d && \
-  echo
+```shell
+kubectl get taskruns -w -n dracon
+NAME                                                 SUCCEEDED   REASON      STARTTIME   COMPLETIONTIME
+dracon-golang-project-7hqmc-base                     True        Succeeded   27m         26m
+dracon-golang-project-7hqmc-consumer-elasticsearch   True        Succeeded   23m         23m
+dracon-golang-project-7hqmc-consumer-mongodb         True        Succeeded   23m         17m
+dracon-golang-project-7hqmc-enricher-aggregator      True        Succeeded   24m         23m
+dracon-golang-project-7hqmc-enricher-codeowners      True        Succeeded   24m         24m
+dracon-golang-project-7hqmc-git-clone                True        Succeeded   27m         25m
+dracon-golang-project-7hqmc-producer-aggregator      True        Succeeded   24m         24m
+dracon-golang-project-7hqmc-producer-golang-gosec    True        Succeeded   25m         24m
+dracon-golang-project-7hqmc-producer-golang-nancy    True        Succeeded   25m         24m
 ```
 
-3. Expose the Kibana Dashboard
+Finally, monitor the pods executing such tasks by executing:
 
-```bash
- # Use `kubectl port-forward ...` to access the Kibana UI:
- kubectl -n dracon port-forward svc/dracon-kb-kibana-kb-http 5601:5601
+```shell
+kubectl get pods -w -n dracon
+NAME                                                     READY   STATUS      RESTARTS   AGE
+dracon-es-default-0                                      1/1     Running     0          24m
+dracon-golang-project-7hqmc-base-pod                     0/1     Completed   0          22m
+dracon-golang-project-7hqmc-consumer-elasticsearch-pod   0/1     Running     0          19m
+dracon-golang-project-7hqmc-consumer-mongodb-pod         0/1     Running     0          19m
+dracon-golang-project-7hqmc-enricher-aggregator-pod      0/2     Completed   0          19m
+dracon-golang-project-7hqmc-enricher-codeowners-pod      0/2     Completed   0          19m
+dracon-golang-project-7hqmc-git-clone-pod                0/2     Completed   0          22m
+dracon-golang-project-7hqmc-producer-aggregator-pod      0/3     Completed   0          19m
+dracon-golang-project-7hqmc-producer-golang-gosec-pod    0/3     Completed   0          21m
+dracon-golang-project-7hqmc-producer-golang-nancy-pod    0/4     Completed   0          21m
+dracon-kb-5df6fcb8c7-tsbg6                               1/1     Running     0          23m
+dracon-postgresql-0                                      1/1     Running     0          25m
 ```
 
-The username/password is the same as Kibana
+You can then check the enriched results stored in MongoDB and Elasticsearch.
 
-### Deploy Dracon components
+### Debugging
 
-The components that are used to build our pipelines are comprised out of two
-pieces:
+If a few task don't complete, you can check their logs.
 
-1. a wrapper around the binary of the tool that we wish to execute packaged
-   into a container.
-2. a Tekton Task file that describes how to execute the component.
+Usually you can simply tail the logs of an erroring pod
+associated with such task by executing:
 
-We provide Helm packages with all our components that can be easily installed
-as follows:
-
-```bash
-helm upgrade \
-  --install \
-  --namespace dracon \
-  --version 0.39.0 \
-  --values deploy/dracon/values/dev.yaml \
-  dracon-oss-components \
-  oci://ghcr.io/ocurity/dracon/charts/dracon-oss-components 
+```shell
+kubectl logs $podName $stepName 
 ```
 
-### Deploying a custom version of Dracon components
+For any error that is not related with some of you testing, please reach out.
 
-So, the first step is to build all the containers and push them to a registry
-that your cluster has access to. We use `make` to package our containers. For
-each component our Make will automatically generate a phony target with the
-path `components/{component type}/{component name}/docker`. We have a top-level
-target that creates all the component containers along with a couple of extra
-containers our system uses, such as draconctl.
+## Develop a custom component
 
-The following examples are using the local container registry used by the KiND
-cluster, but make sure that you replace the URL with the registry URL that you
-are using, if you are using something else:
+Now that you have completed our introduction, you can explore how to extend
+Dracon for you needs by building your first component or pipeline.
 
-```bash
-make publish-component-containers CONTAINER_REPO=localhost:5000/ocurity/dracon
-```
-
-*\*Notice that the repo we are using is slightly different from the
-one we pushed the images in the previous step. That's because with local
-registries the registry is exposed on a port in localhost, however inside the
-KiND cluster, that's not the case. Instead, the registry's host is
-`kind-registry:5000`. This is also going to be important later when we will
-deploy the pipelines and their image repositories will also have to be set to
-this value.*
-
-*\*\*Make sure that you use the draconctl image that you pushed in the
-repository.*
-
-#### Using a different base image for your images
-
-If you need your images to have a different base image then you can pass the
-`BASE_IMAGE` variable to the `components` or `publish-component-containers` to
-change it to whatever you need. The targets build the binaries and place them in
-the `bin` directory and then other targets package them into containers with
-`scratch` as the base image.
-
-There are some components that require extra components or special treatment and
-these components have their own Makefiles. In those cases you can place a
-`.custom_image` file in the directory with the base image you wish to use and
-that will be picked up by the Makefile and build the container.
-
-#### Building binaries and images for non linux/amd64 architecture
-
-*\*Useful for Apple Silicon chips users.*
-
-###### Containers
-
-If you need your images to be built for non linux/amd64 architecture,
-you can supply the flag `CONTAINER_OS_ARCH` for customisation of containers.
-
-This can be passed to the make commands used to build images, for example:
-
-```bash
-make CONTAINER_OS_ARCH=linux/arm64 components
-```
-
-or:
-
-```bash
-make CONTAINER_OS_ARCH=linux/arm64 publish-containers
-```
-
-By default, when `CONTAINER_ARCH` is not supplied, `linux/amd64` is used.
-
-###### Binaries
-
-`GOOS` and `GOARCH` can be supplied for customisation of the go binaries.
-
-These can be passed to the make commands used to build binaries, for example:
-
-```bash
-make GOOS=linux GOARCH=arm64 component-binaries
-```
-
-By default `linux` and `amd64` are used.
-
-\**For Apple Silicon chips, you might want to use
-`GOOS=darwin` and `GOARCH=arm64` when building binaries
-locally for development.*
-
-#### Deploying your custom Dracon components Helm package
-
-You can package your components into a Helm package by running the following
-command:
-
-```bash
-export CUSTOM_DRACON_VERSION=$(make print-DRACON_VERSION)
-export CUSTOM_HELM_COMPONENT_PACKAGE_NAME=my-custom-component
-make cmd/draconctl/bin
-bin/cmd/draconctl components package \
-  --version ${CUSTOM_DRACON_VERSION} \
-  --chart-version ${CUSTOM_DRACON_VERSION} \
-  --name ${CUSTOM_HELM_COMPONENT_PACKAGE_NAME} \
-  ./components
-helm upgrade ${CUSTOM_HELM_COMPONENT_PACKAGE_NAME} ./${CUSTOM_HELM_COMPONENT_PACKAGE_NAME}-${CUSTOM_DRACON_VERSION}.tgz \
-  --install \
-  --namespace dracon \
-  --values deploy/dracon/values/dev.yaml
-```
-
-Notice that you have to specify the name of a custom component via `CUSTOM_HELM_COMPONENT_PACKAGE_NAME`.
-
-If your custom components are local, you need to override the component registry
-you can do so with the following slightly modified helm command
-
-```bash
-helm upgrade ${CUSTOM_HELM_COMPONENT_PACKAGE_NAME} ./${CUSTOM_HELM_COMPONENT_PACKAGE_NAME}-${CUSTOM_DRACON_VERSION}.tgz \
-  --install \
-  --namespace dracon \
-  --set image.registry=kind-registry:5000/ocurity/dracon \
-  --values deploy/dracon/values/dev.yaml
-```
-
-After changes to your components you need to redeploy, you can do so as such:
-
-```bash
-export CUSTOM_DRACON_VERSION=$(make print-DRACON_VERSION)
-make publish-component-containers CONTAINER_REPO=localhost:5000/ocurity/dracon
-bin/cmd/draconctl components package   --version ${CUSTOM_DRACON_VERSION}   \
-  --chart-version ${CUSTOM_DRACON_VERSION}   \
-  --name ${CUSTOM_HELM_COMPONENT_PACKAGE_NAME}   \
-  ./components 
-helm upgrade ${CUSTOM_HELM_COMPONENT_PACKAGE_NAME} \
-  ./${CUSTOM_HELM_COMPONENT_PACKAGE_NAME}-${CUSTOM_DRACON_VERSION}.tgz   \
-  --install \
-  --namespace dracon \
-  --set image.registry=kind-registry:5000/ocurity/dracon \
-  --values deploy/dracon/values/dev.yaml
-```
-
-### Applying manually migrations
-
-There some migrations that should be applied to the postgres instance so that
-the enrichment components can store and retrieve data from it. In order to apply
-the migrations you need to run the following command (the container with the
-`draconctl` binary and the migration scripts was built and pushed in the
-previous step):
-
-```bash
-kubectl apply -n dracon -f deploy/dracon/serviceaccount.yaml
-kubectl apply -n dracon -f deploy/dracon/role.yaml
-kubectl apply -n dracon -f deploy/dracon/rolebinding.yaml
-make cmd/draconctl/bin
-
-export DRACONCTL_MIGRATIONS_PATH='/etc/dracon/migrations/enrichment'
-bin/cmd/draconctl migrations apply \
-  --namespace dracon \
-  --as-k8s-job \
-  --image "${CONTAINER_REPO}/draconctl:${CUSTOM_DRACON_VERSION}" \
-  --url "postgresql://dracon:dracon@dracon-enrichment-db.dracon.svc.cluster.local?sslmode=disable" \
-```
-
-## Running one of the example pipelines
-
-You can easily check Dracon in action if you run one of the example pipelines
-included in the repo.
-Running the `golang-project` is as simple as running:
-
-```bash
-make cmd/draconctl/bin
-bin/cmd/draconctl pipelines deploy ./examples/pipelines/golang-project
-```
-
-Then you can run an instance of the pipeline as follows:
-
-```bash
-kubectl create \
-  -n dracon \
-  -f ./examples/pipelines/golang-project/pipelinerun.yaml
-```
+Please check out [this document](./custom-components.md) to learn more!
