@@ -34,20 +34,16 @@ In the following file:
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 nameSuffix: -go-pipeline
-resources:
-  - ../../../components/base/pipeline.yaml
-  - ../../../components/base/task.yaml
 components:
-  - ../../../components/sources/git
-  - ../../../components/producers/aggregator
-  - ../../../components/producers/golang-gosec
-  - ../../../components/producers/golang-nancy
-  - ../../../components/enrichers/aggregator
-  - ../../../components/enrichers/policy
-  - ../../../components/enrichers/deduplication
-  - ../../../components/consumers/mongodb
-  - ../../../components/consumers/elasticsearch
-
+  - /components/sources/git
+  - /components/producers/aggregator
+  - /components/producers/golang-gosec
+  - /components/producers/golang-nancy
+  - /components/enrichers/aggregator
+  - /components/enrichers/policy
+  - /components/enrichers/deduplication
+  - /components/consumers/mongodb
+  - /components/consumers/elasticsearch
 ```
 
 Then executing `draconctl pipelines build ./go-pipeline/kustomization.yaml > ./go-pipeline/templates/all.yaml`
