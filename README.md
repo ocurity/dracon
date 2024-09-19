@@ -82,6 +82,8 @@ of the presentation.
 If you have questions, reach out to us by opening a new
 [issue](https://github.com/ocurity/dracon/issues/new) on GitHub.
 
+You can also get support on our [Discord server](https://discord.gg/xzsHxUxK).
+
 ## Development & Contributing
 
 Contributions are welcome, see the [developing](docs/contributers/DEVELOPING.md)
