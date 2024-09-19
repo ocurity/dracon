@@ -2,142 +2,72 @@ package purl
 
 import (
 	"fmt"
+	"path"
 	"regexp"
-	"strings"
+
+	"github.com/package-url/packageurl-go"
 )
 
 // Parser allows to extract information from purls - https://github.com/package-url/purl-spec.
 type Parser struct {
-	matcherPurlPkg             *regexp.Regexp
-	matcherPurlTrailingVersion *regexp.Regexp
-	matcherPurlVersion         *regexp.Regexp
+	semverPattern    *regexp.Regexp
+	shaCommitPattern *regexp.Regexp
 }
 
+// NewParser returns a new parser.
 func NewParser() (*Parser, error) {
-	purlPkg, err := regexp.Compile(`(?P<p1>[^/:]+/(?P<p2>[^/]+))(?:(?:.|/)v\d+)?@`)
+	// Matches SEMVER versions: v1.1.0 / v1.1.0-beta.
+	semverPattern, err := regexp.Compile(`^v?(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(-[0-9A-Za-z\-\.]+)?(\+[0-9A-Za-z\-\.]+)?$`)
 	if err != nil {
-		return nil, fmt.Errorf("failed to compile purl pkg regex: %w", err)
+		return nil, fmt.Errorf("failed to compile purl semver regex: %w", err)
 	}
-	purlTrailingVersion, err := regexp.Compile(`[./]v\d+@`)
+	// Matches SHA commit hashes from 7 (short) to 40 characters.
+	shaCommitPattern, err := regexp.Compile(`^[a-fA-F0-9]{7,40}$`)
 	if err != nil {
-		return nil, fmt.Errorf("failed to compile purl trailing version regex: %w", err)
-	}
-	purlVersion, err := regexp.Compile(`@(?P<v1>v?(?P<v2>[\d.]+){1,3})(?P<ext>[^?\s]+)?`)
-	if err != nil {
-		return nil, fmt.Errorf("failed to compile purl version regex: %w", err)
+		return nil, fmt.Errorf("failed to compile sha commit pattern regex: %w", err)
 	}
 
 	return &Parser{
-		matcherPurlPkg:             purlPkg,
-		matcherPurlTrailingVersion: purlTrailingVersion,
-		matcherPurlVersion:         purlVersion,
+		semverPattern:    semverPattern,
+		shaCommitPattern: shaCommitPattern,
 	}, nil
 }
 
-// ParsePurl extracts pkg:version matches from the supplied purl.
+// ParsePurl extracts namespace:name:version sub-parts from purls, based on the type of versioning used (SHA, SEMVER).
 func (p *Parser) ParsePurl(purl string) ([]string, error) {
-	purl = p.matcherPurlTrailingVersion.ReplaceAllString(purl, "$1@")
+	pp, err := packageurl.FromString(purl)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse purl: %w", err)
+	}
+
+	if pp.Version == "" {
+		return nil, fmt.Errorf("failed to parse purl: empty version")
+	}
 
 	var (
-		result   []string
-		pkgs     []string
-		versions []string
-	)
-
-	if match := p.matcherPurlVersion.FindStringSubmatch(purl); len(match) > 0 {
-		versions = p.parsePurlVersions(match)
-	}
-
-	if match := p.matcherPurlPkg.FindStringSubmatch(purl); len(match) > 0 {
-		pkgs = p.parsePurlPkgs(match)
-	}
-
-	for _, pkg := range pkgs {
-		for _, version := range versions {
-			result = append(result, fmt.Sprintf("%s:%s", pkg, version))
+		namespace    = pp.Namespace
+		name         = pp.Name
+		version      = pp.Version
+		shortVersion string
+		purlParts    = []string{
+			path.Join(namespace, name) + ":" + version,
+			name + ":" + version,
 		}
-	}
-
-	return p.removeDuplicates(result), nil
-}
-
-func (p *Parser) parsePurlVersions(matches []string) []string {
-	if len(matches) == 0 {
-		return make([]string, 0)
-	}
-
-	var (
-		pattern  = p.matcherPurlVersion
-		versions []string
-		// Creating a map to ensure uniqueness
-		versionSet = make(map[string]struct{})
-
-		// Assuming the named groups are in the match
-		vers1 = matches[pattern.SubexpIndex("v1")]
-		vers2 = matches[pattern.SubexpIndex("v2")]
-		ext   = matches[pattern.SubexpIndex("ext")]
 	)
 
-	// Adding the basic versions
-	versionSet[vers1] = struct{}{}
-	versionSet[vers2] = struct{}{}
-
-	// Adding the extended versions if ext exists
-	if ext != "" {
-		versionSet[vers1+ext] = struct{}{}
-		versionSet[vers2+ext] = struct{}{}
+	switch {
+	case p.semverPattern.MatchString(version):
+		return purlParts, nil
+	case p.shaCommitPattern.MatchString(version):
+		// Short commit SHA.
+		shortVersion = version[:7]
+		purlParts = append(purlParts, []string{
+			path.Join(namespace, name) + ":" + shortVersion,
+			name + ":" + shortVersion,
+		}...)
+	default:
+		return nil, fmt.Errorf("failed to parse purl, invalid version: %s", version)
 	}
 
-	// Converting the map to a slice
-	for version := range versionSet {
-		versions = append(versions, version)
-	}
-
-	return versions
-}
-
-func (p *Parser) parsePurlPkgs(matches []string) []string {
-	var (
-		pattern = p.matcherPurlPkg
-		// Creating a map to ensure uniqueness
-		pkgSet         = make(map[string]struct{})
-		pkgs           []string
-		pkgStrReplacer = strings.NewReplacer(
-			// replaces "pypi/" with "".
-			"pypi/", "",
-			// replaces "npm/" with "".
-			"npm/", "",
-			// replaces "%40/" with "@".
-			"%40", "@",
-		)
-	)
-
-	// Adding the packages
-	pkgSet[matches[pattern.SubexpIndex("p1")]] = struct{}{}
-	pkgSet[matches[pattern.SubexpIndex("p2")]] = struct{}{}
-
-	// Converting the map to a slice and cleaning up the packages
-	for pkg := range pkgSet {
-		pkgs = append(pkgs, pkgStrReplacer.Replace(pkg))
-	}
-
-	return pkgs
-}
-
-func (p *Parser) removeDuplicates(matches []string) []string {
-	var (
-		result      []string
-		encountered = make(map[string]struct{})
-	)
-
-	for match := range matches {
-		_, ok := encountered[matches[match]]
-		if ok {
-			continue
-		}
-		encountered[matches[match]] = struct{}{}
-		result = append(result, matches[match])
-	}
-
-	return result
+	return purlParts, nil
 }
