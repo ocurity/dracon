@@ -9,8 +9,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/jmespath/go-jmespath"
-
 	"github.com/ocurity/dracon/components/enrichers/reachability/internal/atom/purl"
 	"github.com/ocurity/dracon/components/enrichers/reachability/internal/logging"
 )
@@ -94,49 +92,29 @@ func (r *Reader) Read(ctx context.Context) (*Response, error) {
 
 // ReachablePurls finds all the reachable purls presents in the atom reachability result.
 func (r *Reader) ReachablePurls(ctx context.Context, reachables *Response) (ReachablePurls, error) {
-	logger := logging.FromContext(ctx)
+	var (
+		logger      = logging.FromContext(ctx)
+		uniquePurls = make(map[string]struct{})
+		finalPurls  = make(ReachablePurls)
+	)
 
-	rawPurls, err := jmespath.Search("reachables[].purls[]", reachables)
-	if err != nil {
-		return nil, fmt.Errorf("failed to search reachable purls: %w", err)
-	}
+	for _, reachable := range reachables.Reachables {
+		for _, p := range reachable.Purls {
+			if _, ok := uniquePurls[p]; !ok {
+				uniquePurls[p] = struct{}{}
+				parsedPurls, err := r.purlParser.ParsePurl(p)
+				if err != nil {
+					logger.Error(
+						"could not parse purl. Continuing...",
+						slog.Any("purl", p),
+					)
+					continue
+				}
 
-	purls, ok := rawPurls.([]any)
-	if !ok {
-		logger.Error(
-			"invalid raw reachable purl. Expected an array",
-			slog.Any("raw_purls", rawPurls),
-		)
-		return nil, errors.New("invalid raw reachable purl. Expected an array")
-	}
-
-	uniquePurls := make(map[string]struct{})
-	for idx, p := range purls {
-		ps, ok := p.(string)
-		if !ok {
-			logger.Error(
-				"unexpected purl type, expected a string. Continuing...",
-				slog.Any("purl", p),
-				slog.Int("index", idx),
-			)
-			continue
-		}
-		uniquePurls[ps] = struct{}{}
-	}
-
-	finalPurls := make(ReachablePurls)
-	for p := range uniquePurls {
-		parsedPurls, err := r.purlParser.ParsePurl(p)
-		if err != nil {
-			logger.Error(
-				"could not parse purl. Continuing...",
-				slog.Any("purl", p),
-			)
-			continue
-		}
-
-		for _, pp := range parsedPurls {
-			finalPurls[pp] = struct{}{}
+				for _, pp := range parsedPurls {
+					finalPurls[pp] = struct{}{}
+				}
+			}
 		}
 	}
 
