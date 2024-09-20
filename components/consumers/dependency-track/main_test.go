@@ -59,7 +59,7 @@ func TestUploadBomsFromRaw(t *testing.T) {
 	require.NoError(t, err)
 
 	client = c
-	issues, err := cyclonedx.ToDracon(rawSaaSBOM, "json")
+	issues, err := cyclonedx.ToDracon(rawSaaSBOM, "json", "")
 
 	require.NoError(t, err)
 	ltr := v1.LaunchToolResponse{
@@ -112,7 +112,7 @@ func TestUploadBomsFromEnriched(t *testing.T) {
 	require.NoError(t, err)
 
 	client = c
-	issues, err := cyclonedx.ToDracon(rawSaaSBOM, "json")
+	issues, err := cyclonedx.ToDracon(rawSaaSBOM, "json", "")
 
 	require.NoError(t, err)
 	ltr := v1.LaunchToolResponse{
@@ -206,7 +206,7 @@ func TestUploadBomsFromEnrichedWithOwners(t *testing.T) {
 	require.NoError(t, err)
 
 	client = c
-	issues, err := cyclonedx.ToDracon(rawSaaSBOM, "json")
+	issues, err := cyclonedx.ToDracon(rawSaaSBOM, "json", "")
 	require.NoError(t, err)
 
 	ltr := v1.LaunchToolResponse{

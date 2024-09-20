@@ -31,5 +31,5 @@ func main() {
 }
 
 func handleCycloneDX(inFile []byte) ([]*v1.Issue, error) {
-	return cyclonedx.ToDracon(inFile, "json")
+	return cyclonedx.ToDracon(inFile, "json", "")
 }

@@ -184,7 +184,7 @@ func enrichIssue(i *v1.Issue) (*v1.EnrichedIssue, error) {
 	if err != nil {
 		return &enrichedIssue, err
 	}
-	originalIssue, err := cyclonedx.ToDracon(marshalled, "json")
+	originalIssue, err := cyclonedx.ToDracon(marshalled, "json", "")
 	if err != nil {
 		return &enrichedIssue, err
 	}
