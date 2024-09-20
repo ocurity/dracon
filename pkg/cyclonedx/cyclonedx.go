@@ -12,7 +12,8 @@ import (
 )
 
 // ToDracon accepts a cycloneDX bom file and transforms to an array containing a singular v1.Issue.
-func ToDracon(inFile []byte, format string) ([]*v1.Issue, error) {
+// revive:disable:cognitive-complexity,cyclomatic High complexity score but
+func ToDracon(inFile []byte, format, targetOverride string) ([]*v1.Issue, error) {
 	bom := new(cdx.BOM)
 	var decoder cdx.BOMDecoder
 	var issues []*v1.Issue
@@ -42,10 +43,15 @@ func ToDracon(inFile []byte, format string) ([]*v1.Issue, error) {
 	}
 	result := strings.TrimSpace(buf.String())
 	target := ""
-	if bom.Metadata.Component.BOMRef != "" {
-		target = bom.Metadata.Component.BOMRef
-	} else {
-		target = bom.Metadata.Component.PackageURL
+	if bom.Metadata != nil && bom.Metadata.Component != nil {
+		if bom.Metadata.Component.BOMRef != "" {
+			target = bom.Metadata.Component.BOMRef
+		} else {
+			target = bom.Metadata.Component.PackageURL
+		}
+	}
+	if targetOverride != "" {
+		target = targetOverride
 	}
 
 	return []*v1.Issue{

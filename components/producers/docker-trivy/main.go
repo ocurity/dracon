@@ -92,7 +92,7 @@ func handleSarif(inFile []byte) ([]*v1.Issue, error) {
 }
 
 func handleCycloneDX(inFile []byte) ([]*v1.Issue, error) {
-	return cyclonedx.ToDracon(inFile, "json")
+	return cyclonedx.ToDracon(inFile, "json", "")
 }
 
 func parseCombinedOut(results types.CombinedOut) []*v1.Issue {

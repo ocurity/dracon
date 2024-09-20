@@ -5,7 +5,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	v1 "github.com/ocurity/dracon/api/proto/v1"
@@ -15,7 +14,7 @@ func TestToDraconLibrary(t *testing.T) {
 	rawLibraryBOM, err := os.ReadFile("./testdata/libraryBOM.json")
 	require.NoError(t, err)
 
-	issues, err := ToDracon(rawLibraryBOM, "json")
+	issues, err := ToDracon(rawLibraryBOM, "json", "")
 	require.NoError(t, err)
 
 	libraryBOM := string(rawLibraryBOM)
@@ -29,21 +28,21 @@ func TestToDraconLibrary(t *testing.T) {
 			CycloneDXSBOM: &libraryBOM,
 		},
 	}
-	assert.Equal(t, expectedIssues[0].Target, issues[0].Target)
-	assert.Equal(t, expectedIssues[0].Type, issues[0].Type)
-	assert.Equal(t, expectedIssues[0].Title, issues[0].Title)
-	assert.Equal(t, expectedIssues[0].Severity, issues[0].Severity)
-	var sbom1, sbom2 map[string]interface{}
+	require.Equal(t, expectedIssues[0].Target, issues[0].Target)
+	require.Equal(t, expectedIssues[0].Type, issues[0].Type)
+	require.Equal(t, expectedIssues[0].Title, issues[0].Title)
+	require.Equal(t, expectedIssues[0].Severity, issues[0].Severity)
+	var sbom1, sbom2 map[string]any
 	require.NoError(t, json.Unmarshal([]byte(*expectedIssues[0].CycloneDXSBOM), &sbom1))
 	require.NoError(t, json.Unmarshal([]byte(*issues[0].CycloneDXSBOM), &sbom2))
-	assert.Equal(t, sbom1, sbom2)
+	require.Equal(t, sbom1, sbom2)
 }
 
 func TestToDraconSaaSInfra(t *testing.T) {
 	rawSaaSBOM, err := os.ReadFile("./testdata/saasBOM.json")
 	require.NoError(t, err)
 
-	issues, err := ToDracon(rawSaaSBOM, "json")
+	issues, err := ToDracon(rawSaaSBOM, "json", "")
 	require.NoError(t, err)
 
 	saasBOM := string(rawSaaSBOM)
@@ -56,13 +55,41 @@ func TestToDraconSaaSInfra(t *testing.T) {
 			CycloneDXSBOM: &saasBOM,
 		},
 	}
-	assert.Equal(t, expectedIssues[0].Target, issues[0].Target)
-	assert.Equal(t, expectedIssues[0].Type, issues[0].Type)
-	assert.Equal(t, expectedIssues[0].Title, issues[0].Title)
-	assert.Equal(t, expectedIssues[0].Severity, issues[0].Severity)
+	require.Equal(t, expectedIssues[0].Target, issues[0].Target)
+	require.Equal(t, expectedIssues[0].Type, issues[0].Type)
+	require.Equal(t, expectedIssues[0].Title, issues[0].Title)
+	require.Equal(t, expectedIssues[0].Severity, issues[0].Severity)
 
-	var sbom1, sbom2 map[string]interface{}
+	var sbom1, sbom2 map[string]any
 	require.NoError(t, json.Unmarshal([]byte(*expectedIssues[0].CycloneDXSBOM), &sbom1))
 	require.NoError(t, json.Unmarshal([]byte(*issues[0].CycloneDXSBOM), &sbom2))
-	assert.Equal(t, sbom1, sbom2)
+	require.Equal(t, sbom1, sbom2)
+}
+
+func TestToDraconTargetOverride(t *testing.T) {
+	rawSaaSBOM, err := os.ReadFile("./testdata/saasBOM.json")
+	require.NoError(t, err)
+
+	issues, err := ToDracon(rawSaaSBOM, "json", "my-awesome-infra")
+	require.NoError(t, err)
+
+	saasBOM := string(rawSaaSBOM)
+	expectedIssues := []*v1.Issue{
+		{
+			Target:        "my-awesome-infra",
+			Type:          "SBOM",
+			Title:         "SBOM for my-awesome-infra",
+			Severity:      v1.Severity_SEVERITY_INFO,
+			CycloneDXSBOM: &saasBOM,
+		},
+	}
+	require.Equal(t, expectedIssues[0].Target, issues[0].Target)
+	require.Equal(t, expectedIssues[0].Type, issues[0].Type)
+	require.Equal(t, expectedIssues[0].Title, issues[0].Title)
+	require.Equal(t, expectedIssues[0].Severity, issues[0].Severity)
+
+	var sbom1, sbom2 map[string]any
+	require.NoError(t, json.Unmarshal([]byte(*expectedIssues[0].CycloneDXSBOM), &sbom1))
+	require.NoError(t, json.Unmarshal([]byte(*issues[0].CycloneDXSBOM), &sbom2))
+	require.Equal(t, sbom1, sbom2)
 }
