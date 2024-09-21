@@ -46,7 +46,7 @@ jobs:
 
           make cmd/draconctl/bin
           # Package and Publish Components
-          bin/cmd/draconctl components package --version ${{ github.ref_name }} \
+          bin/cmd/linux/amd64/draconctl components package --version ${{ github.ref_name }} \
                                                --chart-version ${DRACON_VERSION_SEMVER} \
                                                --name dracon-oss-components \
                                                ./components
