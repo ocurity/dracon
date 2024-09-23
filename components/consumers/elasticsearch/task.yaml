@@ -10,7 +10,7 @@ spec:
   params:
     - name: consumer-elasticsearch-url
       type: string
-      default: "http://dracon-es-http:9200"
+      default: ""
     - name: consumer-elasticsearch-description-template
       type: string
       default: ""
@@ -20,9 +20,6 @@ spec:
     - name: consumer-elasticsearch-index-name
       type: string
       default: ""
-    - name: consumer-elasticsearch-index
-      type: string
-      default: ""
     - name: consumer-elasticsearch-cloud-id
       type: string
       default: ""
@@ -30,15 +27,20 @@ spec:
     - name: output
       description: The workspace containing the source-code to scan.
   steps:
-  - name: run-consumer
-    imagePullPolicy: IfNotPresent
-    image: '{{ default "ghcr.io/ocurity/dracon" .Values.image.registry }}/components/consumers/elasticsearch:{{ .Chart.AppVersion }}'
-    command: ["/app/components/consumers/elasticsearch/elasticsearch"]
-    args: [
-      "-in", "$(workspaces.output.path)/.dracon/enrichers/",
-      "-descriptionTemplate","$(params.consumer-elasticsearch-description-template)",
-      "-esIndex", "$(params.consumer-elasticsearch-index-name)",
-      "-esAPIKey", "$(params.consumer-elasticsearch-api-key)",
-      "-esURL", "$(params.consumer-elasticsearch-url)",
-      "-esCloudID", "$(params.consumer-elasticsearch-cloud-id)",
-    ]
+    - name: run-consumer
+      imagePullPolicy: IfNotPresent
+      image: '{{ default "ghcr.io/ocurity/dracon" .Values.image.registry }}/components/consumers/elasticsearch:{{ .Chart.AppVersion }}'
+      command: ["/app/components/consumers/elasticsearch/elasticsearch"]
+      args:
+        - -in
+        - "$(workspaces.output.path)/.dracon/enrichers/"
+        - -descriptionTemplate
+        - "$(params.consumer-elasticsearch-description-template)"
+        - -esIndex
+        - "$(params.consumer-elasticsearch-index-name)"
+        - -esAPIKey
+        - "$(params.consumer-elasticsearch-api-key)"
+        - -esURL
+        - "$(params.consumer-elasticsearch-url)"
+        - -esCloudID
+        - "$(params.consumer-elasticsearch-cloud-id)"
