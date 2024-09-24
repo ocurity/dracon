@@ -111,7 +111,7 @@ clean: clean-protos clean-migrations-compose
 
 lint:
 # we need to redirect stderr to stdout because Github actions don't capture the stderr lolz
-	@reviewdog -fail-on-error -diff="git diff origin/main" -filter-mode=added 2>&1
+	@reviewdog -fail-level=any -diff="git diff origin/main" -filter-mode=added 2>&1
 
 install-lint-tools:
 	@go install honnef.co/go/tools/cmd/staticcheck@latest
