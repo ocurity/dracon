@@ -35,24 +35,13 @@ spec:
     volumeMounts:
     - mountPath: /scratch
       name: scratch  
-  - name: produce-issues-sarif
+  - name: produce-issues
     imagePullPolicy: IfNotPresent
     image: '{{ default "ghcr.io/ocurity/dracon" .Values.image.registry }}/components/producers/checkov:{{ .Chart.AppVersion }}'
     command: ["/app/components/producers/checkov/checkov-parser"]
     args:
     - "-in=/scratch/results_sarif.sarif"
     - "-out=$(workspaces.output.path)/.dracon/producers/checkov-sarif.pb"
-    volumeMounts:
-    - mountPath: /scratch
-      name: scratch
-  - name: produce-issues-cyclonedx
-    imagePullPolicy: IfNotPresent
-    image: '{{ default "ghcr.io/ocurity/dracon" .Values.image.registry }}/components/producers/checkov:{{ .Chart.AppVersion }}'
-    command: ["/app/components/producers/checkov/checkov-parser"]
-    args:
-    - "-in=/scratch/results_cyclonedx.json"
-    - "-out=$(workspaces.output.path)/.dracon/producers/checkov-cyclonedx.pb"
-    - "-target=$(producer-checkov-cyclonedx-target-override)"
     volumeMounts:
     - mountPath: /scratch
       name: scratch
