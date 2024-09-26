@@ -40,6 +40,16 @@ postgresql:
     querystringargs: "sslmode=disable"
   host: dracon-postgresql:5432
 
+neo4j:
+  # if set, a Neo4j instnace will be deployed
+  enabled: true
+  neo4j:
+    edition: community
+    name: neo4j
+  volumes:
+    data:
+      mode: defaultStorageClass
+
 tekton:
   enabled: true
 

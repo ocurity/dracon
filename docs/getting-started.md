@@ -71,6 +71,7 @@ For Dracon pipelines to run, they usually require the following services:
 3. Kibana
 4. MongoDB
 5. Postgres
+6. Neo4j
 
 We use the Elastic Operator to spin up managed instances of Elasticsearch and
 Kibana and the bitnami charts to deploy instances of PostgreSQL and MongoDB.
@@ -97,8 +98,8 @@ take a couple of minutes, it's perfect time to go get a cup of coffee ;).
 
 `espresso cup by @ptzianos`
 
-The Dracon Helm package lists as dependencies the Bitnami charts for Postgres
-and MongoDB. The values used are in the `deploy/dracon/values/dev.yaml` file.
+The Dracon Helm package lists as dependencies the Bitnami charts for Postgres and
+ MongoDB and the chart for Neo4j. The values used are in the `deploy/dracon/values/dev.yaml` file.
 
 1. Expose the TektonCD Dashboard
 
