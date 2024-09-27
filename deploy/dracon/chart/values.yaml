@@ -62,6 +62,9 @@ neo4j:
   services:
     neo4j:
       enabled: false
+  # TODO: add authorization
+  config:
+    dbms.security.auth_enabled: "false"
 
 # this section controls aspects of managing a database used to store deduplication enrichments
 # the database should use the Postgres dialect.

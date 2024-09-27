@@ -49,6 +49,9 @@ neo4j:
   volumes:
     data:
       mode: defaultStorageClass
+  # TODO: add authorization
+  config:
+    dbms.security.auth_enabled: "false"
 
 tekton:
   enabled: true
