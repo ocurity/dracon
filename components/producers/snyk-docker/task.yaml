@@ -29,11 +29,18 @@ spec:
 
     image: 'snyk/snyk:docker'
     script: |
-      set +xe
-      echo "authenticating to snyk"
+      #!/bin/sh
+      set -x
+      set +e
+      echo "authenticating to snyk!"
       snyk auth $(params.producer-snyk-docker-api-key)
+
       echo "running snyk container test"
-      snyk container test --sarif-file=/scratch/snyk.out --docker $(params.producer-snyk-docker-image) 
+      snyk container test \
+        --sarif-file-output=/scratch/snyk.out \
+        --docker \
+        $(params.producer-snyk-docker-image)
+
       exitCode=$?
       if [[ $exitCode -ne 0 && $exitCode -ne 1 ]]; then
         echo "Snyk failed with exit code $exitCode"
@@ -47,8 +54,8 @@ spec:
 
   - name: produce-issues
     imagePullPolicy: IfNotPresent
-    image: '{{ default "ghcr.io/ocurity/dracon" .Values.image.registry }}/components/producers/snyk:{{ .Chart.AppVersion }}'
-    command: ["/app/components/producers/snyk/snyk-parser"]
+    image: '{{ default "ghcr.io/ocurity/dracon" .Values.image.registry }}/components/producers/snyk-docker:{{ .Chart.AppVersion }}'
+    command: ["/app/components/producers/snyk-docker/snyk-docker-parser"]
     args:
     - "-in=/scratch/snyk.out"
     - "-out=$(workspaces.output.path)/.dracon/producers/snyk.pb"
