@@ -4,7 +4,9 @@ kind: Kustomization
 nameSuffix: -snyk-project
 components:
   - pkg:helm/dracon-oss-components/base
-  - pkg:helm/dracon-oss-components/producer-snyk
+  - pkg:helm/dracon-oss-components/git-clone
+  - pkg:helm/dracon-oss-components/producer-snyk-docker
+  - pkg:helm/dracon-oss-components/producer-snyk-python
   - pkg:helm/dracon-oss-components/producer-aggregator
   - pkg:helm/dracon-oss-components/enricher-deduplication
   - pkg:helm/dracon-oss-components/enricher-aggregator

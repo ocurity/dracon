@@ -7,10 +7,18 @@ spec:
   pipelineRef:
     name: dracon-snyk-project
   params:
+  - name: git-clone-url
+    value: https://github.com/adeyosemanputra/pygoat.git
   - name: producer-snyk-docker-api-key
-    value: ""
+    value: "$snyk-api-key"
   - name: producer-snyk-docker-image
     value: ubuntu
+
+  - name: producer-snyk-python-api-key
+    value: "$snyk-api-key"
+  - name: producer-snyk-python-relative-path-to-requirements-txt
+    value: "./requirements.txt"
+
   workspaces:
   - name: output
     volumeClaimTemplate:
