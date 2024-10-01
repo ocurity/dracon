@@ -42,13 +42,7 @@ spec:
     command:
       - /bin/sh
       - -c
-      - |
-        atom \
-        reachables \
-          -o $(workspaces.output.path)/source-code/app.atom \
-          -s /scratch/reachables.json \
-          -l $(params.enricher-reachability-programming-language) \
-          $(workspaces.output.path)/source-code
+      - atom reachables -o $(workspaces.output.path)/source-code/app.atom -s /scratch/reachables.json -l $(params.enricher-reachability-programming-language) $(workspaces.output.path)/source-code
     volumeMounts:
       - mountPath: /scratch
         name: scratch
