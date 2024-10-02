@@ -89,7 +89,7 @@ func main() {
 					log.Fatal("Could not parse raw issue", err)
 				}
 				res, err := es.Index(esIndex, bytes.NewBuffer(b))
-				if err != nil || res.StatusCode != 200 || res.IsError() {
+				if err != nil || res.StatusCode > 299 || res.IsError() {
 					log.Fatalf("could not push raw issue to index: %s, status code received: %d, elasticsearch result: %s, error:%s", esIndex, res.StatusCode, dumpStringResponse(res), err)
 				}
 			}
@@ -111,7 +111,7 @@ func main() {
 					log.Fatalf("Could not parse enriched issue error:%s", err)
 				}
 				res, err := es.Index(esIndex, bytes.NewBuffer(b))
-				if err != nil || res.StatusCode != 200 || res.IsError() {
+				if err != nil || res.StatusCode > 299 || res.IsError() {
 					log.Fatalf("could not push enriched issue to index: %s, status code received: %d, elasticsearch result: %s, error:%s", esIndex, res.StatusCode, dumpStringResponse(res), err)
 				}
 			}
