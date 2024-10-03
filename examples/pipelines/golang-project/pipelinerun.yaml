@@ -8,7 +8,7 @@ spec:
     name: dracon-golang-project
   params:
   - name: git-clone-url
-    value: https://github.com/ocurity/e2e-monorepo.git
+    value: https://github.com/sqreen/go-dvwa.git
   - name: git-clone-subdirectory
     value: source-code
   workspaces:
