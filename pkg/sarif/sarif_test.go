@@ -356,7 +356,7 @@ func Test_draconIssueToSarif(t *testing.T) {
 		Severity:    v1.Severity_SEVERITY_INFO,
 		Cvss:        0.0,
 		Source:      "//foo/bar:baz",
-		Target:      "/workspace/output/foo1/bar1:baz2",
+		Target:      "file:///workspace/output/source-code/foo1/bar1:baz2",
 		Title:       "Unit Test Title",
 		Type:        "test type",
 		Cve:         "CVE-0000-99999",
@@ -364,7 +364,7 @@ func Test_draconIssueToSarif(t *testing.T) {
 	typ := "test type"
 	level := "note"
 	msg := "this is a test description"
-	uri := "/foo1/bar1:baz2"
+	uri := "file://foo1/bar1:baz2"
 	confidence := "Confidence:CONFIDENCE_INFO"
 	source := "Source://foo/bar:baz"
 	cve := "CVE-0000-99999"
