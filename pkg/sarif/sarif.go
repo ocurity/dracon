@@ -11,6 +11,7 @@ import (
 	"github.com/owenrumney/go-sarif/v2/sarif"
 
 	v1 "github.com/ocurity/dracon/api/proto/v1"
+	"github.com/ocurity/dracon/components/producers"
 )
 
 // DraconIssueCollection represents all the findings in a single Sarif file converted to dracon format.
@@ -115,7 +116,7 @@ func FromDraconRawIssuesRun(responses []*v1.LaunchToolResponse) (*sarif.Report, 
 }
 
 func removeDraconInternalPath(target string) string {
-	return strings.Replace(target, "/workspace/output", "", 1)
+	return strings.Replace(target, producers.SourceDir, "", 1)
 }
 
 func draconIssueToSarif(issue *v1.Issue, rule *sarif.ReportingDescriptor) (*sarif.Result, error) {

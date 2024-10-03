@@ -3,6 +3,7 @@ package producers
 import (
 	"fmt"
 	"os"
+	"path"
 	"testing"
 	"time"
 
@@ -59,9 +60,9 @@ func TestWriteDraconOut(t *testing.T) {
 		"dracon-test",
 		[]*v1.Issue{
 			{
-				Target:      "/workspace/output/foobar",
-				Title:       "/workspace/output/barfoo",
-				Description: "/workspace/output/example.yaml",
+				Target:      path.Join(SourceDir, "foobar"),
+				Title:       path.Join(SourceDir, "barfoo"),
+				Description: path.Join(SourceDir, "example.yaml"),
 				Cve:         "123-321",
 			},
 		},
@@ -74,13 +75,14 @@ func TestWriteDraconOut(t *testing.T) {
 	res := v1.LaunchToolResponse{}
 	require.NoError(t, proto.Unmarshal(pBytes, &res))
 
-	assert.Equal(t, "dracon-test", res.GetToolName())
-	assert.Equal(t, "./foobar", res.GetIssues()[0].GetTarget())
-	assert.Equal(t, "./barfoo", res.GetIssues()[0].GetTitle())
-	assert.Equal(t, "./example.yaml", res.GetIssues()[0].GetDescription())
-	assert.Equal(t, baseTime.Unix(), res.GetScanInfo().GetScanStartTime().GetSeconds())
-	assert.Equal(t, "ab3d3290-cd9f-482c-97dc-ec48bdfcc4de", res.GetScanInfo().GetScanUuid())
-	assert.Equal(t, "123-321", res.GetIssues()[0].GetCve())
+	require.Equal(t, "dracon-test", res.GetToolName())
+	require.NotEmpty(t, res.GetIssues())
+	require.Equal(t, "foobar", res.GetIssues()[0].GetTarget())
+	require.Equal(t, "barfoo", res.GetIssues()[0].GetTitle())
+	require.Equal(t, "example.yaml", res.GetIssues()[0].GetDescription())
+	require.Equal(t, baseTime.Unix(), res.GetScanInfo().GetScanStartTime().GetSeconds())
+	require.Equal(t, "ab3d3290-cd9f-482c-97dc-ec48bdfcc4de", res.GetScanInfo().GetScanUuid())
+	require.Equal(t, "123-321", res.GetIssues()[0].GetCve())
 }
 
 func TestWriteDraconOutAppend(t *testing.T) {

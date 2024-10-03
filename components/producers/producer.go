@@ -37,7 +37,7 @@ var (
 )
 
 const (
-	sourceDir = "/workspace/output"
+	SourceDir = "/workspace/output/source-code/"
 )
 
 var fileTargetPattern = regexp.MustCompile(`^(.*?:.*?):(.*)$`)
@@ -102,9 +102,9 @@ func WriteDraconOut(
 	source := getSource()
 	cleanIssues := []*draconapiv1.Issue{}
 	for _, iss := range issues {
-		iss.Description = strings.ReplaceAll(iss.Description, sourceDir, ".")
-		iss.Title = strings.ReplaceAll(iss.Title, sourceDir, ".")
-		iss.Target = strings.ReplaceAll(iss.Target, sourceDir, ".")
+		iss.Description = strings.ReplaceAll(iss.Description, SourceDir, "")
+		iss.Title = strings.ReplaceAll(iss.Title, SourceDir, "")
+		iss.Target = strings.ReplaceAll(iss.Target, SourceDir, "")
 		iss.Source = source
 		cleanIssues = append(cleanIssues, iss)
 		slog.Debug(fmt.Sprintf("found issue: %+v\n", iss))
@@ -135,7 +135,7 @@ func WriteDraconOut(
 }
 
 func getSource() string {
-	sourceMetaPath := filepath.Join(sourceDir, ".source.dracon")
+	sourceMetaPath := filepath.Join(SourceDir, ".source.dracon")
 	_, err := os.Stat(sourceMetaPath)
 	if os.IsNotExist(err) {
 		return "unknown"
