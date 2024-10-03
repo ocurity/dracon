@@ -21,7 +21,7 @@ spec:
       description: The workspace containing the source-code to scan.
   steps:
   - name: run-eslint
-    image: '{{ default "ghcr.io/ocurity/dracon" .Values.image.registry }}/components/producers/typescript-eslint/eslint-wrapper/eslint:{{ .Chart.AppVersion }}'
+    image: '{{ default "ghcr.io/ocurity/dracon" .Values.image.registry }}/components/producers/typescript-eslint/eslint-wrapper:{{ .Chart.AppVersion }}'
     command: ["/home/node/workspace/eslint-wrapper"]
     args:
      - -t
