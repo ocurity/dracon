@@ -318,3 +318,43 @@ dev-teardown:
 generate-protos: install-lint-tools
 	@echo "Generating Protos"
 	@buf generate
+
+########################################
+########### RELEASE UTILITIES ##########
+########################################
+.PHONY: check-branch check-tag-message patch-release-tag new-minor-release-tag new-major-release-tag
+
+check-branch:
+	@if [ $$(git branch --show-current | tr -d '\n') != "main" ]; \
+	then \
+		echo >&2 "you need to be on the main branch"; \
+		false; \
+	fi
+
+check-tag-message:
+	@if [ -z "$(TAG_MESSAGE)" ]; \
+	then \
+		echo >&2 "you need to set the TAG_MESSAGE environment variable to a non empty string"; \
+		false; \
+	fi
+
+new-patch-release-tag: SHELL:=/bin/bash
+new-patch-release-tag: check-branch check-tag-message
+	$(shell \
+		read -a number <<< $$(git tag -l | sort -Vr | head -n 1 | sed -E 's/^v([0-9]+)\.([0-9]+)\.([0-9]+)/\1 \2 \3/'); \
+		git tag "v$${number[0]}.$${number[1]}.$$(($${number[2]}+1))" -m "${TAG_MESSAGE}"; \
+	)
+
+new-minor-release-tag: SHELL:=/bin/bash
+new-minor-release-tag: check-branch check-tag-message
+	$(shell \
+		read -a number <<< $$(git tag -l | sort -Vr | head -n 1 | sed -E 's/^v([0-9]+)\.([0-9]+)\.([0-9]+)/\1 \2 \3/'); \
+		git tag "v$${number[0]}.$$(($${number[1]}+1)).0" -m "${TAG_MESSAGE}"; \
+	)
+
+new-major-release-tag: SHELL:=/bin/bash
+new-major-release-tag: check-branch check-tag-message
+	$(shell \
+		read -a number <<< $$(git tag -l | sort -Vr | head -n 1 | sed -E 's/^v([0-9]+)\.([0-9]+)\.([0-9]+)/\1 \2 \3/'); \
+		git tag "v$$(($${number[0]}+1)).0.0" -m "${TAG_MESSAGE}"; \
+	)
