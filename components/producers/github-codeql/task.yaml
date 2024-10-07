@@ -2,20 +2,20 @@
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
-  name: producer-github-code-scanning
+  name: producer-github-codeql
   labels:
     v1.dracon.ocurity.com/component: producer
     v1.dracon.ocurity.com/test-type: sast
 spec:
   description: Retrieve a GitHub Code Scanning report from a GitHub repository.
   params:
-  - name: producer-github-code-scanning-repository-owner
+  - name: producer-github-codeql-repository-owner
     description: The owner of the repository to scan.
     type: string
-  - name: producer-github-code-scanning-repository-name
+  - name: producer-github-codeql-repository-name
     description: The name of the repository to scan.
     type: string
-  - name: producer-github-code-scanning-github-token
+  - name: producer-github-codeql-github-token
     description: The GitHub token to use for scanning. Must have "Code scanning alerts" repository permissions (read).
     type: string
   volumes:
@@ -27,14 +27,15 @@ spec:
   steps:
   - name: produce-issues
     imagePullPolicy: IfNotPresent
-    image: '{{ default "ghcr.io/ocurity/dracon" .Values.image.registry }}/components/producers/github-code-scanning:{{ .Chart.AppVersion }}'
-    command: ["/app/components/producers/github-code-scanning/github-code-scanning-parser"]
+    # image: '{{ default "ghcr.io/ocurity/dracon" .Values.image.registry }}/components/producers/github-codeql:{{ .Chart.AppVersion }}'
+    image: kind-registry:5000/components/producers/github-
+    command: ["/app/components/producers/github-codeql/github-codeql-parser"]
     args:
     - "-in=/scratch/out.json"
-    - "-out=$(workspaces.output.path)/.dracon/producers/github-code-scanning.pb"
-    - "-github-token=$(params.producer-github-code-scanning-github-token)"
-    - "-repository-owner=$(params.producer-github-code-scanning-repository-owner)"
-    - "-repository-name=$(params.producer-github-code-scanning-repository-name)"
+    - "-out=$(workspaces.output.path)/.dracon/producers/github-codeql.pb"
+    - "-github-token=$(params.producer-github-codeql-github-token)"
+    - "-repository-owner=$(params.producer-github-codeql-repository-owner)"
+    - "-repository-name=$(params.producer-github-codeql-repository-name)"
     volumeMounts:
     - mountPath: /scratch
       name: scratch
