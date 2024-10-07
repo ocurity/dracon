@@ -3,16 +3,18 @@ package main
 import (
 	"context"
 	"flag"
+	"io"
 	"log"
 	"log/slog"
 	"strconv"
 	"strings"
 
-	"github.com/google/go-github/v63/github"
-	"golang.org/x/oauth2"
+	"github.com/go-errors/errors"
+	"github.com/google/go-github/v65/github"
 
-	v1 "github.com/ocurity/dracon/api/proto/v1"
+	v1proto "github.com/ocurity/dracon/api/proto/v1"
 	"github.com/ocurity/dracon/components/producers"
+	wrapper "github.com/ocurity/dracon/pkg/github"
 )
 
 var (
@@ -24,17 +26,29 @@ var (
 
 	// GitHubToken is the GitHub token used to authenticate
 	GitHubToken string
+
+	// Ref is the Ref/branch to get alerts for
+	Ref string
+
+	// Severity if specified, only code scanning alerts with this severity will be returned. Possible values are: critical, high, medium, low, warning, note, error
+	Severity string
+
+	// toolName is internal
+	toolName string
 )
 
 func main() {
 	flag.StringVar(&RepositoryOwner, "repository-owner", "", "The owner of the GitHub repository")
 	flag.StringVar(&RepositoryName, "repository-name", "", "The name of the GitHub repository")
 	flag.StringVar(&GitHubToken, "github-token", "", "The GitHub token used to authenticate with the API")
+	flag.StringVar(&Ref, "reference", "", "The Ref/branch to get alerts for")
+	flag.StringVar(&Severity, "severity", "", "If specified, only code scanning alerts with this severity will be returned. Possible values are: critical, high, medium, low, warning, note, error")
+	toolName = "CodeQL"
 	if err := producers.ParseFlags(); err != nil {
 		log.Fatal(err)
 	}
-
-	alerts, err := listAlertsForRepo(RepositoryOwner, RepositoryName, GitHubToken)
+	apiClient := wrapper.NewClient(GitHubToken)
+	alerts, err := listAlertsForRepo(apiClient, RepositoryOwner, RepositoryName, toolName)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -49,15 +63,16 @@ func main() {
 	}
 }
 
-func listAlertsForRepo(owner, repo, token string) ([]*github.Alert, error) {
-	ts := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: token},
-	)
-	oAuthClient := oauth2.NewClient(context.Background(), ts)
-	apiClient := github.NewClient(oAuthClient)
-
+func listAlertsForRepo(apiClient wrapper.Wrapper, owner, repo, toolName string) ([]*github.Alert, error) {
+	var severity string
+	if Severity != "" {
+		severity = Severity
+	}
 	opt := &github.AlertListOptions{
-		State: "open",
+		State:    "open",
+		Ref:      Ref,
+		Severity: severity,
+		ToolName: toolName,
 		ListOptions: github.ListOptions{
 			PerPage: 30,
 		},
@@ -65,9 +80,17 @@ func listAlertsForRepo(owner, repo, token string) ([]*github.Alert, error) {
 
 	var allAlerts []*github.Alert
 	for {
-		alerts, resp, err := apiClient.CodeScanning.ListAlertsForRepo(context.Background(), owner, repo, opt)
+		alerts, resp, err := apiClient.ListRepoAlerts(context.Background(), owner, repo, opt)
 		if err != nil {
 			return nil, err
+		}
+
+		if resp.StatusCode > 299 {
+			body, bodyReadErr := io.ReadAll(resp.Body)
+			if bodyReadErr != nil {
+				return nil, errors.Errorf("could not read response error from github, err:%w", bodyReadErr)
+			}
+			return nil, errors.Errorf("did not receive a valid status code from github, status code: %d, body:%s", resp.StatusCode, body)
 		}
 
 		allAlerts = append(allAlerts, alerts...)
@@ -83,11 +106,11 @@ func listAlertsForRepo(owner, repo, token string) ([]*github.Alert, error) {
 	return allAlerts, nil
 }
 
-func parseIssues(alerts []*github.Alert) []*v1.Issue {
-	issues := []*v1.Issue{}
+func parseIssues(alerts []*github.Alert) []*v1proto.Issue {
+	issues := []*v1proto.Issue{}
 	for _, alert := range alerts {
 
-		issue := &v1.Issue{
+		issue := &v1proto.Issue{
 			Target: producers.GetFileTarget(
 				alert.GetMostRecentInstance().GetLocation().GetPath(),
 				alert.GetMostRecentInstance().GetLocation().GetStartLine(),
@@ -97,7 +120,7 @@ func parseIssues(alerts []*github.Alert) []*v1.Issue {
 			Title:       *alert.GetRule().Description,
 			Severity:    parseGitHubSeverity(*alert.GetRule().Severity),
 			Cvss:        0,
-			Confidence:  v1.Confidence_CONFIDENCE_UNSPECIFIED,
+			Confidence:  v1proto.Confidence_CONFIDENCE_UNSPECIFIED,
 			Description: alert.GetMostRecentInstance().GetMessage().GetText(),
 			Source:      alert.GetHTMLURL(),
 			Cwe:         parseGithubCWEsFromTags(alert.Rule.Tags),
@@ -108,18 +131,18 @@ func parseIssues(alerts []*github.Alert) []*v1.Issue {
 	return issues
 }
 
-func parseGitHubSeverity(severity string) v1.Severity {
+func parseGitHubSeverity(severity string) v1proto.Severity {
 	switch severity {
 	case "low":
-		return v1.Severity_SEVERITY_LOW
+		return v1proto.Severity_SEVERITY_LOW
 	case "medium":
-		return v1.Severity_SEVERITY_MEDIUM
+		return v1proto.Severity_SEVERITY_MEDIUM
 	case "high":
-		return v1.Severity_SEVERITY_HIGH
+		return v1proto.Severity_SEVERITY_HIGH
 	case "critical":
-		return v1.Severity_SEVERITY_CRITICAL
+		return v1proto.Severity_SEVERITY_CRITICAL
 	default:
-		return v1.Severity_SEVERITY_UNSPECIFIED
+		return v1proto.Severity_SEVERITY_UNSPECIFIED
 	}
 }
 
