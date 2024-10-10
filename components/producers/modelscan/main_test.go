@@ -51,12 +51,12 @@ const modelScanOut = `{
   "modelscan_version": "0.5.0",
   "timestamp": "2024-01-25T17:56:00.855056",
   "input_path": "/Users/mehrinkiani/Documents/modelscan/notebooks/XGBoostModels/unsafe_model.pkl",
-  "total_issues": 1,
+  "total_issues": 4,
   "summary": {
     "total_issues_by_severity": {
-      "LOW": 0,
-      "MEDIUM": 0,
-      "HIGH": 0,
+      "LOW": 1,
+      "MEDIUM": 1,
+      "HIGH": 1,
       "CRITICAL": 1
     }
   },

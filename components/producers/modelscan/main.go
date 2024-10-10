@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"log"
+	"log/slog"
 
 	v1 "github.com/ocurity/dracon/api/proto/v1"
 
@@ -38,6 +39,7 @@ func main() {
 
 func parseIssues(out *ModelScanOut) ([]*v1.Issue, error) {
 	issues := []*v1.Issue{}
+	slog.Info("found Critical issues", slog.Int("numCrit", len(out.IssuesBySeverity.Critical)))
 	for _, crit := range out.IssuesBySeverity.Critical {
 		issues = append(issues,
 			&v1.Issue{
@@ -49,6 +51,7 @@ func parseIssues(out *ModelScanOut) ([]*v1.Issue, error) {
 				Confidence:  v1.Confidence_CONFIDENCE_UNSPECIFIED,
 			})
 	}
+	slog.Info("found High issues", slog.Int("numHigh", len(out.IssuesBySeverity.High)))
 	for _, crit := range out.IssuesBySeverity.High {
 		issues = append(issues,
 			&v1.Issue{
@@ -60,6 +63,7 @@ func parseIssues(out *ModelScanOut) ([]*v1.Issue, error) {
 				Confidence:  v1.Confidence_CONFIDENCE_UNSPECIFIED,
 			})
 	}
+	slog.Info("found Medium issues", slog.Int("numMedium", len(out.IssuesBySeverity.Medium)))
 	for _, crit := range out.IssuesBySeverity.Medium {
 		issues = append(issues,
 			&v1.Issue{
@@ -71,6 +75,7 @@ func parseIssues(out *ModelScanOut) ([]*v1.Issue, error) {
 				Confidence:  v1.Confidence_CONFIDENCE_UNSPECIFIED,
 			})
 	}
+	slog.Info("found Low issues", slog.Int("numLow", len(out.IssuesBySeverity.Low)))
 	for _, crit := range out.IssuesBySeverity.Low {
 		issues = append(issues,
 			&v1.Issue{
