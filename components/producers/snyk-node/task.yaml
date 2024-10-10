@@ -1,0 +1,72 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: producer-snyk-node
+  labels:
+    v1.dracon.ocurity.com/component: producer
+    v1.dracon.ocurity.com/test-type: sast
+    v1.dracon.ocurity.com/language: docpythoner
+spec:
+  params:
+  - name: producer-snyk-node-api-key
+    type: string
+  description: Run Snyk For Javascript, Typescript, Node
+  volumes:
+    - name: scratch
+      emptyDir: {}
+  workspaces:
+    - name: output
+      description: The workspace containing the source-code to scan.
+  steps:
+  - name: run-snyk
+    imagePullPolicy: IfNotPresent
+    env:
+      - name: SNYK_INTEGRATION_VERSION 
+        value: docker
+
+    image: 'snyk/snyk:node'
+    script: |
+      #!/usr/bin/env bash
+      set -x
+      set +e
+      echo "authenticating to snyk"
+      snyk auth $(params.producer-snyk-node-api-key)
+      
+      baseDir = $(pwd)
+      if [ ! -d $(workspaces.output.path)/source-code/node_modules ]; then
+        cd $(workspaces.output.path)/source-code/
+        npm install
+        exitCode=$?
+        if [[ $exitCode -eq 1 ]]; then
+          echo "npm install failed, trying yarn"
+           cd $(workspaces.output.path)/source-code/
+            yarn install
+          
+        fi
+      fi
+
+      cd $baseDir
+      echo "running snyk test"
+      snyk test --prune-repeated-subdependencies --skip-unresolved --sarif-file-output=/scratch/snyk.out $(workspaces.output.path)/source-code/
+      exitCode=$?
+      if [[ $exitCode -ne 0 && $exitCode -ne 1 ]]; then
+        echo "Snyk failed with exit code $exitCode"
+        exit $exitCode
+      else
+        echo "Snyk completed successfully! exitcode $exitCode"
+      fi
+    volumeMounts:
+    - mountPath: /scratch
+      name: scratch
+
+  - name: produce-issues
+    imagePullPolicy: IfNotPresent
+    image: '{{ default "ghcr.io/ocurity/dracon" .Values.image.registry }}/components/producers/snyk-docker:{{ .Chart.AppVersion }}'
+    command: ["/app/components/producers/snyk-docker/snyk-docker-parser"]
+    args:
+    - "-in=/scratch/snyk.out"
+    - "-out=$(workspaces.output.path)/.dracon/producers/snyk.pb"
+    volumeMounts:
+    - mountPath: /scratch
+      name: scratch
