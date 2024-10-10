@@ -2,8 +2,8 @@ package jira
 
 import (
 	"bytes"
+	_ "embed"
 	"encoding/json"
-	"fmt"
 	"log"
 	"path/filepath"
 	"strconv"
@@ -29,6 +29,9 @@ type defaultJiraFields struct {
 	Labels          []string
 	CustomFields    tcontainer.MarshalMap
 }
+
+//go:embed issueTemplate.txt
+var defaultTemplate string
 
 // getDefaultFields creates the fields for Project, IssueType, Components, AffectsVersions, Labels and CustomFields
 // with the default values specified in config.yaml and serializes them into Jira Fields.
@@ -112,7 +115,11 @@ func draconResultToSTRMaps(draconResult document.Document) (map[string]string, s
 }
 
 // makeDescription creates the description of an issue's enhanced with extra information from the Dracon Result.
-func makeDescription(draconResult document.Document, extras []string, template string) string {
+func makeDescription(draconResult document.Document, template string) string {
+
+	if template == "" {
+		template = defaultTemplate
+	}
 	if draconResult.Count == "" {
 		draconResult.Count = "0"
 	}
@@ -131,6 +138,7 @@ func makeDescription(draconResult document.Document, extras []string, template s
 	if err != nil {
 		log.Fatal("could not template enriched issue ", err)
 	}
+
 	description, err := templating.TemplateStringEnriched(template,
 		&v1.EnrichedIssue{
 			Annotations:   draconResult.Annotations,
@@ -150,24 +158,18 @@ func makeDescription(draconResult document.Document, extras []string, template s
 				Type:        draconResult.Type,
 			},
 		},
+		templating.EnrichedIssueWithToolName(draconResult.ToolName),
+		templating.EnrichedIssueWithScanStartTime(draconResult.ScanStartTime),
+		templating.EnrichedIssueWithScanID(draconResult.ScanID),
+		templating.EnrichedIssueWithConfidenceText(draconResult.ConfidenceText),
+		templating.EnrichedIssueWithCount(uint(count)),
+		templating.EnrichedIssueWithFirstFound(draconResult.FirstFound),
+		templating.EnrichedIssueWithSeverityText(draconResult.SeverityText),
 	)
 	if err != nil {
 		log.Fatal("Could not template enriched issue ", err)
 	}
 	desc := *description
-	// Append the extra fields to the description
-	strMap, annotations := draconResultToSTRMaps(draconResult)
-	if len(extras) > 0 {
-		desc += "{code:}" + "\n"
-		for _, s := range extras {
-			if s == "annotations" {
-				desc += fmt.Sprintf("%s: %*s\n", s, 25-len(s)+len(annotations), annotations)
-			} else {
-				desc += fmt.Sprintf("%s: %*s\n", s, 25-len(s)+len(strMap[s]), strMap[s])
-			}
-		}
-		desc += "{code}" + "\n"
-	}
 	return desc
 }
 

@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	jira "github.com/andygrunwald/go-jira"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/trivago/tgo/tcontainer"
 )
 
@@ -33,7 +33,7 @@ func TestSetDefaultFields(t *testing.T) {
 		},
 	}
 
-	assert.EqualValues(t, res, exp)
+	require.EqualValues(t, res, exp)
 }
 
 func TestMakeCustomField(t *testing.T) {
@@ -53,35 +53,23 @@ func TestMakeCustomField(t *testing.T) {
 	res4 := makeCustomField("simple-value", []string{"test-value"})
 	exp4 := "test-value"
 
-	assert.EqualValues(t, res1, exp1)
-	assert.EqualValues(t, res2, exp2)
-	assert.Equal(t, res3, exp3)
-	assert.Equal(t, res4, exp4)
+	require.EqualValues(t, res1, exp1)
+	require.EqualValues(t, res2, exp2)
+	require.Equal(t, res3, exp3)
+	require.Equal(t, res4, exp4)
 }
 
 func TestMakeDescription(t *testing.T) {
-	extras := []string{"tool_name", "target", "confidence_text"}
-	res := makeDescription(sampleResult, extras, "")
-	exp := "Dracon found 'Unit Test Title' at '//foo1/bar1:baz2'," +
-		" severity 'SEVERITY_INFO'," +
-		" rule id: 'test type'," +
-		" CVSS '0' " +
-		"Confidence 'CONFIDENCE_INFO'" +
-		" Original Description: this is a test description," +
-		" Cve CVE-0000-99999,\n" +
-		"{code:}\n" +
-		"tool_name:                 spotbugs\n" +
-		"target:                    //foo1/bar1:baz2\n" +
-		"confidence_text:           Info\n" +
-		"{code}\n"
-	assert.Equal(t, res, exp)
+	res := makeDescription(sampleResult, "")
+	exp := "spotbugs detected 'Unit Test Title' at //foo1/bar1:baz2 during scan started at: 2024-10-10T20:06:33Z with id babbb83-4627-41c6-8ba0-70ee866290e9.\nConfidence: Info\nThis issue has been detected 2 times before, first found on 2024-10-10T20:06:33Z\nOriginal Description is: 'this is a test description'\nspotbugs reported severity as Info\nSmithy enrichers added the following annotations:\nfoo:bar\nfoobar:baz\n\n"
+	require.Equal(t, res, exp)
 }
 
 func TestMakeSummary(t *testing.T) {
 	res, extra := makeSummary(sampleResult)
 	exp := "bar1:baz2 Unit Test Title"
-	assert.Equal(t, res, exp)
-	assert.Equal(t, extra, "")
+	require.Equal(t, res, exp)
+	require.Equal(t, extra, "")
 
 	longTitle := make([]rune, 300)
 	truncatedSummary := make([]rune, 254)
@@ -107,7 +95,7 @@ func TestMakeSummary(t *testing.T) {
 	sampleResult.Title = string(longTitle)
 
 	res, extra = makeSummary(sampleResult)
-	assert.Equal(t, string(truncatedSummary), res)
+	require.Equal(t, string(truncatedSummary), res)
 
-	assert.Equal(t, string(expectedExtra), extra)
+	require.Equal(t, string(expectedExtra), extra)
 }
