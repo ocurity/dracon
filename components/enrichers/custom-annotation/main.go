@@ -28,7 +28,7 @@ func enrichIssue(i *apiv1.Issue, annotations string) (*apiv1.EnrichedIssue, erro
 	enrichedIssue := apiv1.EnrichedIssue{}
 	annotationMap := map[string]string{}
 	if err := json.Unmarshal([]byte(annotations), &annotationMap); err != nil {
-		return nil, errors.Errorf("could not unmarshall annotation object to map[string]string, err: %w", err)
+		return nil, errors.Errorf("could not unmarshall annotation object %s to map[string]string, err: %w", annotations, err)
 	}
 	enrichedIssue = apiv1.EnrichedIssue{
 		RawIssue:    i,
