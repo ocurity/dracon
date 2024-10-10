@@ -26,15 +26,6 @@ var sampleConfig = Config{
 		JiraField:   "customfield_10001",
 		FieldType:   "float",
 	}},
-	DescriptionExtras: []string{
-		"scan_start_time",
-		"tool_name",
-		"target",
-		"type",
-		"confidence_text",
-		"annotations",
-		"hash",
-	},
 	SyncMappings: []JiraToDraconVulnMappings{
 		{
 			JiraStatus:     "Test",

@@ -39,20 +39,6 @@ defaultValues:
 ## simple-value: will translate to the special jira use case of "customfield_id":"value"
 ## simple-value is provided as a workaround when single-value does not work with your jira setup
 
-## Uncomment the fields you want included in the Issue's Description
-addToDescription:
-  - scan_start_time
-  # - scan_id
-  - tool_name
-  # - source
-  - target
-  - type
-  # - severity_text
-  # - cvss
-  - confidence_text
-  # - first_found
-  # - false_positive
-
 ## You can map fields from the Dracon Result into customfields specific to your Jira Workspace
 ## Note: You don't have to map all (or any) of the fields
 mappings:

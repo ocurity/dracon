@@ -32,9 +32,8 @@ var (
 			JiraField:   "customfield_10001",
 			FieldType:   "float",
 		}},
-		DescriptionExtras: []string{"target", "tool_name"},
 	}
-	t, _         = time.Parse("0001-01-01T00:00:00Z", "0001-01-01T00:00:00Z")
+	t, _         = time.Parse(time.RFC3339, "2024-10-10T20:06:33Z")
 	sampleResult = document.Document{
 		ScanStartTime:  t,
 		ScanID:         "babbb83-4627-41c6-8ba0-70ee866290e9",
@@ -50,6 +49,8 @@ var (
 		FirstFound:     t,
 		FalsePositive:  "true",
 		CVE:            "CVE-0000-99999",
+		Annotations:    map[string]string{"foo": "bar", "foobar": "baz"},
+		Count:          "2",
 	}
 
 	expIssue = jira.Issue{
@@ -60,18 +61,8 @@ var (
 			Type: jira.IssueType{
 				Name: "Vulnerability",
 			},
-			Description: "Dracon found 'Unit Test Title'" +
-				" at '//foo1/bar1:baz2'," +
-				" severity 'SEVERITY_INFO'," +
-				" rule id: 'test type'," +
-				" CVSS '0'" +
-				" Confidence 'CONFIDENCE_INFO'" +
-				" Original Description: this is a test description," +
-				" Cve CVE-0000-99999,\n" +
-				"{code:}\n" +
-				"target:                    //foo1/bar1:baz2\n" +
-				"tool_name:                 spotbugs\n{code}\n",
-			Summary: "bar1:baz2 Unit Test Title",
+			Description: "spotbugs detected 'Unit Test Title' at //foo1/bar1:baz2 during scan started at: 2024-10-10T20:06:33Z with id babbb83-4627-41c6-8ba0-70ee866290e9.\nConfidence: Info\nThis issue has been detected 2 times before, first found on 2024-10-10T20:06:33Z\nOriginal Description is: 'this is a test description'\nspotbugs reported severity as Info\nSmithy enrichers added the following annotations:\nfoo:bar\nfoobar:baz\n\n",
+			Summary:     "bar1:baz2 Unit Test Title",
 			Components: []*jira.Component{
 				{Name: "c1"},
 				{Name: "c2"},
@@ -109,7 +100,7 @@ func TestAuthJiraClient(t *testing.T) {
 
 func TestAssembleIssue(t *testing.T) {
 	issue := sampleClient.assembleIssue(sampleResult)
-	assert.EqualValues(t, issue, &expIssue)
+	assert.EqualValues(t, &expIssue, issue)
 }
 
 func TestCreateIssue(t *testing.T) {

@@ -17,7 +17,7 @@ spec:
       type: string
     - name: consumer-jira-user
       type: string
-    - name: consumer-jira-config
+    - name: consumer-jira-project-name
       type: string
       default: ""
   workspaces:
@@ -30,7 +30,15 @@ spec:
     script: |
       mkdir -p $(workspaces.output.path)/.dracon/consumers/jira
       cat <<'EOF' > $(workspaces.output.path)/.dracon/consumers/jira/config.json
-      $(params.consumer-jira-config)
+       {
+      "defaultValues": {
+          "project": "$(params.consumer-jira-project-name)",
+          "issueType": "Task",
+          "customFields": null
+      },
+      "descriptionTemplate": "",
+      "mappings": null
+      }
       EOF
       cat $(workspaces.output.path)/.dracon/consumers/jira/config.json
   - name: run-consumer
@@ -46,7 +54,6 @@ spec:
       value: $(params.consumer-jira-url)
     - name: DRACON_JIRA_CONFIG_PATH
       value: $(workspaces.output.path)/.dracon/consumers/jira/config.json
-
     args: [
       "-in",
       "$(workspaces.output.path)/.dracon/enrichers/",

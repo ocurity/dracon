@@ -4,7 +4,6 @@ package config
 type Config struct {
 	DefaultValues       DefaultValues              `json:"defaultValues"`
 	Mappings            []Mappings                 `json:"mappings"`
-	DescriptionExtras   []string                   `json:"addToDescription"`
 	DescriptionTemplate string                     `json:"descriptionTemplate"`
 	SyncMappings        []JiraToDraconVulnMappings `json:"syncMappings"`
 }

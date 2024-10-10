@@ -1,0 +1,8 @@
+{{.ToolName}} detected '{{.RawIssue.Title}}' at {{.RawIssue.Target}} during scan started at: {{.ScanStartTime}} with id {{.ScanID}}.
+Confidence: {{.ConfidenceText}}
+{{ if gt .Count 0 }}This issue has been detected {{.Count}} times before, first found on {{.FirstFound}}{{ end }}
+Original Description is: '{{.RawIssue.Description}}'
+{{.ToolName}} reported severity as {{.SeverityText}}
+Smithy enrichers added the following annotations:
+{{ range $key, $value := .Annotations }}{{ $key }}:{{ $value }}
+{{ end }}
