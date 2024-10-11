@@ -87,9 +87,6 @@ func EnrichedIssueWithSeverityText(severity string) enrichedIssueOption {
 // EnrichedIssueWithCount allows customising the Enriched Issue's Count.
 func EnrichedIssueWithCount(count uint) enrichedIssueOption {
 	return func(ei *enrichedIssue) error {
-		if count <= 0 {
-			return errors.Errorf("invalid count %d", count)
-		}
 		ei.Count = count
 		return nil
 	}
@@ -109,11 +106,10 @@ func EnrichedIssueWithScanID(scanID string) enrichedIssueOption {
 // EnrichedIssueWithScanStartTime allows customising the Enriched Issue's Scan start time.
 func EnrichedIssueWithScanStartTime(startTime time.Time) enrichedIssueOption {
 	return func(ei *enrichedIssue) error {
-		st := startTime.Format(time.RFC3339)
 		if startTime.IsZero() {
-			return errors.Errorf("invalid startTime zero: %s", st)
+			return errors.Errorf("invalid startTime zero: %s", startTime.String())
 		}
-		ei.ScanStartTime = st
+		ei.ScanStartTime = startTime.Format(time.RFC3339)
 		return nil
 	}
 }
@@ -121,10 +117,10 @@ func EnrichedIssueWithScanStartTime(startTime time.Time) enrichedIssueOption {
 // EnrichedIssueWithFirstFound allows customising the Enriched Issue's Scan first found time.
 func EnrichedIssueWithFirstFound(firstFound time.Time) enrichedIssueOption {
 	return func(ei *enrichedIssue) error {
-		ff := firstFound.Format(time.RFC3339)
 		if firstFound.IsZero() {
-			return errors.Errorf("invalid firstFound zero %s", ff)
+			return errors.Errorf("invalid firstFound zero %s", firstFound.String())
 		}
+		ff := firstFound.Format(time.RFC3339)
 		ei.FirstFound = ff
 		return nil
 	}

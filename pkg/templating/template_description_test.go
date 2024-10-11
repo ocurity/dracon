@@ -4,7 +4,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
@@ -140,133 +139,104 @@ func Test_TemplateStringEnriched(t *testing.T) {
 }
 
 func TestDescriptionOptions(t *testing.T) {
-	type args struct {
-		option enrichedIssueOption
-	}
-
 	acceptableTime, err := time.Parse(time.RFC3339, "2024-10-10T20:06:33Z")
 	require.NoError(t, err)
 
 	for _, tt := range []struct {
 		name                  string
-		args                  args
+		option                enrichedIssueOption
 		wantErr               bool
 		expectedEnrichedIssue *enrichedIssue
 	}{
 		{
-			name: "zero startTime returns err",
-			args: args{
-				option: EnrichedIssueWithScanStartTime(time.Time{}),
-			},
+			name:    "zero startTime returns err",
+			option:  EnrichedIssueWithScanStartTime(time.Time{}),
 			wantErr: true,
 		},
 		{
-			name: "non zero startTime returns no err",
-			args: args{
-				option: EnrichedIssueWithScanStartTime(acceptableTime),
-			},
+			name:    "non zero startTime returns no err",
+			option:  EnrichedIssueWithScanStartTime(acceptableTime),
 			wantErr: false,
 			expectedEnrichedIssue: &enrichedIssue{
 				ScanStartTime: acceptableTime.Format(time.RFC3339),
 			},
 		},
 		{
-			name: "zero firstFound returns err",
-			args: args{
-				option: EnrichedIssueWithFirstFound(time.Time{}),
-			},
+			name:    "zero firstFound returns err",
+			option:  EnrichedIssueWithFirstFound(time.Time{}),
 			wantErr: true,
 		},
 		{
-			name: "non zero firstFound returns no err",
-			args: args{
-				option: EnrichedIssueWithFirstFound(acceptableTime),
-			},
+			name:    "non zero firstFound returns no err",
+			option:  EnrichedIssueWithFirstFound(acceptableTime),
 			wantErr: false,
 			expectedEnrichedIssue: &enrichedIssue{
 				FirstFound: acceptableTime.Format(time.RFC3339),
 			},
 		},
 		{
-			name: "empty tool name returns err",
-			args: args{
-				option: EnrichedIssueWithToolName(""),
-			},
+			name:    "empty tool name returns err",
+			option:  EnrichedIssueWithToolName(""),
 			wantErr: true,
 		},
 		{
-			name: "valid tool name returns no err",
-			args: args{
-				option: EnrichedIssueWithToolName("some-tool"),
-			},
+			name:    "valid tool name returns no err",
+			option:  EnrichedIssueWithToolName("some-tool"),
 			wantErr: false,
 			expectedEnrichedIssue: &enrichedIssue{
 				ToolName: "some-tool",
 			},
 		},
 		{
-			name: "empty confidence text returns err",
-			args: args{
-				option: EnrichedIssueWithConfidenceText(""),
-			},
+			name:    "empty confidence text returns err",
+			option:  EnrichedIssueWithConfidenceText(""),
 			wantErr: true,
 		},
 		{
-			name: "valid confidence text returns no err",
-			args: args{
-				option: EnrichedIssueWithConfidenceText("conf-text-1"),
-			},
+			name:    "valid confidence text returns no err",
+			option:  EnrichedIssueWithConfidenceText("conf-text-1"),
 			wantErr: false,
 			expectedEnrichedIssue: &enrichedIssue{
 				ConfidenceText: "conf-text-1",
 			},
 		},
 		{
-			name: "empty severity text returns err",
-			args: args{
-				option: EnrichedIssueWithSeverityText(""),
-			},
+			name:    "empty severity text returns err",
+			option:  EnrichedIssueWithSeverityText(""),
 			wantErr: true,
 		},
 		{
-			name: "valid severity text returns no err",
-			args: args{
-				option: EnrichedIssueWithSeverityText("severity-text-1"),
-			},
+			name:    "valid severity text returns no err",
+			option:  EnrichedIssueWithSeverityText("severity-text-1"),
 			wantErr: false,
 			expectedEnrichedIssue: &enrichedIssue{
 				SeverityText: "severity-text-1",
 			},
 		},
 		{
-			name: "0 count returns err",
-			args: args{
-				option: EnrichedIssueWithCount(0),
+			name:    "0 count returns no err",
+			option:  EnrichedIssueWithCount(0),
+			wantErr: false,
+			expectedEnrichedIssue: &enrichedIssue{
+				Count: 0,
 			},
-			wantErr: true,
 		},
 		{
-			name: "positive count text returns no err",
-			args: args{
-				option: EnrichedIssueWithCount(420),
-			},
+			name:    "positive count returns no err",
+			option:  EnrichedIssueWithCount(420),
 			wantErr: false,
 			expectedEnrichedIssue: &enrichedIssue{
 				Count: 420,
 			},
 		},
 		{
-			name: "empty scan ID returns err",
-			args: args{
-				option: EnrichedIssueWithScanID(""),
-			},
+			name:    "empty scan ID returns err",
+			option:  EnrichedIssueWithScanID(""),
 			wantErr: true,
 		},
 		{
-			name: "valid scan id returns no err",
-			args: args{
-				option: EnrichedIssueWithScanID("scan-1"),
-			},
+			name:    "valid scan id returns no err",
+			option:  EnrichedIssueWithScanID("scan-1"),
 			wantErr: false,
 			expectedEnrichedIssue: &enrichedIssue{
 				ScanID: "scan-1",
@@ -275,11 +245,11 @@ func TestDescriptionOptions(t *testing.T) {
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			var ei enrichedIssue
-			if err := tt.args.option(&ei); tt.wantErr {
+			if err := tt.option(&ei); tt.wantErr {
 				require.Error(t, err)
 				return
 			}
-			assert.Equal(t, tt.expectedEnrichedIssue, &ei)
+			require.Equal(t, tt.expectedEnrichedIssue, &ei)
 		})
 	}
 }
