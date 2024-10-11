@@ -17,6 +17,21 @@ const (
 	defaultRawFindingTemplate      = "Dracon found '{{.Title}}' at '{{.Target}}', severity '{{.Severity}}', rule id: '{{.Type}}', CVSS '{{.Cvss}}' Confidence '{{.Confidence}}' Original Description: {{.Description}}, Cve {{.Cve}}"
 )
 
+type (
+	enrichedIssue struct {
+		*v1.EnrichedIssue
+		ToolName       string
+		ScanStartTime  string
+		ScanID         string
+		ConfidenceText string
+		SeverityText   string
+		Count          uint
+		FirstFound     string
+	}
+
+	enrichedIssueOption func(*enrichedIssue) error
+)
+
 // TemplateStringRaw applies the provided go template to the Raw Issue provided and returns the resulting str
 func TemplateStringRaw(inputTemplate string, issue *v1.Issue) (*string, error) {
 	if inputTemplate == "" {
@@ -36,18 +51,7 @@ func TemplateStringRaw(inputTemplate string, issue *v1.Issue) (*string, error) {
 	return &res, nil
 }
 
-type enrichedIssue struct {
-	*v1.EnrichedIssue
-	ToolName       string
-	ScanStartTime  string
-	ScanID         string
-	ConfidenceText string
-	SeverityText   string
-	Count          uint
-	FirstFound     string
-}
-type enrichedIssueOption func(*enrichedIssue) error
-
+// EnrichedIssueWithToolName allows customising the Enriched Issue's ToolName.
 func EnrichedIssueWithToolName(toolname string) enrichedIssueOption {
 	return func(ei *enrichedIssue) error {
 		if toolname == "" {
@@ -58,16 +62,7 @@ func EnrichedIssueWithToolName(toolname string) enrichedIssueOption {
 	}
 }
 
-func EnrichedIssueWithScanStartTime(startTime time.Time) enrichedIssueOption {
-	return func(ei *enrichedIssue) error {
-		if time.Time.IsZero(startTime) {
-			return errors.New("invalid startTime zero")
-		}
-		ei.ScanStartTime = startTime.Format(time.RFC3339)
-		return nil
-	}
-}
-
+// EnrichedIssueWithConfidenceText allows customising the Enriched Issue's ConfidenceText.
 func EnrichedIssueWithConfidenceText(confidence string) enrichedIssueOption {
 	return func(ei *enrichedIssue) error {
 		if confidence == "" {
@@ -78,6 +73,7 @@ func EnrichedIssueWithConfidenceText(confidence string) enrichedIssueOption {
 	}
 }
 
+// EnrichedIssueWithSeverityText allows customising the Enriched Issue's SeverityText.
 func EnrichedIssueWithSeverityText(severity string) enrichedIssueOption {
 	return func(ei *enrichedIssue) error {
 		if severity == "" {
@@ -88,6 +84,7 @@ func EnrichedIssueWithSeverityText(severity string) enrichedIssueOption {
 	}
 }
 
+// EnrichedIssueWithCount allows customising the Enriched Issue's Count.
 func EnrichedIssueWithCount(count uint) enrichedIssueOption {
 	return func(ei *enrichedIssue) error {
 		if count <= 0 {
@@ -98,6 +95,7 @@ func EnrichedIssueWithCount(count uint) enrichedIssueOption {
 	}
 }
 
+// EnrichedIssueWithScanID allows customising the Enriched Issue's Scan ID.
 func EnrichedIssueWithScanID(scanID string) enrichedIssueOption {
 	return func(ei *enrichedIssue) error {
 		if scanID == "" {
@@ -108,12 +106,26 @@ func EnrichedIssueWithScanID(scanID string) enrichedIssueOption {
 	}
 }
 
+// EnrichedIssueWithScanStartTime allows customising the Enriched Issue's Scan start time.
+func EnrichedIssueWithScanStartTime(startTime time.Time) enrichedIssueOption {
+	return func(ei *enrichedIssue) error {
+		st := startTime.Format(time.RFC3339)
+		if startTime.IsZero() {
+			return errors.Errorf("invalid startTime zero: %s", st)
+		}
+		ei.ScanStartTime = st
+		return nil
+	}
+}
+
+// EnrichedIssueWithFirstFound allows customising the Enriched Issue's Scan first found time.
 func EnrichedIssueWithFirstFound(firstFound time.Time) enrichedIssueOption {
 	return func(ei *enrichedIssue) error {
-		if time.Time.IsZero(firstFound) {
-			return errors.New("invalid firstFound zero")
+		ff := firstFound.Format(time.RFC3339)
+		if firstFound.IsZero() {
+			return errors.Errorf("invalid firstFound zero %s", ff)
 		}
-		ei.FirstFound = firstFound.Format(time.RFC3339)
+		ei.FirstFound = ff
 		return nil
 	}
 }
