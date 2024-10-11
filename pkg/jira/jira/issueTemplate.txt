@@ -1,6 +1,6 @@
-{{.ToolName}} detected '{{.RawIssue.Title}}' at {{.RawIssue.Target}} during scan started at: {{.ScanStartTime}} with id {{.ScanID}}.
+{{.ToolName}} detected '{{.RawIssue.Title}}' at {{.RawIssue.Target}} during scan with id {{.ScanID}}.
 Confidence: {{.ConfidenceText}}
-{{ if gt .Count 0 }}This issue has been detected {{.Count}} times before, first found on {{.FirstFound}}{{ end }}
+{{ if gt .Count 0 }}This issue has been detected {{.Count}} times before{{ end }}
 Original Description is: '{{.RawIssue.Description}}'
 {{.ToolName}} reported severity as {{.SeverityText}}
 Smithy enrichers added the following annotations:

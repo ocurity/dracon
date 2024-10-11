@@ -159,11 +159,9 @@ func makeDescription(draconResult document.Document, template string) string {
 			},
 		},
 		templating.EnrichedIssueWithToolName(draconResult.ToolName),
-		templating.EnrichedIssueWithScanStartTime(draconResult.ScanStartTime),
 		templating.EnrichedIssueWithScanID(draconResult.ScanID),
 		templating.EnrichedIssueWithConfidenceText(draconResult.ConfidenceText),
 		templating.EnrichedIssueWithCount(uint(count)),
-		templating.EnrichedIssueWithFirstFound(draconResult.FirstFound),
 		templating.EnrichedIssueWithSeverityText(draconResult.SeverityText),
 	)
 	if err != nil {
