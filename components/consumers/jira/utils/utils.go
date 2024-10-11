@@ -21,11 +21,6 @@ func ProcessMessages(allowDuplicates, allowFP bool, sevThreshold int) ([]documen
 			return nil, 0, err
 		}
 		messages, discarded := ProcessRawMessages(responses, sevThreshold)
-		if err != nil {
-			log.Print("Could not Process Raw Messages: ", err)
-			return nil, 0, err
-		}
-
 		return messages, discarded, nil
 	}
 	log.Print("Parsing Enriched results")
