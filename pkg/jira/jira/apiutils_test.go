@@ -2,10 +2,8 @@ package jira
 
 import (
 	"testing"
-	"time"
 
-	jira "github.com/andygrunwald/go-jira"
-	"github.com/ocurity/dracon/pkg/jira/document"
+	"github.com/andygrunwald/go-jira"
 	"github.com/stretchr/testify/require"
 	"github.com/trivago/tgo/tcontainer"
 )
@@ -66,7 +64,6 @@ func TestMakeDescription(t *testing.T) {
 	exp := "spotbugs detected 'Unit Test Title' at //foo1/bar1:baz2 during scan with id babbb83-4627-41c6-8ba0-70ee866290e9.\nConfidence: Info\nThis issue has been detected 2 times before\nOriginal Description is: 'this is a test description'\nspotbugs reported severity as Info\nSmithy enrichers added the following annotations:\nfoo:bar\nfoobar:baz\n\n"
 	require.Equal(t, res, exp)
 }
-
 
 func TestMakeSummary(t *testing.T) {
 	res, extra := makeSummary(sampleResult)
