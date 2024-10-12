@@ -21,7 +21,7 @@ message ScanInfo {
   map<string, string> scan_tags = 3;
 }
 
-/* LaunchToolReponse consists of a response built by a producer,
+/* LaunchToolResponse consists of a response built by a producer,
  * to be interpreted by a consumer */
 message LaunchToolResponse {
   // The scan information, see above for details

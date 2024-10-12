@@ -37,6 +37,7 @@ ARANGODB_NS=arangodb
 
 DOCKER=docker
 PROTOC=protoc
+BUF_CONTAINER=buf:local
 
 export
 
@@ -122,7 +123,6 @@ install-lint-tools:
 	@go install github.com/kisielk/errcheck@latest
 	@go install github.com/rhysd/actionlint/cmd/actionlint@latest
 	@go install github.com/client9/misspell/cmd/misspell@latest
-	@go install github.com/bufbuild/buf/cmd/buf@v1.28.1
 	@npm ci
 
 install-go-test-tools:
@@ -139,10 +139,6 @@ migration-tests: cmd/draconctl/bin
 	cd tests/migrations/ && docker compose up --abort-on-container-exit --build --exit-code-from tester
 
 test: go-tests migration-tests
-
-fmt-proto:
-	@echo "Tidying up Proto files"
-	@buf format -w ./api/proto
 
 install-go-fmt-tools:
 	@go install github.com/bufbuild/buf/cmd/buf@v1.28.1
@@ -315,9 +311,23 @@ dev-deploy: deploy-cluster dev-infra dev-dracon
 dev-teardown:
 	@kind delete clusters dracon-demo
 
-generate-protos: install-lint-tools
-	@echo "Generating Protos"
-	@buf generate
+build_buf_container:
+	$(DOCKER) build . -t $(BUF_CONTAINER) -f containers/Dockerfile.buf
+
+run_buf: build_buf_container
+	$(DOCKER) run --volume "$(shell pwd):/workspace" --workdir /workspace $(BUF_CONTAINER) $(ARGS)
+
+fmt-proto: build_buf_container
+	@echo "Tidying up Proto files"
+	$(MAKE) run_buf ARGS="format -w"
+
+lint-proto: build_buf_container
+	@echo "Linting Proto files"
+	$(MAKE) run_buf ARGS="lint --exclude-path vendor"
+
+generate-proto: build_buf_container
+	@echo "Generating Proto files"
+	$(MAKE) run_buf ARGS="generate"
 
 ########################################
 ########### RELEASE UTILITIES ##########

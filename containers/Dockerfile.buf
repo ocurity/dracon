@@ -1,0 +1,12 @@
+FROM golang:alpine AS golang
+ENV GO111MODULE=on
+
+RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.35.1
+
+FROM bufbuild/buf:1.45.0 AS buf
+
+FROM scratch
+COPY --from=golang /go/bin/protoc-gen-go /go/bin/protoc-gen-go
+COPY --from=buf /usr/local/bin/buf /usr/local/bin/buf
+ENV PATH="/go/bin:${PATH}"
+ENTRYPOINT ["/usr/local/bin/buf"]
