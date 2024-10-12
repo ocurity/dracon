@@ -30,8 +30,9 @@ require (
 	go.mongodb.org/mongo-driver v1.10.0
 	golang.org/x/crypto v0.18.0
 	golang.org/x/oauth2 v0.16.0
+	golang.org/x/sync v0.6.0
 	google.golang.org/api v0.156.0
-	google.golang.org/protobuf v1.34.1
+	google.golang.org/protobuf v1.35.1
 	helm.sh/helm/v3 v3.14.4
 	k8s.io/api v0.29.0
 	k8s.io/apimachinery v0.29.0
@@ -77,7 +78,7 @@ require (
 	github.com/goccy/go-json v0.9.11 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
-	github.com/golang/protobuf v1.5.3 // indirect
+	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/btree v1.0.1 // indirect
 	github.com/google/cel-go v0.20.0 // indirect
@@ -142,7 +143,6 @@ require (
 	golang.org/x/exp v0.0.0-20230515195305-f3d0a9c9a5cc // indirect
 	golang.org/x/mod v0.14.0 // indirect
 	golang.org/x/net v0.20.0 // indirect
-	golang.org/x/sync v0.6.0 // indirect
 	golang.org/x/term v0.16.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
 	golang.org/x/tools v0.16.1 // indirect
