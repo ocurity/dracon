@@ -1,12 +1,14 @@
+# Setup Go alpine to install buf protoc-gen-go plugin.
+# At the time of this changes, the buf image doesn't have a way to customise the plugins, so this is a more concise
+# solution.
 FROM golang:alpine AS golang
 ENV GO111MODULE=on
-
+RUN go install github.com/bufbuild/buf/cmd/buf@v1.45.0
 RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.35.1
 
-FROM bufbuild/buf:1.45.0 AS buf
-
+# Wrap everything together in a scratch container to do all things buf.
 FROM scratch
+COPY --from=golang /go/bin/buf /go/bin/buf
 COPY --from=golang /go/bin/protoc-gen-go /go/bin/protoc-gen-go
-COPY --from=buf /usr/local/bin/buf /usr/local/bin/buf
 ENV PATH="/go/bin:${PATH}"
-ENTRYPOINT ["/usr/local/bin/buf"]
+ENTRYPOINT ["/go/bin/buf"]
