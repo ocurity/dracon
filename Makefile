@@ -311,23 +311,35 @@ dev-deploy: deploy-cluster dev-infra dev-dracon
 dev-teardown:
 	@kind delete clusters dracon-demo
 
-build_buf_container:
+build-buf-container:
 	$(DOCKER) build . -t $(BUF_CONTAINER) -f containers/Dockerfile.buf
 
-run_buf: build_buf_container
-	$(DOCKER) run --volume "$(shell pwd):/workspace" --workdir /workspace $(BUF_CONTAINER) $(ARGS)
+run-buf: build-buf-container
+	$(eval BUF_TMP_DP_FOLDER:=buf-tmp)
+	@if [ ! -d "$(BUF_TMP_DP_FOLDER)" ]; then mkdir $(BUF_TMP_DP_FOLDER); fi
+	$(DOCKER) run \
+		--volume "$(shell pwd):/workspace" \
+		--volume $(BUF_TMP_DP_FOLDER):/tmp \
+		--workdir /workspace \
+		$(BUF_CONTAINER) \
+		$(ARGS)
+	@rm -rf $(BUF_TMP_DP_FOLDER)
 
-fmt-proto: build_buf_container
+fmt-proto: build-buf-container
 	@echo "Tidying up Proto files"
-	$(MAKE) run_buf ARGS="format -w"
+	$(MAKE) run-buf ARGS="format -w --exclude-path vendor/"
 
-lint-proto: build_buf_container
+lint-proto: build-buf-container
 	@echo "Linting Proto files"
-	$(MAKE) run_buf ARGS="lint --exclude-path vendor"
+	$(MAKE) run-buf ARGS="lint --exclude-path vendor/"
 
-generate-proto: build_buf_container
+generate-proto: build-buf-container
 	@echo "Generating Proto files"
-	$(MAKE) run_buf ARGS="generate"
+	$(MAKE) run-buf ARGS="generate"
+
+dep-update-proto: build-buf-container
+	@echo "Updating buf.lock deps"
+	$(MAKE) run-buf ARGS="dep update"
 
 ########################################
 ########### RELEASE UTILITIES ##########
