@@ -20,13 +20,14 @@ const (
 type (
 	enrichedIssue struct {
 		*v1.EnrichedIssue
-		ToolName       string
-		ScanStartTime  string
-		ScanID         string
-		ConfidenceText string
-		SeverityText   string
-		Count          uint
-		FirstFound     string
+		ToolName            string
+		ScanStartTime       string
+		ScanID              string
+		ConfidenceText      string
+		SeverityText        string
+		Count               uint
+		FirstFound          string
+		FixedCodeAnnotation string
 	}
 
 	enrichedIssueOption func(*enrichedIssue) error
@@ -122,6 +123,14 @@ func EnrichedIssueWithFirstFound(firstFound time.Time) enrichedIssueOption {
 		}
 		ff := firstFound.Format(time.RFC3339)
 		ei.FirstFound = ff
+		return nil
+	}
+}
+
+// EnrichedIssueWithFixedCodeAnnotation allows to define which of the annotations contains fixed code
+func EnrichedIssueWithFixedCodeAnnotation(fixedCodeAnnotation string) enrichedIssueOption {
+	return func(ei *enrichedIssue) error {
+		ei.FixedCodeAnnotation = fixedCodeAnnotation
 		return nil
 	}
 }
