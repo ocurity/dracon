@@ -333,9 +333,13 @@ lint-proto: build-buf-container
 	@echo "Linting Proto files"
 	$(MAKE) run-buf ARGS="lint --exclude-path vendor/"
 
+# Buf doesn't have a way to configure where to put the generated code from remote repositories;
+# that's why we make sure to correctly move it around. In this case it's just COM for OCSF types.
 generate-proto: build-buf-container
 	@echo "Generating Proto files"
 	$(MAKE) run-buf ARGS="generate"
+	@rm -rf api/gen
+	@mv com api/gen
 
 dep-update-proto: build-buf-container
 	@echo "Updating buf.lock deps"
