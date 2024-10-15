@@ -242,6 +242,14 @@ func TestDescriptionOptions(t *testing.T) {
 				ScanID: "scan-1",
 			},
 		},
+		{
+			name:    "valid code scan annotation returns no err",
+			option:  EnrichedIssueWithFixedCodeAnnotation("fixedCode"),
+			wantErr: false,
+			expectedEnrichedIssue: &enrichedIssue{
+				FixedCodeAnnotation: "fixedCode",
+			},
+		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			var ei enrichedIssue
