@@ -338,9 +338,9 @@ lint-proto: build-buf-container
 generate-proto: build-buf-container
 	@echo "Generating Proto files"
 	$(MAKE) run-buf ARGS="generate"
-	@rm -rf sdk/component/gen
-	@mkdir -p sdk/component/gen/com
-	@mv com sdk/component/gen
+	@rm -rf sdk/gen
+	@mkdir -p sdk/gen/com
+	@mv com sdk/gen
 
 dep-update-proto: build-buf-container
 	@echo "Updating buf.lock deps"
