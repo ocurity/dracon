@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/ocurity/dracon/sdk/component"
-	ocsf "github.com/ocurity/dracon/sdk/component/gen/com/github/ocsf/ocsf_schema/v1"
+	ocsf "github.com/ocurity/dracon/sdk/gen/com/github/ocsf/ocsf_schema/v1"
 )
 
 type (

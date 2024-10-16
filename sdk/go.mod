@@ -1,4 +1,4 @@
-module github.com/ocurity/dracon/sdk/component
+module github.com/ocurity/dracon/sdk
 
 go 1.23.0
 
