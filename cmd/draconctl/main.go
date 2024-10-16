@@ -15,6 +15,8 @@ import (
 	"github.com/ocurity/dracon/cmd/draconctl/components"
 	"github.com/ocurity/dracon/cmd/draconctl/migrations"
 	"github.com/ocurity/dracon/cmd/draconctl/pipelines"
+
+	_ "gorm.io/gorm"
 )
 
 var (

@@ -33,6 +33,7 @@ require (
 	golang.org/x/sync v0.6.0
 	google.golang.org/api v0.156.0
 	google.golang.org/protobuf v1.35.1
+	gorm.io/gorm v1.21.4
 	helm.sh/helm/v3 v3.14.4
 	k8s.io/api v0.29.0
 	k8s.io/apimachinery v0.29.0
@@ -93,6 +94,8 @@ require (
 	github.com/gregjones/httpcache v0.0.0-20180305231024-9cad4c3443a7 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.16.0 // indirect
 	github.com/imdario/mergo v0.3.13 // indirect
+	github.com/jinzhu/inflection v1.0.0 // indirect
+	github.com/jinzhu/now v1.1.1 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
