@@ -60,7 +60,7 @@ func (t testProducer) Store(ctx context.Context, findings []*ocsf.VulnerabilityF
 	return nil
 }
 
-func (t testSourcer) Source(ctx context.Context) error {
+func (t testSourcer) ProcessSource(ctx context.Context) error {
 	return nil
 }
 

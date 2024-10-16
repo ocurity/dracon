@@ -31,8 +31,8 @@ type (
 type (
 	// Sourcer defines the behaviour of source components.
 	Sourcer interface {
-		// Source runs an arbitrary step. Useful for interacting with third-party API - i.e. cloning a repository.
-		Source(ctx context.Context) error
+		// ProcessSource runs an arbitrary sourcing step. Useful for interacting with third-party API - i.e. cloning a repository.
+		ProcessSource(ctx context.Context) error
 	}
 
 	// Producer defines the behaviour of producer components.
