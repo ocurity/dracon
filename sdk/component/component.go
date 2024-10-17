@@ -8,64 +8,80 @@ import (
 
 // Helpers interfaces for common functionalities.
 type (
-	// Validator allows validating findings by a specified criteria.
+	// Validator allows validating vulnerability findings by a specified criteria.
 	Validator interface {
-		// Validate validates the supplied findings and returns an error if invalid.
-		Validate(ctx context.Context, findings []*ocsf.VulnerabilityFinding) error
+		// Validate validates the supplied vulnerability finding and returns an error if invalid.
+		Validate(finding *ocsf.VulnerabilityFinding) error
 	}
 
-	// Reader allows reading findings from a source.
+	// Reader allows reading vulnerability findings from a storage.
 	Reader interface {
-		// Read reads and parses findings from a source.
+		// Read reads vulnerability findings from a storage.
 		Read(ctx context.Context) ([]*ocsf.VulnerabilityFinding, error)
 	}
 
-	// Filterer allows filtering out findings by a specified criteria.
-	Filterer interface {
-		// Filter returns filtered findings from the supplied ones.
-		Filter(ctx context.Context, findings []*ocsf.VulnerabilityFinding) ([]*ocsf.VulnerabilityFinding, error)
+	// Storer allows storing vulnerability findings in an underlying storage.
+	Storer interface {
+		// Store stores vulnerability findings.
+		Store(ctx context.Context, findings []*ocsf.VulnerabilityFinding) error
+	}
+
+	// Updater allows updating vulnerability findings in an underlying storage.
+	Updater interface {
+		// Update updates existing vulnerability findings.
+		Update(ctx context.Context, findings []*ocsf.VulnerabilityFinding) error
+	}
+
+	// Unmarshaler allows defining behaviours to unmarshal data into vulnerability findings format.
+	Unmarshaler interface {
+		// Unmarshal unmarshals the receiver into vulnerability finding.
+		Unmarshal() (*ocsf.VulnerabilityFinding, error)
 	}
 )
 
 // Components interfaces.
 type (
-	// Sourcer defines the behaviour of source components.
-	Sourcer interface {
-		// ProcessSource runs an arbitrary sourcing step. Useful for interacting with third-party API - i.e. cloning a repository.
-		ProcessSource(ctx context.Context) error
+	// Target prepares the workflow environment.
+	Target interface {
+		// Prepare prepares the target to be scanned.
+		Prepare(ctx context.Context) error
 	}
 
-	// Producer defines the behaviour of producer components.
-	// Read -> Process -> Validate -> Store.
-	Producer interface {
+	// Scanner scans a target and produces vulnerability findings.
+	Scanner interface {
+		Storer
+
+		// Scan performs a scan on the prepared target and returns raw data.
+		Scan(ctx context.Context) ([]Unmarshaler, error)
+		// Transform transforms the raw data into vulnerability finding format.
+		Transform(ctx context.Context, payload Unmarshaler) (*ocsf.Vulnerability, error)
+	}
+
+	// Filter allows filtering out vulnerability findings by some criteria.
+	Filter interface {
 		Reader
-		Validator
+		Updater
 
-		// Process defines the producer behaviour.
-		Process(ctx context.Context, findings []*ocsf.VulnerabilityFinding) ([]*ocsf.VulnerabilityFinding, error)
-		// Store stores the findings into a destination.
-		Store(ctx context.Context, findings []*ocsf.VulnerabilityFinding) error
+		// Filter returns filtered findings from the supplied ones applying some criteria.
+		// It returns false if no findings have been filtered out.
+		Filter(findings []*ocsf.VulnerabilityFinding) ([]*ocsf.VulnerabilityFinding, bool, error)
 	}
 
-	// Enricher defines the behaviour of enricher components.
-	// Read -> Filter (optional) -> Annotate -> Update.
+	// Enricher allows enriching vulnerability findings by some criteria.
 	Enricher interface {
 		Reader
-		Filterer
+		Updater
 
-		// Annotate enriches the findings by some criteria.
+		// Annotate enriches vulnerability findings by some criteria.
 		Annotate(ctx context.Context, findings []*ocsf.VulnerabilityFinding) ([]*ocsf.VulnerabilityFinding, error)
-		// Update updates the existing findings in a destination.
-		Update(ctx context.Context, findings []*ocsf.VulnerabilityFinding) error
 	}
 
-	// Consumer defines the behaviour of consumer components.
-	// Read -> Process.
-	Consumer interface {
+	// Reporter advertises behaviours for reporting vulnerability findings.
+	Reporter interface {
 		Reader
 
-		// Process processes the findings and takes some action. Useful for interacting with third-party API or
-		// creating results - i.e. raising tickets.
-		Process(ctx context.Context, findings []*ocsf.VulnerabilityFinding) error
+		// Report reports vulnerability findings on a specified destination.
+		// i.e. raises them as tickets on your favourite ticketing system.
+		Report(ctx context.Context, findings []*ocsf.VulnerabilityFinding) error
 	}
 )

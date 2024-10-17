@@ -11,20 +11,34 @@ import (
 )
 
 type (
-	testSourcer struct{}
+	testTarget struct{}
 
-	testProducer struct{}
+	testScanner struct{}
 
 	testEnricher struct{}
 
-	testConsumer struct{}
+	testReporter struct{}
+
+	testFilter struct{}
 )
 
-func (t testConsumer) Read(ctx context.Context) ([]*ocsf.VulnerabilityFinding, error) {
+func (t testFilter) Read(ctx context.Context) ([]*ocsf.VulnerabilityFinding, error) {
 	return nil, nil
 }
 
-func (t testConsumer) Process(ctx context.Context, findings []*ocsf.VulnerabilityFinding) error {
+func (t testFilter) Filter(findings []*ocsf.VulnerabilityFinding) ([]*ocsf.VulnerabilityFinding, bool, error) {
+	return nil, false, nil
+}
+
+func (t testFilter) Update(ctx context.Context, findings []*ocsf.VulnerabilityFinding) error {
+	return nil
+}
+
+func (t testReporter) Read(ctx context.Context) ([]*ocsf.VulnerabilityFinding, error) {
+	return nil, nil
+}
+
+func (t testReporter) Report(ctx context.Context, findings []*ocsf.VulnerabilityFinding) error {
 	return nil
 }
 
@@ -32,41 +46,34 @@ func (t testEnricher) Read(ctx context.Context) ([]*ocsf.VulnerabilityFinding, e
 	return nil, nil
 }
 
-func (t testEnricher) Filter(ctx context.Context, findings []*ocsf.VulnerabilityFinding) ([]*ocsf.VulnerabilityFinding, error) {
-	return nil, nil
+func (t testEnricher) Update(ctx context.Context, findings []*ocsf.VulnerabilityFinding) error {
+	return nil
 }
 
 func (t testEnricher) Annotate(ctx context.Context, findings []*ocsf.VulnerabilityFinding) ([]*ocsf.VulnerabilityFinding, error) {
 	return nil, nil
 }
 
-func (t testEnricher) Update(ctx context.Context, findings []*ocsf.VulnerabilityFinding) error {
+func (t testScanner) Store(ctx context.Context, findings []*ocsf.VulnerabilityFinding) error {
 	return nil
 }
 
-func (t testProducer) Read(ctx context.Context) ([]*ocsf.VulnerabilityFinding, error) {
+func (t testScanner) Scan(ctx context.Context) ([]component.Unmarshaler, error) {
 	return nil, nil
 }
 
-func (t testProducer) Validate(ctx context.Context, findings []*ocsf.VulnerabilityFinding) error {
-	return nil
-}
-
-func (t testProducer) Process(ctx context.Context, findings []*ocsf.VulnerabilityFinding) ([]*ocsf.VulnerabilityFinding, error) {
+func (t testScanner) Transform(ctx context.Context, payload component.Unmarshaler) (*ocsf.Vulnerability, error) {
 	return nil, nil
 }
 
-func (t testProducer) Store(ctx context.Context, findings []*ocsf.VulnerabilityFinding) error {
-	return nil
-}
-
-func (t testSourcer) ProcessSource(ctx context.Context) error {
+func (t testTarget) Prepare(ctx context.Context) error {
 	return nil
 }
 
 func TestImplementations(t *testing.T) {
-	assert.Implements(t, (*component.Sourcer)(nil), testSourcer{})
-	assert.Implements(t, (*component.Producer)(nil), testProducer{})
+	assert.Implements(t, (*component.Target)(nil), testTarget{})
+	assert.Implements(t, (*component.Scanner)(nil), testScanner{})
 	assert.Implements(t, (*component.Enricher)(nil), testEnricher{})
-	assert.Implements(t, (*component.Consumer)(nil), testConsumer{})
+	assert.Implements(t, (*component.Reporter)(nil), testReporter{})
+	assert.Implements(t, (*component.Filter)(nil), testFilter{})
 }
