@@ -9,7 +9,7 @@ spec:
   params:
   - name: git-clone-url
     value: https://github.com/sqreen/go-dvwa.git
-  - name: enricher-custom-annotation-annotations
+  - name: enricher-custom-annotation-base-annotation
     value: |
       {"foo":"bar",
       "a":"b",
